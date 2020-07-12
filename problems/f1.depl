@@ -1,0 +1,78 @@
+types{
+    actor - object,
+}
+
+objects{
+    robot1 - actor,
+    alice - actor,
+    bob - actor
+}
+
+sagents{
+    robot1,
+}
+
+eagents{
+    alice,
+    bob
+}
+
+predicates{
+    phi,
+    psi,
+}
+
+constants{
+    self[?a - actor](?a, ?a),
+}
+
+initially{
+    phi,
+
+    C(~(B_robot1(phi)) & ~(B_robot1(~phi))),
+    C(~(B_alice(phi)) & ~(B_alice(~phi))),
+    C(~(B_bob(phi)) & ~(B_bob(~phi))),
+
+}
+
+goals{
+    B_alice(~phi)
+}
+
+actions{
+    tellPhi[?a - actor](?a){
+        owner{robot1},
+        constraint{~self(?a, robot1)},
+        observes{robot1},
+        observes{?a},
+        announces{phi}
+    }
+
+    tellNotPhi[?a - actor](?a){
+        owner{robot1},
+        constraint{~self(?a, robot1)},
+        observes{robot1},
+        observes{?a},
+        announces{~phi}
+    }
+
+    foo() {
+        owner{robot1},
+        precondition{phi},
+        observes[?o-actor]{?o},
+    }
+
+    foobar() {
+        owner{robot1},
+        precondition{phi},
+        observes[?o-actor]{?o},
+        causes{~phi},
+    }
+
+    sense() {
+        owner{robot1},
+        observes[?o-actor]{?o},
+        determines{phi}
+    }
+
+}

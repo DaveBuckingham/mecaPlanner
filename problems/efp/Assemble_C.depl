@@ -1,0 +1,71 @@
+types{}
+objects{
+    god - object,
+    a - object,
+    b - object,
+}
+agents{
+    god,
+    a{},
+    b{},
+}
+predicates{
+    qualify_a,
+    qualify_b,
+    assemble,
+    restart,
+}
+constants{}
+initially{
+    qualify_a,
+    qualify_b,
+}
+goals{
+    B_a(assemble),
+    B_b(assemble),
+}
+actions{
+    tell_b(){
+        owner{god}
+        precondition{B_a(qualify_a)},
+        announces{qualify_a},
+        observes{a},
+        observes{b},
+    }
+    act_assemble(){
+        owner{god}
+        precondition{C(qualify_a)},
+        precondition{C(qualify_b)},
+        causes{assemble},
+        observes{a},
+        observes{b},
+    }
+    tell_a(){
+        owner{god}
+        precondition{B_b(qualify_b)},
+        announces{qualify_b},
+        observes{a},
+        observes{b},
+    }
+    sense_b(){
+        owner{god}
+        precondition{(~B_b(qualify_b))},
+        precondition{(~B_b(~qualify_b))},
+        determines{qualify_b},
+        observes{b},
+    }
+    act_res(){
+        owner{god}
+        precondition{C(~qualify_a) | C(~qualify_b)},
+        causes{restart},
+        observes{a},
+        observes{b},
+    }
+    sense_a(){
+        owner{god}
+        precondition{(~B_a(qualify_a))},
+        precondition{(~B_a(~qualify_a))},
+        determines{qualify_a},
+        observes{a},
+    }
+}

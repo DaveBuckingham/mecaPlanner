@@ -1,0 +1,16 @@
+#!/bin/bash
+
+
+# WE EXPECT TWO PARAMETERS:
+# 1. THE FULLY-QUALIFIED (WITH PACKAGE NAME) NAME OF THE PARSER CLASS, I.E. THE .g4 FILE WITHOU THE FILE EXTENSION
+# 2. THE NAME OF THE INPUT FILE
+#
+# E.G. "./testGrammar depl.Depl problems/example.depl"
+
+
+if [[ $# -ne 2 ]]; then
+    echo "Illegal number of parameters"
+    exit 2
+fi
+
+java -cp "./build:./build/*:./lib/*" org.antlr.v4.gui.TestRig $1 init -gui $2

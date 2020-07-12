@@ -1,0 +1,48 @@
+types{
+}
+
+objects{
+    robot1-object,
+    child1-object,
+    child2-object
+}
+
+sagents{
+    child1,
+    child2,
+}
+
+eagents{}
+
+predicates{
+    muddy1,
+    muddy2
+}
+
+constants{
+}
+
+initially{
+    muddy1,
+    muddy2,
+
+    C(B_child1(muddy1 | muddy2)),
+    C(B_child2(muddy1 | muddy2)),
+
+//    C(~(B_child1(muddy1)) & ~(B_child1(~muddy1))),
+
+//    C(~(B_child1(muddy2)) & ~(B_child1(~muddy2))),
+//    C(B_child1(muddy2) | B_child1(~muddy2)),
+
+//    C(~(B_child2(muddy1)) & ~(B_child2(~muddy1))),
+    //C(~(B_child2(muddy2)) & ~(B_child2(~muddy2))),
+//    C(B_child2(muddy1) | B_child2(~muddy1)),
+
+}
+
+goals{
+}
+
+actions{
+
+}

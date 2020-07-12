@@ -1,0 +1,63 @@
+// DEFINE TYPE HEIRARCHY, EVERYTHING MUST BE AN "object".
+types{
+    robot-actor,
+    human-actor,
+    actor-locatable,
+    room-location,
+    locatable-object,
+    location-object
+}
+
+// DEFINE ALL OBJECTS (I.E. PREDICATE PARAMETERS) AND THEIR TYPES
+objects{
+    robot1-robot,
+    human1-human,
+    room1-room,
+    room2 - room,
+    room3 - room,
+}
+
+// DEFINE AGENT NAMES, STARTING WITH THE SYSTEM AGENT
+// AND GIVE MODEL CLASS NAMES FOR ANY ENVIRONMENT AGENTS WHOSE ACTIONS SHOULD BE PREDICTED
+agents{
+    robot1,
+    human1{TrivialModel},
+}
+
+// DEFINE PREDICATES, USE ANGLE BRACKETS TO DEFINE ANY VARIABLES
+// VARIABLES WILL FULLY EXPANDED, WITH GROUND PREDICATE FOR EACH VARIABLE VALUATION
+predicates{
+    at[?a - locatable, ?b - location](?a,?b),
+    isTuesday,
+}
+
+constants {
+}
+
+initially{
+    at(human1, room1),
+    at(robot1, room3),
+}
+
+// GOALS ARE ARBITRARY BELIEF FORMULAE
+// A GOAL STATE IS ANY STATE THAT SATISFIES ALL THE GOAL FORMULAE
+goals{
+    at(robot1,room1)
+}
+
+// DEFINE ACTIONS A LA (BARAL ET AL 2015)
+// AS WITH PREDICATE DEFINITION, VARIABLES CAN BE EXPANED
+// AT THE ACTION LEVEL OR AT THE LEVEL OF INDIVIDUAL FIELDS
+// VARIABLE SCOPE WILL BE RESPECTED
+actions{
+    move[?f-location,?t-location,?a-actor](?f,?t){
+        owner{?a},                                             // mandatory, not repeatable, who's action is it
+        cost{1},                                               // optional, not repeatable, the default is 1
+        observesif[?o - actor]{?o, (at(?o,?f) | at(?o,?t))},   // optional, repeatable, takes an agent and a fluent formula condition
+        precondition{at(?a, ?f)},                              // optional, repeatable, belief formulae
+        precondition{~at(?a, ?t)},                             // prevents trying to move to where you are
+        causes{at(?a, ?t)},                                    // optional, repeatable, makes this an *ontic* action, a fluent literal
+        causes{~(at(?a, ?f))},
+    }
+
+}

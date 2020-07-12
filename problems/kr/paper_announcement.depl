@@ -1,0 +1,40 @@
+types{
+    actor-object,
+}
+
+objects{
+    alice - actor,
+    bob - actor,
+    carol - actor
+}
+
+agents{
+    alice,
+    bob,
+    carol
+}
+
+predicates{
+    raining,
+}
+
+constants{
+}
+
+initially{
+}
+
+goals{
+    
+}
+
+actions{
+
+    tellRaining() {
+        owner{alice},
+        precondition{T},
+        observes[?o - actor]{?o},
+        announces{raining}
+    }
+
+}

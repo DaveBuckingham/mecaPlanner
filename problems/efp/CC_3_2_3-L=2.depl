@@ -1,0 +1,254 @@
+types{}
+objects{
+    god - object,
+    a - object,
+    b - object,
+    c - object,
+}
+agents{
+    god,
+    a{},
+    b{},
+    c{},
+}
+predicates{
+    at_a_1,
+    at_a_2,
+    at_a_3,
+    at_b_1,
+    at_b_2,
+    at_b_3,
+    at_c_1,
+    at_c_2,
+    at_c_3,
+    at_b1_1,
+    at_b1_3,
+    at_b2_1,
+    at_b2_3,
+}
+constants{}
+initially{
+    at_a_2,
+    at_b_2,
+    at_c_2,
+    at_b1_1,
+    at_b2_3,
+    C(at_a_2),
+    C(at_b_2),
+    C(at_c_2),
+    C(~at_a_1),
+    C(~at_b_1),
+    C(~at_c_1),
+    C(~at_a_3),
+    C(~at_b_3),
+    C(~at_c_3),
+}
+goals{
+    B_b(at_b2_3),
+}
+actions{
+    left_b(){
+        owner{god}
+        precondition{B_b(~at_b_1)},
+        causesif{~at_b_2, at_b_2},
+        causesif{~at_b_3, at_b_3},
+        causesif{at_b_1, at_b_2},
+        causesif{at_b_2, at_b_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    a_check_1(){
+        owner{god}
+        precondition{B_a(at_a_1)},
+        determines{at_b1_1},
+        determines{at_b2_1},
+        observes{a},
+    }
+    left_c(){
+        owner{god}
+        precondition{B_c(~at_c_1)},
+        causesif{~at_c_2, at_c_2},
+        causesif{~at_c_3, at_c_3},
+        causesif{at_c_1, at_c_2},
+        causesif{at_c_2, at_c_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    a_check_3(){
+        owner{god}
+        precondition{B_a(at_a_3)},
+        determines{at_b1_3},
+        determines{at_b2_3},
+        observes{a},
+    }
+    left_a(){
+        owner{god}
+        precondition{B_a(~at_a_1)},
+        causesif{~at_a_2, at_a_2},
+        causesif{~at_a_3, at_a_3},
+        causesif{at_a_1, at_a_2},
+        causesif{at_a_2, at_a_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b2_3(){
+        owner{god}
+        precondition{B_b(at_b2_3)},
+        announces{at_b2_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b1_3(){
+        owner{god}
+        precondition{B_b(at_b1_3)},
+        announces{at_b1_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    c_check_3(){
+        owner{god}
+        precondition{B_c(at_c_3)},
+        determines{at_b1_3},
+        determines{at_b2_3},
+        observes{c},
+    }
+    tell_b_b2_1(){
+        owner{god}
+        precondition{B_b(at_b2_1)},
+        announces{at_b2_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_a_b2_3(){
+        owner{god}
+        precondition{B_a(at_b2_3)},
+        announces{at_b2_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b1_1(){
+        owner{god}
+        precondition{B_b(at_b1_1)},
+        announces{at_b1_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b1_1(){
+        owner{god}
+        precondition{B_c(at_b1_1)},
+        announces{at_b1_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b2_1(){
+        owner{god}
+        precondition{B_c(at_b2_1)},
+        announces{at_b2_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b1_3(){
+        owner{god}
+        precondition{B_c(at_b1_3)},
+        announces{at_b1_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b2_3(){
+        owner{god}
+        precondition{B_c(at_b2_3)},
+        announces{at_b2_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    right_c(){
+        owner{god}
+        precondition{B_c(~at_c_3)},
+        causesif{~at_c_1, at_c_1},
+        causesif{~at_c_2, at_c_2},
+        causesif{at_c_2, at_c_1},
+        causesif{at_c_3, at_c_2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    right_b(){
+        owner{god}
+        precondition{B_b(~at_b_3)},
+        causesif{~at_b_1, at_b_1},
+        causesif{~at_b_2, at_b_2},
+        causesif{at_b_2, at_b_1},
+        causesif{at_b_3, at_b_2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    right_a(){
+        owner{god}
+        precondition{B_a(~at_a_3)},
+        causesif{~at_a_1, at_a_1},
+        causesif{~at_a_2, at_a_2},
+        causesif{at_a_2, at_a_1},
+        causesif{at_a_3, at_a_2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_a_b2_1(){
+        owner{god}
+        precondition{B_a(at_b2_1)},
+        announces{at_b2_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_a_b1_3(){
+        owner{god}
+        precondition{B_a(at_b1_3)},
+        announces{at_b1_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_a_b1_1(){
+        owner{god}
+        precondition{B_a(at_b1_1)},
+        announces{at_b1_1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    c_check_1(){
+        owner{god}
+        precondition{B_c(at_c_1)},
+        determines{at_b1_1},
+        determines{at_b2_1},
+        observes{c},
+    }
+    b_check_1(){
+        owner{god}
+        precondition{B_b(at_b_1)},
+        determines{at_b1_1},
+        determines{at_b2_1},
+        observes{b},
+    }
+    b_check_3(){
+        owner{god}
+        precondition{B_b(at_b_3)},
+        determines{at_b1_3},
+        determines{at_b2_3},
+        observes{b},
+    }
+}

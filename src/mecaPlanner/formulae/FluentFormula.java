@@ -1,0 +1,20 @@
+package mecaPlanner.formulae;
+
+import mecaPlanner.state.World;
+import mecaPlanner.state.KripkeStructure;
+
+import mecaPlanner.*;
+
+
+
+public abstract class FluentFormula extends BeliefFormula {
+
+    public abstract Boolean holds(World world);
+
+    public final Boolean holdsAtWorld(KripkeStructure kripke, World world) {
+        return this.holds(world);
+    }
+
+
+
+}

@@ -1,0 +1,118 @@
+package mecaPlanner.models;
+
+import mecaPlanner.agents.Agent;
+import mecaPlanner.state.NDState;
+import mecaPlanner.state.EpistemicState;
+import mecaPlanner.actions.Action;
+import mecaPlanner.Domain;
+
+
+import java.util.Objects;
+
+import java.util.Set;
+import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Arrays;
+
+
+public abstract class Model implements java.io.Serializable {
+
+
+
+    public Model() {
+    }
+
+
+
+    //public final Agent getAgent() {
+    //    return this.agent;
+    //}
+
+    // REQUIREMENTS:
+    // 1. each action requires and deletes at least one atom in atoms
+    // 2. each action creates some different atom in atoms
+    // 3. each atom is created by at least one action
+    // 4. each atom is a precondition of (and is deleted by) at least one action
+//    protected final Map<FluentAtom, Map<FluentAtom, int>> computeDistances(Set<OnticAction> actions,
+//                                                                           Set<FluentAtom> atoms) {
+//        Map<FluentAtom, Map<FluentAtom, int>> distanceMap = new HashMap<>();
+//
+//        Map<FluentAtom, Set<Action>> removedBy = new HashMap<>();
+//        Map<Action, Set<FluentAtom>> adds = new HashMap<>();
+//
+//        for (Action action : actions) {
+//            adds.put(action, new HashSet<FluentAtom>());
+//        }
+//
+//        for (FluentAtom atom : atoms) {
+//            removedBy.put(atom, new HashSet<Action>());
+//        }
+//
+//        for (Action action : actions) {
+//            for (BeliefFormula precondition : action.getPreconditions) {
+//                if (precondition instanceof FluentAtom) {
+//                    FluentAtom atomicPrecondition = (FluentAtom) precondition;
+//                    if (atoms.contains(atomicPrecondition)) {
+//                        for (FluentLiteral effect : action.getEffects()) {
+//                            if (atomicPrecondition.equals(effect.getAtom()) && effect.getValue().equals(false)) {
+//                                removedBy.get(atomicPrecondition).add(action);
+//                                break;
+//                            }
+//                        }
+//                    }
+//                }
+//            }
+//            for (FluentLiteral effect : action.getEffects()) {
+//                if (effect.getValue().equals(true) && atoms.contains(effect.getAtom())) {
+//                    adds.get(action).add(effect.getAtom());
+//                }
+//            }
+//        }
+//    }
+//
+//    Set<FluentAtom> badAtoms = new HashSet<>(atoms);
+//    for (Action action : actions) {
+//        boolean hasPrecondition = false;
+//        boolean hasEffect = false;
+//        for (FluentAtom atom : atoms) {
+//            for (BeliefFormula precondition : action.getPreconditions) {
+//                if (precondition instanceof FluentAtom) {
+//                    FluentAtom atomicPrecondition = (FluentAtom) precondition;
+//                    if (atoms.contains(atomicPrecondition)) {
+//                    }
+//                }
+//            }
+//        }
+//    }
+
+
+
+    // GET ALL ACTIONS WHOSE PRECONDITIONS ARE SATISFIED IN ALL DESIGANTED WORLDS
+    public static Set<Action> getSafeActions(NDState ndState, Agent agent) {
+        Set<Action> safeActions = new HashSet<Action>();
+        for (Action action : Domain.getAgentActions(agent)) {
+            if (action.necessarilyExecutable(ndState)){
+                safeActions.add(action);
+            }
+        }
+        return safeActions;
+    }
+
+    public static Action getSafeActionBySignature(String signature, EpistemicState eState, Agent agent) {
+
+        Action action = Domain.getActionBySignature(agent, signature);
+        if (!action.necessarilyExecutable(eState.getBeliefPerspective(agent))) {
+            throw new RuntimeException("requested action " + 
+                                       signature + " not necessarily executable for agent " +
+                                       agent.toString() + " in state: " + eState);
+        }
+        return action;
+    }
+
+    public abstract Set<Action> getPrediction(NDState ndState, Agent agent);
+
+
+}
+

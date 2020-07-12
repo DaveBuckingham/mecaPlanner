@@ -1,0 +1,1 @@
+for f in `find ~/planners/mepk/benchmarks/ -name *epddl -not -name *WordRooms*`;do echo $f; ./epddl2depl $f;done

@@ -1,0 +1,188 @@
+//////////////////////////////////////////
+//              SERENDIPITY
+//////////////////////////////////////////
+//                                      
+//      +-------+-------+
+//      |medkit2| triage|
+//      |       |       |
+//      |      7|      6|
+//      +--   --+--   --+-------+
+//      |       |       |medkit1|
+//      |                       |
+//      |      8|      5|      5|
+//      +-------+--   --+-------+
+//              |       |
+//              |       |
+//              |      4|
+//              +--   --+
+//              |       |                      
+//              |       |                      
+//              |      3|                      
+//              +--   --+-------+              
+//              |       | commx |              
+//              |               |              
+//              |      2|      1|              
+//              +-------+-------+
+//                                      
+//   H: move(1,2)
+//   R: pickup(medkit2)
+//   H: move(2,3)
+//   R: move(10,9)
+//   H: move(3,4)
+//   R: move(9,5)
+//   H: move(4,5)
+//   R: drop(medkit2)
+//   H: pickup(medkit2)
+//   R: wait
+//   H: move(6,7)
+//
+// Failed: human location: room 8, target box location: room 7
+//
+////////////////////////////////////////
+
+
+types{
+    robot-actor,
+    human-actor,
+    actor-locatable,
+    box-holdable,
+    holdable-locatable
+    locatable-object,
+    location-object
+}
+
+objects{
+    robot1-robot,
+    human1-robot,
+    room1 - locatable,
+    room2 - locatable,
+    room3 - locatable,
+    room4 - locatable,
+    room5 - locatable,
+    room6 - locatable,
+    room7 - locatable,
+    room8 - locatable,
+    box1 - box,
+    box2 - box,
+    box3 - box,
+    box4 - box,
+    box5 - box,
+}
+
+agents{
+    robot1,
+    human1{BurglerModel}
+}
+
+predicates{
+    at[?la - locatable, ?lb - location](?la,?lb),
+    has[?a - actor, ?h - holdable](?a,?h),
+    human_succeeded(),
+}
+
+constants{
+    covisible(room1,room2),
+    covisible(room2,room3),
+    covisible(room2,room4),
+    covisible(room2,room5),
+    covisible(room2,room6),
+    covisible(room3,room4),
+    covisible(room3,room5),
+    covisible(room3,room6),
+    covisible(room4,room5),
+    covisible(room4,room6),
+    covisible(room5,room6),
+    covisible(room6,room7),
+    covisible(room6,room8),
+    covisible(room7,room8),
+
+    covisible(room2,room1),
+    covisible(room3,room2),
+    covisible(room4,room2),
+    covisible(room5,room2),
+    covisible(room6,room2),
+    covisible(room4,room3),
+    covisible(room5,room3),
+    covisible(room6,room3),
+    covisible(room5,room4),
+    covisible(room6,room4),
+    covisible(room6,room5),
+    covisible(room7,room6),
+    covisible(room8,room6),
+    covisible(room8,room7),
+}
+
+initially{
+    //at(human1, room1),
+    // FOR WITHOUT ROBOT WAIT
+    at(human1, room2),
+    at(robot1, room6),
+    at(box1, room3),
+    at(box2, room4),
+    at(box3, room4),
+    at(box4, room6),
+    at(box5, room7),
+}
+
+goals{
+    ~human_succeeded() & timestep==7
+}
+
+actions{
+    move[?f-location,?t-location](?f,?t){
+        owner{human1},
+        precondition{at(human1, ?f)},
+        observesif[?l - location]{robot1, (at(robot1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        observes{human1},
+        causes{at(human1, ?t)},
+        causes{~(at(human1, ?f))},
+        causesif{human_succeeded, at(box4, ?t)}
+    }
+
+    move[?f-location,?t-location](?f,?t){
+        owner{robot1},
+        precondition{at(robot1, ?f)},
+        precondition[?b - box]{~has(robot1,?b)},
+        observesif[?l - location]{human1, (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        observes{robot1},
+        causes{at(robot1, ?t)},
+        causes{~(at(robot1, ?f))},
+    }
+
+    move_box[?f-location,?t-location,?b-box](?f,?t,?b){
+        owner{robot1},
+        precondition{at(robot1, ?f)},
+        precondition{has(robot1, ?b)},
+        observesif[?l - location]{human1, (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        observes{robot1},
+        causes{at(robot1, ?t)},
+        causes{at(?b, ?t)},
+        causes{~(at(robot1, ?f))},
+        causes{~(at(?b, ?f))},
+    }
+
+    pickup_box[?l-location,?b-box](?l,?b){
+        owner{robot1},
+        precondition{at(robot1, ?f)},
+        precondition{~has(robot1, ?b)},
+        observesif[?hl - location]{human1, (at(human1,?hl) & covisible(?hl,?l))},
+        observes{robot1},
+        causes{has(robot1, ?b)},
+    }
+
+    drop_box[?l-location,?b-box](?l,?b){
+        owner{robot1},
+        precondition{at(robot1, ?f)},
+        precondition{has(robot1, ?b)},
+        observesif[?hl - location]{human1, (at(human1,?hl) & covisible(?hl,?l))},
+        observes{robot1},
+        causes{~has(robot1, ?b)},
+    }
+
+    wait[?a - actor,?l-location](?l) {
+        owner{?a},
+        observes{?a},
+        observesif[?o-actor,?ol - location]{?o, (at(?o,?ol) & covisible(?ol,?l))},
+    }
+
+}

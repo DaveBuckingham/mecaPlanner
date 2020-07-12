@@ -1,0 +1,43 @@
+types{
+    actor-object,
+}
+
+objects{
+    alice - actor,
+    bob - actor,
+    carol - actor
+}
+
+agents{
+    alice,
+    bob,
+    carol
+}
+
+predicates{
+    closed,
+    looking[?a-actor](?a),
+    locked,
+}
+
+constants{
+}
+
+initially{
+}
+
+goals{
+}
+
+actions{
+
+    openDoor[](){
+        owner{alice},
+        precondition{~locked},
+        precondition{closed},
+        observesif[?o - actor]{?o, looking(?o)},
+        causes{~closed},
+    }
+
+}
+

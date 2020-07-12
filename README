@@ -1,0 +1,54 @@
+
+******************** THIS FILE IS STILL IN PROGRESS!!! ******************
+
+
+BUILD:
+The make file isn't great, I know, but it works ok
+To build the depl parser and the planer: $ make
+To build the simulator: $ make simulator
+When things get weird: $ make clean
+
+
+
+DEPL:
+= language to define planning problems.
+The grammar is defined in "src/deplParser/Depl.g4",
+which is written in the ANTLR meta-language, which is simmilar to a BNF.
+
+
+
+TOUR:
+Some of the main directories and files to look at.
+
+src/simulator/Simulator.java
+This simulator reads a serialized plan and a domain. It transitions states by
+applying actions from the planner and queries the user to select e-agent actions
+from among the actions predicted by the e-agent's model.
+
+src/mecaPlanner/Planner.java
+The main class for running the planner. Reads options, and planner input, runs
+search, prints/saves solution.
+
+src/mecaPlanner/Search.java
+This is the actually planner search. We can probably call this directly from the
+simulation and not use Planner.java
+
+src/mecaPlanner/Domain.java
+A static class (for now). The domain file fills this out, and its read by
+several classes at different times during planning.
+
+
+
+OUTPUT:
+The output is a "Solution" object ("src/maePlanner/Solution.java"). If the
+planner failed, the "failed()" method will return "true". Otherwise, the
+"getPolicy()" method will return a map from epistemic states
+("src/maePlanner/EpistemicState.java") to actions ("src/maePlanner/Action.java"
+and its various subclasses) that is a safe, non-syclic solution to the
+problem. "getDepth()" gives the (worst case) number of actions needed to reach
+a goals state, and "getCost()" gives the sum of the costs of those actions.
+
+
+----- SIMULATOR -----
+
+gg

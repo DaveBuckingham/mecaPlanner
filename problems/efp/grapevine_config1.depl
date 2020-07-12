@@ -1,0 +1,265 @@
+types{}
+objects{
+    god - object,
+    a - object,
+    b - object,
+    c - object,
+}
+agents{
+    god,
+    a{},
+    b{},
+    c{},
+}
+predicates{
+    at_a_1,
+    at_a_2,
+    at_b_1,
+    at_b_2,
+    at_c_1,
+    at_c_2,
+    sa,
+    sb,
+    sc,
+}
+constants{}
+initially{
+    at_a_1,
+    at_b_1,
+    at_c_1,
+    sa,
+    sb,
+    sc,
+    C(at_a_1),
+    C(at_b_1),
+    C(at_c_1),
+    C(~at_a_2),
+    C(~at_b_2),
+    C(~at_c_2),
+    C(B_a(sa) | B_a(~sa)),
+    C(B_b(sb) | B_b(~sb)),
+    C(B_c(sc) | B_c(~sc)),
+}
+goals{
+    B_a(sb),
+    (~B_c(sb)),
+    B_b(B_a((~B_c(sb)))),
+}
+actions{
+    left_b(){
+        owner{god}
+        precondition{at_b_2},
+        causes{~at_b_2},
+        causes{at_b_1},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_a_sb_2(){
+        owner{god}
+        precondition{B_a(sb)},
+        precondition{at_a_2},
+        announces{sb},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_a_sc_1(){
+        owner{god}
+        precondition{B_a(sc)},
+        precondition{at_a_1},
+        announces{sc},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    left_c(){
+        owner{god}
+        precondition{at_c_2},
+        causes{~at_c_2},
+        causes{at_c_1},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_a_sc_2(){
+        owner{god}
+        precondition{B_a(sc)},
+        precondition{at_a_2},
+        announces{sc},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    left_a(){
+        owner{god}
+        precondition{at_a_2},
+        causes{~at_a_2},
+        causes{at_a_1},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_b_sa_1(){
+        owner{god}
+        precondition{B_b(sa)},
+        precondition{at_b_1},
+        announces{sa},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_b_sb_2(){
+        owner{god}
+        precondition{B_b(sb)},
+        precondition{at_b_2},
+        announces{sb},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_b_sc_1(){
+        owner{god}
+        precondition{B_b(sc)},
+        precondition{at_b_1},
+        announces{sc},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_b_sa_2(){
+        owner{god}
+        precondition{B_b(sa)},
+        precondition{at_b_2},
+        announces{sa},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_b_sb_1(){
+        owner{god}
+        precondition{B_b(sb)},
+        precondition{at_b_1},
+        announces{sb},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    right_c(){
+        owner{god}
+        precondition{at_c_1},
+        causes{at_c_2},
+        causes{~at_c_1},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    right_b(){
+        owner{god}
+        precondition{at_b_1},
+        causes{at_b_2},
+        causes{~at_b_1},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    right_a(){
+        owner{god}
+        precondition{at_a_1},
+        causes{at_a_2},
+        causes{~at_a_1},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_c_sb_2(){
+        owner{god}
+        precondition{B_c(sb)},
+        precondition{at_c_2},
+        announces{sb},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_c_sc_1(){
+        owner{god}
+        precondition{B_c(sc)},
+        precondition{at_c_1},
+        announces{sc},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_b_sc_2(){
+        owner{god}
+        precondition{B_b(sc)},
+        precondition{at_b_2},
+        announces{sc},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_c_sc_2(){
+        owner{god}
+        precondition{B_c(sc)},
+        precondition{at_c_2},
+        announces{sc},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_c_sa_1(){
+        owner{god}
+        precondition{B_c(sa)},
+        precondition{at_c_1},
+        announces{sa},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_c_sa_2(){
+        owner{god}
+        precondition{B_c(sa)},
+        precondition{at_c_2},
+        announces{sa},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_c_sb_1(){
+        owner{god}
+        precondition{B_c(sb)},
+        precondition{at_c_1},
+        announces{sb},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_a_sa_1(){
+        owner{god}
+        precondition{B_a(sa)},
+        precondition{at_a_1},
+        announces{sa},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+    share_a_sa_2(){
+        owner{god}
+        precondition{B_a(sa)},
+        precondition{at_a_2},
+        announces{sa},
+        observesif{a, at_a_2},
+        observesif{b, at_b_2},
+        observesif{c, at_c_2},
+    }
+    share_a_sb_1(){
+        owner{god}
+        precondition{B_a(sb)},
+        precondition{at_a_1},
+        announces{sb},
+        observesif{a, at_a_1},
+        observesif{b, at_b_1},
+        observesif{c, at_c_1},
+    }
+}

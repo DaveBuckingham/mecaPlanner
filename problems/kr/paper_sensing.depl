@@ -1,0 +1,40 @@
+types{
+    actor-object,
+}
+
+objects{
+    alice - actor,
+    bob - actor,
+}
+
+agents{
+    alice,
+    bob,
+}
+
+predicates{
+    key,
+    tails,
+}
+
+constants{
+}
+
+initially{
+}
+
+goals{
+    
+}
+
+actions{
+
+    lookBox[]() {
+        owner{alice},
+        precondition{key},
+        observes[]{alice},
+        aware[]{bob},
+        determines{tails},
+    }
+
+}

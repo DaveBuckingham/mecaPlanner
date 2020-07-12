@@ -1,0 +1,74 @@
+OPTIMIZATIONS
+    fast check for agent type at depth
+
+
+NEEDED FOR AIJ PAPER
+    fail conditions?
+    all agents automatically perform observations after any agent's ontic and announcement actions?
+    replanning (policy updates?)?
+    !plan for model learning, track models through search tree
+    !model updates
+
+DONE FOR AIJ
+    arbitrary agent turn order (recode search algo)
+    read config files
+    time formulae for goals
+    conditional effects ('hiding')
+    constants, constant removal
+    observesif (and causesif, and what else?) should check constants as well as fluents
+    handle mulitple observes and observesif rules per agent, probably or them together
+
+
+add a new abstract class for NonPassiveAgents
+
+redo test: getworlds only gives form worlds.
+
+beliefRelation and KnowledgeRelation subtypes, just for type safety in kripkeStructure constructor
+
+try to execute an action without preconditions satisfied, e.g. using test system: not caught except that there is no designated world...
+
+if an initially statement has unmatched parens, e.g. 'C(inKitchen(bob)', this isn't caught by parser and gives funky initial state
+
+improve makefile, still finnicky
+
+when printing policy, give agent names instead of just agent number
+
+currently i don't think we check that the "owner" field of actions is sensible
+
+observesif uses undefined type in expansion, catch error
+
+can't expand on 'object' type
+
+predicates as action parameters, variables?
+
+iterated dfs: iterate cost instead of # actions?
+
+
+
+heurisitics to speed search
+heuristics to stop before goal, time limits?
+common knowledge
+real fluents
+probability
+
+
+
+DAGSTUHL
+
+    APPLICATIONS
+        cooperative agents
+        purley adversarial games
+        assistive agent problems
+        security games
+    PROBLEMS
+      * Gossip (f) [a,c,d]
+        Hanabi (b,z) [d,z,h]
+        Clue [b,h,z]
+        Scotland yard
+        Bitstring
+        BlocksWorld For Teams - BW4T
+        
+    BENCHMARKS
+
+
+

@@ -1,0 +1,101 @@
+types{}
+objects{
+    god - object,
+    a - object,
+    b - object,
+    c - object,
+}
+agents{
+    god,
+    a{},
+    b{},
+    c{},
+}
+predicates{
+    q,
+    at_1,
+    at_2,
+    at_3,
+    at_4,
+}
+constants{}
+initially{
+    at_1,
+    q,
+    C(at_1),
+    C(~at_2),
+    C(~at_3),
+    C(~at_4),
+}
+goals{
+    B_a(B_c(B_a(q))),
+    B_c(B_a(B_c(q))),
+}
+actions{
+    left(){
+        owner{god}
+        precondition{~at_1},
+        causesif{at_3, at_4},
+        causesif{~at_4, at_4},
+        causesif{at_2, at_3},
+        causesif{~at_3, at_3},
+        causesif{at_1, at_2},
+        causesif{~at_2, at_2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    shout_4(){
+        owner{god}
+        precondition{B_a(q)},
+        precondition{at_4},
+        announces{q},
+        observes{a},
+        observes{c},
+    }
+    sense(){
+        owner{god}
+        precondition{at_2},
+        determines{q},
+        observes{a},
+    }
+    shout_3(){
+        owner{god}
+        precondition{B_a(q)},
+        precondition{at_3},
+        announces{q},
+        observes{b},
+        observes{c},
+    }
+    right(){
+        owner{god}
+        precondition{~at_4},
+        causesif{at_2, at_1},
+        causesif{~at_1, at_1},
+        causesif{at_3, at_2},
+        causesif{~at_2, at_2},
+        causesif{at_4, at_3},
+        causesif{~at_3, at_3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    shout_2(){
+        owner{god}
+        precondition{B_a(q)},
+        precondition{at_2},
+        announces{q},
+        observes{a},
+        observes{b},
+        observes{c},
+        observes{a},
+    }
+    shout_1(){
+        owner{god}
+        precondition{B_a(q)},
+        precondition{at_1},
+        announces{q},
+        observes{a},
+        observes{b},
+    }
+}

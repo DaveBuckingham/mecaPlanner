@@ -1,0 +1,217 @@
+types{}
+objects{
+    god - object,
+    a - object,
+    b - object,
+    c - object,
+}
+agents{
+    god,
+    a{},
+    b{},
+    c{},
+}
+predicates{
+    at_a_1,
+    at_a_2,
+    at_a_3,
+    at_b_1,
+    at_b_2,
+    at_b_3,
+    at_c_1,
+    at_c_2,
+    at_c_3,
+    b1,
+    b2,
+    b3,
+}
+constants{}
+initially{
+    at_a_2,
+    at_b_2,
+    at_c_2,
+    b1,
+    b2,
+    b3,
+    C(at_a_2),
+    C(at_b_2),
+    C(at_c_2),
+    C(~at_a_1),
+    C(~at_b_1),
+    C(~at_c_1),
+    C(~at_a_3),
+    C(~at_b_3),
+    C(~at_c_3),
+}
+goals{
+    B_c(b3),
+    C(b1),
+    C(b2),
+}
+actions{
+    left_b(){
+        owner{god}
+        precondition{~at_b_1},
+        causesif{~at_b_2, at_b_2},
+        causesif{~at_b_3, at_b_3},
+        causesif{at_b_1, at_b_2},
+        causesif{at_b_2, at_b_3},
+        observes{b},
+    }
+    left_c(){
+        owner{god}
+        precondition{~at_c_1},
+        causesif{~at_c_2, at_c_2},
+        causesif{~at_c_3, at_c_3},
+        causesif{at_c_1, at_c_2},
+        causesif{at_c_2, at_c_3},
+        observes{c},
+    }
+    left_a(){
+        owner{god}
+        precondition{~at_a_1},
+        causesif{~at_a_2, at_a_2},
+        causesif{~at_a_3, at_a_3},
+        causesif{at_a_1, at_a_2},
+        causesif{at_a_2, at_a_3},
+        observes{a},
+    }
+    sense_b2_c(){
+        owner{god}
+        precondition{at_c_3},
+        determines{b2},
+        determines{b3},
+        observes{c},
+    }
+    sense_b1_c(){
+        owner{god}
+        precondition{at_c_1},
+        determines{b1},
+        observes{c},
+    }
+    sense_b2_b(){
+        owner{god}
+        precondition{at_b_3},
+        determines{b2},
+        determines{b3},
+        observes{b},
+    }
+    sense_b1_b(){
+        owner{god}
+        precondition{at_b_1},
+        determines{b1},
+        observes{b},
+    }
+    sense_b2_a(){
+        owner{god}
+        precondition{at_a_3},
+        determines{b2},
+        determines{b3},
+        observes{a},
+    }
+    right_c(){
+        owner{god}
+        precondition{~at_c_3},
+        causesif{~at_c_1, at_c_1},
+        causesif{~at_c_2, at_c_2},
+        causesif{at_c_2, at_c_1},
+        causesif{at_c_3, at_c_2},
+        observes{c},
+    }
+    sense_b1_a(){
+        owner{god}
+        precondition{at_a_1},
+        determines{b1},
+        observes{a},
+    }
+    right_b(){
+        owner{god}
+        precondition{~at_b_3},
+        causesif{~at_b_1, at_b_1},
+        causesif{~at_b_2, at_b_2},
+        causesif{at_b_2, at_b_1},
+        causesif{at_b_3, at_b_2},
+        observes{b},
+    }
+    tell_a_b3(){
+        owner{god}
+        precondition{B_a(b3)},
+        announces{b3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    right_a(){
+        owner{god}
+        precondition{~at_a_3},
+        causesif{~at_a_1, at_a_1},
+        causesif{~at_a_2, at_a_2},
+        causesif{at_a_2, at_a_1},
+        causesif{at_a_3, at_a_2},
+        observes{a},
+    }
+    tell_a_b2(){
+        owner{god}
+        precondition{B_a(b2)},
+        announces{b2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b3(){
+        owner{god}
+        precondition{B_b(b3)},
+        announces{b3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b1(){
+        owner{god}
+        precondition{B_b(b1)},
+        announces{b1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b2(){
+        owner{god}
+        precondition{B_c(b2)},
+        announces{b2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_b_b2(){
+        owner{god}
+        precondition{B_b(b2)},
+        announces{b2},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b3(){
+        owner{god}
+        precondition{B_c(b3)},
+        announces{b3},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_a_b1(){
+        owner{god}
+        precondition{B_a(b1)},
+        announces{b1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+    tell_c_b1(){
+        owner{god}
+        precondition{B_c(b1)},
+        announces{b1},
+        observes{a},
+        observes{b},
+        observes{c},
+    }
+}
