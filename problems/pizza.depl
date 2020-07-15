@@ -1,0 +1,82 @@
+types{
+    robot-actor,
+    human-actor,
+    actor-locatable,
+    food-locatable,
+    locatable-object,
+    location-object
+}
+
+objects{
+    robot1-robot,
+    human1-human,
+    pizza-food,
+    hotdog-food,
+    room1 - location,
+    room2 - location,
+}
+
+agents{
+    human1{PizzaModel},
+    robot1,
+}
+
+atoms{
+    at[?a - locatable, ?b - location](?a,?b),
+    human_hungry(),
+    door_open(),
+    robot_charged(),
+}
+
+constants{
+}
+
+initially{
+    at(human1, room1),
+    at(robot1, room1),
+    human_hungry(),
+}
+
+goals{
+    robot_charged(),
+}
+
+actions{
+    move[?f-location,?t-location,?a-actor](?f,?t){
+        owner{?a},
+        precondition{at(?a, ?f)},
+        precondition{door_open()},
+        observes[?o-actor]{?o},
+        causes{at(?a, ?t)},
+        causes{~(at(?a, ?f))},
+    }
+
+    open_door[](){
+        owner{human1},
+        precondition{~door_open()},
+        observes[?o-actor]{?o},
+        causes{door_open()},
+    }
+
+    eat[?f-food,?l-location,?r-robot](?f,?l){
+        owner{?r},
+        precondition{at(?r, ?l)},
+        precondition{at(?f, ?l)},
+        observes[?o-actor]{?o},
+        causes{~(at(?f, ?l))},
+    }
+
+    eat[?f-food,?l-location,?h-human](?f,?l){
+        owner{?h},
+        precondition{at(?h, ?l)},
+        precondition{at(?f, ?l)},
+        observes[?o-actor]{?o},
+        causes{~(at(?f, ?l))},
+        causes{~(human_hungry())},
+    }
+
+    wait[?a - actor]() {
+        owner{?a},
+        observes[?o-actor]{?o},
+    }
+}
