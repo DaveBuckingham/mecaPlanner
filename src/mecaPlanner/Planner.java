@@ -38,6 +38,8 @@ public class Planner {
 
     static Boolean assumeCommonKnowledge = null;
     static Boolean reduceStates = null;
+    static Boolean printSolutionStates = null;
+    static String saveSolution = null;
 
 
 
@@ -91,6 +93,8 @@ public class Planner {
 
         Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
         Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
+        Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
+        Planner.saveSolution = prop.getProperty("saveSolution", "");
         Log.setThreshold(prop.getProperty("logThreshold", "info"));
         Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
@@ -144,22 +148,23 @@ public class Planner {
             System.exit(1);
         }
 
+        // WE NEED A BETTER SYSTEM THAN THIS
         assert(solutions.size() == 1);
 
         Solution solution = solutions.iterator().next();
 
         System.out.println(solution);
 
-
-        try {
-            FileOutputStream fileOut =
-            new FileOutputStream("plan.sol");
-            ObjectOutputStream out = new ObjectOutputStream(fileOut);
-            out.writeObject(solution);
-            out.close();
-            fileOut.close();
-        } catch (IOException i) {
-            i.printStackTrace();
+        if (!Planner.saveSolution.isEmpty()) {
+            try {
+                FileOutputStream fileOut = new FileOutputStream(Planner.saveSolution);
+                ObjectOutputStream out = new ObjectOutputStream(fileOut);
+                out.writeObject(solution);
+                out.close();
+                fileOut.close();
+            } catch (IOException i) {
+                i.printStackTrace();
+            }
         }
 
 

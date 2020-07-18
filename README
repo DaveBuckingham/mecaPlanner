@@ -1,25 +1,20 @@
 
- //==========================================================================\\
-||                                                                            ||
-||                        welcome to the readme for the                       ||
-||         Multi-agent Epistemic Cooperation-Agnostic (MECA) Planner          ||
-||                          david.buckingham@tufts.edu                        ||
-||                                                                            ||
- \\==========================================================================//
+Multi-agent Epistemic Cooperation-Agnostic (MECA) Planner
+david.buckingham@tufts.edu
 
  
 +---------------------------------------+
 |                BUILD                  |
 +---------------------------------------+
 
-Build the problem parser and the planer:
+Build the planer:
 
 $ make
 
-Among other things, this generates "meca" and "mecad", the difference is that mecad 
-turns on java asserts: most of the planner's run-time error checking uses
-asserts instead of exceptions. In general, however, I try to use exceptions when
-checking user input such as problem files, configuration files, and model files.
+Among other things, this generates "meca" and "mecad", the difference is that
+mecad turns on java asserts: most of the planner's run-time error checking uses
+asserts instead of exceptions. I try to use exceptions when checking user input
+such as problem files, configuration files, and model files.
 
 
 Build the simulator:
@@ -35,22 +30,21 @@ If things get weird:
 
 $ make clean
 
-In general, building java projects with Make is tricky (See the O'Reilly book
-"Managing Projects with GNU Make"), and I'm not that good at Make anyway.  This
-build system is prone to breaking.
+Building java projects with Make can be tricky (See the O'Reilly book "Managing
+Projects with GNU Make"), and I'm not that good at Make anyway: this build
+system is prone to breaking.
 
 
 +---------------------------------------+
 |                 EXAMPLE               |
 +---------------------------------------+
 
-$ ./meca problems/pizza.depl
-
+$ ./mecad problems/pizza.depl configs/example.conf
 
 The planner takes one required argument and one optional argument.
 The required argument is a .depl file describing a planning problem.
-The optional argument is a planner configuration file.
-The arguments can appear in any order.
+The optional argument is a .conf configuration file.
+The order doesn't matter, the filename extensions do.
 
 +---------------------------------------+
 |         CONFIGURATION FILES           |

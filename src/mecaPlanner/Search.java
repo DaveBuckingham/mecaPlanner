@@ -232,12 +232,20 @@ public class Search {
             Set<Action> possibleActions = new HashSet<Action>();
             Set<Action> prediction = eAgent.getModel().getPrediction(estate.getBeliefPerspective(eAgent), eAgent);
 
+            if (prediction == null) {
+                throw new RuntimeException("Model returned null, indicating model failure.");
+            }
+
             Log.debug(eAgent.getName() + " prediction:");
             for (Action action : prediction) {
                 Log.debug("  " + action.getSignature());
                 if (action.executable(estate) && action.necessarilyExecutable(estate.getBeliefPerspective(eAgent))) {
                     possibleActions.add(action);
                 }
+            }
+
+            if (possibleActions.isEmpty) {
+                Log.warning("Model for " + eAgent.getName() + "predicted no necessarily executable action.");
             }
 
             return possibleActions;
