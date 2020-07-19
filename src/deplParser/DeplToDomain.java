@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import java.io.IOException;
+
 
 public class DeplToDomain extends DeplBaseVisitor {
 
@@ -34,9 +36,6 @@ public class DeplToDomain extends DeplBaseVisitor {
     private Map<String, TypeNode> typeDefs;  // key is type name
 
     private Set<Agent> allAgentsForAction;
-
-
-
 
     private Stack<Map<String, String>> variableStack = new Stack<Map<String, String>>();
 
@@ -240,7 +239,28 @@ public class DeplToDomain extends DeplBaseVisitor {
         }
     }
 
-    public void buildDomain (ParseTree tree) {
+    //public void buildDomain (ParseTree tree) {
+    //    Domain.clear();
+    //    visit(tree);
+    //}
+
+
+    public void buildDomain (String deplFileName) {
+
+        CharStream inputStream = null;
+        try {
+            inputStream = CharStreams.fromFileName(deplFileName);
+        }
+        catch (IOException e) {
+            System.err.println("failed to read input depl file: " + e.getMessage());
+            System.exit(1);
+        }
+
+        DeplLexer lexer          = new DeplLexer(inputStream);
+        CommonTokenStream tokens = new CommonTokenStream(lexer);
+        DeplParser parser        = new DeplParser(tokens);
+        ParseTree tree           = parser.init();
+
         Domain.clear();
         visit(tree);
     }

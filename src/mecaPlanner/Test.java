@@ -225,7 +225,8 @@ public class Test {
 
 
     private static void showActions(String deplFile) {
-        parseDepl(deplFile);
+        DeplToDomain visitor = new DeplToDomain();
+        visitor.buildDomain(deplFile);
         for (Action action : Domain.getAllActions()) {
             System.out.println(action);
         }
@@ -239,7 +240,8 @@ public class Test {
 
     private static void runActions(String deplFile, List<String> actionNames) {
 
-        parseDepl(deplFile);
+        DeplToDomain visitor = new DeplToDomain();
+        visitor.buildDomain(deplFile);
 
         List<Action> inputActions = new ArrayList<>();
 
@@ -701,28 +703,7 @@ public class Test {
         return true;
     }
 
-    private static void parseDepl(String filename) {
 
-        CharStream input = null;
-        try {
-            input = CharStreams.fromFileName(filename);
-        }
-        catch (IOException e) {
-            System.out.println("failed to read input depl file: " + e.getMessage());
-            System.exit(1);
-        }
-
-        DeplLexer lexer          = new DeplLexer(input);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        DeplParser parser        = new DeplParser(tokens);
-        ParseTree tree           = parser.init();
-
-        DeplToDomain visitor     = new DeplToDomain();
-
-
-        visitor.buildDomain(tree);
-
-    }
 
 
 

@@ -107,24 +107,25 @@ public class Planner {
 
         Log.info("loading domain");
 
-        CharStream inputStream = null;
-        try {
-            inputStream = CharStreams.fromFileName(deplFileName);
-        }
-        catch (IOException e) {
-            System.err.println("failed to read input depl file: " + e.getMessage());
-            System.exit(1);
-        }
-
-
-        DeplLexer lexer          = new DeplLexer(inputStream);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        DeplParser parser        = new DeplParser(tokens);
-        ParseTree tree           = parser.init();
+//        CharStream inputStream = null;
+//        try {
+//            inputStream = CharStreams.fromFileName(deplFileName);
+//        }
+//        catch (IOException e) {
+//            System.err.println("failed to read input depl file: " + e.getMessage());
+//            System.exit(1);
+//        }
+//
+//
+//        DeplLexer lexer          = new DeplLexer(inputStream);
+//        CommonTokenStream tokens = new CommonTokenStream(lexer);
+//        DeplParser parser        = new DeplParser(tokens);
+//        ParseTree tree           = parser.init();
 
         DeplToDomain visitor     = new DeplToDomain();
+        visitor.buildDomain(deplFileName);
 
-        visitor.buildDomain(tree);
+//        visitor.buildDomain(tree);
 
         Log.info("done loading domain");
 

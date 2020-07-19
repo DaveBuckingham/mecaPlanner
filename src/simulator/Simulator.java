@@ -80,24 +80,8 @@ public class Simulator {
         }
 
 
-        CharStream inputStream = null;
-        try {
-            inputStream = CharStreams.fromFileName(deplFileName);
-        }
-        catch (IOException e) {
-            System.err.println("failed to read input depl file: " + e.getMessage());
-            System.exit(1);
-        }
-
-
-        DeplLexer lexer          = new DeplLexer(inputStream);
-        CommonTokenStream tokens = new CommonTokenStream(lexer);
-        DeplParser parser        = new DeplParser(tokens);
-        ParseTree tree           = parser.init();
-
         DeplToDomain visitor     = new DeplToDomain();
-
-        visitor.buildDomain(tree);
+        visitor.buildDomain(deplFileName);
 
         Log.info("done loading domain");
 
@@ -154,7 +138,7 @@ public class Simulator {
                 for (Solution s : solutions) {
                     if (perspective.equals(s.getPerspective())) {
                         action = s.getAction();
-                        System.out.println("SYSTEM ACTION: " + action.getSignature() + "\n");
+                        System.out.println(agent + ": " + action.getSignature() + "\n");
                         solutions = s.getChildren();
                         foundPerspective = true;
                         break;
@@ -172,12 +156,18 @@ public class Simulator {
                     options.add(a);
                     index += 1;
                 }
+                assert(options.size() > 0);
                 Integer selection = -1;
-                while (selection < 0 || selection >= index) {
-                    selection = stdin.nextInt();
+                if (options.size() > 1) {
+                    while (selection < 0 || selection >= index) {
+                        selection = stdin.nextInt();
+                    }
+                }
+                else {
+                    selection = 0;
                 }
                 action = options.get(selection);
-                System.out.println("ENVIRONMENT ACTION: " + action.getSignature() + "\n");
+                System.out.println(eAgent + ": " + action.getSignature() + "\n");
             }
 
             assert (action != null);
