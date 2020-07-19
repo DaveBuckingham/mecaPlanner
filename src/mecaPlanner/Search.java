@@ -148,14 +148,16 @@ public class Search {
         protected GNode parent;
         protected Set<GNode> successors;
         protected Agent agent;
+        protected Map<EnvironmentAgent, Model> models;
 
-        public GNode(EpistemicState estate, int time, GNode parent, int maxDepth) {
+        public GNode(EpistemicState estate, int time, GNode parent, Map<EnvironentAgent, Model> models, int maxDepth) {
             this.estate = estate;
             this.time = time;
-            this.maxDepth = maxDepth;
-            this.parent = parent;
-            this.successors = new HashSet<GNode>();
             this.agent = Domain.agentAtDepth(time);
+            this.parent = parent;
+            this.models = models;
+            this.maxDepth = maxDepth;
+            this.successors = new HashSet<GNode>();
         }
 
         public Set<GNode> getSuccessors() {
@@ -172,6 +174,10 @@ public class Search {
 
         public GNode getParent() {
             return parent;
+        }
+
+        public Map<EnvironmentAgent, Model> getModel() {
+            return model;
         }
 
         public boolean isGoal() {
@@ -222,8 +228,8 @@ public class Search {
 
         EnvironmentAgent eAgent;
 
-        public AndNode(EpistemicState estate, int time, GNode parent, int maxDepth) {
-            super(estate, time, parent, maxDepth);
+        public AndNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
+            super(estate, time, parent, models, maxDepth);
             assert (this.agent instanceof EnvironmentAgent);
             this.eAgent = (EnvironmentAgent) agent;
         }
@@ -275,8 +281,8 @@ public class Search {
 
     private class OrNode extends GNode {
 
-        public OrNode(EpistemicState estate, int time, GNode parent, int maxDepth) {
-            super(estate, time, parent, maxDepth);
+        public OrNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
+            super(estate, time, parent, models, maxDepth);
         }
 
         // bottom out a recursive descent through and nodes

@@ -34,6 +34,8 @@ public class Domain {
 
     private static Map<String, Agent> agentsByName;
 
+    private static Map<EnvironmentAgent, Model> startingModels;
+
 
 
 
@@ -167,7 +169,7 @@ public class Domain {
         actionsBySignature.put(agent, new HashMap<String, Action>());;
     }
 
-    public static void addEnvironmentAgent(EnvironmentAgent agent) {
+    public static void addEnvironmentAgent(EnvironmentAgent agent, Model model) {
         assert (!allAgents.contains(agent));
         environmentAgents.add(agent);
         environmentAgentNames.add(agent.getName());
@@ -176,6 +178,7 @@ public class Domain {
         nonPassiveAgents.add(agent);
         actions.put(agent, new HashSet<Action>());
         actionsBySignature.put(agent, new HashMap<String, Action>());;
+        startingModels.put(agent, model);
     }
 
     public static void addPassiveAgent(PassiveAgent agent) {

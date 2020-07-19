@@ -376,7 +376,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             System.exit(1);
         }
 
-        Domain.addEnvironmentAgent(new EnvironmentAgent(name, model));
+        Domain.addEnvironmentAgent(new EnvironmentAgent(name), model);
 
         return null;
     }
