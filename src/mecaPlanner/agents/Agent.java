@@ -4,11 +4,15 @@ package mecaPlanner.agents;
 
 public abstract class Agent {
 
+    protected String name;
 
     public Agent() {
     }
 
-    public abstract String getName();
+
+    public String getName() {
+        return name;
+    }
 
     public int hashCode() {
         //if (getName() == null) {

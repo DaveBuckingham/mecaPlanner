@@ -11,17 +11,11 @@ import mecaPlanner.actions.Action;
 public class EnvironmentAgent extends Agent implements java.io.Serializable{
 
     Model model;
-    private String name;
 
 
     public EnvironmentAgent(String name, Model model) {
-        //super(name);
         this.name = name;
         this.model = model;
-    }
-
-    public String getName() {
-        return name;
     }
 
     public Model getModel() {
