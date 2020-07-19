@@ -17,8 +17,8 @@ objects{
 }
 
 agents{
-    human1{PizzaModel},
     robot1,
+    human1{PizzaModel},
 }
 
 atoms{
@@ -34,6 +34,8 @@ constants{
 initially{
     at(human1, room1),
     at(robot1, room1),
+    at(pizza,room1),
+    at(hotdog,room2),
     human_hungry(),
 }
 
@@ -57,6 +59,14 @@ actions{
         observes[?o-actor]{?o},
         causes{door_open()},
     }
+
+    charge[](){
+        owner{robot1},
+        precondition{at(robot1,room2)},
+        observes[?o-actor]{?o},
+        causes{robot_charged()},
+    }
+
 
     eat[?f-food,?l-location,?r-robot](?f,?l){
         owner{?r},

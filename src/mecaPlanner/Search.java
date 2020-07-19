@@ -254,19 +254,20 @@ public class Search {
         // descending through layers of and-nodes, stops when we reach an or-node layer
         public Set<OrNode> descend() {
 
-            if (isCycle() || time == maxDepth) {
+            Set<OrNode> allOrSuccessors = new HashSet<>();
+            if (isGoal()) {
+                return allOrSuccessors;
+            }
+            if (isCycle() || time >= maxDepth) {
                 return null;
             }
-            Set<OrNode> allOrSuccessors = new HashSet<>();
-            if (!isGoal()) {
-                for (Action action : getPossibleActions()) {
-                    GNode successor = transition(action);
-                    Set<OrNode> orSuccessors = successor.descend();
-                    if (orSuccessors == null) {
-                        return null;
-                    }
-                    allOrSuccessors.addAll(orSuccessors);
+            for (Action action : getPossibleActions()) {
+                GNode successor = transition(action);
+                Set<OrNode> orSuccessors = successor.descend();
+                if (orSuccessors == null) {
+                    return null;
                 }
+                allOrSuccessors.addAll(orSuccessors);
             }
             return allOrSuccessors;
         }
