@@ -65,4 +65,5 @@ clean:
 	rm -rf ./build
 	rm -f ./meca
 	rm -f ./mecad
+	rm -f ./sim
 	rm -f ./mecaPlanner*.jar
