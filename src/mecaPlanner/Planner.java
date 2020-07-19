@@ -39,7 +39,6 @@ public class Planner {
     static Boolean assumeCommonKnowledge = null;
     static Boolean reduceStates = null;
     static Boolean printSolution = null;
-    static String saveSolution = null;
 
 
 
@@ -50,13 +49,14 @@ public class Planner {
 
         String deplFileName = null;
         String configFileName = null;
+        String planFileName = null;
 
-        if (args.length < 1 || args.length > 2) {
-            throw new RuntimeException("expected 1 or two args: a .depl file and an optional .config file.");
+        if (args.length < 1 || args.length > 3) {
+            throw new RuntimeException("expected 1 to 3 args: a .depl file, an optional .conf file, and an optional .plan file.");
         }
 
         for (String arg : args) {
-            if (arg.matches(".*\\.confi?g?")) {
+            if (arg.matches(".*\\.conf")) {
                 if (configFileName != null) {
                     throw new RuntimeException("expected a single config file or none.");
                 }
@@ -68,6 +68,13 @@ public class Planner {
                 }
                 deplFileName = arg;
             }
+            else if (arg.matches(".*\\.plan")) {
+                if (planFileName != null) {
+                    throw new RuntimeException("expected a single plan filename.");
+                }
+                planFileName = arg;
+            }
+
         }
 
         if (deplFileName == null) {
@@ -94,7 +101,6 @@ public class Planner {
         Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
         Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
         Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
-        Planner.saveSolution = prop.getProperty("saveSolution", "");
         Log.setThreshold(prop.getProperty("logThreshold", "info"));
         Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
@@ -155,9 +161,9 @@ public class Planner {
 
         System.out.println(solution);
 
-        if (!Planner.saveSolution.isEmpty()) {
+        if (planFileName != null) {
             try {
-                FileOutputStream fileOut = new FileOutputStream(Planner.saveSolution);
+                FileOutputStream fileOut = new FileOutputStream(planFileName);
                 ObjectOutputStream out = new ObjectOutputStream(fileOut);
                 out.writeObject(solution);
                 out.close();

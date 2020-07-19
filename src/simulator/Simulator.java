@@ -52,7 +52,7 @@ public class Simulator {
         String planFileName = null;
 
         if (args.length != 2) {
-            throw new RuntimeException("expected two args: a .depl file and a .sol file.");
+            throw new RuntimeException("expected two args: a .depl file and a .plan file.");
         }
 
         for (String arg : args) {
@@ -62,7 +62,7 @@ public class Simulator {
                 }
                 deplFileName = arg;
             }
-            else if (arg.matches(".*\\.sol")) {
+            else if (arg.matches(".*\\.plan")) {
                 if (planFileName != null) {
                     throw new RuntimeException("expected a single plan file.");
                 }
