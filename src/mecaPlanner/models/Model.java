@@ -100,16 +100,21 @@ public abstract class Model implements java.io.Serializable {
         return safeActions;
     }
 
-    public static Action getSafeActionBySignature(String signature, EpistemicState eState, Agent agent) {
-
-        Action action = Domain.getActionBySignature(agent, signature);
-        if (!action.necessarilyExecutable(eState.getBeliefPerspective(agent))) {
+    public static Action getSafeActionBySignature(String signature, NDState ndState, Agent agent) {
+        Action action = Domain.getActionBySignature(agent, signature.replaceAll("\\s+",""));
+        if (!action.necessarilyExecutable(ndState)) {
             throw new RuntimeException("requested action " + 
                                        signature + " not necessarily executable for agent " +
-                                       agent.toString() + " in state: " + eState);
+                                       agent.toString() + " in ndState: " + ndState);
         }
         return action;
     }
+
+    // public static Set<Action> getActionSetBySignature(String signature, EpistemicState eState, Agent agent) {
+    //     Set<Action> singleton = new HashSet<>();
+    //     singleton.add(getSafeActionBySignature(signature, eState, agent));
+    //     return singleton;
+    // }
 
     public abstract Set<Action> getPrediction(NDState ndState, Agent agent);
 

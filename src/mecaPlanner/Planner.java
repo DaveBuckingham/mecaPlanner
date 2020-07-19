@@ -38,7 +38,7 @@ public class Planner {
 
     static Boolean assumeCommonKnowledge = null;
     static Boolean reduceStates = null;
-    static Boolean printSolutionStates = null;
+    static Boolean printSolution = null;
     static String saveSolution = null;
 
 

@@ -244,7 +244,7 @@ public class Search {
                 }
             }
 
-            if (possibleActions.isEmpty) {
+            if (possibleActions.isEmpty()) {
                 Log.warning("Model for " + eAgent.getName() + "predicted no necessarily executable action.");
             }
 

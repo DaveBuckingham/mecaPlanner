@@ -23,15 +23,13 @@ import java.util.Objects;
 public abstract class Action implements java.io.Serializable {
 
 
-    public String name;
-    public List<String> parameters;
-    public int cost;
-    public Agent actor;
-    public BeliefFormula precondition;
-    public Map<Agent, FluentFormula> observesIf;
-    public Map<Agent, FluentFormula> awareIf;
-
-
+    private String name;
+    private List<String> parameters;
+    private int cost;
+    private Agent actor;
+    private BeliefFormula precondition;
+    private Map<Agent, FluentFormula> observesIf;
+    private Map<Agent, FluentFormula> awareIf;
 
 
     public Action(String name,
@@ -50,6 +48,10 @@ public abstract class Action implements java.io.Serializable {
         this.precondition = precondition;
         this.observesIf = observesIf;
         this.awareIf = awareIf;
+    }
+
+    public String getName() {
+        return name;
     }
 
     public Agent getActor() {
