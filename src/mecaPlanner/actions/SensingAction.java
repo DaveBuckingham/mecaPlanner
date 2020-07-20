@@ -10,6 +10,8 @@ import mecaPlanner.formulae.BeliefFormulaBelieves;
 import mecaPlanner.formulae.BeliefFormulaNot;
 import mecaPlanner.formulae.BeliefFormulaAnd;
 import mecaPlanner.agents.Agent;
+import mecaPlanner.agents.EnvironmentAgent;
+import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
@@ -49,19 +51,19 @@ public class SensingAction extends Action {
         this.determines = determines;
     }
 
-    public EpistemicState transition(EpistemicState before) {
+    public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<EnvironmentAgent, Model> oldModels) {
         Log.debug("sensing transition: " + getSignatureWithActor());
 
         //LOGGER.log(Level.FINE, "transitioning ontic action");
 
-        //assert(this.executable(before));
+        assert(this.executable(before));
         //if (!this.executable(before)) {
         //    throw new RuntimeException("action not exeutable");
         //}
-        if (!this.executable(before)) {
-            Log.warning("trying to execute action with unsatisfied conditions");
-            return(new EpistemicState(before));
-        }
+        //if (!this.executable(before)) {
+        //    Log.warning("trying to execute action with unsatisfied conditions");
+        //    return(new EpistemicState(before));
+        //}
 
 
         KripkeStructure oldKripke = before.getKripke();
@@ -286,7 +288,34 @@ public class SensingAction extends Action {
 
         assert(Test.checkRelations(newState));
 
-        return newState;
+
+        Map<EnvironmentAgent, Model> newModels = new HashMap();
+
+        for (EnvironmentAgent observantAgent : observantAgents) {
+            NDState perspective = beforeState.getBeliefPerspective(observantAgent);
+            SensingAction informed = new AnnouncementAction(this.name,
+                                                                 this.parameters,
+                                                                 this.actor,
+                                                                 this.precondition,
+                                                                 this.observesIf,
+                                                                 this.awareIf,
+                                                                 sensedFormulae
+                                                                );
+            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, redacted);
+            newModels.put(awareAgent, updatedModel);
+        }
+        for (EnvironmentAgent awareAgent : awareAgents) {
+            NDState perspective = beforeState.getBeliefPerspective(observantAgent);
+            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, this);
+            newModels.put(observantAgent, updatedModel);
+        }
+        for (EnvironmentAgent obliviousAgent : oblivousAgents) {
+            newModels.put(oblivousAgent, oldModels.get(obliviousAgent));
+        }
+
+        return new Action.UpdatedStateAndModels(newState, newModels);
+
+
 
     }
 

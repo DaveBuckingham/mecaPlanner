@@ -1,12 +1,14 @@
 package mecaPlanner.actions;
 
 import mecaPlanner.agents.Agent;
+import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.FluentFormula;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 import mecaPlanner.state.NDState;
+import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
 
 import java.util.List;
@@ -23,13 +25,13 @@ import java.util.Objects;
 public abstract class Action implements java.io.Serializable {
 
 
-    private String name;
-    private List<String> parameters;
-    private int cost;
-    private Agent actor;
-    private BeliefFormula precondition;
-    private Map<Agent, FluentFormula> observesIf;
-    private Map<Agent, FluentFormula> awareIf;
+    protected String name;
+    protected List<String> parameters;
+    protected int cost;
+    protected Agent actor;
+    protected BeliefFormula precondition;
+    protected Map<Agent, FluentFormula> observesIf;
+    protected Map<Agent, FluentFormula> awareIf;
 
 
     public Action(String name,
@@ -142,7 +144,24 @@ public abstract class Action implements java.io.Serializable {
     }
 
 
-    public abstract EpistemicState transition(EpistemicState before);
+    public class UpdatedStateAndModels {
+        private EpistemicState updatedState;
+        private Map<EnvironmentAgent, Model> updatedModels ;
+
+        public UpdatedStateAndModels(EpistemicState updatedState, Map<EnvironmentAgent, Model> updatedModels) {
+            updatedState = updatedState;
+            updatedModels = updatedModels;
+        }
+
+        public EpistemicState getState() {
+            return updatedState;
+        }
+        public Map<EnvironmentAgent, Model> getModels() {
+            return updatedModels;
+        }
+    }
+
+    public abstract UpdatedStateAndModels transition(EpistemicState priorState, Map<EnvironmentAgent, Model> priorModels);
 
 
     public String getSignatureWithActor() {

@@ -5,6 +5,7 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 import mecaPlanner.actions.Action;
+import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.agents.SystemAgent;
 import mecaPlanner.agents.EnvironmentAgent;
@@ -150,7 +151,7 @@ public class Search {
         protected Agent agent;
         protected Map<EnvironmentAgent, Model> models;
 
-        public GNode(EpistemicState estate, int time, GNode parent, Map<EnvironentAgent, Model> models, int maxDepth) {
+        public GNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
             this.estate = estate;
             this.time = time;
             this.agent = Domain.agentAtDepth(time);
@@ -177,7 +178,7 @@ public class Search {
         }
 
         public Map<EnvironmentAgent, Model> getModel() {
-            return model;
+            return models;
         }
 
         public boolean isGoal() {
@@ -196,11 +197,12 @@ public class Search {
         }
 
         public GNode transition(Action action) {
+            Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
             if (Domain.agentAtDepth(time+1) instanceof SystemAgent) {
-                return new OrNode(action.transition(estate), time+1, this, maxDepth);
+                return new OrNode(transitionResult.getState(), time+1, this, transitionResult.getModels(), maxDepth);
             }
             else {
-                return new AndNode(action.transition(estate), time+1, this, maxDepth);
+                return new AndNode(transitionResult.getState(), time+1, this, transitionResult.getModels(), maxDepth);
             }
         }
 
@@ -236,7 +238,7 @@ public class Search {
 
         protected Set<Action> getPossibleActions() {
             Set<Action> possibleActions = new HashSet<Action>();
-            Set<Action> prediction = eAgent.getModel().getPrediction(estate.getBeliefPerspective(eAgent), eAgent);
+            Set<Action> prediction = models.get(eAgent).getPrediction(estate.getBeliefPerspective(eAgent), eAgent);
 
             if (prediction == null) {
                 throw new RuntimeException("Model returned null, indicating model failure.");
@@ -330,18 +332,20 @@ public class Search {
 
     public Set<Solution> searchToDepth(Set<EpistemicState> startStates, GeneralFormula goal, int maxDepth) {
 
+        // NEED TO MOVE ALL THIS INITIALIZATION STUFF TO FINDSOLUTION, AS IN PSEUDOCODE
+
         this.goal = goal;
         Agent startAgent = Domain.agentAtDepth(0);
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
         if (startAgent instanceof SystemAgent) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, 0, null, maxDepth));
+                allStartOrNodes.add(new OrNode(eState, 0, null, Domain.getStartingModels(), maxDepth));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, 0, null, maxDepth);
+                AndNode startAndNode = new AndNode(eState, 0, null, Domain.getStartingModels(), maxDepth);
                 Set<OrNode> startOrNodes = startAndNode.descend();
                 if (startOrNodes == null) {
                     return null;

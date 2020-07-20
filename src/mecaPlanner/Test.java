@@ -284,7 +284,8 @@ public class Test {
             System.out.print("ACTION: ");
             System.out.println(action.getSignatureWithActor());
             try {
-                currentState = action.transition(currentState);
+                Action.UpdatedStateAndModels result = action.transition(currentState, Domain.getStartingModels());
+                currentState = result.getState();
             }
             catch (Exception ex) {
                 ex.printStackTrace();
@@ -347,7 +348,7 @@ public class Test {
         worlds.add(world2);
 
         Agent agent_r = new SystemAgent("robot1");
-        Agent agent_h   = new EnvironmentAgent("human1", new BurglerModel());
+        Agent agent_h   = new EnvironmentAgent("human1");
 
         Set<Agent> agents = new HashSet<>();
         agents.add(agent_r);

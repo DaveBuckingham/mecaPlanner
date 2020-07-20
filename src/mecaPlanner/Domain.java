@@ -1,5 +1,8 @@
 package mecaPlanner;
 
+import mecaPlanner.models.Model;
+import mecaPlanner.agents.EnvironmentAgent;
+import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.GeneralFormula;
@@ -59,6 +62,7 @@ public class Domain {
         passiveAgentNames = new HashSet<>();
 
         agentsByName = new HashMap<>();
+        startingModels = new HashMap<>();
     }
 
 
@@ -131,6 +135,10 @@ public class Domain {
 
     public static Agent getAgentByName(String name) {
         return agentsByName.get(name);
+    }
+
+    public static Map<EnvironmentAgent, Model> getStartingModels() {
+        return startingModels;
     }
 
 

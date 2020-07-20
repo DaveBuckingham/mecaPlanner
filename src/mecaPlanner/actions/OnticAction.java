@@ -8,6 +8,8 @@ import mecaPlanner.formulae.FluentFormulaAnd;
 import mecaPlanner.formulae.BeliefFormulaNot;
 import mecaPlanner.formulae.BeliefFormulaBelieves;
 import mecaPlanner.agents.Agent;
+import mecaPlanner.agents.EnvironmentAgent;
+import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
@@ -65,20 +67,20 @@ public class OnticAction extends Action implements java.io.Serializable{
 
 
     @Override
-    public EpistemicState transition(EpistemicState before) {
+    public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<EnvironmentAgent, Model> oldModels) {
         Log.debug("ontic transition: " + getSignatureWithActor());
 
 
-        //assert(this.executable(before));
+        assert(this.executable(before));
         //if (!this.executable(before)) {
         //    throw new RuntimeException("action not exeutable");
         //}
-        if (!this.executable(before)) {
-            Log.warning("trying to execute action with unsatisfied conditions");
-            return(new EpistemicState(before));
-        }
+        //if (!this.executable(beforeState)) {
+        //    Log.warning("trying to execute action with unsatisfied conditions");
+        //    return(new EpistemicState(beforeState));
+        //}
 
-        KripkeStructure oldKripke = before.getKripke();
+        KripkeStructure oldKripke = beforeState.getKripke();
         Set<World> oldWorlds = oldKripke.getWorlds();
         Set<World> obliviousWorlds = new HashSet<>();
         Set<World> observedWorlds = new HashSet<>();
@@ -93,7 +95,7 @@ public class OnticAction extends Action implements java.io.Serializable{
                 World observedWorld = oldWorld.update(this.getApplicableEffects(oldWorld));
                 observedWorlds.add(observedWorld);
                 newWorldsToOld.put(observedWorld, oldWorld);
-                if (oldWorld.equals(before.getDesignatedWorld())) {
+                if (oldWorld.equals(beforeState.getDesignatedWorld())) {
                     newDesignatedWorld = observedWorld;
                 }
             }
@@ -103,12 +105,12 @@ public class OnticAction extends Action implements java.io.Serializable{
         assert(newDesignatedWorld != null);
         assert(observedWorlds.contains(newDesignatedWorld));
 
-        Set<Agent> observantAwareAgents = getFullyObservant(before);
-        observantAwareAgents.addAll(getAware(before));
-        Set<Agent> obliviousAgents = getOblivious(before);
+        Set<Agent> observantAwareAgents = getFullyObservant(beforeState);
+        observantAwareAgents.addAll(getAware(beforeState));
+        Set<Agent> obliviousAgents = getOblivious(beforeState);
 
         Map<Agent, Relation> resetRelations = new HashMap<>();
-        for (Agent a : getAnyObservers(before)) {
+        for (Agent a : getAnyObservers(beforeState)) {
             resetRelations.put(a, new Relation());
         }
 
@@ -248,7 +250,18 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         assert(Test.checkRelations(newState));
 
-        return newState;
+        Map<EnvironmentAgent, Model> newModels = new HashMap();
+
+        for (EnvironmentAgent obliviousAgent : oblivousAgents) {
+            newModels.put(oblivousAgent, oldModels.get(obliviousAgent));
+        }
+        for (EnvironmentAgent observantAwareAgent : observantAwareAgents) {
+            NDState perspective = beforeState.getBeliefPerspective(observantAwareAgent);
+            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, this);
+            newModels.put(observantAwareAgent, updatedModel);
+        }
+
+        return new Action.UpdatedStateAndModels(newState, newModels);
 
     }
 

@@ -118,6 +118,10 @@ public abstract class Model implements java.io.Serializable {
 
     public abstract Set<Action> getPrediction(NDState ndState, Agent agent);
 
+    public Model update(NDState perspective, Action action) {
+        return this;
+    }
+
 
 }
 
