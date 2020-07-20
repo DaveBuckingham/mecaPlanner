@@ -12,6 +12,7 @@ import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.NDState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.Relation;
 import mecaPlanner.Domain;
@@ -58,7 +59,7 @@ public class AnnouncementAction extends Action {
         Log.debug("announcement transition: " + getSignatureWithActor());
 
 
-        assert(this.executable(before));
+        assert(this.executable(beforeState));
         //if (!this.executable(before)) {
         //    throw new RuntimeException("action not exeutable");
         //}
@@ -68,7 +69,7 @@ public class AnnouncementAction extends Action {
         //}
 
 
-        KripkeStructure oldKripke = before.getKripke();
+        KripkeStructure oldKripke = beforeState.getKripke();
         Set<World> oldWorlds = oldKripke.getWorlds();
         Set<World> obliviousWorlds = new HashSet<>();
         Set<World> observedWorlds = new HashSet<>();
@@ -83,7 +84,7 @@ public class AnnouncementAction extends Action {
                 World observedWorld = new World(oldWorld);
                 observedWorlds.add(observedWorld);
                 newWorldsToOld.put(observedWorld, oldWorld);
-                if (oldWorld.equals(before.getDesignatedWorld())) {
+                if (oldWorld.equals(beforeState.getDesignatedWorld())) {
                     newDesignatedWorld = observedWorld;
                 }
             }
@@ -93,12 +94,12 @@ public class AnnouncementAction extends Action {
         assert(observedWorlds.contains(newDesignatedWorld));
 
 
-        Set<Agent> observantAgents = getFullyObservant(before);
-        Set<Agent> awareAgents = getAware(before);
-        Set<Agent> obliviousAgents = getOblivious(before);
+        Set<Agent> observantAgents = getFullyObservant(beforeState);
+        Set<Agent> awareAgents = getAware(beforeState);
+        Set<Agent> obliviousAgents = getOblivious(beforeState);
 
         Map<Agent, Relation> resetRelations = new HashMap<>();
-        for (Agent a : getAnyObservers(before)) {
+        for (Agent a : getAnyObservers(beforeState)) {
             resetRelations.put(a, new Relation());
         }
 
@@ -207,7 +208,7 @@ public class AnnouncementAction extends Action {
         }
 
 
-        for (Agent agent : getAware(before)) {
+        for (Agent agent : getAware(beforeState)) {
             BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent, new BeliefFormulaNot(getPrecondition()));
             for (World fromWorld: oldWorlds) {
 
@@ -286,26 +287,36 @@ public class AnnouncementAction extends Action {
 
         Map<EnvironmentAgent, Model> newModels = new HashMap();
 
-        for (EnvironmentAgent observantAgent : observantAgents) {
-            NDState perspective = beforeState.getBeliefPerspective(observantAgent);
-            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, this);
-            newModels.put(observantAgent, updatedModel);
+        for (Agent observantAgent : observantAgents) {
+            if (observantAgent instanceof EnvironmentAgent) {
+                EnvironmentAgent eagent = (EnvironmentAgent) observantAgent;
+                NDState perspective = beforeState.getBeliefPerspective(eagent);
+                Model updatedModel = oldModels.get(eagent).update(perspective, this);
+                newModels.put(eagent, updatedModel);
+            }
         }
-        for (EnvironmentAgent awareAgent : awareAgents) {
-            NDState perspective = beforeState.getBeliefPerspective(observantAgent);
-            AnnouncementAction redacted = new AnnouncementAction(this.name,
-                                                                 this.parameters,
-                                                                 this.actor,
-                                                                 this.precondition,
-                                                                 this.observesIf,
-                                                                 this.awareIf,
-                                                                 null
-                                                                );
-            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, redacted);
-            newModels.put(awareAgent, updatedModel);
+        for (Agent awareAgent : awareAgents) {
+            if (awareAgent instanceof EnvironmentAgent) {
+                EnvironmentAgent eagent = (EnvironmentAgent) awareAgent;
+                NDState perspective = beforeState.getBeliefPerspective(eagent);
+                AnnouncementAction redacted = new AnnouncementAction(this.name,
+                                                                     this.parameters,
+                                                                     this.actor,
+                                                                     this.cost,
+                                                                     this.precondition,
+                                                                     this.observesIf,
+                                                                     this.awareIf,
+                                                                     null
+                                                                    );
+                Model updatedModel = oldModels.get(eagent).update(perspective, redacted);
+                newModels.put(eagent, updatedModel);
+            }
         }
-        for (EnvironmentAgent obliviousAgent : oblivousAgents) {
-            newModels.put(oblivousAgent, oldModels.get(obliviousAgent));
+        for (Agent obliviousAgent : obliviousAgents) {
+            if (obliviousAgent instanceof EnvironmentAgent) {
+                EnvironmentAgent eagent = (EnvironmentAgent) obliviousAgent;
+                newModels.put(eagent, oldModels.get(eagent));
+            }
         }
 
         return new Action.UpdatedStateAndModels(newState, newModels);

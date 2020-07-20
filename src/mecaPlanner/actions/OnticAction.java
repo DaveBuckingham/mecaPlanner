@@ -12,6 +12,7 @@ import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.NDState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.Relation;
 import mecaPlanner.Domain;
@@ -71,7 +72,7 @@ public class OnticAction extends Action implements java.io.Serializable{
         Log.debug("ontic transition: " + getSignatureWithActor());
 
 
-        assert(this.executable(before));
+        assert(this.executable(beforeState));
         //if (!this.executable(before)) {
         //    throw new RuntimeException("action not exeutable");
         //}
@@ -252,13 +253,20 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         Map<EnvironmentAgent, Model> newModels = new HashMap();
 
-        for (EnvironmentAgent obliviousAgent : oblivousAgents) {
-            newModels.put(oblivousAgent, oldModels.get(obliviousAgent));
+        for (Agent obliviousAgent : obliviousAgents) {
+            if (obliviousAgent instanceof EnvironmentAgent) {
+                EnvironmentAgent eagent = (EnvironmentAgent) obliviousAgent;
+                newModels.put(eagent, oldModels.get(eagent));
+            }
         }
-        for (EnvironmentAgent observantAwareAgent : observantAwareAgents) {
-            NDState perspective = beforeState.getBeliefPerspective(observantAwareAgent);
-            Model updatedModel = oldModels.get(oblivousAgent).update(perspective, this);
-            newModels.put(observantAwareAgent, updatedModel);
+        for (Agent observantAwareAgent : observantAwareAgents) {
+            if (observantAwareAgent instanceof EnvironmentAgent) {
+                EnvironmentAgent eagent = (EnvironmentAgent) observantAwareAgent;
+                NDState perspective = beforeState.getBeliefPerspective(eagent);
+                Model updatedModel = oldModels.get(eagent).update(perspective, this);
+                newModels.put(eagent, updatedModel);
+            }
+
         }
 
         return new Action.UpdatedStateAndModels(newState, newModels);
