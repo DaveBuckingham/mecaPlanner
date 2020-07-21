@@ -73,8 +73,7 @@ public class Test {
 
     private static void testBisimulations() {
 
-        PassiveAgent agent = new PassiveAgent("agent_name");
-        Domain.addPassiveAgent(agent);
+        Domain.addPassiveAgent("agent_name");
 
         EpistemicState vending_s = vendingS(agent);
         EpistemicState vending_t = vendingT(agent);
@@ -94,7 +93,7 @@ public class Test {
 
 
     // p. 452
-    private static EpistemicState vendingS(Agent agent) {
+    private static EpistemicState vendingS(String agent) {
 
         World world_s0 = new World("s0", "pay");
         World world_s1 = new World("s1");
@@ -110,13 +109,13 @@ public class Test {
         relation1.connect(world_s2, world_s0);
         relation1.connect(world_s3, world_s0);
 
-        Map<Agent, Relation> belief1 = new HashMap<>();
+        Map<String, Relation> belief1 = new HashMap<>();
         belief1.put(agent, relation1);
 
         return new EpistemicState(new KripkeStructure(worlds1, belief1, belief1), world_s0);
     }
 
-    private static EpistemicState vendingT(Agent agent) {
+    private static EpistemicState vendingT(String agent) {
         World world_t0 = new World("t0", "pay");
         World world_t1 = new World("t1");
         World world_t2 = new World("t2", "beer");
@@ -134,7 +133,7 @@ public class Test {
         relation2.connect(world_t3, world_t0);
         relation2.connect(world_t4, world_t0);
 
-        Map<Agent, Relation> belief2 = new HashMap<>();
+        Map<String, Relation> belief2 = new HashMap<>();
         belief2.put(agent, relation2);
 
         return new EpistemicState(new KripkeStructure(worlds2, belief2, belief2), world_t0);
@@ -142,7 +141,7 @@ public class Test {
 
 
 
-    private static EpistemicState vendingU(Agent agent) {
+    private static EpistemicState vendingU(String agent) {
 
 
         World world_u0 = new World("u0", "pay");
@@ -161,7 +160,7 @@ public class Test {
         relation2.connect(world_u3, world_u0);
         relation2.connect(world_u4, world_u0);
 
-        Map<Agent, Relation> belief2 = new HashMap<>();
+        Map<String, Relation> belief2 = new HashMap<>();
         belief2.put(agent, relation2);
 
         return new EpistemicState(new KripkeStructure(worlds2, belief2, belief2), world_u0);
@@ -173,7 +172,7 @@ public class Test {
 
         
 
-    public static void printers(Agent agent) {
+    public static void printers(String agent) {
 
         World world_rrr = new World("rrr", "3");
         World world_prr = new World("prr", "2");
@@ -210,7 +209,7 @@ public class Test {
         printerRelation.connectBack(world_ppp, world_rpp);
         printerRelation.connectBack(world_ppp, world_prp);
 
-        Map<Agent, Relation> printerBelief = new HashMap<>();
+        Map<String, Relation> printerBelief = new HashMap<>();
         printerBelief.put(agent, printerRelation);
 
         KripkeStructure printerKripke = new KripkeStructure(printerWorlds, printerBelief, printerBelief);
@@ -347,20 +346,20 @@ public class Test {
         worlds.add(world1);
         worlds.add(world2);
 
-        Agent agent_r = new SystemAgent("robot1");
-        Agent agent_h   = new EnvironmentAgent("human1");
+        String agent_r = "robot1";
+        String agent_h   = "human1";
 
-        Set<Agent> agents = new HashSet<>();
+        Set<String> agents = new HashSet<>();
         agents.add(agent_r);
         agents.add(agent_h);
 
-        Map<Agent, Relation> beliefRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        for (String a : agents) {
             beliefRelations.put(a, new Relation());
         }
 
-        Map<Agent, Relation> knowledgeRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
+        for (String a : agents) {
             knowledgeRelations.put(a, new Relation());
         }
 
@@ -405,23 +404,23 @@ public class Test {
         worlds.add(world1);
         worlds.add(world2);
 
-        Agent alice = new SystemAgent("alice");
-        Agent bob   = new SystemAgent("bob");
-        Agent carol = new SystemAgent("carol");
+        String alice = "alice";
+        String bob   = "bob";
+        String carol = "carol";
 
-        Set<Agent> agents = new HashSet<>();
+        Set<String> agents = new HashSet<>();
         agents.add(alice);
         agents.add(bob);
         agents.add(carol);
 
 
-        Map<Agent, Relation> beliefRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        for (String a : agents) {
             beliefRelations.put(a, new Relation());
         }
 
-        Map<Agent, Relation> knowledgeRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
+        for (String a : agents) {
             knowledgeRelations.put(a, new Relation());
         }
 
@@ -474,21 +473,21 @@ public class Test {
         worlds.add(world3);
         worlds.add(world4);
 
-        Agent alice = new SystemAgent("alice");
-        Agent bob   = new SystemAgent("bob");
+        String alice = "alice";
+        String bob   = "bob";
 
-        Set<Agent> agents = new HashSet<>();
+        Set<String> agents = new HashSet<>();
         agents.add(alice);
         agents.add(bob);
 
 
-        Map<Agent, Relation> beliefRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        for (String a : agents) {
             beliefRelations.put(a, new Relation());
         }
 
-        Map<Agent, Relation> knowledgeRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
+        for (String a : agents) {
             knowledgeRelations.put(a, new Relation());
         }
 
@@ -554,22 +553,22 @@ public class Test {
         worlds.add(world0);
         worlds.add(world1);
 
-        Agent alice = new SystemAgent("alice");
-        Agent bob   = new SystemAgent("bob");
-        Agent carol = new SystemAgent("carol");
+        String alice = "alice";
+        String bob   = "bob";
+        String carol = "carol";
 
-        Set<Agent> agents = new HashSet<>();
+        Set<String> agents = new HashSet<>();
         agents.add(alice);
         agents.add(bob);
         agents.add(carol);
 
-        Map<Agent, Relation> beliefRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        for (String a : agents) {
             beliefRelations.put(a, new Relation());
         }
 
-        Map<Agent, Relation> knowledgeRelations = new HashMap<>();
-        for (Agent a : agents) {
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
+        for (String a : agents) {
             knowledgeRelations.put(a, new Relation());
         }
 
@@ -672,7 +671,7 @@ public class Test {
 
     public static boolean checkRelations(EpistemicState state) {
         Set<World> worlds = state.getKripke().getWorlds();
-        for (Agent agent : Domain.getAgents()) {
+        for (String agent : Domain.getAgents()) {
             Relation relation = state.getKripke().getBeliefRelations().get(agent);
             if (!checkSerial(relation, worlds)) {
                 System.out.println("failed check: serial belief for agent " + agent);

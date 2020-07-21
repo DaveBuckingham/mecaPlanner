@@ -22,20 +22,16 @@ public class Domain {
     private static Set<FluentAtom> constants;
     private static Set<BeliefFormula> initiallyStatements;
     private static Set<GeneralFormula> goals;
-    private static Map<Agent,Set<Action>> actions;
-    private static Map<Agent, Map<String,Action>> actionsBySignature;
+    private static Map<String,Set<Action>> actions;
+    private static Map<String, Map<String,Action>> actionsBySignature;
 
-    private static Set<SystemAgent> systemAgents;
-    private static Set<EnvironmentAgent> environmentAgents;
-    private static Set<PassiveAgent> passiveAgents;
-    private static List<Agent> nonPassiveAgents;
-    private static Set<Agent> allAgents;
+    private static List<String> nonPassiveAgents;
+    private static Set<String> allAgents;
 
-    private static Set<String> systemAgentNames;
-    private static Set<String> environmentAgentNames;
-    private static Set<String> passiveAgentNames;
+    private static Set<String> systemAgents;
+    private static Set<String> environmentAgents;
+    private static Set<String> passiveAgents;
 
-    private static Map<String, Agent> agentsByName;
 
     private static Map<EnvironmentAgent, Model> startingModels;
 
@@ -57,11 +53,6 @@ public class Domain {
         nonPassiveAgents = new ArrayList<>();
         allAgents = new HashSet<>();
 
-        systemAgentNames = new HashSet<>();
-        environmentAgentNames = new HashSet<>();
-        passiveAgentNames = new HashSet<>();
-
-        agentsByName = new HashMap<>();
         startingModels = new HashMap<>();
     }
 
@@ -92,9 +83,14 @@ public class Domain {
         return allActions;
     }
 
-    public static Set<Action> getAgentActions(Agent agent) {
+    public static Set<Action> getAgentActions(String agent) {
         return actions.get(agent);
     }
+
+    public static Set<Action> getAgentActions(int depth) {
+        return actions.get(agentAtDepth(depth));
+    }
+
 
     public static Action getActionBySignature(Agent agent, String signature) {
         if (!actionsBySignature.get(agent).containsKey(signature)) {
@@ -120,8 +116,20 @@ public class Domain {
         return nonPassiveAgents;
     }
 
-    public static Agent agentAtDepth(int depth) {
+    public static String agentAtDepth(int depth) {
         return nonPassiveAgents.get(depth % nonPassiveAgents.size());
+    }
+
+    public static boolean isEnvironmentAgent(String agent) {
+        return environmentAgents.contains(agent);
+    }
+
+    public static boolean isSystemAgent(String agent) {
+        return systemAgents.contains(agent);
+    }
+
+    public static boolean isEnvironmentAgent(int depth) {
+        return environmentAgents.contains(agentAtDepth(depth));
     }
 
 
@@ -131,10 +139,6 @@ public class Domain {
 
     public static Set<Agent> getAgents() {
         return allAgents;
-    }
-
-    public static Agent getAgentByName(String name) {
-        return agentsByName.get(name);
     }
 
     public static Map<EnvironmentAgent, Model> getStartingModels() {
@@ -166,22 +170,18 @@ public class Domain {
         goals.add(newGoal);
     }
 
-    public static void addSystemAgent(SystemAgent agent) {
+    public static void addSystemAgent(String agent) {
         assert (!allAgents.contains(agent));
         systemAgents.add(agent);
-        systemAgentNames.add(agent.getName());
-        agentsByName.put(agent.getName(), agent);
         allAgents.add(agent);
         nonPassiveAgents.add(agent);
         actions.put(agent, new HashSet<Action>());
         actionsBySignature.put(agent, new HashMap<String, Action>());;
     }
 
-    public static void addEnvironmentAgent(EnvironmentAgent agent, Model model) {
+    public static void addEnvironmentAgent(String agent, Model model) {
         assert (!allAgents.contains(agent));
         environmentAgents.add(agent);
-        environmentAgentNames.add(agent.getName());
-        agentsByName.put(agent.getName(), agent);
         allAgents.add(agent);
         nonPassiveAgents.add(agent);
         actions.put(agent, new HashSet<Action>());
@@ -189,11 +189,9 @@ public class Domain {
         startingModels.put(agent, model);
     }
 
-    public static void addPassiveAgent(PassiveAgent agent) {
+    public static void addPassiveAgent(String agent) {
         assert (!allAgents.contains(agent));
         passiveAgents.add(agent);
-        passiveAgentNames.add(agent.getName());
-        agentsByName.put(agent.getName(), agent);
         allAgents.add(agent);
     }
 
@@ -205,22 +203,10 @@ public class Domain {
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
     }
 
-    public static boolean isSystemAgentName(String s) {
-        return systemAgentNames.contains(s);
     }
 
-    public static boolean isEnvironmentAgentName(String s) {
-        return environmentAgentNames.contains(s);
-    }
-
-    public static boolean isPassiveAgentName(String s) {
-        return passiveAgentNames.contains(s);
-    }
-
-    public static boolean isAgentName(String s) {
-        return (systemAgentNames.contains(s) ||
-                environmentAgentNames.contains(s) ||
-                passiveAgentNames.contains(s));
+    public static boolean isAgent(String s) {
+        return allAgents.contains(s);
     }
 
 

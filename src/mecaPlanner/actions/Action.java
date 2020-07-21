@@ -1,7 +1,5 @@
 package mecaPlanner.actions;
 
-import mecaPlanner.agents.Agent;
-import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.FluentFormula;
 import mecaPlanner.state.EpistemicState;
@@ -28,19 +26,19 @@ public abstract class Action implements java.io.Serializable {
     protected String name;
     protected List<String> parameters;
     protected int cost;
-    protected Agent actor;
+    protected String actor;
     protected BeliefFormula precondition;
-    protected Map<Agent, FluentFormula> observesIf;
-    protected Map<Agent, FluentFormula> awareIf;
+    protected Map<String, FluentFormula> observesIf;
+    protected Map<String, FluentFormula> awareIf;
 
 
     public Action(String name,
                   List<String> parameters,
-                  Agent actor,
+                  String actor,
                   int cost,
                   BeliefFormula precondition,
-                  Map<Agent, FluentFormula> observesIf,
-                  Map<Agent, FluentFormula> awareIf
+                  Map<String, FluentFormula> observesIf,
+                  Map<String, FluentFormula> awareIf
                  ) {
         assert(cost > 0);
         this.name = name;
@@ -56,7 +54,7 @@ public abstract class Action implements java.io.Serializable {
         return name;
     }
 
-    public Agent getActor() {
+    public String getActor() {
         return this.actor;
     }
 
@@ -91,21 +89,21 @@ public abstract class Action implements java.io.Serializable {
     }
 
 
-    public Boolean isFullyObservant(Agent agent, EpistemicState state) {
+    public Boolean isFullyObservant(String agent, EpistemicState state) {
         return (observesIf.containsKey(agent) && observesIf.get(agent).holds(state));
     }
 
-    public Boolean isAware(Agent agent, EpistemicState state) {
+    public Boolean isAware(String agent, EpistemicState state) {
         return (awareIf.containsKey(agent) && awareIf.get(agent).holds(state));
     }
 
-    public Boolean isOblivious(Agent agent, EpistemicState state) {
+    public Boolean isOblivious(String agent, EpistemicState state) {
         return ((!isFullyObservant(agent, state)) && (!isAware(agent, state)));
     }
 
-    public Set<Agent>getAnyObservers(EpistemicState state) {
-        Set<Agent> selected = new HashSet<>();
-        for (Agent agent : Domain.getAllAgents()) {
+    public Set<String>getAnyObservers(EpistemicState state) {
+        Set<String> selected = new HashSet<>();
+        for (String agent : Domain.getAllAgents()) {
             if (isFullyObservant(agent, state) || isAware(agent, state)) {
                 selected.add(agent);
             }
@@ -113,9 +111,9 @@ public abstract class Action implements java.io.Serializable {
         return selected;
     }
 
-    public Set<Agent>getFullyObservant(EpistemicState state) {
-        Set<Agent> selected = new HashSet<>();
-        for (Agent agent : Domain.getAllAgents()) {
+    public Set<String>getFullyObservant(EpistemicState state) {
+        Set<String> selected = new HashSet<>();
+        for (String agent : Domain.getAllAgents()) {
             if (isFullyObservant(agent, state)) {
                 selected.add(agent);
             }
@@ -123,9 +121,9 @@ public abstract class Action implements java.io.Serializable {
         return selected;
     }
 
-    public Set<Agent>getAware(EpistemicState state) {
-        Set<Agent> selected = new HashSet<>();
-        for (Agent agent : Domain.getAllAgents()) {
+    public Set<String>getAware(EpistemicState state) {
+        Set<String> selected = new HashSet<>();
+        for (String agent : Domain.getAllAgents()) {
             if (isAware(agent, state)) {
                 selected.add(agent);
             }
@@ -133,9 +131,9 @@ public abstract class Action implements java.io.Serializable {
         return selected;
     }
 
-    public Set<Agent>getOblivious(EpistemicState state) {
-        Set<Agent> selected = new HashSet<>();
-        for (Agent agent : Domain.getAllAgents()) {
+    public Set<String>getOblivious(EpistemicState state) {
+        Set<String> selected = new HashSet<>();
+        for (String agent : Domain.getAllAgents()) {
             if (isOblivious(agent, state)) {
                 selected.add(agent);
             }
@@ -146,9 +144,9 @@ public abstract class Action implements java.io.Serializable {
 
     public class UpdatedStateAndModels {
         private EpistemicState updatedState;
-        private Map<EnvironmentAgent, Model> updatedModels ;
+        private Map<String, Model> updatedModels ;
 
-        public UpdatedStateAndModels(EpistemicState updatedState, Map<EnvironmentAgent, Model> updatedModels) {
+        public UpdatedStateAndModels(EpistemicState updatedState, Map<String, Model> updatedModels) {
             this.updatedState = updatedState;
             this.updatedModels = updatedModels;
         }
@@ -156,12 +154,12 @@ public abstract class Action implements java.io.Serializable {
         public EpistemicState getState() {
             return updatedState;
         }
-        public Map<EnvironmentAgent, Model> getModels() {
+        public Map<String, Model> getModels() {
             return updatedModels;
         }
     }
 
-    public abstract UpdatedStateAndModels transition(EpistemicState priorState, Map<EnvironmentAgent, Model> priorModels);
+    public abstract UpdatedStateAndModels transition(EpistemicState priorState, Map<String, Model> priorModels);
 
 
     public String getSignatureWithActor() {
@@ -212,7 +210,7 @@ public abstract class Action implements java.io.Serializable {
         str.append(precondition);
 
         str.append("\n\tObserves\n");
-        for (Map.Entry<Agent, FluentFormula> o : observesIf.entrySet()) {
+        for (Map.Entry<String, FluentFormula> o : observesIf.entrySet()) {
             str.append("\t\t");
             str.append(o.getKey().getName());
             str.append(" if ");
@@ -221,7 +219,7 @@ public abstract class Action implements java.io.Serializable {
         }
 
         str.append("\tAware\n");
-        for (Map.Entry<Agent, FluentFormula> a : awareIf.entrySet()) {
+        for (Map.Entry<String, FluentFormula> a : awareIf.entrySet()) {
             str.append("\t\t");
             str.append(a.getKey().getName());
             str.append(" if ");

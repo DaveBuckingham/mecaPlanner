@@ -1,7 +1,6 @@
 package mecaPlanner.state;
 
 import mecaPlanner.formulae.*;
-import mecaPlanner.agents.Agent;
 import mecaPlanner.Domain;
 
 import java.util.Set;
@@ -24,13 +23,13 @@ import depl.*;
 public class Initialize {
 
     static class AgentFormulaPair {
-        private Agent agent;
+        private String agent;
         private FluentFormula formula;
-        public AgentFormulaPair(Agent agent, FluentFormula formula) {
+        public AgentFormulaPair(String agent, FluentFormula formula) {
             this.agent = agent;
             this.formula = formula;
         }
-        public Agent getAgent() {
+        public String getAgent() {
             return agent;
         }
         public FluentFormula getFormula() {
@@ -128,7 +127,7 @@ public class Initialize {
         if (!(leftBelieves.getAgent().equals(rightBelieves.getAgent()))) {
             return null;
         }
-        Agent agent = leftBelieves.getAgent();
+        String agent = leftBelieves.getAgent();
         if (!(leftBelieves.getFormula() instanceof FluentFormula && rightBelieves.getFormula() instanceof FluentFormulaNot)) {
             return null;
         }
@@ -163,7 +162,7 @@ public class Initialize {
         if (!(leftBelieves.getAgent().equals(rightBelieves.getAgent()))) {
             return null;
         }
-        Agent agent = leftBelieves.getAgent();
+        String agent = leftBelieves.getAgent();
         if (!(leftBelieves.getFormula() instanceof FluentFormula && rightBelieves.getFormula() instanceof FluentFormulaNot)) {
             return null;
         }
@@ -184,11 +183,11 @@ public class Initialize {
         Set<FluentAtom> type1 = new HashSet<>();
         Set<FluentFormula> type2 = new HashSet<>();
 
-        Map<Agent, Set<FluentFormula>> type3 = new HashMap<>();
-        Map<Agent, Set<FluentFormula>> type4 = new HashMap<>();
+        Map<String, Set<FluentFormula>> type3 = new HashMap<>();
+        Map<String, Set<FluentFormula>> type4 = new HashMap<>();
 
 
-        for (Agent agent : Domain.getAllAgents()) {
+        for (String agent : Domain.getAllAgents()) {
             type3.put(agent, new HashSet<FluentFormula>());
             type4.put(agent, new HashSet<FluentFormula>());
         }
@@ -238,7 +237,7 @@ public class Initialize {
             }
         }
 
-        for (Agent a : type3.keySet()) {
+        for (String a : type3.keySet()) {
             for (BeliefFormula f : type3.get(a)) {
                 if (type4.get(a).contains(f)) {
                     System.err.println("illegal initial state, " + a + " believes and doesn't believe " + f);
@@ -343,19 +342,19 @@ public class Initialize {
 
 
         // THIS ISN'T QUITE HOW SON ET AL DO IT, BUT I DON'T REALLY UNDERSTAND THE "COVERAGE" THING
-        Map<Agent, Relation> beliefRelations = new HashMap<>();
-        for (Agent a : Domain.getAgents()) {
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        for (String a : Domain.getAgents()) {
             beliefRelations.put(a, new Relation());
         }
 
-        Map<Agent, Relation> knowledgeRelations = new HashMap<>();
-        for (Agent a : Domain.getAgents()) {
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
+        for (String a : Domain.getAgents()) {
             knowledgeRelations.put(a, new Relation());
         }
 
 
 
-        for (Agent agent : Domain.getAgents()) {
+        for (String agent : Domain.getAgents()) {
             for (World from : allWorlds) {
                 for (World to : allWorlds) {
                     boolean distinguishes = false;

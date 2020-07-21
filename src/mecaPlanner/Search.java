@@ -7,9 +7,6 @@ import mecaPlanner.state.World;
 import mecaPlanner.actions.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
-import mecaPlanner.agents.SystemAgent;
-import mecaPlanner.agents.EnvironmentAgent;
-import mecaPlanner.agents.Agent;
 import mecaPlanner.Perspective;
 
 import java.util.List;
@@ -69,7 +66,7 @@ public class Search {
 
         private int nextSystemAgentTime() {
             int i = time + 1;
-            while (Domain.agentAtDepth(i) instanceof EnvironmentAgent) {
+            while (Domain.isEnvironmentAgent(i)) {
                 i += 1;
             }
             return i;
@@ -77,7 +74,7 @@ public class Search {
 
         private Set<Action> getPossibleActions() {
             Set<Action> possibleActions = new HashSet<>();
-            for (Action action : Domain.getAgentActions(Domain.agentAtDepth(time))) {
+            for (Action action : Domain.getAgentActions(time)) {
                 boolean safe = true;
                 for (OrNode ground : grounds) {
                     if (!action.executable(ground.getState())) {
@@ -169,7 +166,7 @@ public class Search {
             return estate;
         }
 
-        public Agent getAgent() {
+        public String getAgent() {
             return agent;
         }
 
@@ -177,7 +174,7 @@ public class Search {
             return parent;
         }
 
-        public Map<EnvironmentAgent, Model> getModel() {
+        public Map<Agent, Model> getModels() {
             return models;
         }
 

@@ -1,6 +1,5 @@
 package mecaPlanner.state;
 
-import mecaPlanner.agents.Agent;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -38,19 +37,19 @@ public class EpistemicState extends NDState {
         return this.designatedWorld;
     }
 
-    public Set<World> getBelievedWorlds(Agent agent) {
+    public Set<World> getBelievedWorlds(String agent) {
         return kripkeStructure.getBelievedWorlds(agent, designatedWorld);
     }
 
-    public boolean perspectiveEquivalent(EpistemicState other, Agent agent) {
+    public boolean perspectiveEquivalent(EpistemicState other, String agent) {
         return getBeliefPerspective(agent).equivalent(other.getBeliefPerspective(agent));
     }
 
-    public NDState getBeliefPerspective(Agent agent) {
+    public NDState getBeliefPerspective(String agent) {
         return new NDState(kripkeStructure, getBelievedWorlds(agent));
     }
 
-    public Set<World> getKnownWorlds(Agent agent) {
+    public Set<World> getKnownWorlds(String agent) {
         return kripkeStructure.getKnownWorlds(agent, designatedWorld);
     }
 

@@ -22,8 +22,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Map;
-import java.util.HashMap;
+//import java.util.Map;
+//import java.util.HashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -121,7 +121,7 @@ public class Simulator {
         Set<Solution> solutions = new HashSet<>();
         solutions.add(startSolution);
         EpistemicState currentState = startState;
-        Map<EnvironmentAgent, Model> models = Domain.getStartingModels();
+        //Map<EnvironmentAgent, Model> models = Domain.getStartingModels();
         int depth = 0;
 
         while (!solutions.isEmpty()) {
@@ -153,12 +153,12 @@ public class Simulator {
                 EnvironmentAgent eAgent = (EnvironmentAgent) agent;
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
-                for (Action a : models.get(eAgent).getPrediction(perspective.getAgentView(), eAgent)) {
-                    System.out.println(index.toString() + ": " + a.getSignatureWithActor());
-                    options.add(a);
-                    index += 1;
-                }
-                assert(options.size() > 0);
+                //for (Action a : models.get(eAgent).getPrediction(perspective.getAgentView(), eAgent)) {
+                //    System.out.println(index.toString() + ": " + a.getSignatureWithActor());
+                //    options.add(a);
+                //    index += 1;
+                //}
+                //assert(options.size() > 0);
                 Integer selection = -1;
                 if (options.size() > 1) {
                     while (selection < 0 || selection >= index) {
@@ -174,9 +174,9 @@ public class Simulator {
 
             assert (action != null);
 
-            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            currentState = transitionResult.getState();
-            models = transitionResult.getModels();
+            //Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+            //currentState = transitionResult.getState();
+            //models = transitionResult.getModels();
 
             depth += 1;
         }
