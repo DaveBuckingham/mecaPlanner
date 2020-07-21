@@ -1,6 +1,5 @@
 package mecaPlanner.models;
 
-import mecaPlanner.agents.Agent;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
@@ -25,10 +24,6 @@ public abstract class Model implements java.io.Serializable {
     }
 
 
-
-    //public final Agent getAgent() {
-    //    return this.agent;
-    //}
 
     // REQUIREMENTS:
     // 1. each action requires and deletes at least one atom in atoms
@@ -90,7 +85,7 @@ public abstract class Model implements java.io.Serializable {
 
 
     // GET ALL ACTIONS WHOSE PRECONDITIONS ARE SATISFIED IN ALL DESIGANTED WORLDS
-    public static Set<Action> getSafeActions(NDState ndState, Agent agent) {
+    public static Set<Action> getSafeActions(NDState ndState, String agent) {
         Set<Action> safeActions = new HashSet<Action>();
         for (Action action : Domain.getAgentActions(agent)) {
             if (action.necessarilyExecutable(ndState)){
@@ -100,7 +95,7 @@ public abstract class Model implements java.io.Serializable {
         return safeActions;
     }
 
-    public static Action getSafeActionBySignature(String signature, NDState ndState, Agent agent) {
+    public static Action getSafeActionBySignature(String signature, NDState ndState, String agent) {
         Action action = Domain.getActionBySignature(agent, signature.replaceAll("\\s+",""));
         if (!action.necessarilyExecutable(ndState)) {
             throw new RuntimeException("requested action " + 
@@ -110,13 +105,13 @@ public abstract class Model implements java.io.Serializable {
         return action;
     }
 
-    // public static Set<Action> getActionSetBySignature(String signature, EpistemicState eState, Agent agent) {
+    // public static Set<Action> getActionSetBySignature(String signature, EpistemicState eState, String agent) {
     //     Set<Action> singleton = new HashSet<>();
     //     singleton.add(getSafeActionBySignature(signature, eState, agent));
     //     return singleton;
     // }
 
-    public abstract Set<Action> getPrediction(NDState ndState, Agent agent);
+    public abstract Set<Action> getPrediction(NDState ndState, String agent);
 
     public Model update(NDState perspective, Action action) {
         return this;

@@ -4,7 +4,6 @@ import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
-import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 
@@ -20,7 +19,7 @@ import java.util.Iterator;
 
 public class PizzaModel extends Model {
 
-    public Set<Action> getPrediction(NDState ndState, Agent agent) {
+    public Set<Action> getPrediction(NDState ndState, String agent) {
         Set<Action> allActions = getSafeActions(ndState, agent);
         Set<Action> prediction = new HashSet<>();
         for (Action a : allActions) {
@@ -33,10 +32,10 @@ public class PizzaModel extends Model {
         if (!ndState.necessarily(new FluentAtom("door_open"))) {
             prediction.add(getSafeActionBySignature("open_door()", ndState, agent));
         }
-        else if (ndState.necessarily(new FluentAtom("at", agent.getName(), "room1"))) {
+        else if (ndState.necessarily(new FluentAtom("at", agent, "room1"))) {
             prediction.add(getSafeActionBySignature("move(room1,room2)", ndState, agent));
         }
-        else if (ndState.necessarily(new FluentAtom("at", agent.getName(), "room2"))) {
+        else if (ndState.necessarily(new FluentAtom("at", agent, "room2"))) {
             prediction.add(getSafeActionBySignature("move(room2,room1)", ndState, agent));
         }
         else {

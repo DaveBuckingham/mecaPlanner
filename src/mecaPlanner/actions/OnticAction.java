@@ -7,8 +7,6 @@ import mecaPlanner.formulae.FluentFormulaNot;
 import mecaPlanner.formulae.FluentFormulaAnd;
 import mecaPlanner.formulae.BeliefFormulaNot;
 import mecaPlanner.formulae.BeliefFormulaBelieves;
-import mecaPlanner.agents.Agent;
-import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
@@ -36,11 +34,11 @@ public class OnticAction extends Action implements java.io.Serializable{
 
     public OnticAction(String name,
                        List<String> parameters,
-                       Agent actor,
+                       String actor,
                        Integer cost,
                        BeliefFormula precondition,
-                       Map<Agent, FluentFormula> observesIf,
-                       Map<Agent, FluentFormula> awareIf,
+                       Map<String, FluentFormula> observesIf,
+                       Map<String, FluentFormula> awareIf,
                        Map<FluentLiteral, FluentFormula> effects
                        //Set<FluentLiteral> effects
                       ) {
@@ -68,7 +66,7 @@ public class OnticAction extends Action implements java.io.Serializable{
 
 
     @Override
-    public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<EnvironmentAgent, Model> oldModels) {
+    public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("ontic transition: " + getSignatureWithActor());
 
 
@@ -106,23 +104,23 @@ public class OnticAction extends Action implements java.io.Serializable{
         assert(newDesignatedWorld != null);
         assert(observedWorlds.contains(newDesignatedWorld));
 
-        Set<Agent> observantAwareAgents = getFullyObservant(beforeState);
+        Set<String> observantAwareAgents = getFullyObservant(beforeState);
         observantAwareAgents.addAll(getAware(beforeState));
-        Set<Agent> obliviousAgents = getOblivious(beforeState);
+        Set<String> obliviousAgents = getOblivious(beforeState);
 
-        Map<Agent, Relation> resetRelations = new HashMap<>();
-        for (Agent a : getAnyObservers(beforeState)) {
+        Map<String, Relation> resetRelations = new HashMap<>();
+        for (String a : getAnyObservers(beforeState)) {
             resetRelations.put(a, new Relation());
         }
 
         
-        Map<Agent, Relation> newBeliefs = new HashMap<>();
-        for (Agent a : Domain.getAllAgents()) {
+        Map<String, Relation> newBeliefs = new HashMap<>();
+        for (String a : Domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
         }
 
-        Map<Agent, Relation> newKnowledges = new HashMap<>();
-        for (Agent a : Domain.getAllAgents()) {
+        Map<String, Relation> newKnowledges = new HashMap<>();
+        for (String a : Domain.getAllAgents()) {
             newKnowledges.put(a, new Relation());
         }
 
@@ -154,7 +152,7 @@ public class OnticAction extends Action implements java.io.Serializable{
         if (!obliviousAgents.isEmpty()) {
             resultWorlds.addAll(obliviousWorlds);
 
-            for (Agent agent : Domain.getAllAgents()) {
+            for (String agent : Domain.getAllAgents()) {
                 for (World fromWorld: obliviousWorlds) {
                     for (World toWorld: obliviousWorlds) {
                         if (oldKripke.isConnectedBelief(agent, newWorldsToOld.get(fromWorld), newWorldsToOld.get(toWorld))) {
@@ -169,7 +167,7 @@ public class OnticAction extends Action implements java.io.Serializable{
         }
 
 
-        for (Agent agent : observantAwareAgents) {
+        for (String agent : observantAwareAgents) {
 
             BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent, 
                                                         new BeliefFormulaNot(getPrecondition()));
@@ -217,7 +215,7 @@ public class OnticAction extends Action implements java.io.Serializable{
         }
 
 
-        for (Agent agent : obliviousAgents) {
+        for (String agent : obliviousAgents) {
 
             for (World fromWorld: observedWorlds) {
                 for (World toWorld: obliviousWorlds) {
@@ -251,20 +249,18 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         assert(Test.checkRelations(newState));
 
-        Map<EnvironmentAgent, Model> newModels = new HashMap();
+        Map<String, Model> newModels = new HashMap();
 
-        for (Agent obliviousAgent : obliviousAgents) {
-            if (obliviousAgent instanceof EnvironmentAgent) {
-                EnvironmentAgent eagent = (EnvironmentAgent) obliviousAgent;
-                newModels.put(eagent, oldModels.get(eagent));
+        for (String obliviousAgent : obliviousAgents) {
+            if (Domain.isEnvironmentAgent(obliviousAgent)) {
+                newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
             }
         }
-        for (Agent observantAwareAgent : observantAwareAgents) {
-            if (observantAwareAgent instanceof EnvironmentAgent) {
-                EnvironmentAgent eagent = (EnvironmentAgent) observantAwareAgent;
-                NDState perspective = beforeState.getBeliefPerspective(eagent);
-                Model updatedModel = oldModels.get(eagent).update(perspective, this);
-                newModels.put(eagent, updatedModel);
+        for (String observantAwareAgent : observantAwareAgents) {
+            if (Domain.isEnvironmentAgent(observantAwareAgent)) {
+                NDState perspective = beforeState.getBeliefPerspective(observantAwareAgent);
+                Model updatedModel = oldModels.get(observantAwareAgent).update(perspective, this);
+                newModels.put(observantAwareAgent, updatedModel);
             }
 
         }

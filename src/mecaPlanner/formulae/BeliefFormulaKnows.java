@@ -1,6 +1,5 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.agents.Agent;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -12,15 +11,15 @@ import java.util.Set;
 
 public class BeliefFormulaKnows extends BeliefFormula {
 
-    private Agent agent;
+    private String agent;
     private BeliefFormula formula;
 
-    public BeliefFormulaKnows(Agent agent, BeliefFormula formula) {
+    public BeliefFormulaKnows(String agent, BeliefFormula formula) {
         this.agent = agent;
         this.formula = formula;
     }
 
-    public Agent getAgent() {
+    public String getAgent() {
         return this.agent;
     }
 

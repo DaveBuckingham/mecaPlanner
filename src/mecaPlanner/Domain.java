@@ -1,13 +1,11 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.agents.EnvironmentAgent;
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.actions.Action;
-import mecaPlanner.agents.*;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -33,7 +31,7 @@ public class Domain {
     private static Set<String> passiveAgents;
 
 
-    private static Map<EnvironmentAgent, Model> startingModels;
+    private static Map<String, Model> startingModels;
 
 
 
@@ -71,7 +69,7 @@ public class Domain {
         return goals;
     }
 
-    public static Map<Agent,Set<Action>> getActionMap() {
+    public static Map<String,Set<Action>> getActionMap() {
         return actions;
     }
 
@@ -92,7 +90,7 @@ public class Domain {
     }
 
 
-    public static Action getActionBySignature(Agent agent, String signature) {
+    public static Action getActionBySignature(String agent, String signature) {
         if (!actionsBySignature.get(agent).containsKey(signature)) {
             throw new RuntimeException("unknown action signature: " + signature);
         }
@@ -100,19 +98,19 @@ public class Domain {
 
     }
 
-    public static Set<SystemAgent> getSystemAgents() {
+    public static Set<String> getSystemAgents() {
         return systemAgents;
     }
 
-    public static Set<EnvironmentAgent> getEnvironmentAgents() {
+    public static Set<String> getEnvironmentAgents() {
         return environmentAgents;
     }
 
-    public static Set<PassiveAgent> getPassiveAgents() {
+    public static Set<String> getPassiveAgents() {
         return passiveAgents;
     }
 
-    public static List<Agent> getNonPassiveAgents() {
+    public static List<String> getNonPassiveAgents() {
         return nonPassiveAgents;
     }
 
@@ -124,24 +122,29 @@ public class Domain {
         return environmentAgents.contains(agent);
     }
 
-    public static boolean isSystemAgent(String agent) {
-        return systemAgents.contains(agent);
-    }
-
     public static boolean isEnvironmentAgent(int depth) {
         return environmentAgents.contains(agentAtDepth(depth));
     }
 
+    public static boolean isSystemAgent(String agent) {
+        return systemAgents.contains(agent);
+    }
 
-    public static Set<Agent> getAllAgents() {
+    public static boolean isSystemAgent(int depth) {
+        return systemAgents.contains(agentAtDepth(depth));
+    }
+
+
+
+    public static Set<String> getAllAgents() {
         return allAgents;
     }
 
-    public static Set<Agent> getAgents() {
+    public static Set<String> getAgents() {
         return allAgents;
     }
 
-    public static Map<EnvironmentAgent, Model> getStartingModels() {
+    public static Map<String, Model> getStartingModels() {
         return startingModels;
     }
 
@@ -195,7 +198,7 @@ public class Domain {
         allAgents.add(agent);
     }
 
-    public static void addAction(Agent agent, Action newAction) {
+    public static void addAction(String agent, Action newAction) {
         checkAtoms(newAction.getPrecondition());
         // SHOULD ALSO checkAtoms() FOR EFFECT CONDITIONS AND OBSERVES CONDITIONS
         assert(actions.containsKey(agent));
@@ -203,7 +206,6 @@ public class Domain {
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
     }
 
-    }
 
     public static boolean isAgent(String s) {
         return allAgents.contains(s);
@@ -230,15 +232,15 @@ public class Domain {
         StringBuilder str = new StringBuilder();
 
         str.append("SYSTEM AGENTS:\n");
-        for (Agent a : systemAgents) {
-            str.append(a.getName());
+        for (String a : systemAgents) {
+            str.append(a);
             str.append("\n");
         }
         str.append("\n");
 
         str.append("ENVIRONMENT AGENTS:\n");
-        for (Agent a : environmentAgents) {
-            str.append(a.getName());
+        for (String a : environmentAgents) {
+            str.append(a);
             str.append("\n");
         }
         str.append("\n");
@@ -257,7 +259,7 @@ public class Domain {
         }
         str.append("\n");
 
-        for (Agent agent : actions.keySet()) {
+        for (String agent : actions.keySet()) {
             str.append("ACTIONS (" + agent.toString() + "):\n");
             for (Action action : actions.get(agent)) {
                 str.append(action.toString());

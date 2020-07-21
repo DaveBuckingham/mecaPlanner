@@ -234,7 +234,7 @@ public class KripkeStructure implements java.io.Serializable {
             str.append(w);
             str.append("\n");
             for (String agent : Domain.getAgents()) {
-                str.append("  B(" + agent.getName() + ") = ");
+                str.append("  B(" + agent + ") = ");
                 List<World> believed = getBelievedWorlds(agent, w).stream().collect(Collectors.toList());
                 believed.sort(Comparator.comparingInt(World::getId));
                 for (World to : believed) {
@@ -243,7 +243,7 @@ public class KripkeStructure implements java.io.Serializable {
                 }
                 str.deleteCharAt(str.length() - 1);
                 str.append("\n");
-                str.append("  K(" + agent.getName() + ") = ");
+                str.append("  K(" + agent + ") = ");
                 List<World> known = getKnownWorlds(agent, w).stream().collect(Collectors.toList());
                 known.sort(Comparator.comparingInt(World::getId));
                 for (World to : known) {

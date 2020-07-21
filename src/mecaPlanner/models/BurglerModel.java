@@ -4,7 +4,6 @@ import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
-import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 
@@ -45,11 +44,11 @@ public class BurglerModel extends AijModel {
         return true;
     }
     
-    public Set<Action> getPrediction(NDState ndState, Agent agent) {
+    public Set<Action> getPrediction(NDState ndState, String agent) {
 
         Set<Action> actions = new HashSet<>();
 
-        Iterator<Integer> myRooms = getRoom(ndState, agent.getName()).iterator();
+        Iterator<Integer> myRooms = getRoom(ndState, agent).iterator();
         if (!myRooms.hasNext()) {
             throw new RuntimeException("Modeled agent not at a room");
         }

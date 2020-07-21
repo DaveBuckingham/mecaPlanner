@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.actions.*;
-import mecaPlanner.agents.*;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -35,7 +34,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     private Map<String, TypeNode> typeDefs;  // key is type name
 
-    private Set<Agent> allAgentsForAction;
+    private Set<String> allAgentsForAction;
 
     private Stack<Map<String, String>> variableStack = new Stack<Map<String, String>>();
 
@@ -44,7 +43,7 @@ public class DeplToDomain extends DeplBaseVisitor {
         this.allObjects = new HashSet<String>();
         this.constants = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
-        this.allAgentsForAction = new HashSet<Agent>();
+        this.allAgentsForAction = new HashSet<String>();
     }
 
 
@@ -338,7 +337,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
         String name = ctx.NAME().getText();
-        Domain.addSystemAgent(new SystemAgent(name));
+        Domain.addSystemAgent(name);
         return null;
     }
 
@@ -376,7 +375,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             System.exit(1);
         }
 
-        Domain.addEnvironmentAgent(new EnvironmentAgent(name), model);
+        Domain.addEnvironmentAgent(name, model);
 
         return null;
     }
@@ -384,7 +383,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     @Override public Void visitPassiveAgent(DeplParser.PassiveAgentContext ctx) {
         String name = ctx.NAME().getText();
-        Domain.addPassiveAgent(new PassiveAgent(name));
+        Domain.addPassiveAgent(name);
         return null;
     }
 
@@ -499,15 +498,15 @@ public class DeplToDomain extends DeplBaseVisitor {
         }
 
         // MANDATORY
-        Agent owner = null;
+        String owner = null;
         DeplToDomain.ActionType actionType = null;
 
         // OPTIONAL
         int cost = 1;
         List<FluentFormula> preconditionList = new ArrayList<FluentFormula>();
-        Map<Agent, List<FluentFormula>> observesLists = new HashMap<>();
-        Map<Agent, List<FluentFormula>> awareLists = new HashMap<>();
-        for (Agent a : Domain.getAgents()) {
+        Map<String, List<FluentFormula>> observesLists = new HashMap<>();
+        Map<String, List<FluentFormula>> awareLists = new HashMap<>();
+        for (String a : Domain.getAgents()) {
             observesLists.put(a, new ArrayList<FluentFormula>());
             awareLists.put(a, new ArrayList<FluentFormula>());
         }
@@ -521,18 +520,12 @@ public class DeplToDomain extends DeplBaseVisitor {
         for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
             if (fieldCtx.ownerActionField() != null) {
-                String ownerName = resolveVariable(fieldCtx.ownerActionField().parameter());
-                if (Domain.isSystemAgentName(ownerName)) {
-                    owner = Domain.getAgentByName(ownerName);
-                }
-                else if (Domain.isEnvironmentAgentName(ownerName)) {
-                    owner = Domain.getAgentByName(ownerName);
-                }
-                else {
+                owner = resolveVariable(fieldCtx.ownerActionField().parameter());
+                if (!(Domain.isSystemAgent(owner) || Domain.isEnvironmentAgent(owner))) {
                     throw new RuntimeException("action " +
                                                actionName +
                                                " owner " +
-                                               ownerName +
+                                               owner +
                                                " not a declared system or environment agent.");
                 }
             }
@@ -553,7 +546,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.observesActionField().variableList())) {
                     variableStack.push(variableMap);
                     String agentName = resolveVariable(fieldCtx.observesActionField().parameter());
-                    observesLists.get(Domain.getAgentByName(agentName)).add(new FluentFormulaTrue());
+                    observesLists.get(agentName).add(new FluentFormulaTrue());
                     variableStack.pop();
                 }
             }
@@ -565,7 +558,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.observesifActionField().fluentFormula());
                     condition = removeConstants(condition);
                     if (!(condition instanceof FluentFormulaFalse)) {
-                        observesLists.get(Domain.getAgentByName(agentName)).add(condition);
+                        observesLists.get(agentName).add(condition);
                     }
                     variableStack.pop();
                 }
@@ -575,7 +568,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.awareActionField().variableList())) {
                     variableStack.push(variableMap);
                     String agentName = resolveVariable(fieldCtx.awareActionField().parameter());
-                    awareLists.get(Domain.getAgentByName(agentName)).add(new FluentFormulaTrue());
+                    awareLists.get(agentName).add(new FluentFormulaTrue());
                     variableStack.pop();
                 }
             }
@@ -585,7 +578,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                     variableStack.push(variableMap);
                     String agentName = resolveVariable(fieldCtx.awareifActionField().parameter());
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.awareifActionField().fluentFormula());
-                    awareLists.get(Domain.getAgentByName(agentName)).add(condition);
+                    awareLists.get(agentName).add(condition);
                     variableStack.pop();
                 }
             }
@@ -670,9 +663,9 @@ public class DeplToDomain extends DeplBaseVisitor {
             actionType = DeplToDomain.ActionType.ONTIC;  // default
         }
 
-        Map<Agent, FluentFormula> observes = new HashMap<>();
-        Map<Agent, FluentFormula> aware = new HashMap<>();
-        for (Agent a : Domain.getAgents()) {
+        Map<String, FluentFormula> observes = new HashMap<>();
+        Map<String, FluentFormula> aware = new HashMap<>();
+        for (String a : Domain.getAgents()) {
             observes.put(a, removeConstants(new FluentFormulaOr(observesLists.get(a))));
             aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
         }
@@ -836,10 +829,10 @@ public class DeplToDomain extends DeplBaseVisitor {
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
         String agentName = resolveVariable(ctx.parameter());
-        if (!Domain.isAgentName(agentName)) {
+        if (!Domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return new BeliefFormulaBelieves(Domain.getAgentByName(agentName), inner);
+        return new BeliefFormulaBelieves(agentName, inner);
     }
 
     // TIME FORMULAE

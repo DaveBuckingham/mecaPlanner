@@ -6,7 +6,6 @@ import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 import mecaPlanner.state.Relation;
 import mecaPlanner.models.BurglerModel;
-import mecaPlanner.agents.*;
 import mecaPlanner.models.*;
 import mecaPlanner.actions.*;
 import mecaPlanner.Perspective;
@@ -22,8 +21,8 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Set;
 import java.util.HashSet;
-//import java.util.Map;
-//import java.util.HashMap;
+import java.util.Map;
+import java.util.HashMap;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -121,7 +120,7 @@ public class Simulator {
         Set<Solution> solutions = new HashSet<>();
         solutions.add(startSolution);
         EpistemicState currentState = startState;
-        //Map<EnvironmentAgent, Model> models = Domain.getStartingModels();
+        Map<String, Model> models = Domain.getStartingModels();
         int depth = 0;
 
         while (!solutions.isEmpty()) {
@@ -129,13 +128,13 @@ public class Simulator {
             System.out.println("STATE:");
             System.out.println(currentState);
 
-            Agent agent = Domain.agentAtDepth(depth);
+            String agent = Domain.agentAtDepth(depth);
 
             Perspective perspective = new Perspective(currentState, agent);
 
             Action action = null;
 
-            if (agent instanceof SystemAgent) {
+            if (Domain.isSystemAgent(agent)) {
                 boolean foundPerspective = false;
                 for (Solution s : solutions) {
                     if (perspective.equals(s.getPerspective())) {
@@ -150,15 +149,14 @@ public class Simulator {
             }
 
             else {
-                EnvironmentAgent eAgent = (EnvironmentAgent) agent;
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
-                //for (Action a : models.get(eAgent).getPrediction(perspective.getAgentView(), eAgent)) {
-                //    System.out.println(index.toString() + ": " + a.getSignatureWithActor());
-                //    options.add(a);
-                //    index += 1;
-                //}
-                //assert(options.size() > 0);
+                for (Action a : models.get(agent).getPrediction(perspective.getAgentView(), agent)) {
+                    System.out.println(index.toString() + ": " + a.getSignatureWithActor());
+                    options.add(a);
+                    index += 1;
+                }
+                assert(options.size() > 0);
                 Integer selection = -1;
                 if (options.size() > 1) {
                     while (selection < 0 || selection >= index) {
@@ -169,14 +167,14 @@ public class Simulator {
                     selection = 0;
                 }
                 action = options.get(selection);
-                System.out.println(eAgent + ": " + action.getSignature() + "\n");
+                System.out.println(agent + ": " + action.getSignature() + "\n");
             }
 
             assert (action != null);
 
-            //Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            //currentState = transitionResult.getState();
-            //models = transitionResult.getModels();
+            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+            currentState = transitionResult.getState();
+            models = transitionResult.getModels();
 
             depth += 1;
         }

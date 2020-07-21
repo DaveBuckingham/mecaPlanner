@@ -2,7 +2,6 @@ package mecaPlanner.formulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
-import mecaPlanner.agents.Agent;
 
 
 import java.util.Set;
@@ -12,10 +11,10 @@ import java.util.HashSet;
 
 public class BeliefFormulaCommon extends BeliefFormula {
 
-    private Set<Agent> commonAgents;
+    private Set<String> commonAgents;
     private BeliefFormula formula;
 
-    public BeliefFormulaCommon(Set<Agent> commonAgents, BeliefFormula formula) {
+    public BeliefFormulaCommon(Set<String> commonAgents, BeliefFormula formula) {
         this.commonAgents = commonAgents;
         this.formula = formula;
     }
@@ -24,11 +23,11 @@ public class BeliefFormulaCommon extends BeliefFormula {
     // WHICH WE WILL PULL DYNAMICALLY FROM THE STATE AT EVALUATION,
     // SEE holdsAtWorld() BELOW.
     public BeliefFormulaCommon(BeliefFormula formula) {
-        this.commonAgents = new HashSet<Agent>();
+        this.commonAgents = new HashSet<String>();
         this.formula = formula;
     }
 
-    public Set<Agent> getAgents() {
+    public Set<String> getAgents() {
         return this.commonAgents;
     }
 
@@ -39,7 +38,7 @@ public class BeliefFormulaCommon extends BeliefFormula {
     // THIS IS WRONG, THIS IS THE SAME AS E()
     public Boolean holdsAtWorld(KripkeStructure kripke, World world) {
         //System.out.println("WARNING: incorrectly computing 'holds' for Common belief");
-        for (Agent agent : commonAgents) {
+        for (String agent : commonAgents) {
             BeliefFormulaBelieves believes = new BeliefFormulaBelieves(agent, formula);
             if (!believes.holdsAtWorld(kripke, world)) {
                 return false;
@@ -57,8 +56,8 @@ public class BeliefFormulaCommon extends BeliefFormula {
         StringBuilder str = new StringBuilder();
         str.append("C[");
         if (commonAgents.size() > 0) {
-            for (Agent agent : commonAgents) {
-                str.append(agent.getName());
+            for (String agent : commonAgents) {
+                str.append(agent);
                 str.append(",");
             }
             str.deleteCharAt(str.length() - 1);

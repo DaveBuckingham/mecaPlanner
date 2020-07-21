@@ -2,14 +2,13 @@ package mecaPlanner;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.agents.Agent;
 
 
 
 public class Perspective implements java.io.Serializable {
     private NDState agentView;
 
-    public Perspective(EpistemicState eState, Agent agent) {
+    public Perspective(EpistemicState eState, String agent) {
         agentView = eState.getBeliefPerspective(agent);
     }
 

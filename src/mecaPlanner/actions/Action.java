@@ -166,7 +166,7 @@ public abstract class Action implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(name);
         str.append("[");
-        str.append(actor.getName());
+        str.append(actor);
         str.append("]");
         str.append("(");
         if (parameters.size() > 0) {
@@ -204,7 +204,7 @@ public abstract class Action implements java.io.Serializable {
         str.append(this.getSignature());
 
         str.append("\n\tOwner: ");
-        str.append(actor.getName());
+        str.append(actor);
 
         str.append("\n\tPrecondition: ");
         str.append(precondition);
@@ -212,7 +212,7 @@ public abstract class Action implements java.io.Serializable {
         str.append("\n\tObserves\n");
         for (Map.Entry<String, FluentFormula> o : observesIf.entrySet()) {
             str.append("\t\t");
-            str.append(o.getKey().getName());
+            str.append(o.getKey());
             str.append(" if ");
             str.append(o.getValue());
             str.append("\n");
@@ -221,7 +221,7 @@ public abstract class Action implements java.io.Serializable {
         str.append("\tAware\n");
         for (Map.Entry<String, FluentFormula> a : awareIf.entrySet()) {
             str.append("\t\t");
-            str.append(a.getKey().getName());
+            str.append(a.getKey());
             str.append(" if ");
             str.append(a.getValue());
             str.append("\n");

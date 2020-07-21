@@ -2,7 +2,6 @@ package mecaPlanner.formulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
-import mecaPlanner.agents.Agent;
 
 
 import java.util.Objects;
@@ -12,15 +11,15 @@ import java.util.Set;
 
 public class BeliefFormulaBelieves extends BeliefFormula {
 
-    private Agent agent;
+    private String agent;
     private BeliefFormula formula;
 
-    public BeliefFormulaBelieves(Agent agent, BeliefFormula formula) {
+    public BeliefFormulaBelieves(String agent, BeliefFormula formula) {
         this.agent = agent;
         this.formula = formula;
     }
 
-    public Agent getAgent() {
+    public String getAgent() {
         return this.agent;
     }
 
@@ -68,7 +67,7 @@ public class BeliefFormulaBelieves extends BeliefFormula {
 
     @Override
     public String toString() {
-        return ("B[" + this.agent.getName() + "](" + this.formula + ")");
+        return ("B[" + this.agent + "](" + this.formula + ")");
     }
 
 

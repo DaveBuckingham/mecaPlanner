@@ -145,10 +145,10 @@ public class Search {
         protected int maxDepth;
         protected GNode parent;
         protected Set<GNode> successors;
-        protected Agent agent;
-        protected Map<EnvironmentAgent, Model> models;
+        protected String agent;
+        protected Map<String, Model> models;
 
-        public GNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
+        public GNode(EpistemicState estate, int time, GNode parent, Map<String, Model> models, int maxDepth) {
             this.estate = estate;
             this.time = time;
             this.agent = Domain.agentAtDepth(time);
@@ -174,7 +174,7 @@ public class Search {
             return parent;
         }
 
-        public Map<Agent, Model> getModels() {
+        public Map<String, Model> getModels() {
             return models;
         }
 
@@ -195,7 +195,7 @@ public class Search {
 
         public GNode transition(Action action) {
             Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
-            if (Domain.agentAtDepth(time+1) instanceof SystemAgent) {
+            if (Domain.isSystemAgent(time+1)) {
                 return new OrNode(transitionResult.getState(), time+1, this, transitionResult.getModels(), maxDepth);
             }
             else {
@@ -225,32 +225,29 @@ public class Search {
 
     private class AndNode extends GNode {
 
-        EnvironmentAgent eAgent;
-
-        public AndNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
+        public AndNode(EpistemicState estate, int time, GNode parent, Map<String, Model> models, int maxDepth) {
             super(estate, time, parent, models, maxDepth);
-            assert (this.agent instanceof EnvironmentAgent);
-            this.eAgent = (EnvironmentAgent) agent;
+            assert (Domain.isEnvironmentAgent(agent));
         }
 
         protected Set<Action> getPossibleActions() {
             Set<Action> possibleActions = new HashSet<Action>();
-            Set<Action> prediction = models.get(eAgent).getPrediction(estate.getBeliefPerspective(eAgent), eAgent);
+            Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent), agent);
 
             if (prediction == null) {
                 throw new RuntimeException("Model returned null, indicating model failure.");
             }
 
-            Log.debug(eAgent.getName() + " prediction:");
+            Log.debug(agent + " prediction:");
             for (Action action : prediction) {
                 Log.debug("  " + action.getSignature());
-                if (action.executable(estate) && action.necessarilyExecutable(estate.getBeliefPerspective(eAgent))) {
+                if (action.executable(estate) && action.necessarilyExecutable(estate.getBeliefPerspective(agent))) {
                     possibleActions.add(action);
                 }
             }
 
             if (possibleActions.isEmpty()) {
-                Log.warning("Model for " + eAgent.getName() + "predicted no necessarily executable action.");
+                Log.warning("Model for " + agent + "predicted no necessarily executable action.");
             }
 
             return possibleActions;
@@ -280,7 +277,7 @@ public class Search {
 
     private class OrNode extends GNode {
 
-        public OrNode(EpistemicState estate, int time, GNode parent, Map<EnvironmentAgent, Model> models, int maxDepth) {
+        public OrNode(EpistemicState estate, int time, GNode parent, Map<String, Model> models, int maxDepth) {
             super(estate, time, parent, models, maxDepth);
         }
 
@@ -332,10 +329,10 @@ public class Search {
         // NEED TO MOVE ALL THIS INITIALIZATION STUFF TO FINDSOLUTION, AS IN PSEUDOCODE
 
         this.goal = goal;
-        Agent startAgent = Domain.agentAtDepth(0);
+        String startAgent = Domain.agentAtDepth(0);
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
-        if (startAgent instanceof SystemAgent) {
+        if (Domain.isSystemAgent(startAgent)) {
             for (EpistemicState eState : startStates) {
                 allStartOrNodes.add(new OrNode(eState, 0, null, Domain.getStartingModels(), maxDepth));
             }
@@ -352,7 +349,7 @@ public class Search {
         }
 
         int time = 0;
-        while (Domain.agentAtDepth(time) instanceof EnvironmentAgent) {
+        while (Domain.isEnvironmentAgent(time)) {
             time++;
         }
 

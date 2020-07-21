@@ -1,6 +1,5 @@
 package mecaPlanner;
 
-import mecaPlanner.agents.*;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.Relation;
@@ -73,7 +72,8 @@ public class Test {
 
     private static void testBisimulations() {
 
-        Domain.addPassiveAgent("agent_name");
+        String agent = "agent_name";
+        Domain.addPassiveAgent(agent);
 
         EpistemicState vending_s = vendingS(agent);
         EpistemicState vending_t = vendingT(agent);
