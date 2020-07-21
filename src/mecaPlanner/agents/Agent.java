@@ -6,7 +6,8 @@ public abstract class Agent {
 
     protected String name;
 
-    public Agent() {
+    public Agent(String name) {
+        this.name = name;
     }
 
 
@@ -20,7 +21,7 @@ public abstract class Agent {
         //    System.out.println(this.getClass().getName());
         //    System.exit(1);
         //}
-        return getName().hashCode();
+        return name.hashCode();
     }
 
     @Override

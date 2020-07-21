@@ -8,7 +8,7 @@ public class PassiveAgent extends Agent{
 
 
     public PassiveAgent(String name) {
-        this.name = name;
+        super(name);
     }
 
     public String toString() {

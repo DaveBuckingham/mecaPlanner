@@ -9,7 +9,7 @@ public class SystemAgent extends Agent implements java.io.Serializable {
 
 
     public SystemAgent(String name) {
-        this.name = name;
+        super(name);
     }
 
 

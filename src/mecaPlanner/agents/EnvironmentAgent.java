@@ -12,7 +12,7 @@ public class EnvironmentAgent extends Agent implements java.io.Serializable{
 
 
     public EnvironmentAgent(String name) {
-        this.name = name;
+        super(name);
     }
 
 
