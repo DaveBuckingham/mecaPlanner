@@ -8,7 +8,7 @@ import mecaPlanner.state.Relation;
 import mecaPlanner.models.BurglerModel;
 import mecaPlanner.models.*;
 import mecaPlanner.actions.*;
-import mecaPlanner.Perspective;
+import mecaPlanner.search.Perspective;
 import mecaPlanner.state.Initialize;
 import mecaPlanner.formulae.*;
 import mecaPlanner.Log;

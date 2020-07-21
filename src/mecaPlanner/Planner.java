@@ -5,6 +5,7 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.*;
 import mecaPlanner.actions.*;
 import mecaPlanner.models.*;
+import mecaPlanner.search.Search;
 
 import java.util.Set;
 import java.util.HashSet;
