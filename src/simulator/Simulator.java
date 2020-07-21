@@ -7,6 +7,7 @@ import mecaPlanner.state.World;
 import mecaPlanner.state.Relation;
 import mecaPlanner.models.BurglerModel;
 import mecaPlanner.agents.*;
+import mecaPlanner.models.*;
 import mecaPlanner.actions.*;
 import mecaPlanner.Perspective;
 import mecaPlanner.state.Initialize;
@@ -120,6 +121,7 @@ public class Simulator {
         Set<Solution> solutions = new HashSet<>();
         solutions.add(startSolution);
         EpistemicState currentState = startState;
+        Map<EnvironmentAgent, Model> models = Domain.getStartingModels();
         int depth = 0;
 
         while (!solutions.isEmpty()) {
@@ -151,7 +153,7 @@ public class Simulator {
                 EnvironmentAgent eAgent = (EnvironmentAgent) agent;
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
-                for (Action a : eAgent.getModel().getPrediction(perspective.getAgentView(), eAgent)) {
+                for (Action a : models.get(eAgent).getPrediction(perspective.getAgentView(), eAgent)) {
                     System.out.println(index.toString() + ": " + a.getSignatureWithActor());
                     options.add(a);
                     index += 1;
@@ -172,7 +174,9 @@ public class Simulator {
 
             assert (action != null);
 
-            currentState = action.transition(currentState);
+            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+            currentState = transitionResult.getState();
+            models = transitionResult.getModels();
 
             depth += 1;
         }

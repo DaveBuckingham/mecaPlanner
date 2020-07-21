@@ -74,6 +74,9 @@ public class Planner {
                 }
                 planFileName = arg;
             }
+            else {
+                throw new RuntimeException("invalid argument: " + arg);
+            }
 
         }
 

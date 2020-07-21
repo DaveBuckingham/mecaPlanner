@@ -149,8 +149,8 @@ public abstract class Action implements java.io.Serializable {
         private Map<EnvironmentAgent, Model> updatedModels ;
 
         public UpdatedStateAndModels(EpistemicState updatedState, Map<EnvironmentAgent, Model> updatedModels) {
-            updatedState = updatedState;
-            updatedModels = updatedModels;
+            this.updatedState = updatedState;
+            this.updatedModels = updatedModels;
         }
 
         public EpistemicState getState() {
