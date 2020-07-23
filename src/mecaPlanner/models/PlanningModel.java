@@ -5,6 +5,7 @@ import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
+import mecaPlanner.Domain;
 
 import java.util.Objects;
 import java.util.Set;
@@ -16,6 +17,10 @@ import java.util.Arrays;
 
 
 public abstract class PlanningModel extends Model {
+
+    public PlanningModel(String agent, Domain domain) {
+        super(agent, domain);
+    }
 
     Map<String,Map<EpistemicState,Set<Action>>> memo = new HashMap<>();
 
@@ -40,7 +45,7 @@ public abstract class PlanningModel extends Model {
         //    return policy;
         //}
         Set<Action> successfulActions = new HashSet<>();
-        for (Action a :  getSafeActions(ndState, agent)) {
+        for (Action a :  getSafeActions(ndState)) {
         }
         return null;
     }

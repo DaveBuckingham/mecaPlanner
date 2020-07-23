@@ -5,6 +5,7 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
+import mecaPlanner.Domain;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -12,19 +13,20 @@ import java.util.Map;
 
 public class OrNode extends GNode {
 
-    public OrNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, int maxDepth) {
-        super(estate, goal, time, parent, models, maxDepth);
+    public OrNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, Domain domain) {
+        super(estate, goal, time, parent, models, domain);
     }
 
     // bottom out a recursive descent through and nodes
     public Set<OrNode> descend() {
-        if (isCycle() || time == maxDepth) {
+        Set<OrNode> s = new HashSet<OrNode>();
+        if (isGoal()) {
+            return s;
+        }
+        if (isCycle()) {
             return null;
         }
-        Set<OrNode> s = new HashSet<OrNode>();
-        if (!isGoal()) {
-            s.add(this);
-        }
+        s.add(this);
         return s;
     }
 

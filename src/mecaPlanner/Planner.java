@@ -34,7 +34,6 @@ import depl.*;
 
 public class Planner {
 
-    Search search;
 
     //static Boolean assumeCommonKnowledge = null;
     //static Boolean reduceStates = null;
@@ -140,7 +139,6 @@ public class Planner {
 
         Log.info("building start state");
 
-        Planner planner = new Planner();
 
         Log.info("done building start state");
 
@@ -149,9 +147,9 @@ public class Planner {
         long startSearchTime = System.currentTimeMillis();
 
 
-        Search search = new Search();
+        Search search = new Search(domain);
 
-        Set<Solution> solutions = search.findSolution(domain);
+        Set<Solution> solutions = search.findSolution();
 
 
         // WE NEED A BETTER SYSTEM THAN THIS
@@ -189,11 +187,6 @@ public class Planner {
     }
 
 
-
-    public Planner() {
-        this.search = new Search();
-
-    }
 
 
 }

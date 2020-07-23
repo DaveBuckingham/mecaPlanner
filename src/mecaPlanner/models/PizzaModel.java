@@ -24,7 +24,7 @@ public class PizzaModel extends Model {
     }
 
     public Set<Action> getPrediction(NDState ndState) {
-        Set<Action> allActions = getSafeActions(ndState, agent);
+        Set<Action> allActions = getSafeActions(ndState);
         Set<Action> prediction = new HashSet<>();
         for (Action a : allActions) {
             if (a.getName().equals("eat")) {
@@ -34,13 +34,13 @@ public class PizzaModel extends Model {
         }
 
         if (!ndState.necessarily(new FluentAtom("door_open"))) {
-            prediction.add(getSafeActionBySignature("open_door()", ndState, agent));
+            prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
         else if (ndState.necessarily(new FluentAtom("at", agent, "room1"))) {
-            prediction.add(getSafeActionBySignature("move(room1,room2)", ndState, agent));
+            prediction.add(getSafeActionBySignature("move(room1,room2)", ndState));
         }
         else if (ndState.necessarily(new FluentAtom("at", agent, "room2"))) {
-            prediction.add(getSafeActionBySignature("move(room2,room1)", ndState, agent));
+            prediction.add(getSafeActionBySignature("move(room2,room1)", ndState));
         }
         else {
             throw new RuntimeException("Pizza Model failed to determine state");

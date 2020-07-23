@@ -25,7 +25,7 @@ public class TrivialModel extends Model {
 
     public Set<Action> getPrediction(NDState ndState) {
 
-        return Model.getSafeActions(ndState, agent);
+        return getSafeActions(ndState);
 
     }
 

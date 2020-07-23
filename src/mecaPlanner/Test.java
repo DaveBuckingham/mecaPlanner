@@ -266,10 +266,10 @@ public class Test {
         System.out.println("START STATE:");
         System.out.println(domain.getStartState());
 
-        System.out.println("Checking relation..." + checkRelations(startState));
+        System.out.println("Checking relation..." + checkRelations(domain, domain.getStartState()));
 
 
-        EpistemicState currentState = startState;
+        EpistemicState currentState = domain.getStartState();
 
         for (Action action : inputActions) {
             System.out.print("ACTION: ");
@@ -284,7 +284,7 @@ public class Test {
             }
 
             System.out.println(currentState);
-            System.out.println("check relations: " + checkRelations(currentState));
+            System.out.println("check relations: " + checkRelations(domain, currentState));
         }
 
     }
@@ -661,7 +661,7 @@ public class Test {
         return true;
     }
 
-    public static boolean checkRelations(EpistemicState state) {
+    public static boolean checkRelations(Domain domain, EpistemicState state) {
         Set<World> worlds = state.getKripke().getWorlds();
         for (String agent : domain.getAgents()) {
             Relation relation = state.getKripke().getBeliefRelations().get(agent);

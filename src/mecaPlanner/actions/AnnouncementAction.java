@@ -280,7 +280,7 @@ public class AnnouncementAction extends Action {
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
-        assert(Test.checkRelations(newState));
+        assert(Test.checkRelations(domain, newState));
 
 
 
@@ -303,7 +303,8 @@ public class AnnouncementAction extends Action {
                                                                      this.precondition,
                                                                      this.observesIf,
                                                                      this.awareIf,
-                                                                     null
+                                                                     null,
+                                                                     domain
                                                                     );
                 Model updatedModel = oldModels.get(awareAgent).update(perspective, redacted);
                 newModels.put(awareAgent, updatedModel);

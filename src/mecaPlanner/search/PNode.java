@@ -15,12 +15,18 @@ public class PNode  {
     private Set<OrNode> grounds;
     private Set<PNode> successors;
     private int time;
+    private int depth;
+    private Domain domain;
 
-    public PNode(Perspective perspective, Set<OrNode> grounds, int time) {
+
+
+    public PNode(Perspective perspective, Set<OrNode> grounds, int time, int depth, Domain domain) {
         successfulAction = null;
         this.perspective = perspective;
         this.grounds = grounds;
         this.time = time;
+        this.depth = depth;
+        this.domain = domain;
     }
 
     public Perspective getPerspective() {
@@ -41,7 +47,7 @@ public class PNode  {
 
     private int nextSystemAgentTime() {
         int i = time + 1;
-        while (Domain.isEnvironmentAgent(i)) {
+        while (domain.isEnvironmentAgent(i)) {
             i += 1;
         }
         return i;
@@ -49,7 +55,7 @@ public class PNode  {
 
     private Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<>();
-        for (Action action : Domain.getAgentActions(time)) {
+        for (Action action : domain.getAgentActions(time)) {
             boolean safe = true;
             for (OrNode ground : grounds) {
                 if (!action.executable(ground.getState())) {
@@ -64,7 +70,10 @@ public class PNode  {
         return possibleActions;
     }
 
-    public boolean evaluate() {
+    public boolean evaluate(int maxDepth) {
+        if (depth > maxDepth) {
+            return false;
+        }
         for (Action action : getPossibleActions()) {
             successors = pTransition(action);
             if (successors == null) {
@@ -72,7 +81,7 @@ public class PNode  {
             }
             boolean failedSuccessor = false;
             for (PNode successor : successors) {
-                if (!successor.evaluate()) {
+                if (!successor.evaluate(maxDepth)) {
                     failedSuccessor = true;
                     break;
                 }
@@ -86,12 +95,13 @@ public class PNode  {
     }
 
     // get the set of successor perspective nodes
+    // returns null if transition fails due to cycles or depth limit
+    // returns empty set if found goal
     private Set<PNode> pTransition(Action action) {
         Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
         for (OrNode ground : grounds ){
-            //Set<OrNode> gSuccessors = ground.orTransition(action);
 
-            Set<OrNode> gSuccessors = ground.transition(action).descend();
+            Set<OrNode> gSuccessors = ground.transition(action, domain).descend();
 
             if (gSuccessors == null) {
                 return null;
@@ -107,7 +117,7 @@ public class PNode  {
         
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
-            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime()));
+            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime(), depth, domain));
         }
         return successorNodes;
     }

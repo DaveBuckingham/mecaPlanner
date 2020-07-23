@@ -248,7 +248,7 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
-        assert(Test.checkRelations(newState));
+        assert(Test.checkRelations(domain, newState));
 
         Map<String, Model> newModels = new HashMap();
 

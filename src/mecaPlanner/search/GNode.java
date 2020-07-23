@@ -16,20 +16,20 @@ public abstract class GNode  {
     protected EpistemicState estate;
     protected GeneralFormula goal;
     protected int time;
-    protected int maxDepth;
     protected GNode parent;
     protected Set<GNode> successors;
     protected String agent;
     protected Map<String, Model> models;
+    protected Domain domain;
 
-    public GNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, int maxDepth) {
+    public GNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, Domain domain) {
+        this.domain = domain;
         this.estate = estate;
         this.goal = goal;
         this.time = time;
-        this.agent = Domain.agentAtDepth(time);
+        this.agent = domain.agentAtDepth(time);
         this.parent = parent;
         this.models = models;
-        this.maxDepth = maxDepth;
         this.successors = new HashSet<GNode>();
     }
 
@@ -68,13 +68,13 @@ public abstract class GNode  {
         return false;
     }
 
-    public GNode transition(Action action) {
+    public GNode transition(Action action, Domain domain) {
         Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
-        if (Domain.isSystemAgent(time+1)) {
-            return new OrNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), maxDepth);
+        if (domain.isSystemAgent(time+1)) {
+            return new OrNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), domain);
         }
         else {
-            return new AndNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), maxDepth);
+            return new AndNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), domain);
         }
     }
 

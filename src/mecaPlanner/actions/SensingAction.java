@@ -286,7 +286,7 @@ public class SensingAction extends Action {
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
-        assert(Test.checkRelations(newState));
+        assert(Test.checkRelations(domain, newState));
 
 
         Map<String, Model> newModels = new HashMap();
@@ -295,7 +295,7 @@ public class SensingAction extends Action {
             if (domain.isEnvironmentAgent(observantAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(observantAgent);
                 // THIS IS A FORREAL HACK, WE'RE PUTTING WHAT IS SENSED IN THE DESIGNATED
-                // WORLD INTO THE SENSING ACTION FIELD FOR SPECIFYING FORMULA TO BE SENSED
+                // WORLD INTO THE SENSING ACTION FIELD FOR SPECIFYING FORMULAE TO BE SENSED
                 Set<FluentFormula> actualSensed = new HashSet<>();
                 actualSensed.add(sensedFormulae.get(beforeState.getDesignatedWorld()));
                 SensingAction informed = new SensingAction(this.name,
@@ -305,7 +305,8 @@ public class SensingAction extends Action {
                                                            this.precondition,
                                                            this.observesIf,
                                                            this.awareIf,
-                                                           actualSensed
+                                                           actualSensed,
+                                                           domain
                                                           );
                 Model updatedModel = oldModels.get(observantAgent).update(perspective, informed);
                 newModels.put(observantAgent, updatedModel);

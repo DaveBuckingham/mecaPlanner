@@ -26,53 +26,38 @@ import java.util.HashMap;
 
 public class Search {
 
+    Domain domain;
 
-    GeneralFormula goal;
 
 
-    public Search() {
+
+    public Search(Domain domain) {
+        this.domain = domain;
     }
 
 
 
+    public Set<Solution> findSolution() {
 
+        // THE SEARCH ALGORITHM WORKS WITH MULTIPLE START STATES
+        // RIGHT NOW OUR DOMAIN REPRESENTATION ASSUMES A SINGLE START STATE
+        // IF THERE ARE MULTIPLE START STATES, WE MAY GET MULTIPLE SOLUTIONS
+        // CURRENTLY, THE PLANNER CLASS ASSUMES WE WILL GET A SINGLE SOLUTION
+        Set<EpistemicState> startStates = new HashSet<>();
+        startStates.add(domain.getStartState());
 
-
-    public Set<Solution> findSolution(EpistemicState startState, GeneralFormula goal) {
-        Set<EpistemicState> startStateSet = new HashSet<>();
-        startStateSet.add(startState);
-        return(findSolution(startStateSet, goal));
-    }
-
-    public Set<Solution> findSolution(Domain domain) {
-        int maxDepth = 0;
-        Set<Solution> solutions = null;
-        while (solutions == null) {
-            System.out.println(maxDepth);
-            solutions = searchToDepth(startStates, goal, maxDepth);
-            maxDepth += 1;
-        }
-        return solutions;
-    }
-
-    
-
-    public Set<Solution> searchToDepth(Set<EpistemicState> startStates, GeneralFormula goal, int maxDepth) {
-
-        // NEED TO MOVE ALL THIS INITIALIZATION STUFF TO FINDSOLUTION, AS IN PSEUDOCODE
-
-        this.goal = goal;
-        String startAgent = Domain.agentAtDepth(0);
+        GeneralFormula goal = domain.getGoal();
+        int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
-        if (Domain.isSystemAgent(startAgent)) {
+        if (domain.isSystemAgent(time)) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, goal, 0, null, Domain.getStartingModels(), maxDepth));
+                allStartOrNodes.add(new OrNode(eState, goal, 0, null, domain.getStartingModels(), domain));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, goal, 0, null, Domain.getStartingModels(), maxDepth);
+                AndNode startAndNode = new AndNode(eState, goal, 0, null, domain.getStartingModels(), domain);
                 Set<OrNode> startOrNodes = startAndNode.descend();
                 if (startOrNodes == null) {
                     return null;
@@ -81,8 +66,7 @@ public class Search {
             }
         }
 
-        int time = 0;
-        while (Domain.isEnvironmentAgent(time)) {
+        while (domain.isEnvironmentAgent(time)) {
             time++;
         }
 
@@ -97,13 +81,28 @@ public class Search {
             
         Set<PNode> startPNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : perspectives.entrySet()) {
-            startPNodes.add(new PNode(entry.getKey(), entry.getValue(), time));
+            startPNodes.add(new PNode(entry.getKey(), entry.getValue(), time, 0, domain));
         }
 
+        int maxDepth = 0;
+        Set<Solution> solutions = null;
+        while (solutions == null) {
+            System.out.println(maxDepth);
+            solutions = searchToDepth(startPNodes, maxDepth);
+            maxDepth += 1;
+        }
+        return solutions;
+    }
+
+    
+
+    public Set<Solution> searchToDepth(Set<PNode> startPNodes, int maxDepth) {
+
+        // NEED TO MOVE ALL THIS INITIALIZATION STUFF TO FINDSOLUTION, AS IN PSEUDOCODE
         // one solution per possible start state
         Set<Solution> solutions = new HashSet<>();
         for (PNode startPNode : startPNodes) {
-            if (!startPNode.evaluate()) {
+            if (!startPNode.evaluate(maxDepth)) {
                 return null;
             }
             solutions.add(pnodeToSolution(startPNode));

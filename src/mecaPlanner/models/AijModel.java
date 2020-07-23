@@ -2,6 +2,7 @@ package mecaPlanner.models;
 
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.state.NDState;
+import mecaPlanner.Domain;
 
 import java.util.Objects;
 import java.util.Set;
@@ -16,6 +17,10 @@ public abstract class AijModel extends Model {
 
     final Integer MIN_ROOM = 1;
     final Integer MAX_ROOM = 8;
+
+    public AijModel(String agent, Domain domain) {
+        super(agent, domain);
+    }
 
     protected Set<Integer> getRoom(NDState state, String locatable) {
         Set<Integer> possibleRooms = new HashSet<>();

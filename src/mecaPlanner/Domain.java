@@ -5,6 +5,7 @@ import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.GeneralFormula;
+import mecaPlanner.formulae.GeneralFormulaAnd;
 import mecaPlanner.actions.Action;
 import mecaPlanner.state.EpistemicState;
 
@@ -50,6 +51,10 @@ public class Domain {
         startingModels = new HashMap<>();
     }
 
+    public void check() {
+        assert(!goals.isEmpty());
+    }
+
 
     public Set<FluentAtom> getAllAtoms() {
         return allAtoms;
@@ -63,6 +68,13 @@ public class Domain {
 
     public Set<GeneralFormula> getGoals() {
         return goals;
+    }
+
+    public GeneralFormula getGoal() {
+        if (goals.size() == 1) {
+            return goals.iterator().next();
+        }
+        return new GeneralFormulaAnd(goals);
     }
 
     public Map<String,Set<Action>> getActionMap() {

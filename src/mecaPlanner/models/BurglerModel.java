@@ -65,24 +65,24 @@ public class BurglerModel extends AijModel {
         Integer boxRoom = boxRooms.next();
         if (boxRooms.hasNext()) {
             Log.info("Modeled agent uncertain about box room");
-            actions.add(Domain.getActionBySignature(agent, String.format("wait(room%d)", myRoom)));
+            actions.add(domain.getActionBySignature(agent, String.format("wait(room%d)", myRoom)));
             return actions;
         }
 
         if (myRoom == boxRoom) {
-            actions.add(Domain.getActionBySignature(agent, String.format("wait(room%d)", myRoom)));
+            actions.add(domain.getActionBySignature(agent, String.format("wait(room%d)", myRoom)));
         }
         else if (myRoom == 6 && boxRoom == 8) {
-            actions.add(Domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, 8)));
+            actions.add(domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, 8)));
         }
         else if (myRoom == 8 && boxRoom != 7) {
-            actions.add(Domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, 6)));
+            actions.add(domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, 6)));
         }
         else if (myRoom > boxRoom) {
-            actions.add(Domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, myRoom - 1)));
+            actions.add(domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, myRoom - 1)));
         }
         else {  // myRoom < boxRoom
-            actions.add(Domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, myRoom + 1)));
+            actions.add(domain.getActionBySignature(agent, String.format("move(room%d,room%d)", myRoom, myRoom + 1)));
         }
         return actions;
 

@@ -80,19 +80,8 @@ public class Simulator {
         }
 
 
-        DeplToDomain visitor     = new DeplToDomain();
-        visitor.buildDomain(deplFileName);
-
-        Log.info("done loading domain");
-
-        EpistemicState startState = null;
-        try {
-            startState = Initialize.constructState(true);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
+        DeplToDomain visitor = new DeplToDomain();
+        Domain domain = visitor.buildDomain(deplFileName);
 
         
         Solution startSolution = null;
@@ -111,7 +100,7 @@ public class Simulator {
            return;
         }
 
-        GeneralFormula goal = new GeneralFormulaAnd(Domain.getGoals());
+        GeneralFormula goal = new GeneralFormulaAnd(domain.getGoals());
 
         Scanner stdin = new Scanner(System.in);
 
@@ -119,8 +108,8 @@ public class Simulator {
 
         Set<Solution> solutions = new HashSet<>();
         solutions.add(startSolution);
-        EpistemicState currentState = startState;
-        Map<String, Model> models = Domain.getStartingModels();
+        EpistemicState currentState = domain.getStartState();
+        Map<String, Model> models = domain.getStartingModels();
         int depth = 0;
 
         while (!solutions.isEmpty()) {
@@ -128,13 +117,13 @@ public class Simulator {
             System.out.println("STATE:");
             System.out.println(currentState);
 
-            String agent = Domain.agentAtDepth(depth);
+            String agent = domain.agentAtDepth(depth);
 
             Perspective perspective = new Perspective(currentState, agent);
 
             Action action = null;
 
-            if (Domain.isSystemAgent(agent)) {
+            if (domain.isSystemAgent(agent)) {
                 boolean foundPerspective = false;
                 for (Solution s : solutions) {
                     if (perspective.equals(s.getPerspective())) {
@@ -151,7 +140,7 @@ public class Simulator {
             else {
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
-                for (Action a : models.get(agent).getPrediction(perspective.getAgentView(), agent)) {
+                for (Action a : models.get(agent).getPrediction(perspective.getAgentView())) {
                     System.out.println(index.toString() + ": " + a.getSignatureWithActor());
                     options.add(a);
                     index += 1;
