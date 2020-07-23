@@ -22,6 +22,7 @@ import java.util.Objects;
 
 public abstract class Action implements java.io.Serializable {
 
+    protected Domain domain;
 
     protected String name;
     protected List<String> parameters;
@@ -38,7 +39,8 @@ public abstract class Action implements java.io.Serializable {
                   int cost,
                   BeliefFormula precondition,
                   Map<String, FluentFormula> observesIf,
-                  Map<String, FluentFormula> awareIf
+                  Map<String, FluentFormula> awareIf,
+                  Domain domain
                  ) {
         assert(cost > 0);
         this.name = name;
@@ -48,6 +50,7 @@ public abstract class Action implements java.io.Serializable {
         this.precondition = precondition;
         this.observesIf = observesIf;
         this.awareIf = awareIf;
+        this.domain = domain;
     }
 
     public String getName() {
@@ -103,7 +106,7 @@ public abstract class Action implements java.io.Serializable {
 
     public Set<String>getAnyObservers(EpistemicState state) {
         Set<String> selected = new HashSet<>();
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
             if (isFullyObservant(agent, state) || isAware(agent, state)) {
                 selected.add(agent);
             }
@@ -113,7 +116,7 @@ public abstract class Action implements java.io.Serializable {
 
     public Set<String>getFullyObservant(EpistemicState state) {
         Set<String> selected = new HashSet<>();
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
             if (isFullyObservant(agent, state)) {
                 selected.add(agent);
             }
@@ -123,7 +126,7 @@ public abstract class Action implements java.io.Serializable {
 
     public Set<String>getAware(EpistemicState state) {
         Set<String> selected = new HashSet<>();
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
             if (isAware(agent, state)) {
                 selected.add(agent);
             }
@@ -133,7 +136,7 @@ public abstract class Action implements java.io.Serializable {
 
     public Set<String>getOblivious(EpistemicState state) {
         Set<String> selected = new HashSet<>();
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
             if (isOblivious(agent, state)) {
                 selected.add(agent);
             }

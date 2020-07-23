@@ -126,7 +126,7 @@ public class Planner {
 //        ParseTree tree           = parser.init();
 
         DeplToDomain visitor     = new DeplToDomain();
-        visitor.buildDomain(deplFileName);
+        Domain domain = visitor.buildDomain(deplFileName);
 
 //        visitor.buildDomain(tree);
 
@@ -204,7 +204,7 @@ public class Planner {
 
         EpistemicState startState = null;
         try {
-            startState = Initialize.constructState(Planner.assumeCommonKnowledge);
+            startState = Initialize.constructState(domain, Planner.assumeCommonKnowledge);
             this.search = new Search();
         }
         catch (Exception ex) {

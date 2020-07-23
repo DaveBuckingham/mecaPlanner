@@ -19,7 +19,11 @@ import java.util.Iterator;
 
 public class PizzaModel extends Model {
 
-    public Set<Action> getPrediction(NDState ndState, String agent) {
+    public PizzaModel(String agent, Domain domain) {
+        super(agent, domain);
+    }
+
+    public Set<Action> getPrediction(NDState ndState) {
         Set<Action> allActions = getSafeActions(ndState, agent);
         Set<Action> prediction = new HashSet<>();
         for (Action a : allActions) {

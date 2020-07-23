@@ -25,7 +25,9 @@ public class KripkeStructure implements java.io.Serializable {
 
     private Map<String, Relation> knowledgeRelations;
 
-    Set <World> worlds;
+    private Set<String> agents;
+
+    private Set<World> worlds;
 
 
 
@@ -33,14 +35,15 @@ public class KripkeStructure implements java.io.Serializable {
     public KripkeStructure(Set<World> worlds, Map<String, Relation> belief, Map<String, Relation> knowledge) {
 
         assert(!worlds.isEmpty());
-        //assert(belief.keySet().equals(Domain.getAllAgents()));
-        //assert(knowledge.keySet().equals(Domain.getAllAgents()));
+        assert(belief.keySet().equals(knowledge.keySet()));
 
         this.worlds = worlds;
 
         this.beliefRelations = belief;
 
         this.knowledgeRelations = knowledge;
+
+        this.agents = new HashSet<>(belief.keySet());
 
         for (World w : worlds) {
             assert (!getChildren(w).isEmpty());
@@ -86,7 +89,7 @@ public class KripkeStructure implements java.io.Serializable {
 
     public Set<World> getChildren(World world) {
         Set<World> children = new HashSet<>();
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : agents) {
             children.addAll(getBelievedWorlds(agent, world));
             children.addAll(getKnownWorlds(agent, world));
         }
@@ -163,7 +166,7 @@ public class KripkeStructure implements java.io.Serializable {
         Map<String, Relation> unionBelief = new HashMap<>();
         Map<String, Relation> unionKnowledge = new HashMap<>();
 
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : agents) {
             unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
             unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
         }
@@ -192,7 +195,7 @@ public class KripkeStructure implements java.io.Serializable {
         Map<String, Relation> newBeliefRelations = new HashMap<>();
         Map<String, Relation> newKnowledgeRelations = new HashMap<>();
 
-        for (String agent : Domain.getAgents()) {
+        for (String agent : agents) {
             newBeliefRelations.put(agent, new Relation());
             newKnowledgeRelations.put(agent, new Relation());
         }
@@ -200,7 +203,7 @@ public class KripkeStructure implements java.io.Serializable {
         for (Map.Entry<World, World> entry : oldWorldsToNew.entrySet()) {
             World oldSource = entry.getKey();
             World newSource = entry.getValue();
-            for (String agent : Domain.getAgents()) {
+            for (String agent : agents) {
                 for (World oldDestination : beliefRelations.get(agent).getToWorlds(oldSource)) {
                     World newDestination = oldWorldsToNew.get(oldDestination);
                     newBeliefRelations.get(agent).connect(newSource, newDestination);
@@ -233,7 +236,7 @@ public class KripkeStructure implements java.io.Serializable {
             }
             str.append(w);
             str.append("\n");
-            for (String agent : Domain.getAgents()) {
+            for (String agent : agents) {
                 str.append("  B(" + agent + ") = ");
                 List<World> believed = getBelievedWorlds(agent, w).stream().collect(Collectors.toList());
                 believed.sort(Comparator.comparingInt(World::getId));

@@ -39,9 +39,10 @@ public class AnnouncementAction extends Action {
                               BeliefFormula precondition,
                               Map<String, FluentFormula> observesIf,
                               Map<String, FluentFormula> awareIf,
-                              FluentFormula announces
+                              FluentFormula announces,
+                              Domain domain
                              ) {
-        super(name, parameters, actor, cost, precondition, observesIf, awareIf);
+        super(name, parameters, actor, cost, precondition, observesIf, awareIf, domain);
         this.announces = announces;
     }
 
@@ -102,12 +103,12 @@ public class AnnouncementAction extends Action {
         }
 
         Map<String, Relation> newBeliefs = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
         }
 
         Map<String, Relation> newKnowledges = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newKnowledges.put(a, new Relation());
         }
 
@@ -117,7 +118,7 @@ public class AnnouncementAction extends Action {
         if (!obliviousAgents.isEmpty()) {
             resultWorlds.addAll(obliviousWorlds);
 
-            for (String agent : Domain.getAllAgents()) {
+            for (String agent : domain.getAllAgents()) {
                 for (World fromWorld: obliviousWorlds) {
                     for (World toWorld: obliviousWorlds) {
                         if (oldKripke.isConnectedBelief(agent,
@@ -286,14 +287,14 @@ public class AnnouncementAction extends Action {
         Map<String, Model> newModels = new HashMap();
 
         for (String observantAgent : observantAgents) {
-            if (Domain.isEnvironmentAgent(observantAgent)) {
+            if (domain.isEnvironmentAgent(observantAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(observantAgent);
                 Model updatedModel = oldModels.get(observantAgent).update(perspective, this);
                 newModels.put(observantAgent, updatedModel);
             }
         }
         for (String awareAgent : awareAgents) {
-            if (Domain.isEnvironmentAgent(awareAgent)) {
+            if (domain.isEnvironmentAgent(awareAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(awareAgent);
                 AnnouncementAction redacted = new AnnouncementAction(this.name,
                                                                      this.parameters,
@@ -309,7 +310,7 @@ public class AnnouncementAction extends Action {
             }
         }
         for (String obliviousAgent : obliviousAgents) {
-            if (Domain.isEnvironmentAgent(obliviousAgent)) {
+            if (domain.isEnvironmentAgent(obliviousAgent)) {
                 newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
             }
         }

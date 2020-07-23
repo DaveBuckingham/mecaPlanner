@@ -3,6 +3,7 @@ package mecaPlanner.models;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
+import mecaPlanner.Domain;
 
 import java.util.Objects;
 import java.util.Set;
@@ -15,13 +16,14 @@ import java.util.Arrays;
 
 public class TrivialModel extends Model {
 
-    private Action waitAction;
-
-    public TrivialModel() {
-        super();
+    public TrivialModel(String agent, Domain domain) {
+        super(agent, domain);
     }
 
-    public Set<Action> getPrediction(NDState ndState, String agent) {
+    private Action waitAction;
+
+
+    public Set<Action> getPrediction(NDState ndState) {
 
         return Model.getSafeActions(ndState, agent);
 

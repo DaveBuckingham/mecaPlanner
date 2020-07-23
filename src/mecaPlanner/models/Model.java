@@ -18,12 +18,14 @@ import java.util.Arrays;
 
 public abstract class Model implements java.io.Serializable {
 
+    String agent;
+    Domain domain;
 
 
-    public Model() {
+    public Model(String agent, Domain domain) {
+        this.agent = agent;
+        this.domain = domain;
     }
-
-
 
     // REQUIREMENTS:
     // 1. each action requires and deletes at least one atom in atoms
@@ -85,9 +87,9 @@ public abstract class Model implements java.io.Serializable {
 
 
     // GET ALL ACTIONS WHOSE PRECONDITIONS ARE SATISFIED IN ALL DESIGANTED WORLDS
-    public static Set<Action> getSafeActions(NDState ndState, String agent) {
+    public Set<Action> getSafeActions(NDState ndState) {
         Set<Action> safeActions = new HashSet<Action>();
-        for (Action action : Domain.getAgentActions(agent)) {
+        for (Action action : domain.getAgentActions(agent)) {
             if (action.necessarilyExecutable(ndState)){
                 safeActions.add(action);
             }
@@ -95,8 +97,8 @@ public abstract class Model implements java.io.Serializable {
         return safeActions;
     }
 
-    public static Action getSafeActionBySignature(String signature, NDState ndState, String agent) {
-        Action action = Domain.getActionBySignature(agent, signature.replaceAll("\\s+",""));
+    public Action getSafeActionBySignature(String signature, NDState ndState) {
+        Action action = domain.getActionBySignature(agent, signature.replaceAll("\\s+",""));
         if (!action.necessarilyExecutable(ndState)) {
             throw new RuntimeException("requested action " + 
                                        signature + " not necessarily executable for agent " +
@@ -111,7 +113,7 @@ public abstract class Model implements java.io.Serializable {
     //     return singleton;
     // }
 
-    public abstract Set<Action> getPrediction(NDState ndState, String agent);
+    public abstract Set<Action> getPrediction(NDState ndState);
 
     public Model update(NDState perspective, Action action) {
         return this;

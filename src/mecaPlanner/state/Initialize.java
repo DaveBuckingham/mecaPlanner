@@ -177,7 +177,7 @@ public class Initialize {
 
 
 
-    public static EpistemicState constructState(boolean assumeCommonKnowledge) throws Exception {
+    public static EpistemicState constructState(Domain domain, boolean assumeCommonKnowledge) throws Exception {
 
 
         Set<FluentAtom> type1 = new HashSet<>();
@@ -187,7 +187,7 @@ public class Initialize {
         Map<String, Set<FluentFormula>> type4 = new HashMap<>();
 
 
-        for (String agent : Domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
             type3.put(agent, new HashSet<FluentFormula>());
             type4.put(agent, new HashSet<FluentFormula>());
         }
@@ -195,7 +195,7 @@ public class Initialize {
         // ALL ATOMS APPEARING IN STATEMENTS OF TYPE 3 OR 4
         Set<FluentAtom> type34Atoms = new HashSet<>();
 
-        for (BeliefFormula initially : Domain.getInitiallyStatements()) {
+        for (BeliefFormula initially : domain.getInitiallyStatements()) {
             AgentFormulaPair p;
             FluentFormula f;
             FluentAtom a;
@@ -251,7 +251,7 @@ public class Initialize {
             // ASSUME A TYPE 2 STATEMENT FOR ANY ATOM NOT APPEARING IN A TYPE 3 OR 4 STATEMENT
             // I.E. ASSUME C(f) IF THERE IS NO OTHER INFO ABOUT f
             // THIS MAKES THE INPUT FILE MORE COMPACT AND AVOIDS MISTAKES
-            for (FluentAtom atom : Domain.getAllAtoms()) {
+            for (FluentAtom atom : domain.getAllAtoms()) {
                 if (!(type34Atoms.contains(atom))) {
                     if (type1.contains(atom)) {
                         type2.add(atom);
@@ -308,7 +308,7 @@ public class Initialize {
         }
 
         
-        for (FluentAtom atom : Domain.getAllAtoms()) {
+        for (FluentAtom atom : domain.getAllAtoms()) {
             if (!(knownTrue.contains(atom) || knownFalse.contains(atom))) {
                 unknown.add(atom);
             }
@@ -318,7 +318,7 @@ public class Initialize {
 
 
         Set<World> allWorlds = new HashSet<>();
-        //for (Set<FluentAtom> interpretation : Initialize.powerSet(Domain.getAllAtoms())) {
+        //for (Set<FluentAtom> interpretation : Initialize.powerSet(domain.getAllAtoms())) {
         for (Set<FluentAtom> interpretation : Initialize.powerSet(unknown)) {
 
             interpretation.addAll(knownTrue);
@@ -343,18 +343,18 @@ public class Initialize {
 
         // THIS ISN'T QUITE HOW SON ET AL DO IT, BUT I DON'T REALLY UNDERSTAND THE "COVERAGE" THING
         Map<String, Relation> beliefRelations = new HashMap<>();
-        for (String a : Domain.getAgents()) {
+        for (String a : domain.getAgents()) {
             beliefRelations.put(a, new Relation());
         }
 
         Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (String a : Domain.getAgents()) {
+        for (String a : domain.getAgents()) {
             knowledgeRelations.put(a, new Relation());
         }
 
 
 
-        for (String agent : Domain.getAgents()) {
+        for (String agent : domain.getAgents()) {
             for (World from : allWorlds) {
                 for (World to : allWorlds) {
                     boolean distinguishes = false;

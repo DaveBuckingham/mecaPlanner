@@ -22,8 +22,8 @@ public class BurglerModel extends AijModel {
     private static String TARGET_BOX = "box4";
 
 
-    public BurglerModel() {
-        super();
+    public BurglerModel(String agent, Domain domain) {
+        super(agent, domain);
     }
 
     private boolean lessThanAll(Integer single, Set<Integer> many) {
@@ -44,7 +44,7 @@ public class BurglerModel extends AijModel {
         return true;
     }
     
-    public Set<Action> getPrediction(NDState ndState, String agent) {
+    public Set<Action> getPrediction(NDState ndState) {
 
         Set<Action> actions = new HashSet<>();
 

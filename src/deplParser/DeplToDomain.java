@@ -28,14 +28,12 @@ import java.io.IOException;
 
 public class DeplToDomain extends DeplBaseVisitor {
 
+    private Domain domain;
+
+    // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
     private Set<String> allObjects;  // to check for undefined objects
-
     private Set<FluentAtom> constants;
-
     private Map<String, TypeNode> typeDefs;  // key is type name
-
-    private Set<String> allAgentsForAction;
-
     private Stack<Map<String, String>> variableStack = new Stack<Map<String, String>>();
 
     public DeplToDomain() {
@@ -43,9 +41,7 @@ public class DeplToDomain extends DeplBaseVisitor {
         this.allObjects = new HashSet<String>();
         this.constants = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
-        this.allAgentsForAction = new HashSet<String>();
     }
-
 
 
     // HELPER FUNCTIONS
@@ -168,10 +164,10 @@ public class DeplToDomain extends DeplBaseVisitor {
         }
         if (ff instanceof FluentAtom) {
             FluentAtom fa = (FluentAtom) ff;
-            if (Domain.getAllAtoms().contains(fa)) {
+            if (domain.getAllAtoms().contains(fa)) {
                 return fa;
             }
-            if (Domain.getConstants().contains(fa)) {
+            if (domain.getConstants().contains(fa)) {
                 return new FluentFormulaTrue();
             }
             return new FluentFormulaFalse();
@@ -244,8 +240,8 @@ public class DeplToDomain extends DeplBaseVisitor {
     //}
 
 
-    public void buildDomain (String deplFileName) {
-
+    public Domain buildDomain (String deplFileName) {
+        
         CharStream inputStream = null;
         try {
             inputStream = CharStreams.fromFileName(deplFileName);
@@ -260,8 +256,9 @@ public class DeplToDomain extends DeplBaseVisitor {
         DeplParser parser        = new DeplParser(tokens);
         ParseTree tree           = parser.init();
 
-        Domain.clear();
+        Domain domain = new Domain();
         visit(tree);
+        return domain;
     }
 
 
@@ -337,7 +334,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
         String name = ctx.NAME().getText();
-        Domain.addSystemAgent(name);
+        domain.addSystemAgent(name);
         return null;
     }
 
@@ -375,7 +372,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             System.exit(1);
         }
 
-        Domain.addEnvironmentAgent(name, model);
+        domain.addEnvironmentAgent(name, model);
 
         return null;
     }
@@ -383,7 +380,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     @Override public Void visitPassiveAgent(DeplParser.PassiveAgentContext ctx) {
         String name = ctx.NAME().getText();
-        Domain.addPassiveAgent(name);
+        domain.addPassiveAgent(name);
         return null;
     }
 
@@ -400,7 +397,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
         String atomName = ctx.NAME().getText();
         if (ctx.parameterList() == null) {
-            Domain.addAtom(new FluentAtom(atomName));
+            domain.addAtom(new FluentAtom(atomName));
         }
         for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
             variableStack.push(variableMap);
@@ -410,7 +407,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                     groundParameters.add(resolveVariable(parameterCtx));
                 }
             }
-            Domain.addAtom(new FluentAtom(atomName, groundParameters));
+            domain.addAtom(new FluentAtom(atomName, groundParameters));
             variableStack.pop();
         }
         return null;
@@ -428,14 +425,14 @@ public class DeplToDomain extends DeplBaseVisitor {
 
         String constantName = ctx.NAME().getText();
 
-        for (FluentAtom atom : Domain.getAllAtoms()) {
+        for (FluentAtom atom : domain.getAllAtoms()) {
             if (constantName.equals(atom.getName())) {
                 throw new RuntimeException("invalid constant name already used for atom: " + constantName);
             }
         }
 
         if (ctx.parameterList() == null) {
-            Domain.addConstant(new FluentAtom(constantName));
+            domain.addConstant(new FluentAtom(constantName));
         }
         for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
             variableStack.push(variableMap);
@@ -445,7 +442,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                     groundParameters.add(resolveVariable(parameterCtx));
                 }
             }
-            Domain.addConstant(new FluentAtom(constantName, groundParameters));
+            domain.addConstant(new FluentAtom(constantName, groundParameters));
             variableStack.pop();
         }
         return null;
@@ -463,7 +460,7 @@ public class DeplToDomain extends DeplBaseVisitor {
     // INITIALLY
 
     @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
-        Domain.addInitiallyStatement((BeliefFormula) visit(ctx.beliefFormula()));
+        domain.addInitiallyStatement((BeliefFormula) visit(ctx.beliefFormula()));
         return null;
     }
 
@@ -471,7 +468,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        Domain.addGoal((GeneralFormula) visit(ctx.generalFormula()));
+        domain.addGoal((GeneralFormula) visit(ctx.generalFormula()));
         return null;
     }
 
@@ -482,7 +479,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             variableStack.push(variableMap);
             Action action = buildAction(ctx);
             if (!(action.getPrecondition() instanceof FluentFormulaFalse)) {
-                Domain.addAction(action.getActor(), action);
+                domain.addAction(action.getActor(), action);
             }
             variableStack.pop();
         }
@@ -506,7 +503,7 @@ public class DeplToDomain extends DeplBaseVisitor {
         List<FluentFormula> preconditionList = new ArrayList<FluentFormula>();
         Map<String, List<FluentFormula>> observesLists = new HashMap<>();
         Map<String, List<FluentFormula>> awareLists = new HashMap<>();
-        for (String a : Domain.getAgents()) {
+        for (String a : domain.getAgents()) {
             observesLists.put(a, new ArrayList<FluentFormula>());
             awareLists.put(a, new ArrayList<FluentFormula>());
         }
@@ -521,7 +518,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
             if (fieldCtx.ownerActionField() != null) {
                 owner = resolveVariable(fieldCtx.ownerActionField().parameter());
-                if (!(Domain.isSystemAgent(owner) || Domain.isEnvironmentAgent(owner))) {
+                if (!(domain.isSystemAgent(owner) || domain.isEnvironmentAgent(owner))) {
                     throw new RuntimeException("action " +
                                                actionName +
                                                " owner " +
@@ -665,7 +662,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
         Map<String, FluentFormula> observes = new HashMap<>();
         Map<String, FluentFormula> aware = new HashMap<>();
-        for (String a : Domain.getAgents()) {
+        for (String a : domain.getAgents()) {
             observes.put(a, removeConstants(new FluentFormulaOr(observesLists.get(a))));
             aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
         }
@@ -678,7 +675,8 @@ public class DeplToDomain extends DeplBaseVisitor {
                                    precondition,
                                    observes,
                                    aware,
-                                   effects
+                                   effects,
+                                   domain
                                   );
         }
 
@@ -690,7 +688,8 @@ public class DeplToDomain extends DeplBaseVisitor {
                                    precondition,
                                    observes,
                                    aware,
-                                   determines
+                                   determines,
+                                   domain
                                   );
         }
 
@@ -702,7 +701,8 @@ public class DeplToDomain extends DeplBaseVisitor {
                                    precondition,
                                    observes,
                                    aware,
-                                   announces
+                                   announces,
+                                   domain
                                   );
         }
 
@@ -829,7 +829,7 @@ public class DeplToDomain extends DeplBaseVisitor {
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
         String agentName = resolveVariable(ctx.parameter());
-        if (!Domain.isAgent(agentName)) {
+        if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
         return new BeliefFormulaBelieves(agentName, inner);

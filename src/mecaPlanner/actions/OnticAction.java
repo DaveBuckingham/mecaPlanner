@@ -39,10 +39,11 @@ public class OnticAction extends Action implements java.io.Serializable{
                        BeliefFormula precondition,
                        Map<String, FluentFormula> observesIf,
                        Map<String, FluentFormula> awareIf,
-                       Map<FluentLiteral, FluentFormula> effects
+                       Map<FluentLiteral, FluentFormula> effects,
                        //Set<FluentLiteral> effects
+                       Domain domain
                       ) {
-        super(name, parameters, actor, cost, precondition, observesIf, awareIf);
+        super(name, parameters, actor, cost, precondition, observesIf, awareIf, domain);
         this.effects = effects;
     }
 
@@ -115,12 +116,12 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         
         Map<String, Relation> newBeliefs = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
         }
 
         Map<String, Relation> newKnowledges = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newKnowledges.put(a, new Relation());
         }
 
@@ -152,7 +153,7 @@ public class OnticAction extends Action implements java.io.Serializable{
         if (!obliviousAgents.isEmpty()) {
             resultWorlds.addAll(obliviousWorlds);
 
-            for (String agent : Domain.getAllAgents()) {
+            for (String agent : domain.getAllAgents()) {
                 for (World fromWorld: obliviousWorlds) {
                     for (World toWorld: obliviousWorlds) {
                         if (oldKripke.isConnectedBelief(agent, newWorldsToOld.get(fromWorld), newWorldsToOld.get(toWorld))) {
@@ -252,12 +253,12 @@ public class OnticAction extends Action implements java.io.Serializable{
         Map<String, Model> newModels = new HashMap();
 
         for (String obliviousAgent : obliviousAgents) {
-            if (Domain.isEnvironmentAgent(obliviousAgent)) {
+            if (domain.isEnvironmentAgent(obliviousAgent)) {
                 newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
             }
         }
         for (String observantAwareAgent : observantAwareAgents) {
-            if (Domain.isEnvironmentAgent(observantAwareAgent)) {
+            if (domain.isEnvironmentAgent(observantAwareAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(observantAwareAgent);
                 Model updatedModel = oldModels.get(observantAwareAgent).update(perspective, this);
                 newModels.put(observantAwareAgent, updatedModel);

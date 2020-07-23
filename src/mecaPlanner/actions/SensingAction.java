@@ -44,9 +44,10 @@ public class SensingAction extends Action {
                   BeliefFormula precondition,
                   Map<String, FluentFormula> observesIf,
                   Map<String, FluentFormula> awareIf,
-                  Set<FluentFormula> determines
+                  Set<FluentFormula> determines,
+                  Domain domain
                  ) {
-        super(name, parameters, actor, cost, precondition, observesIf, awareIf);
+        super(name, parameters, actor, cost, precondition, observesIf, awareIf, domain);
         this.determines = determines;
     }
 
@@ -100,12 +101,12 @@ public class SensingAction extends Action {
         }
 
         Map<String, Relation> newBeliefs = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
         }
 
         Map<String, Relation> newKnowledges = new HashMap<>();
-        for (String a : Domain.getAllAgents()) {
+        for (String a : domain.getAllAgents()) {
             newKnowledges.put(a, new Relation());
         }
 
@@ -136,7 +137,7 @@ public class SensingAction extends Action {
         if (!obliviousAgents.isEmpty()) {
             resultWorlds.addAll(obliviousWorlds);
 
-            for (String agent : Domain.getAllAgents()) {
+            for (String agent : domain.getAllAgents()) {
                 for (World fromWorld: obliviousWorlds) {
                     for (World toWorld: obliviousWorlds) {
                         if (oldKripke.isConnectedBelief(agent,
@@ -291,7 +292,7 @@ public class SensingAction extends Action {
         Map<String, Model> newModels = new HashMap();
 
         for (String observantAgent : observantAgents) {
-            if (Domain.isEnvironmentAgent(observantAgent)) {
+            if (domain.isEnvironmentAgent(observantAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(observantAgent);
                 // THIS IS A FORREAL HACK, WE'RE PUTTING WHAT IS SENSED IN THE DESIGNATED
                 // WORLD INTO THE SENSING ACTION FIELD FOR SPECIFYING FORMULA TO BE SENSED
@@ -311,14 +312,14 @@ public class SensingAction extends Action {
             }
         }
         for (String awareAgent : awareAgents) {
-            if (Domain.isEnvironmentAgent(awareAgent)) {
+            if (domain.isEnvironmentAgent(awareAgent)) {
                 NDState perspective = beforeState.getBeliefPerspective(awareAgent);
                 Model updatedModel = oldModels.get(awareAgent).update(perspective, this);
                 newModels.put(awareAgent, updatedModel);
             }
         }
         for (String obliviousAgent : obliviousAgents) {
-            if (Domain.isEnvironmentAgent(obliviousAgent)) {
+            if (domain.isEnvironmentAgent(obliviousAgent)) {
                 newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
             }
         }

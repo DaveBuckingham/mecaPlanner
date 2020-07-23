@@ -16,28 +16,23 @@ import java.util.ArrayList;
 
 public class Domain {
 
-    private static Set<FluentAtom> allAtoms;
-    private static Set<FluentAtom> constants;
-    private static Set<BeliefFormula> initiallyStatements;
-    private static Set<GeneralFormula> goals;
-    private static Map<String,Set<Action>> actions;
-    private static Map<String, Map<String,Action>> actionsBySignature;
+    private Set<FluentAtom> allAtoms;
+    private Set<FluentAtom> constants;
+    private Set<BeliefFormula> initiallyStatements;
+    private Set<GeneralFormula> goals;
+    private Map<String,Set<Action>> actions;
+    private Map<String, Map<String,Action>> actionsBySignature;
 
-    private static List<String> nonPassiveAgents;
-    private static Set<String> allAgents;
+    private Set<String> allAgents;
+    private Set<String> systemAgents;
+    private Set<String> environmentAgents;
+    private Set<String> passiveAgents;
+    private List<String> nonPassiveAgents;
 
-    private static Set<String> systemAgents;
-    private static Set<String> environmentAgents;
-    private static Set<String> passiveAgents;
-
-
-    private static Map<String, Model> startingModels;
+    private Map<String, Model> startingModels;
 
 
-
-
-
-    public static void clear() {
+    public Domain() {
         allAtoms = new HashSet<>();
         constants = new HashSet<>();
         initiallyStatements = new HashSet<>();
@@ -45,35 +40,35 @@ public class Domain {
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
+        allAgents = new HashSet<>();
         systemAgents = new HashSet<>();
         environmentAgents = new HashSet<>();
         passiveAgents = new HashSet<>();
         nonPassiveAgents = new ArrayList<>();
-        allAgents = new HashSet<>();
 
         startingModels = new HashMap<>();
     }
 
 
-    public static Set<FluentAtom> getAllAtoms() {
+    public Set<FluentAtom> getAllAtoms() {
         return allAtoms;
     }
-    public static Set<FluentAtom> getConstants() {
+    public Set<FluentAtom> getConstants() {
         return constants;
     }
-    public static Set<BeliefFormula> getInitiallyStatements() {
+    public Set<BeliefFormula> getInitiallyStatements() {
         return initiallyStatements;
     }
 
-    public static Set<GeneralFormula> getGoals() {
+    public Set<GeneralFormula> getGoals() {
         return goals;
     }
 
-    public static Map<String,Set<Action>> getActionMap() {
+    public Map<String,Set<Action>> getActionMap() {
         return actions;
     }
 
-    public static Set<Action> getAllActions() {
+    public Set<Action> getAllActions() {
         Set<Action> allActions = new HashSet<>();
         for (Set<Action> agentActions : actions.values()) {
             allActions.addAll(agentActions);
@@ -81,16 +76,16 @@ public class Domain {
         return allActions;
     }
 
-    public static Set<Action> getAgentActions(String agent) {
+    public Set<Action> getAgentActions(String agent) {
         return actions.get(agent);
     }
 
-    public static Set<Action> getAgentActions(int depth) {
+    public Set<Action> getAgentActions(int depth) {
         return actions.get(agentAtDepth(depth));
     }
 
 
-    public static Action getActionBySignature(String agent, String signature) {
+    public Action getActionBySignature(String agent, String signature) {
         if (!actionsBySignature.get(agent).containsKey(signature)) {
             throw new RuntimeException("unknown action signature: " + signature);
         }
@@ -98,82 +93,82 @@ public class Domain {
 
     }
 
-    public static Set<String> getSystemAgents() {
+    public Set<String> getSystemAgents() {
         return systemAgents;
     }
 
-    public static Set<String> getEnvironmentAgents() {
+    public Set<String> getEnvironmentAgents() {
         return environmentAgents;
     }
 
-    public static Set<String> getPassiveAgents() {
+    public Set<String> getPassiveAgents() {
         return passiveAgents;
     }
 
-    public static List<String> getNonPassiveAgents() {
+    public List<String> getNonPassiveAgents() {
         return nonPassiveAgents;
     }
 
-    public static String agentAtDepth(int depth) {
+    public String agentAtDepth(int depth) {
         return nonPassiveAgents.get(depth % nonPassiveAgents.size());
     }
 
-    public static boolean isEnvironmentAgent(String agent) {
+    public boolean isEnvironmentAgent(String agent) {
         return environmentAgents.contains(agent);
     }
 
-    public static boolean isEnvironmentAgent(int depth) {
+    public boolean isEnvironmentAgent(int depth) {
         return environmentAgents.contains(agentAtDepth(depth));
     }
 
-    public static boolean isSystemAgent(String agent) {
+    public boolean isSystemAgent(String agent) {
         return systemAgents.contains(agent);
     }
 
-    public static boolean isSystemAgent(int depth) {
+    public boolean isSystemAgent(int depth) {
         return systemAgents.contains(agentAtDepth(depth));
     }
 
 
 
-    public static Set<String> getAllAgents() {
+    public Set<String> getAllAgents() {
         return allAgents;
     }
 
-    public static Set<String> getAgents() {
+    public Set<String> getAgents() {
         return allAgents;
     }
 
-    public static Map<String, Model> getStartingModels() {
+    public Map<String, Model> getStartingModels() {
         return startingModels;
     }
 
 
 
 
-    public static void addAtom(FluentAtom f) {
+    public void addAtom(FluentAtom f) {
         allAtoms.add(f);
     }
 
-    public static void addAtoms(Set<FluentAtom> atoms) {
+    public void addAtoms(Set<FluentAtom> atoms) {
         allAtoms.addAll(atoms);
     }
 
-    public static void addConstant(FluentAtom f) {
+    public void addConstant(FluentAtom f) {
         constants.add(f);
     }
 
-    public static void addInitiallyStatement(BeliefFormula statement) {
+    public void addInitiallyStatement(BeliefFormula statement) {
         checkAtoms(statement);
         initiallyStatements.add(statement);
     }
 
-    public static void addGoal(GeneralFormula newGoal) {
+    public void addGoal(GeneralFormula newGoal) {
         checkAtoms(newGoal);
         goals.add(newGoal);
     }
 
-    public static void addSystemAgent(String agent) {
+    public void addSystemAgent(String agent) {
         assert (!allAgents.contains(agent));
         systemAgents.add(agent);
         allAgents.add(agent);
@@ -182,7 +177,7 @@ public class Domain {
         actionsBySignature.put(agent, new HashMap<String, Action>());;
     }
 
-    public static void addEnvironmentAgent(String agent, Model model) {
+    public void addEnvironmentAgent(String agent, Model model) {
         assert (!allAgents.contains(agent));
         environmentAgents.add(agent);
         allAgents.add(agent);
@@ -192,13 +187,13 @@ public class Domain {
         startingModels.put(agent, model);
     }
 
-    public static void addPassiveAgent(String agent) {
+    public void addPassiveAgent(String agent) {
         assert (!allAgents.contains(agent));
         passiveAgents.add(agent);
         allAgents.add(agent);
     }
 
-    public static void addAction(String agent, Action newAction) {
+    public void addAction(String agent, Action newAction) {
         checkAtoms(newAction.getPrecondition());
         // SHOULD ALSO checkAtoms() FOR EFFECT CONDITIONS AND OBSERVES CONDITIONS
         assert(actions.containsKey(agent));
@@ -207,14 +202,14 @@ public class Domain {
     }
 
 
-    public static boolean isAgent(String s) {
+    public boolean isAgent(String s) {
         return allAgents.contains(s);
     }
 
 
 
 
-    private static void checkAtoms(GeneralFormula f) {
+    private void checkAtoms(GeneralFormula f) {
         for (FluentAtom a : f.getAllAtoms()) {
             //if (!allAtoms.contains(a) && !constants.contains(a)) {
             if (!allAtoms.contains(a)) {
@@ -228,7 +223,7 @@ public class Domain {
     }
 
 
-    public static void printDomain() {
+    public String toString() {
         StringBuilder str = new StringBuilder();
 
         str.append("SYSTEM AGENTS:\n");
@@ -268,8 +263,8 @@ public class Domain {
             str.append("\n");
         }
 
-        //return str.toString();
-        System.out.println(str.toString());
+        return str.toString();
+        //System.out.println(str.toString());
     }
 
 
