@@ -48,21 +48,14 @@ public class Simulator {
     public static void main(String args[]) {
 
 
-        String deplFileName = null;
         String planFileName = null;
 
-        if (args.length != 2) {
-            throw new RuntimeException("expected two args: a .depl file and a .plan file.");
+        if (args.length != 1) {
+            throw new RuntimeException("expected single .plan file parameter.");
         }
 
         for (String arg : args) {
-            if (arg.matches(".*\\.depl")) {
-                if (deplFileName != null) {
-                    throw new RuntimeException("expected a single depl file.");
-                }
-                deplFileName = arg;
-            }
-            else if (arg.matches(".*\\.plan")) {
+            if (arg.matches(".*\\.plan")) {
                 if (planFileName != null) {
                     throw new RuntimeException("expected a single plan file.");
                 }
@@ -71,17 +64,12 @@ public class Simulator {
  
         }
 
-        if (deplFileName == null) {
-            throw new RuntimeException("expected a single depl file.");
-        }
 
         if (planFileName == null) {
             throw new RuntimeException("expected a single plan file.");
         }
 
 
-        DeplToDomain visitor = new DeplToDomain();
-        Domain domain = visitor.buildDomain(deplFileName);
 
         
         Solution startSolution = null;
@@ -100,7 +88,9 @@ public class Simulator {
            return;
         }
 
-        GeneralFormula goal = new GeneralFormulaAnd(domain.getGoals());
+        Domain domain = startSolution.getDomain();
+
+        GeneralFormula goal = domain.getGoal();
 
         Scanner stdin = new Scanner(System.in);
 

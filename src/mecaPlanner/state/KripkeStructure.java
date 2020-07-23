@@ -2,7 +2,6 @@ package mecaPlanner.state;
 
 import mecaPlanner.formulae.FluentFormula;
 import mecaPlanner.formulae.FluentAtom;
-import mecaPlanner.Domain;
 import mecaPlanner.Log;
 
 import java.util.List;
@@ -161,6 +160,9 @@ public class KripkeStructure implements java.io.Serializable {
     public KripkeStructure union(KripkeStructure other) {
         Set<World> unionWorlds = new HashSet<World>(worlds);
         unionWorlds.addAll(other.getWorlds());
+        //System.out.println(worlds.size());
+        //System.out.println(other.getWorlds().size());
+        //System.out.println(unionWorlds.size());
         assert(unionWorlds.size() == (worlds.size() + other.getWorlds().size()));
 
         Map<String, Relation> unionBelief = new HashMap<>();

@@ -22,13 +22,16 @@ public class Solution implements java.io.Serializable{
     private int id;
     private int time;
 
-    public Solution(Perspective perspective, Action action, int time) {
+    private Domain domain;
+
+    public Solution(Perspective perspective, Action action, int time, Domain domain) {
         this.perspective = perspective;
         this.action = action;
         this.time = time;
         this.children = new HashSet<Solution>();
         this.id = Solution.idCounter;
         Solution.idCounter += 1;
+        this.domain = domain;
     }
 
     public void addChild(Solution s) {
@@ -49,6 +52,10 @@ public class Solution implements java.io.Serializable{
 
     public Set<Solution> getChildren() {
         return children;
+    }
+
+    public Domain getDomain() {
+        return domain;
     }
 
     private String listPerspectives() {

@@ -18,6 +18,8 @@ DONE FOR AIJ
     observesif (and causesif, and what else?) should check constants as well as fluents
     handle mulitple observes and observesif rules per agent, probably or them together
 
+remove static id counter from Solution
+
 stop early if cycles
 
 move Initialize into parser directory

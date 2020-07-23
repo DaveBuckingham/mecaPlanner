@@ -16,7 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 
-public class Domain {
+public class Domain implements java.io.Serializable {
 
     private Set<FluentAtom> allAtoms;
     private Set<FluentAtom> constants;
@@ -53,6 +53,8 @@ public class Domain {
 
     public void check() {
         assert(!goals.isEmpty());
+        assert(!systemAgents.isEmpty());
+        assert(allAgents.containsAll(systemAgents));
     }
 
 

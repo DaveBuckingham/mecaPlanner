@@ -35,14 +35,17 @@ public class DeplToDomain extends DeplBaseVisitor {
     private Set<String> allObjects;  // to check for undefined objects
     private Set<FluentAtom> constants;
     private Map<String, TypeNode> typeDefs;  // key is type name
-    private Stack<Map<String, String>> variableStack = new Stack<Map<String, String>>();
+    private Stack<Map<String, String>> variableStack;
     private Set<BeliefFormula> initiallyStatements;
 
     public DeplToDomain() {
         super();
+        this.domain = new Domain();
         this.allObjects = new HashSet<String>();
         this.constants = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
+        this.variableStack = new Stack<Map<String, String>>();
+        this.initiallyStatements = new HashSet<>();;
     }
 
 
@@ -258,8 +261,9 @@ public class DeplToDomain extends DeplBaseVisitor {
         DeplParser parser        = new DeplParser(tokens);
         ParseTree tree           = parser.init();
 
-        Domain domain = new Domain();
+        this.domain = new Domain();
         visit(tree);
+        domain.check();
         return domain;
     }
 
@@ -341,15 +345,15 @@ public class DeplToDomain extends DeplBaseVisitor {
     }
 
     @Override public Void visitEnvironmentAgent(DeplParser.EnvironmentAgentContext ctx) {
-        String name = ctx.NAME().getText();
+        String agent = ctx.NAME().getText();
 
         Model model = null;
         String modelClassName = "mecaPlanner.models." + ctx.CLASS().getText();
         try {
-            //Constructor constructor = Class.forName(modelClassName).getConstructor(Domain.class);
-            //model = (Model) constructor.newInstance(domain);
-            Constructor constructor = Class.forName(modelClassName).getConstructor();
-            model = (Model) constructor.newInstance();
+            Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
+            model = (Model) constructor.newInstance(agent, domain);
+            //Constructor constructor = Class.forName(modelClassName).getConstructor();
+            //model = (Model) constructor.newInstance();
         }
         catch(ClassNotFoundException ex) {
             System.out.println(ex.toString());
@@ -374,7 +378,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             System.exit(1);
         }
 
-        domain.addEnvironmentAgent(name, model);
+        domain.addEnvironmentAgent(agent, model);
 
         return null;
     }

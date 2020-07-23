@@ -93,8 +93,6 @@ public class PNode  {
         }
         return false;
     }
-
-    // get the set of successor perspective nodes
     // returns null if transition fails due to cycles or depth limit
     // returns empty set if found goal
     private Set<PNode> pTransition(Action action) {
@@ -117,7 +115,7 @@ public class PNode  {
         
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
-            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime(), depth, domain));
+            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime(), depth+1, domain));
         }
         return successorNodes;
     }

@@ -112,7 +112,7 @@ public class Search {
     }
 
     private Solution pnodeToSolution(PNode pnode) {
-        Solution s = new Solution(pnode.getPerspective(), pnode.getAction(), pnode.getTime());
+        Solution s = new Solution(pnode.getPerspective(), pnode.getAction(), pnode.getTime(), domain);
         for (PNode successor : pnode.getSuccessors()) {
             s.addChild(pnodeToSolution(successor));
         }
