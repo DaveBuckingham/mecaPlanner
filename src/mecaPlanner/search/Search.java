@@ -44,7 +44,7 @@ public class Search {
         return(findSolution(startStateSet, goal));
     }
 
-    public Set<Solution> findSolution(Set<EpistemicState> startStates, GeneralFormula goal) {
+    public Set<Solution> findSolution(Domain domain) {
         int maxDepth = 0;
         Set<Solution> solutions = null;
         while (solutions == null) {

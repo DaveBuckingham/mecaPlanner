@@ -177,7 +177,10 @@ public class Initialize {
 
 
 
-    public static EpistemicState constructState(Domain domain, boolean assumeCommonKnowledge) throws Exception {
+    public static EpistemicState constructState(Set<BeliefFormula> initialStatements,
+                                                Domain domain,
+                                                boolean assumeCommonKnowledge
+                                               ) throws Exception {
 
 
         Set<FluentAtom> type1 = new HashSet<>();
@@ -195,7 +198,7 @@ public class Initialize {
         // ALL ATOMS APPEARING IN STATEMENTS OF TYPE 3 OR 4
         Set<FluentAtom> type34Atoms = new HashSet<>();
 
-        for (BeliefFormula initially : domain.getInitiallyStatements()) {
+        for (BeliefFormula initially : initialStatements) {
             AgentFormulaPair p;
             FluentFormula f;
             FluentAtom a;

@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.actions.*;
+import mecaPlanner.state.Initialize;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -35,6 +36,7 @@ public class DeplToDomain extends DeplBaseVisitor {
     private Set<FluentAtom> constants;
     private Map<String, TypeNode> typeDefs;  // key is type name
     private Stack<Map<String, String>> variableStack = new Stack<Map<String, String>>();
+    private Set<BeliefFormula> initiallyStatements;
 
     public DeplToDomain() {
         super();
@@ -450,17 +452,24 @@ public class DeplToDomain extends DeplBaseVisitor {
 
 
 
-
-
-
-
-
-
-
     // INITIALLY
 
+    @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
+        visitChildren(ctx);
+        try {
+            domain.setStartState(Initialize.constructState(initiallyStatements, domain, true));
+        }
+        catch (Exception ex) {
+            ex.printStackTrace();
+            System.exit(1);
+        }
+        return null;
+    }
+
     @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
-        domain.addInitiallyStatement((BeliefFormula) visit(ctx.beliefFormula()));
+        BeliefFormula statement = (BeliefFormula) visit(ctx.beliefFormula());
+        domain.checkAtoms(statement);
+        initiallyStatements.add(statement);
         return null;
     }
 

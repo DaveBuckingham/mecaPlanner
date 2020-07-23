@@ -36,9 +36,9 @@ public class Planner {
 
     Search search;
 
-    static Boolean assumeCommonKnowledge = null;
-    static Boolean reduceStates = null;
-    static Boolean printSolution = null;
+    //static Boolean assumeCommonKnowledge = null;
+    //static Boolean reduceStates = null;
+    //static Boolean printSolution = null;
 
 
 
@@ -101,9 +101,9 @@ public class Planner {
             }
         }
 
-        Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
-        Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
-        Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
+        //Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
+        //Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
+        //Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
         Log.setThreshold(prop.getProperty("logThreshold", "info"));
         Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
@@ -148,15 +148,11 @@ public class Planner {
 
         long startSearchTime = System.currentTimeMillis();
 
-        Set<Solution> solutions = null;
 
-        try {
-            solutions = planner.plan();
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
+        Search search = new Search();
+
+        Set<Solution> solutions = search.findSolution(domain);
+
 
         // WE NEED A BETTER SYSTEM THAN THIS
         assert(solutions.size() == 1);
@@ -199,21 +195,6 @@ public class Planner {
 
     }
 
-
-    public Set<Solution> plan() throws Exception {
-
-        EpistemicState startState = null;
-        try {
-            startState = Initialize.constructState(domain, Planner.assumeCommonKnowledge);
-            this.search = new Search();
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-
-        return this.search.findSolution(startState, new GeneralFormulaAnd(Domain.getGoals()));
-    }
 
 }
 

@@ -6,6 +6,7 @@ import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.formulae.BeliefFormula;
 import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.actions.Action;
+import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -18,7 +19,8 @@ public class Domain {
 
     private Set<FluentAtom> allAtoms;
     private Set<FluentAtom> constants;
-    private Set<BeliefFormula> initiallyStatements;
+    //private Set<BeliefFormula> initiallyStatements;
+    private EpistemicState startState;
     private Set<GeneralFormula> goals;
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
@@ -35,7 +37,6 @@ public class Domain {
     public Domain() {
         allAtoms = new HashSet<>();
         constants = new HashSet<>();
-        initiallyStatements = new HashSet<>();
         goals = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
@@ -56,8 +57,8 @@ public class Domain {
     public Set<FluentAtom> getConstants() {
         return constants;
     }
-    public Set<BeliefFormula> getInitiallyStatements() {
-        return initiallyStatements;
+    public EpistemicState getStartState() {
+        return startState;
     }
 
     public Set<GeneralFormula> getGoals() {
@@ -158,9 +159,10 @@ public class Domain {
         constants.add(f);
     }
 
-    public void addInitiallyStatement(BeliefFormula statement) {
-        checkAtoms(statement);
-        initiallyStatements.add(statement);
+    public void setStartState(EpistemicState state) {
+        //checkAtoms(statement);
+        //initiallyStatements.add(statement);
+        this.startState = state;
     }
 
     public void addGoal(GeneralFormula newGoal) {
@@ -209,7 +211,8 @@ public class Domain {
 
 
 
-    private void checkAtoms(GeneralFormula f) {
+    // RECURSIVELY CHECK THAT EVERY ATOM IN THE FORMULA HAS BEEN DEFINED
+    public void checkAtoms(GeneralFormula f) {
         for (FluentAtom a : f.getAllAtoms()) {
             //if (!allAtoms.contains(a) && !constants.contains(a)) {
             if (!allAtoms.contains(a)) {
@@ -241,10 +244,7 @@ public class Domain {
         str.append("\n");
 
         str.append("INITIALLY:\n");
-        for (BeliefFormula i : getInitiallyStatements()) {
-            str.append(i.toString());
-            str.append("\n");
-        }
+        str.append(startState.toString());
         str.append("\n");
 
         str.append("GOALS:\n");

@@ -73,7 +73,7 @@ public class Test {
     private static void testBisimulations() {
 
         String agent = "agent_name";
-        Domain.addPassiveAgent(agent);
+        //Domain.addPassiveAgent(agent);
 
         EpistemicState vending_s = vendingS(agent);
         EpistemicState vending_t = vendingT(agent);
@@ -225,8 +225,8 @@ public class Test {
 
     private static void showActions(String deplFile) {
         DeplToDomain visitor = new DeplToDomain();
-        visitor.buildDomain(deplFile);
-        for (Action action : Domain.getAllActions()) {
+        Domain domain = visitor.buildDomain(deplFile);
+        for (Action action : domain.getAllActions()) {
             System.out.println(action);
         }
     }
@@ -240,14 +240,14 @@ public class Test {
     private static void runActions(String deplFile, List<String> actionNames) {
 
         DeplToDomain visitor = new DeplToDomain();
-        visitor.buildDomain(deplFile);
+        Domain domain = visitor.buildDomain(deplFile);
 
         List<Action> inputActions = new ArrayList<>();
 
         for (String inputActionSignature : actionNames) {
 
             boolean foundAction = false;
-            for (Action action : Domain.getAllActions()) {
+            for (Action action : domain.getAllActions()) {
                 if (inputActionSignature.equals(action.getSignature()) ||
                     inputActionSignature.equals(action.getSignatureWithActor())) {
 
@@ -262,17 +262,9 @@ public class Test {
             }
         }
 
-        EpistemicState startState = null;
-        try {
-            startState = Initialize.constructState(true);
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
 
         System.out.println("START STATE:");
-        System.out.println(startState);
+        System.out.println(domain.getStartState());
 
         System.out.println("Checking relation..." + checkRelations(startState));
 
@@ -283,7 +275,7 @@ public class Test {
             System.out.print("ACTION: ");
             System.out.println(action.getSignatureWithActor());
             try {
-                Action.UpdatedStateAndModels result = action.transition(currentState, Domain.getStartingModels());
+                Action.UpdatedStateAndModels result = action.transition(currentState, domain.getStartingModels());
                 currentState = result.getState();
             }
             catch (Exception ex) {
@@ -671,7 +663,7 @@ public class Test {
 
     public static boolean checkRelations(EpistemicState state) {
         Set<World> worlds = state.getKripke().getWorlds();
-        for (String agent : Domain.getAgents()) {
+        for (String agent : domain.getAgents()) {
             Relation relation = state.getKripke().getBeliefRelations().get(agent);
             if (!checkSerial(relation, worlds)) {
                 System.out.println("failed check: serial belief for agent " + agent);
