@@ -72,11 +72,21 @@ public class NDState implements java.io.Serializable {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        return equivalent((NDState) obj);
+        NDState other = (NDState) obj;
+        // THIS WILL CATCH PROBLEM CAUSED BY EPISTEMICSTATE.GETPERSPECTIVE() REUSING
+        // KRIPKE, BUT ONLY IF DESIGNATED WORLDS ARE THE SAME. MIGHT BE A BUG
+        // IN CASE TWO NDSTATES HAVE THE SAME KRIPKE BUT DIFFERENT DESIGNATED WORLDS:
+        // COULD GO THROUG TO EQUIVALENT() AND THROUGH TO UNION() WHERE
+        // WILL BREAK BECAUSE BOTH KRIPKE'S HAVE SAME WORLDS (SINCE THEY ARE THE SAME KRIPKE).
+        if (this.kripkeStructure == other.getKripke() && this.designatedWorlds == other.getDesignatedWorlds()) {
+            return true;
+        }
+        return equivalent(other);
     }
 
 
     public Boolean equivalent(NDState other) {
+        //assert (this.kripkeStructure != other.getKripke());
         KripkeStructure unionKripke = this.kripkeStructure.union(other.getKripke());
 
         Set<World> otherInitials = other.getDesignatedWorlds();

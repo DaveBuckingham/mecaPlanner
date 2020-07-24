@@ -29,7 +29,6 @@ public class AndNode extends GNode {
         Log.debug(agent + " prediction:");
         for (Action action : prediction) {
             Log.debug("  " + action.getSignature());
-            //if (action.executable(estate) && action.necessarilyExecutable(estate.getBeliefPerspective(agent))) {
             if (action.executable(estate)) {
                 possibleActions.add(action);
             }

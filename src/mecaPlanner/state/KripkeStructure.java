@@ -29,6 +29,17 @@ public class KripkeStructure implements java.io.Serializable {
     private Set<World> worlds;
 
 
+    // THERE'S PROBABLY A BETTER WAY TO DO THIS WITH A COPY CONSTRUCTOR,
+    // BUT I COULDNT' FIGURE OUT HOW TO MAKE THE NEW SET OF WORLDS ALL IN ONE LINE.
+    //public KripkeStructure copy() {
+    //   Set<World> newWorlds = new HashSet<>();
+    //   for (World w : worlds) {
+    //       newWorlds.add(new World(w));
+    //   }
+    //   return new KripkeStructure(newWorlds, beliefRelations, knowledgeRelations);
+    //}
+
+
 
 
     public KripkeStructure(Set<World> worlds, Map<String, Relation> belief, Map<String, Relation> knowledge) {
@@ -158,11 +169,9 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
     public KripkeStructure union(KripkeStructure other) {
+        assert(this != other);
         Set<World> unionWorlds = new HashSet<World>(worlds);
         unionWorlds.addAll(other.getWorlds());
-        //System.out.println(worlds.size());
-        //System.out.println(other.getWorlds().size());
-        //System.out.println(unionWorlds.size());
         assert(unionWorlds.size() == (worlds.size() + other.getWorlds().size()));
 
         Map<String, Relation> unionBelief = new HashMap<>();
