@@ -10,8 +10,8 @@ david.buckingham@tufts.edu
 
 $ make
 $ make simulator
-$ ./mecad problems/pizza.depl configs/example.conf pizza.plan
-$ ./sim problems/pizza.depl pizza.plan
+$ ./mecad problems/pizza.depl pizza.plan
+$ pizza.plan
 
 
 
@@ -73,21 +73,21 @@ build system is prone to breaking.
 |                 EXAMPLE               |
 +---------------------------------------+
 
-$ ./mecad problems/pizza.depl configs/example.conf pizza.plan
+$ ./mecad problems/pizza.depl pizza.plan
 
-The planner takes one required argument and two optional arguments.  The
+The planner takes one required argument and one optional arguments.  The
 required argument is a .depl file describing a planning problem.  The optional
-arguments are a .conf configuration file, and a .plan filename where the
-solution should be saved (serialized).  The order doesn't matter, the filename
-extensions do.
+argument is a .plan filename where the solution should be saved (serialized).
+The order doesn't matter, the filename extensions do.
 
 
-$ ./sim problems/pizza.depl pizza.plan
+$ ./sim pizza.plan
 
-The simulator takes two required arguments: a .depl and a .plan.  It starts in
-the initial state and applies s-agent actions as specified in the plan and
-e-agent actions as specified by their models. When an e-agent model returns
-multiple actions, the simulator asks the user to select one.
+The simulator takes one required arguments: a .plan file. The .plan file
+includes the original domain. It starts in the initial state and applies s-agent
+actions as specified in the plan and e-agent actions as specified by their
+models. When an e-agent model returns multiple actions, the simulator asks the
+user to select one.
 
 
 
@@ -112,16 +112,14 @@ The main class for running the planner. Reads options, and planner input, runs
 search, prints/saves solution.
 
 Domain.java
-A static class, gets filled out from a .depl file.
+A static class: a domain object represents a planning problem. It is constructed
+from a .depl file.
 
-Maybe these three classes should be organized in a "search" directory.
-Search.java
-The search algorithm
-Solution.java
-A Solution is a perspective node is a perspective tree.
-Perspective.java
-Just a wrapper so we can be flexible about how to represent agent perspectives.
-Right now, its an NDState, but for interfacing with ADE we will want it to be a World.
+/search
+    Search.java: The search algorithm
+    Solution.java: A Solution is a perspective node is a perspective tree.
+    Perspective.java:  Just a wrapper so we can be flexible about how to represent agent perspectives.
+                       Right now, its an NDState, but for interfacing with ADE we will want it to be a World.
 
 state/
 Classes for representing epistemic state with Kripke structures.
