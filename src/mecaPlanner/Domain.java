@@ -21,8 +21,6 @@ public class Domain implements java.io.Serializable {
     private Set<FluentAtom> allAtoms;
     private Set<FluentAtom> constants;
     //private Set<BeliefFormula> initiallyStatements;
-    private EpistemicState startState;
-    private Set<GeneralFormula> goals;
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
 
@@ -38,7 +36,6 @@ public class Domain implements java.io.Serializable {
     public Domain() {
         allAtoms = new HashSet<>();
         constants = new HashSet<>();
-        goals = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
@@ -48,36 +45,21 @@ public class Domain implements java.io.Serializable {
         passiveAgents = new HashSet<>();
         nonPassiveAgents = new ArrayList<>();
 
-        startingModels = new HashMap<>();
     }
 
     public void check() {
-        assert(!goals.isEmpty());
         assert(!systemAgents.isEmpty());
         assert(allAgents.containsAll(systemAgents));
     }
 
-
     public Set<FluentAtom> getAllAtoms() {
         return allAtoms;
     }
+
     public Set<FluentAtom> getConstants() {
         return constants;
     }
-    public EpistemicState getStartState() {
-        return startState;
-    }
 
-    public Set<GeneralFormula> getGoals() {
-        return goals;
-    }
-
-    public GeneralFormula getGoal() {
-        if (goals.size() == 1) {
-            return goals.iterator().next();
-        }
-        return new GeneralFormulaAnd(goals);
-    }
 
     public Map<String,Set<Action>> getActionMap() {
         return actions;
@@ -158,31 +140,14 @@ public class Domain implements java.io.Serializable {
         return startingModels;
     }
 
-
-
-
     public void addAtom(FluentAtom f) {
         allAtoms.add(f);
-    }
-
-    public void addAtoms(Set<FluentAtom> atoms) {
-        allAtoms.addAll(atoms);
     }
 
     public void addConstant(FluentAtom f) {
         constants.add(f);
     }
 
-    public void setStartState(EpistemicState state) {
-        //checkAtoms(statement);
-        //initiallyStatements.add(statement);
-        this.startState = state;
-    }
-
-    public void addGoal(GeneralFormula newGoal) {
-        checkAtoms(newGoal);
-        goals.add(newGoal);
-    }
 
     public void addSystemAgent(String agent) {
         assert (!allAgents.contains(agent));
@@ -210,8 +175,6 @@ public class Domain implements java.io.Serializable {
     }
 
     public void addAction(String agent, Action newAction) {
-        checkAtoms(newAction.getPrecondition());
-        // SHOULD ALSO checkAtoms() FOR EFFECT CONDITIONS AND OBSERVES CONDITIONS
         assert(actions.containsKey(agent));
         actions.get(agent).add(newAction);
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
@@ -224,20 +187,6 @@ public class Domain implements java.io.Serializable {
 
 
 
-
-    // RECURSIVELY CHECK THAT EVERY ATOM IN THE FORMULA HAS BEEN DEFINED
-    public void checkAtoms(GeneralFormula f) {
-        for (FluentAtom a : f.getAllAtoms()) {
-            //if (!allAtoms.contains(a) && !constants.contains(a)) {
-            if (!allAtoms.contains(a)) {
-                System.out.println("Undefined atom: \"" + a + "\". Defined atoms are: " + allAtoms);
-                //for (FluentAtom f : allAtoms) {
-                //    System.out.println(f);
-                //}
-                System.exit(1);
-            }
-        }
-    }
 
 
     public String toString() {
@@ -257,16 +206,6 @@ public class Domain implements java.io.Serializable {
         }
         str.append("\n");
 
-        str.append("INITIALLY:\n");
-        str.append(startState.toString());
-        str.append("\n");
-
-        str.append("GOALS:\n");
-        for (GeneralFormula g : goals) {
-            str.append(g.toString());
-            str.append("\n");
-        }
-        str.append("\n");
 
         for (String agent : actions.keySet()) {
             str.append("ACTIONS (" + agent.toString() + "):\n");

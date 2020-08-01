@@ -9,6 +9,7 @@ import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.Solution;
 import mecaPlanner.Domain;
+import mecaPlanner.Problem;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -29,35 +30,35 @@ public class Search {
     Domain domain;
 
 
-
-
-    public Search(Domain domain) {
-        this.domain = domain;
+    public Search() {
     }
 
 
 
-    public Set<Solution> findSolution() {
+    public Set<Solution> findSolution(Problem problem) {
 
         // THE SEARCH ALGORITHM WORKS WITH MULTIPLE START STATES
         // RIGHT NOW OUR DOMAIN REPRESENTATION ASSUMES A SINGLE START STATE
         // IF THERE ARE MULTIPLE START STATES, WE MAY GET MULTIPLE SOLUTIONS
         // CURRENTLY, THE PLANNER CLASS ASSUMES WE WILL GET A SINGLE SOLUTION
-        Set<EpistemicState> startStates = new HashSet<>();
-        startStates.add(domain.getStartState());
 
-        GeneralFormula goal = domain.getGoal();
+        this.domain = problem.getDomain();
+
+        Set<EpistemicState> startStates = new HashSet<>();
+        startStates.add(problem.getStartState());
+
+        GeneralFormula goal = problem.getGoal();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
         if (domain.isSystemAgent(time)) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, goal, 0, null, domain.getStartingModels(), domain));
+                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), domain));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, goal, 0, null, domain.getStartingModels(), domain);
+                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), domain);
                 Set<OrNode> startOrNodes = startAndNode.descend();
                 if (startOrNodes == null) {
                     return null;

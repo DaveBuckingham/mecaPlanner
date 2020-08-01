@@ -9,6 +9,7 @@ import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.actions.*;
 import mecaPlanner.state.Initialize;
+import mecaPlanner.state.EpistemicState;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -27,9 +28,13 @@ import java.lang.reflect.InvocationTargetException;
 import java.io.IOException;
 
 
-public class DeplToDomain extends DeplBaseVisitor {
+public class DeplToProblem extends DeplBaseVisitor {
 
+    // GO IN PROBLEM
     private Domain domain;
+    private EpistemicState startState;
+    private Map<String, Model> startingModels;
+    private Set<GeneralFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
     private Set<String> allObjects;  // to check for undefined objects
@@ -38,14 +43,10 @@ public class DeplToDomain extends DeplBaseVisitor {
     private Stack<Map<String, String>> variableStack;
     private Set<BeliefFormula> initiallyStatements;
 
-    public DeplToDomain() {
+
+    public DeplToProblem() {
         super();
-        this.domain = new Domain();
-        this.allObjects = new HashSet<String>();
-        this.constants = new HashSet<FluentAtom>();
-        this.typeDefs = new HashMap<String, TypeNode>();
-        this.variableStack = new Stack<Map<String, String>>();
-        this.initiallyStatements = new HashSet<>();;
+
     }
 
 
@@ -58,6 +59,15 @@ public class DeplToDomain extends DeplBaseVisitor {
         ANNOUNCEMENT
     }
 
+    // RECURSIVELY CHECK THAT EVERY ATOM IN THE FORMULA HAS BEEN DEFINED
+    private void checkAtoms(GeneralFormula f) {
+        for (FluentAtom a : f.getAllAtoms()) {
+            if (!domain.getAllAtoms().contains(a)) {
+                System.out.println("Undefined atom: \"" + a + "\". Defined atoms are: " + domain.getAllAtoms());
+                System.exit(1);
+            }
+        }
+    }
 
 
     // READ A "PARAMETER" WHICH COULD BE AN OBJECT NAME OR A VARIABLE
@@ -245,7 +255,7 @@ public class DeplToDomain extends DeplBaseVisitor {
     //}
 
 
-    public Domain buildDomain (String deplFileName) {
+    public Problem buildProblem (String deplFileName) {
         
         CharStream inputStream = null;
         try {
@@ -262,9 +272,20 @@ public class DeplToDomain extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
+        this.startState = null;
+        this.startingModels = new HashMap<>();
+        this.goals = new HashSet<>();
+
+        this.allObjects = new HashSet<String>();
+        this.constants = new HashSet<FluentAtom>();
+        this.typeDefs = new HashMap<String, TypeNode>();
+        this.variableStack = new Stack<Map<String, String>>();
+        this.initiallyStatements = new HashSet<>();;
+
+
         visit(tree);
         domain.check();
-        return domain;
+        return new Problem(domain, startState, startingModels, goals);
     }
 
 
@@ -461,7 +482,7 @@ public class DeplToDomain extends DeplBaseVisitor {
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         visitChildren(ctx);
         try {
-            domain.setStartState(Initialize.constructState(initiallyStatements, domain, true));
+            startState = Initialize.constructState(initiallyStatements, domain, true);
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -472,7 +493,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
         BeliefFormula statement = (BeliefFormula) visit(ctx.beliefFormula());
-        domain.checkAtoms(statement);
+        checkAtoms(statement);
         initiallyStatements.add(statement);
         return null;
     }
@@ -481,7 +502,9 @@ public class DeplToDomain extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        domain.addGoal((GeneralFormula) visit(ctx.generalFormula()));
+        GeneralFormula goal = (GeneralFormula) visit(ctx.generalFormula());
+        checkAtoms(goal);
+        goals.add(goal);
         return null;
     }
 
@@ -492,6 +515,8 @@ public class DeplToDomain extends DeplBaseVisitor {
             variableStack.push(variableMap);
             Action action = buildAction(ctx);
             if (!(action.getPrecondition() instanceof FluentFormulaFalse)) {
+                // SHOULD ALSO checkAtoms() FOR EFFECT CONDITIONS AND OBSERVES CONDITIONS
+                checkAtoms(action.getPrecondition());
                 domain.addAction(action.getActor(), action);
             }
             variableStack.pop();
@@ -509,7 +534,7 @@ public class DeplToDomain extends DeplBaseVisitor {
 
         // MANDATORY
         String owner = null;
-        DeplToDomain.ActionType actionType = null;
+        DeplToProblem.ActionType actionType = null;
 
         // OPTIONAL
         int cost = 1;
@@ -594,10 +619,10 @@ public class DeplToDomain extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.causesActionField() != null) {
-                if (actionType != null && actionType != DeplToDomain.ActionType.ONTIC) {
+                if (actionType != null && actionType != DeplToProblem.ActionType.ONTIC) {
                     throw new RuntimeException("action " + actionName + " has illegal action-type-specifying fields.");
                 }
-                actionType = DeplToDomain.ActionType.ONTIC;
+                actionType = DeplToProblem.ActionType.ONTIC;
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesActionField().variableList())) {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesActionField().literal());
@@ -608,10 +633,10 @@ public class DeplToDomain extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.causesifActionField() != null) {
-                if (actionType != null && actionType != DeplToDomain.ActionType.ONTIC) {
+                if (actionType != null && actionType != DeplToProblem.ActionType.ONTIC) {
                     throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
                 }
-                actionType = DeplToDomain.ActionType.ONTIC;
+                actionType = DeplToProblem.ActionType.ONTIC;
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesifActionField().variableList())) {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
@@ -625,10 +650,10 @@ public class DeplToDomain extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.determinesActionField() != null) {
-                if (actionType != null && actionType != DeplToDomain.ActionType.SENSING) {
+                if (actionType != null && actionType != DeplToProblem.ActionType.SENSING) {
                     throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
                 }
-                actionType = DeplToDomain.ActionType.SENSING;
+                actionType = DeplToProblem.ActionType.SENSING;
 
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.determinesActionField().variableList())) {
                     variableStack.push(variableMap);
@@ -641,7 +666,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                 if (actionType != null) {
                     throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
                 }
-                actionType = DeplToDomain.ActionType.ANNOUNCEMENT;
+                actionType = DeplToProblem.ActionType.ANNOUNCEMENT;
                 announces = (FluentFormula) visit(fieldCtx.announcesActionField().fluentFormula());
 
             }
@@ -670,7 +695,7 @@ public class DeplToDomain extends DeplBaseVisitor {
         }
 
         if (actionType == null) {
-            actionType = DeplToDomain.ActionType.ONTIC;  // default
+            actionType = DeplToProblem.ActionType.ONTIC;  // default
         }
 
         Map<String, FluentFormula> observes = new HashMap<>();
@@ -680,7 +705,7 @@ public class DeplToDomain extends DeplBaseVisitor {
             aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
         }
 
-        if (actionType == DeplToDomain.ActionType.ONTIC) {
+        if (actionType == DeplToProblem.ActionType.ONTIC) {
             return new OnticAction(actionName,
                                    actionParameters,
                                    owner,
@@ -693,7 +718,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                                   );
         }
 
-        else if (actionType == DeplToDomain.ActionType.SENSING) {
+        else if (actionType == DeplToProblem.ActionType.SENSING) {
             return new SensingAction(actionName,
                                    actionParameters,
                                    owner,
@@ -706,7 +731,7 @@ public class DeplToDomain extends DeplBaseVisitor {
                                   );
         }
 
-        else if (actionType == DeplToDomain.ActionType.ANNOUNCEMENT) {
+        else if (actionType == DeplToProblem.ActionType.ANNOUNCEMENT) {
             return new AnnouncementAction(actionName,
                                    actionParameters,
                                    owner,

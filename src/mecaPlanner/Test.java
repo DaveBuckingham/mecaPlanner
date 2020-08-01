@@ -224,8 +224,9 @@ public class Test {
 
 
     private static void showActions(String deplFile) {
-        DeplToDomain visitor = new DeplToDomain();
-        Domain domain = visitor.buildDomain(deplFile);
+        DeplToProblem visitor = new DeplToProblem();
+        Problem problem = visitor.buildProblem(deplFile);
+        Domain domain = problem.getDomain();
         for (Action action : domain.getAllActions()) {
             System.out.println(action);
         }
@@ -239,8 +240,9 @@ public class Test {
 
     private static void runActions(String deplFile, List<String> actionNames) {
 
-        DeplToDomain visitor = new DeplToDomain();
-        Domain domain = visitor.buildDomain(deplFile);
+        DeplToProblem visitor = new DeplToProblem();
+        Problem problem = visitor.buildProblem(deplFile);
+        Domain domain = problem.getDomain();
 
         List<Action> inputActions = new ArrayList<>();
 
@@ -264,12 +266,12 @@ public class Test {
 
 
         System.out.println("START STATE:");
-        System.out.println(domain.getStartState());
+        System.out.println(problem.getStartState());
 
-        System.out.println("Checking relation..." + checkRelations(domain, domain.getStartState()));
+        System.out.println("Checking relation..." + checkRelations(domain, problem.getStartState()));
 
 
-        EpistemicState currentState = domain.getStartState();
+        EpistemicState currentState = problem.getStartState();
 
         for (Action action : inputActions) {
             System.out.print("ACTION: ");

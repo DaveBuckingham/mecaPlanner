@@ -124,32 +124,21 @@ public class Planner {
 //        DeplParser parser        = new DeplParser(tokens);
 //        ParseTree tree           = parser.init();
 
-        DeplToDomain visitor     = new DeplToDomain();
-        Domain domain = visitor.buildDomain(deplFileName);
+        DeplToProblem visitor     = new DeplToProblem();
+        Problem problem = visitor.buildProblem(deplFileName);
 
 //        visitor.buildDomain(tree);
 
-        Log.info("done loading domain");
-
-        //Log.info("initializing models");
-        //for (EnvironmentAgent agent : Domain.getEnvironmentAgents()) {
-        //    agent.getModel().setup(agent);
-        //}
-        //Log.info("done initializing models");
-
-        Log.info("building start state");
-
-
-        Log.info("done building start state");
+        Log.info("done loading problem");
 
         Log.info("starting search");
 
         long startSearchTime = System.currentTimeMillis();
 
 
-        Search search = new Search(domain);
+        Search search = new Search();
 
-        Set<Solution> solutions = search.findSolution();
+        Set<Solution> solutions = search.findSolution(problem);
 
 
         // WE NEED A BETTER SYSTEM THAN THIS

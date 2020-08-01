@@ -27,8 +27,8 @@ mecaPlanner.jar: build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wild
 build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) : build/depl/ src/mecaPlanner/ $(wildcard src/mecaPlanner/*)
 	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java -d build/
 
-build/depl/: src/deplParser/DeplToDomain.java build/deplSrc/
-	$(java) src/deplParser/DeplToDomain.java build/deplSrc/*.java -d build/
+build/depl/: src/deplParser/DeplToProblem.java build/deplSrc/
+	$(java) src/deplParser/DeplToProblem.java build/deplSrc/*.java -d build/
 
 build/deplSrc/: src/deplParser/Depl.g4
 	cd src/deplParser; $(antlr) $(visitor) -package depl Depl.g4 -o ../../build/deplSrc
