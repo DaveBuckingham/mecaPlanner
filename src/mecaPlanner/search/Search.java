@@ -27,8 +27,6 @@ import java.util.HashMap;
 
 public class Search {
 
-    Domain domain;
-
 
     public Search() {
     }
@@ -37,28 +35,31 @@ public class Search {
 
     public Set<Solution> findSolution(Problem problem) {
 
+        Domain domain = problem.getDomain();
+
         // THE SEARCH ALGORITHM WORKS WITH MULTIPLE START STATES
         // RIGHT NOW OUR DOMAIN REPRESENTATION ASSUMES A SINGLE START STATE
         // IF THERE ARE MULTIPLE START STATES, WE MAY GET MULTIPLE SOLUTIONS
         // CURRENTLY, THE PLANNER CLASS ASSUMES WE WILL GET A SINGLE SOLUTION
-
-        this.domain = problem.getDomain();
-
         Set<EpistemicState> startStates = new HashSet<>();
         startStates.add(problem.getStartState());
+
+        int systemAgentIndex = problem.getSystemAgentIndex();
+
+        int numAgents = domain.getNonPassiveAgents().length();
 
         GeneralFormula goal = problem.getGoal();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
-        if (domain.isSystemAgent(time)) {
+        if (time == systemAgentIndex) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), domain));
+                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, numAgents));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), domain);
+                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, numAgents);
                 Set<OrNode> startOrNodes = startAndNode.descend();
                 if (startOrNodes == null) {
                     return null;
@@ -67,9 +68,7 @@ public class Search {
             }
         }
 
-        while (domain.isEnvironmentAgent(time)) {
-            time++;
-        }
+        time = systemAgentIndex;
 
         Map<Perspective, Set<OrNode>> perspectives = new HashMap<>();
         for (OrNode ground : allStartOrNodes ){
@@ -99,7 +98,6 @@ public class Search {
 
     public Set<Solution> searchToDepth(Set<PNode> startPNodes, int maxDepth) {
 
-        // NEED TO MOVE ALL THIS INITIALIZATION STUFF TO FINDSOLUTION, AS IN PSEUDOCODE
         // one solution per possible start state
         Set<Solution> solutions = new HashSet<>();
         for (PNode startPNode : startPNodes) {

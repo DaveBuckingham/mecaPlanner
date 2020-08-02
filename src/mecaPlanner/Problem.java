@@ -19,26 +19,33 @@ import java.util.ArrayList;
 public class Problem implements java.io.Serializable {
 
     private Domain domain;
+    private int systemAgentIndex;
     private EpistemicState startState;
     private Map<String, Model> startingModels;
     private Set<GeneralFormula> goals;
 
 
-    public Problem(Domain domain, EpistemicState startState, Map<String,Model> startingModels, Set<GeneralFormula> goals) {
+    public Problem(Domain domain,
+                   int systemAgentIndex,
+                   EpistemicState startState,
+                   Map<String,Model> startingModels,
+                   Set<GeneralFormula> goals
+                  ) {
         this.domain = domain;
+        this.systemAgentIndex = systemAgentIndex;
         this.startState = startState;
         this.startingModels = startingModels;
         this.goals = goals;
     }
 
-    public void check() {
-        assert(!goals.isEmpty());
-        domain.check();
-    }
 
 
     public EpistemicState getStartState() {
         return startState;
+    }
+
+    public int getSystemAgentIndex() {
+        return systemAgentIndex;
     }
 
     public Set<GeneralFormula> getGoals() {

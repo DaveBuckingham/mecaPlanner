@@ -32,11 +32,13 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // GO IN PROBLEM
     private Domain domain;
+    private Integer systemAgentIndex;
     private EpistemicState startState;
     private Map<String, Model> startingModels;
     private Set<GeneralFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
+    private Integer agentIndex;
     private Set<String> allObjects;  // to check for undefined objects
     private Set<FluentAtom> constants;
     private Map<String, TypeNode> typeDefs;  // key is type name
@@ -272,10 +274,12 @@ public class DeplToProblem extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
+        this.systemAgentIndex = null;
         this.startState = null;
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
 
+        this.agentIndex = 0;
         this.allObjects = new HashSet<String>();
         this.constants = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
@@ -284,8 +288,19 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
         visit(tree);
-        domain.check();
-        return new Problem(domain, startState, startingModels, goals);
+
+        if (systemAgentIndex == null) {
+            throw new RuntimeException("system agent not defined");
+        }
+        if (startState == null) {
+            throw new RuntimeException("start state agent not defined");
+        }
+        if (goals.isEmpty()) {
+            throw new RuntimeException("no goals defined");
+        }
+        // ADD OTHER CHECKS
+
+        return new Problem(domain, systemAgentIndex, startState, startingModels, goals);
     }
 
 
@@ -361,7 +376,11 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
         String name = ctx.NAME().getText();
-        domain.addSystemAgent(name);
+        if (this.systemAgentIndex != null) {
+            throw new RuntimeException("cannot define multiple system agents");
+        }
+        this.systemAgentIndex = this.agentIndex;
+        this.agentIndex += 1;
         return null;
     }
 
@@ -373,8 +392,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         try {
             Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
             model = (Model) constructor.newInstance(agent, domain);
-            //Constructor constructor = Class.forName(modelClassName).getConstructor();
-            //model = (Model) constructor.newInstance();
         }
         catch(ClassNotFoundException ex) {
             System.out.println(ex.toString());
@@ -399,7 +416,9 @@ public class DeplToProblem extends DeplBaseVisitor {
             System.exit(1);
         }
 
-        domain.addEnvironmentAgent(agent, model);
+        startingModels.put(agent, model);
+        domain.addAgent(agent);
+        this.agentIndex += 1;
 
         return null;
     }
@@ -407,7 +426,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitPassiveAgent(DeplParser.PassiveAgentContext ctx) {
         String name = ctx.NAME().getText();
-        domain.addPassiveAgent(name);
+        domain.addPassive(name);
         return null;
     }
 
@@ -556,7 +575,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             if (fieldCtx.ownerActionField() != null) {
                 owner = resolveVariable(fieldCtx.ownerActionField().parameter());
-                if (!(domain.isSystemAgent(owner) || domain.isEnvironmentAgent(owner))) {
+                if (!domain.isNonPassiveAgent(owner)) {
                     throw new RuntimeException("action " +
                                                actionName +
                                                " owner " +

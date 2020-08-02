@@ -14,8 +14,16 @@ import java.util.Map;
 
 public class AndNode extends GNode {
 
-    public AndNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, Domain domain) {
-        super(estate, goal, time, parent, models, domain);
+    public AndNode(EpistemicState estate,
+                 GeneralFormula goal,
+                 int time,
+                 GNode parent,
+                 Map<String, Model> models,
+                 int systemAgentIndex,
+                 int numAgents
+                ) {
+
+        super(estate, goal, time, parent, models, systemAgentIndex, numAgents);
     }
 
     protected Set<Action> getPossibleActions() {

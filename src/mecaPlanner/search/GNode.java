@@ -4,7 +4,6 @@ package mecaPlanner.search;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.actions.Action;
 import mecaPlanner.models.Model;
-import mecaPlanner.Domain;
 import mecaPlanner.formulae.GeneralFormula;
 
 import java.util.Set;
@@ -18,19 +17,28 @@ public abstract class GNode  {
     protected int time;
     protected GNode parent;
     protected Set<GNode> successors;
-    protected String agent;
     protected Map<String, Model> models;
-    protected Domain domain;
 
-    public GNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, Domain domain) {
-        this.domain = domain;
+    private int systemAgentIndex;
+    private int numAgents;
+
+    public GNode(EpistemicState estate,
+                 GeneralFormula goal,
+                 int time,
+                 GNode parent,
+                 Map<String, Model> models,
+                 int systemAgentIndex,
+                 int numAgents
+                ) {
         this.estate = estate;
         this.goal = goal;
         this.time = time;
-        this.agent = domain.agentAtDepth(time);
         this.parent = parent;
         this.models = models;
         this.successors = new HashSet<GNode>();
+
+        this.systemAgentIndex = systemAgentIndex;
+        this.numAgents = numAgents;
     }
 
     public Set<GNode> getSuccessors() {
@@ -41,12 +49,12 @@ public abstract class GNode  {
         return estate;
     }
 
-    public String getAgent() {
-        return agent;
-    }
-
     public GNode getParent() {
         return parent;
+    }
+
+    public int getTime() {
+        return time;
     }
 
     public Map<String, Model> getModels() {
@@ -60,7 +68,7 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            if (agent == ancestor.getAgent() && estate.equivalent(ancestor.getState())) {
+            if ((time % numAgents == ancestor.gettime() % numAgents) && estate.equivalent(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();
@@ -68,13 +76,14 @@ public abstract class GNode  {
         return false;
     }
 
-    public GNode transition(Action action, Domain domain) {
+    public GNode transition(Action action) {
         Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
-        if (domain.isSystemAgent(time+1)) {
-            return new OrNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), domain);
+        int nextTime = time + 1;
+        if (nextTime == systemAgentIndex) {
+            return new OrNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels());
         }
         else {
-            return new AndNode(transitionResult.getState(), goal, time+1, this, transitionResult.getModels(), domain);
+            return new AndNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels());
         }
     }
 

@@ -13,8 +13,16 @@ import java.util.Map;
 
 public class OrNode extends GNode {
 
-    public OrNode(EpistemicState estate, GeneralFormula goal, int time, GNode parent, Map<String, Model> models, Domain domain) {
-        super(estate, goal, time, parent, models, domain);
+    public OrNode(EpistemicState estate,
+                 GeneralFormula goal,
+                 int time,
+                 GNode parent,
+                 Map<String, Model> models,
+                 int systemAgentIndex,
+                 int numAgents
+                ) {
+
+        super(estate, goal, time, parent, models, systemAgentIndex, numAgents);
     }
 
     // bottom out a recursive descent through and nodes

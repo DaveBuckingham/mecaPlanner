@@ -25,12 +25,9 @@ public class Domain implements java.io.Serializable {
     private Map<String, Map<String,Action>> actionsBySignature;
 
     private Set<String> allAgents;
-    private Set<String> systemAgents;
-    private Set<String> environmentAgents;
-    private Set<String> passiveAgents;
     private List<String> nonPassiveAgents;
+    private Set<String> passiveAgents;
 
-    private Map<String, Model> startingModels;
 
 
     public Domain() {
@@ -40,16 +37,9 @@ public class Domain implements java.io.Serializable {
         actionsBySignature = new HashMap<>();;
 
         allAgents = new HashSet<>();
-        systemAgents = new HashSet<>();
-        environmentAgents = new HashSet<>();
-        passiveAgents = new HashSet<>();
         nonPassiveAgents = new ArrayList<>();
+        passiveAgents = new HashSet<>();
 
-    }
-
-    public void check() {
-        assert(!systemAgents.isEmpty());
-        assert(allAgents.containsAll(systemAgents));
     }
 
     public Set<FluentAtom> getAllAtoms() {
@@ -90,14 +80,6 @@ public class Domain implements java.io.Serializable {
 
     }
 
-    public Set<String> getSystemAgents() {
-        return systemAgents;
-    }
-
-    public Set<String> getEnvironmentAgents() {
-        return environmentAgents;
-    }
-
     public Set<String> getPassiveAgents() {
         return passiveAgents;
     }
@@ -110,21 +92,21 @@ public class Domain implements java.io.Serializable {
         return nonPassiveAgents.get(depth % nonPassiveAgents.size());
     }
 
-    public boolean isEnvironmentAgent(String agent) {
-        return environmentAgents.contains(agent);
-    }
+    // public boolean isEnvironmentAgent(String agent) {
+    //     return environmentAgents.contains(agent);
+    // }
 
-    public boolean isEnvironmentAgent(int depth) {
-        return environmentAgents.contains(agentAtDepth(depth));
-    }
+    // public boolean isEnvironmentAgent(int depth) {
+    //     return environmentAgents.contains(agentAtDepth(depth));
+    // }
 
-    public boolean isSystemAgent(String agent) {
-        return systemAgents.contains(agent);
-    }
+    // public boolean isSystemAgent(String agent) {
+    //     return systemAgents.contains(agent);
+    // }
 
-    public boolean isSystemAgent(int depth) {
-        return systemAgents.contains(agentAtDepth(depth));
-    }
+    // public boolean isSystemAgent(int depth) {
+    //     return systemAgents.contains(agentAtDepth(depth));
+    // }
 
 
 
@@ -136,10 +118,6 @@ public class Domain implements java.io.Serializable {
         return allAgents;
     }
 
-    public Map<String, Model> getStartingModels() {
-        return startingModels;
-    }
-
     public void addAtom(FluentAtom f) {
         allAtoms.add(f);
     }
@@ -149,26 +127,15 @@ public class Domain implements java.io.Serializable {
     }
 
 
-    public void addSystemAgent(String agent) {
+    public void addAgent(String agent) {
         assert (!allAgents.contains(agent));
-        systemAgents.add(agent);
         allAgents.add(agent);
         nonPassiveAgents.add(agent);
         actions.put(agent, new HashSet<Action>());
         actionsBySignature.put(agent, new HashMap<String, Action>());;
     }
 
-    public void addEnvironmentAgent(String agent, Model model) {
-        assert (!allAgents.contains(agent));
-        environmentAgents.add(agent);
-        allAgents.add(agent);
-        nonPassiveAgents.add(agent);
-        actions.put(agent, new HashSet<Action>());
-        actionsBySignature.put(agent, new HashMap<String, Action>());;
-        startingModels.put(agent, model);
-    }
-
-    public void addPassiveAgent(String agent) {
+    public void addPassive(String agent) {
         assert (!allAgents.contains(agent));
         passiveAgents.add(agent);
         allAgents.add(agent);
@@ -185,6 +152,10 @@ public class Domain implements java.io.Serializable {
         return allAgents.contains(s);
     }
 
+    public boolean isNonPassiveAgent(String s) {
+        return nonPassiveAgents.contains(s);
+    }
+
 
 
 
@@ -192,15 +163,15 @@ public class Domain implements java.io.Serializable {
     public String toString() {
         StringBuilder str = new StringBuilder();
 
-        str.append("SYSTEM AGENTS:\n");
-        for (String a : systemAgents) {
+        str.append("AGENTS:\n");
+        for (String a : nonPassiveAgents) {
             str.append(a);
             str.append("\n");
         }
         str.append("\n");
 
-        str.append("ENVIRONMENT AGENTS:\n");
-        for (String a : environmentAgents) {
+        str.append("PASSIVE:\n");
+        for (String a : passiveAgents) {
             str.append(a);
             str.append("\n");
         }

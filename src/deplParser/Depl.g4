@@ -22,6 +22,7 @@ init :
     typesSection
     objectsSection
     agentsSection
+    passiveSection
     atomsSection
     constantsSection
     initiallySection
@@ -50,13 +51,20 @@ type : NAME | OBJECT ;
 
 agentsSection : 'agents' '{' (agentDef ',')* agentDef? '}' ;
 
-agentDef : systemAgent | passiveAgent | environmentAgent ;
+agentDef : systemAgent | environmentAgent ;
 
 systemAgent : NAME ;
 
-passiveAgent : NAME '{' '}' ;
-
 environmentAgent : NAME '{' CLASS '}' ;
+
+
+// PASSIVE AGENT DEFINITIONS
+
+passiveSection : 'passive' '{' (passiveAgent ',')* passiveAgent? '}' ;
+
+passiveAgent : NAME ;
+
+
 
 
 
