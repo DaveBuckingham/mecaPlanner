@@ -252,19 +252,17 @@ public class OnticAction extends Action implements java.io.Serializable{
 
         Map<String, Model> newModels = new HashMap();
 
-        for (String obliviousAgent : obliviousAgents) {
-            if (domain.isEnvironmentAgent(obliviousAgent)) {
-                newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
+        for (String agent : oldModels.keySet()) {
+            if (observantAwareAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
+                Model updatedModel = oldModels.get(agent).update(perspective, this);
+                newModels.put(agent, updatedModel);
+            }
+            else {
+                newModels.put(agent, oldModels.get(agent));
             }
         }
-        for (String observantAwareAgent : observantAwareAgents) {
-            if (domain.isEnvironmentAgent(observantAwareAgent)) {
-                NDState perspective = beforeState.getBeliefPerspective(observantAwareAgent);
-                Model updatedModel = oldModels.get(observantAwareAgent).update(perspective, this);
-                newModels.put(observantAwareAgent, updatedModel);
-            }
 
-        }
 
         return new Action.UpdatedStateAndModels(newState, newModels);
 

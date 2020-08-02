@@ -6,6 +6,8 @@ import mecaPlanner.actions.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
 
+import mecaPlanner.Domain;
+
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -18,9 +20,9 @@ public abstract class GNode  {
     protected GNode parent;
     protected Set<GNode> successors;
     protected Map<String, Model> models;
+    protected Domain domain;
 
     private int systemAgentIndex;
-    private int numAgents;
 
     public GNode(EpistemicState estate,
                  GeneralFormula goal,
@@ -28,7 +30,7 @@ public abstract class GNode  {
                  GNode parent,
                  Map<String, Model> models,
                  int systemAgentIndex,
-                 int numAgents
+                 Domain domain
                 ) {
         this.estate = estate;
         this.goal = goal;
@@ -38,7 +40,6 @@ public abstract class GNode  {
         this.successors = new HashSet<GNode>();
 
         this.systemAgentIndex = systemAgentIndex;
-        this.numAgents = numAgents;
     }
 
     public Set<GNode> getSuccessors() {
@@ -68,7 +69,8 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            if ((time % numAgents == ancestor.gettime() % numAgents) && estate.equivalent(ancestor.getState())) {
+            int numAgents = domain.getNonPassiveAgents().size();
+            if ((time % numAgents == ancestor.getTime() % numAgents) && estate.equivalent(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();
@@ -80,10 +82,10 @@ public abstract class GNode  {
         Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
         int nextTime = time + 1;
         if (nextTime == systemAgentIndex) {
-            return new OrNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels());
+            return new OrNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels(), systemAgentIndex, domain);
         }
         else {
-            return new AndNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels());
+            return new AndNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels(), systemAgentIndex, domain);
         }
     }
 

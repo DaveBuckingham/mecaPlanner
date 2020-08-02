@@ -277,7 +277,7 @@ public class Test {
             System.out.print("ACTION: ");
             System.out.println(action.getSignatureWithActor());
             try {
-                Action.UpdatedStateAndModels result = action.transition(currentState, domain.getStartingModels());
+                Action.UpdatedStateAndModels result = action.transition(currentState, problem.getStartingModels());
                 currentState = result.getState();
             }
             catch (Exception ex) {

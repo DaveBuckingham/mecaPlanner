@@ -20,14 +20,15 @@ public class AndNode extends GNode {
                  GNode parent,
                  Map<String, Model> models,
                  int systemAgentIndex,
-                 int numAgents
+                 Domain domain
                 ) {
 
-        super(estate, goal, time, parent, models, systemAgentIndex, numAgents);
+        super(estate, goal, time, parent, models, systemAgentIndex, domain);
     }
 
     protected Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<Action>();
+        String agent = domain.getNonPassiveAgents().get(time);
         Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
 
         if (prediction == null) {
@@ -59,7 +60,7 @@ public class AndNode extends GNode {
             return null;
         }
         for (Action action : getPossibleActions()) {
-            GNode successor = transition(action, domain);
+            GNode successor = transition(action);
             Set<OrNode> orSuccessors = successor.descend();
             if (orSuccessors == null) {
                 return null;

@@ -291,9 +291,9 @@ public class SensingAction extends Action {
 
         Map<String, Model> newModels = new HashMap();
 
-        for (String observantAgent : observantAgents) {
-            if (domain.isEnvironmentAgent(observantAgent)) {
-                NDState perspective = beforeState.getBeliefPerspective(observantAgent);
+        for (String agent : oldModels.keySet()) {
+            if (observantAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
                 // THIS IS A FORREAL HACK, WE'RE PUTTING WHAT IS SENSED IN THE DESIGNATED
                 // WORLD INTO THE SENSING ACTION FIELD FOR SPECIFYING FORMULAE TO BE SENSED
                 Set<FluentFormula> actualSensed = new HashSet<>();
@@ -308,20 +308,16 @@ public class SensingAction extends Action {
                                                            actualSensed,
                                                            domain
                                                           );
-                Model updatedModel = oldModels.get(observantAgent).update(perspective, informed);
-                newModels.put(observantAgent, updatedModel);
+                Model updatedModel = oldModels.get(agent).update(perspective, informed);
+                newModels.put(agent, updatedModel);
             }
-        }
-        for (String awareAgent : awareAgents) {
-            if (domain.isEnvironmentAgent(awareAgent)) {
-                NDState perspective = beforeState.getBeliefPerspective(awareAgent);
-                Model updatedModel = oldModels.get(awareAgent).update(perspective, this);
-                newModels.put(awareAgent, updatedModel);
+            else if (awareAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
+                Model updatedModel = oldModels.get(agent).update(perspective, this);
+                newModels.put(agent, updatedModel);
             }
-        }
-        for (String obliviousAgent : obliviousAgents) {
-            if (domain.isEnvironmentAgent(obliviousAgent)) {
-                newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
+            else {
+                newModels.put(agent, oldModels.get(agent));
             }
         }
 

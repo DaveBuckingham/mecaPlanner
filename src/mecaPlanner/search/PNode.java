@@ -45,14 +45,6 @@ public class PNode  {
         return time;
     }
 
-    private int nextSystemAgentTime() {
-        int i = time + 1;
-        while (domain.isEnvironmentAgent(i)) {
-            i += 1;
-        }
-        return i;
-    }
-
     private Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<>();
         for (Action action : domain.getAgentActions(time)) {
@@ -115,6 +107,7 @@ public class PNode  {
         
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
+            int newTime = time + domain.getNonPassiveAgents().size();
             successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime(), depth+1, domain));
         }
         return successorNodes;

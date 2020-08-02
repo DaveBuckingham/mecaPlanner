@@ -286,16 +286,15 @@ public class AnnouncementAction extends Action {
 
         Map<String, Model> newModels = new HashMap();
 
-        for (String observantAgent : observantAgents) {
-            if (domain.isEnvironmentAgent(observantAgent)) {
-                NDState perspective = beforeState.getBeliefPerspective(observantAgent);
-                Model updatedModel = oldModels.get(observantAgent).update(perspective, this);
-                newModels.put(observantAgent, updatedModel);
+
+        for (String agent : oldModels.keySet()) {
+            if (observantAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
+                Model updatedModel = oldModels.get(agent).update(perspective, this);
+                newModels.put(agent, updatedModel);
             }
-        }
-        for (String awareAgent : awareAgents) {
-            if (domain.isEnvironmentAgent(awareAgent)) {
-                NDState perspective = beforeState.getBeliefPerspective(awareAgent);
+            else if (awareAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
                 AnnouncementAction redacted = new AnnouncementAction(this.name,
                                                                      this.parameters,
                                                                      this.actor,
@@ -306,13 +305,11 @@ public class AnnouncementAction extends Action {
                                                                      null,
                                                                      domain
                                                                     );
-                Model updatedModel = oldModels.get(awareAgent).update(perspective, redacted);
-                newModels.put(awareAgent, updatedModel);
+                Model updatedModel = oldModels.get(agent).update(perspective, redacted);
+                newModels.put(agent, updatedModel);
             }
-        }
-        for (String obliviousAgent : obliviousAgents) {
-            if (domain.isEnvironmentAgent(obliviousAgent)) {
-                newModels.put(obliviousAgent, oldModels.get(obliviousAgent));
+            else {
+                newModels.put(agent, oldModels.get(agent));
             }
         }
 
