@@ -28,7 +28,6 @@ public class AndNode extends GNode {
 
     protected Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<Action>();
-        String agent = domain.getNonPassiveAgents().get(time);
         Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
 
         if (prediction == null) {

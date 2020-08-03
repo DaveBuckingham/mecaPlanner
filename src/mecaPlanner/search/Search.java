@@ -27,15 +27,16 @@ import java.util.HashMap;
 
 public class Search {
 
+    Domain domain;
+
 
     public Search() {
     }
 
 
-
     public Set<Solution> findSolution(Problem problem) {
 
-        Domain domain = problem.getDomain();
+        domain = problem.getDomain();
 
         // THE SEARCH ALGORITHM WORKS WITH MULTIPLE START STATES
         // RIGHT NOW OUR DOMAIN REPRESENTATION ASSUMES A SINGLE START STATE
@@ -46,7 +47,7 @@ public class Search {
 
         int systemAgentIndex = problem.getSystemAgentIndex();
 
-        int numAgents = domain.getNonPassiveAgents().length();
+        int numAgents = domain.getNonPassiveAgents().size();
 
         GeneralFormula goal = problem.getGoal();
         int time = 0;
@@ -54,12 +55,12 @@ public class Search {
         Set<OrNode> allStartOrNodes = new HashSet<>();
         if (time == systemAgentIndex) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, numAgents));
+                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, domain));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, numAgents);
+                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, domain);
                 Set<OrNode> startOrNodes = startAndNode.descend();
                 if (startOrNodes == null) {
                     return null;

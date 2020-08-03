@@ -21,6 +21,9 @@ public abstract class GNode  {
     protected Set<GNode> successors;
     protected Map<String, Model> models;
     protected Domain domain;
+    protected String agent;
+
+    
 
     private int systemAgentIndex;
 
@@ -40,6 +43,8 @@ public abstract class GNode  {
         this.successors = new HashSet<GNode>();
 
         this.systemAgentIndex = systemAgentIndex;
+
+        agent = domain.getNonPassiveAgents().get(time);
     }
 
     public Set<GNode> getSuccessors() {
@@ -64,6 +69,10 @@ public abstract class GNode  {
 
     public boolean isGoal() {
         return goal.holds(estate, time);
+    }
+
+    public String getAgent() {
+        return agent;
     }
 
     public boolean isCycle() {

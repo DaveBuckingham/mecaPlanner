@@ -91,7 +91,7 @@ public class PNode  {
         Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
         for (OrNode ground : grounds ){
 
-            Set<OrNode> gSuccessors = ground.transition(action, domain).descend();
+            Set<OrNode> gSuccessors = ground.transition(action).descend();
 
             if (gSuccessors == null) {
                 return null;
@@ -108,7 +108,7 @@ public class PNode  {
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
             int newTime = time + domain.getNonPassiveAgents().size();
-            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), nextSystemAgentTime(), depth+1, domain));
+            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, domain));
         }
         return successorNodes;
     }
