@@ -38,7 +38,7 @@ public class Search {
 
         domain = problem.getDomain();
 
-        Set<EpistemicState> startStates = problem.getStartStates()
+        Set<EpistemicState> startStates = problem.getStartStates();
 
         int systemAgentIndex = problem.getSystemAgentIndex();
 

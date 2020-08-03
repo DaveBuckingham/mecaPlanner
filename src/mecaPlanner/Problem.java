@@ -75,7 +75,7 @@ public class Problem implements java.io.Serializable {
         str.append(domain);
 
         str.append("INITIALLY:\n");
-        str.append(startState.toString());
+        //str.append(startState.toString());
         str.append("\n");
 
         str.append("GOALS:\n");

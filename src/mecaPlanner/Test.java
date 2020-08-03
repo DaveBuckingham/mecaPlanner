@@ -265,13 +265,15 @@ public class Test {
         }
 
 
-        System.out.println("START STATE:");
-        System.out.println(problem.getStartState());
+        System.out.println("START STATES:");
+        for (EpistemicState s : problem.getStartStates()) {
+            System.out.println(s);
+            System.out.println("Checking relation..." + checkRelations(domain, s));
+        }
 
-        System.out.println("Checking relation..." + checkRelations(domain, problem.getStartState()));
 
 
-        EpistemicState currentState = problem.getStartState();
+        EpistemicState currentState = problem.getStartStates().iterator().next();
 
         for (Action action : inputActions) {
             System.out.print("ACTION: ");

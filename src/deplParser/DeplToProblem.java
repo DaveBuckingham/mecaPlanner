@@ -274,7 +274,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.domain = new Domain();
         this.systemAgentIndex = null;
-        this.startStates = new HashMap<EpistemicState>();
+        this.startStates = new HashSet<>();
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
 
