@@ -38,12 +38,7 @@ public class Search {
 
         domain = problem.getDomain();
 
-        // THE SEARCH ALGORITHM WORKS WITH MULTIPLE START STATES
-        // RIGHT NOW OUR DOMAIN REPRESENTATION ASSUMES A SINGLE START STATE
-        // IF THERE ARE MULTIPLE START STATES, WE MAY GET MULTIPLE SOLUTIONS
-        // CURRENTLY, THE PLANNER CLASS ASSUMES WE WILL GET A SINGLE SOLUTION
-        Set<EpistemicState> startStates = new HashSet<>();
-        startStates.add(problem.getStartState());
+        Set<EpistemicState> startStates = problem.getStartStates()
 
         int systemAgentIndex = problem.getSystemAgentIndex();
 

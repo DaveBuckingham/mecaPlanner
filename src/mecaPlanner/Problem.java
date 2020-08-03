@@ -20,28 +20,28 @@ public class Problem implements java.io.Serializable {
 
     private Domain domain;
     private int systemAgentIndex;
-    private EpistemicState startState;
+    private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
     private Set<GeneralFormula> goals;
 
 
     public Problem(Domain domain,
                    int systemAgentIndex,
-                   EpistemicState startState,
+                   Set<EpistemicState> startStates,
                    Map<String,Model> startingModels,
                    Set<GeneralFormula> goals
                   ) {
         this.domain = domain;
         this.systemAgentIndex = systemAgentIndex;
-        this.startState = startState;
+        this.startStates = startStates;
         this.startingModels = startingModels;
         this.goals = goals;
     }
 
 
 
-    public EpistemicState getStartState() {
-        return startState;
+    public Set<EpistemicState> getStartStates() {
+        return startStates;
     }
 
     public int getSystemAgentIndex() {

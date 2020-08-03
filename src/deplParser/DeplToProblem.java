@@ -33,7 +33,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     // GO IN PROBLEM
     private Domain domain;
     private Integer systemAgentIndex;
-    private EpistemicState startState;
+    private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
     private Set<GeneralFormula> goals;
 
@@ -43,7 +43,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Set<FluentAtom> constants;
     private Map<String, TypeNode> typeDefs;  // key is type name
     private Stack<Map<String, String>> variableStack;
-    private Set<BeliefFormula> initiallyStatements;
 
 
     public DeplToProblem() {
@@ -62,14 +61,14 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     // RECURSIVELY CHECK THAT EVERY ATOM IN THE FORMULA HAS BEEN DEFINED
-    private void checkAtoms(GeneralFormula f) {
-        for (FluentAtom a : f.getAllAtoms()) {
-            if (!domain.getAllAtoms().contains(a)) {
-                System.out.println("Undefined atom: \"" + a + "\". Defined atoms are: " + domain.getAllAtoms());
-                System.exit(1);
-            }
-        }
-    }
+    //private void checkAtoms(GeneralFormula f) {
+    //    for (FluentAtom a : f.getAllAtoms()) {
+    //        if (!domain.getAllAtoms().contains(a)) {
+    //            System.out.println("Undefined atom: \"" + a + "\". Defined atoms are: " + domain.getAllAtoms());
+    //            System.exit(1);
+    //        }
+    //    }
+    //}
 
 
     // READ A "PARAMETER" WHICH COULD BE AN OBJECT NAME OR A VARIABLE
@@ -275,7 +274,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.domain = new Domain();
         this.systemAgentIndex = null;
-        this.startState = null;
+        this.startStates = new HashMap<EpistemicState>();
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
 
@@ -284,7 +283,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.constants = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
-        this.initiallyStatements = new HashSet<>();;
 
 
         visit(tree);
@@ -292,15 +290,15 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (systemAgentIndex == null) {
             throw new RuntimeException("system agent not defined");
         }
-        if (startState == null) {
-            throw new RuntimeException("start state agent not defined");
+        if (startStates.isEmpty()) {
+            throw new RuntimeException("no start state defined");
         }
         if (goals.isEmpty()) {
             throw new RuntimeException("no goals defined");
         }
         // ADD OTHER CHECKS
 
-        return new Problem(domain, systemAgentIndex, startState, startingModels, goals);
+        return new Problem(domain, systemAgentIndex, startStates, startingModels, goals);
     }
 
 
@@ -500,8 +498,18 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        //for (BeliefFormula statement : visitChildren(ctx));
+        Set<BeliefFormula> initiallyStatements = new HashSet<>();
+        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
+            BeliefFormula statement = (BeliefFormula) visit(statementContext);
+            initiallyStatements.add(statement);
+        }
         try {
-            startState = Initialize.constructState(initiallyStatements, domain, true);
+            startStates.add(Initialize.constructState(initiallyStatements, domain, true));
         }
         catch (Exception ex) {
             ex.printStackTrace();
@@ -510,19 +518,17 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
-        BeliefFormula statement = (BeliefFormula) visit(ctx.beliefFormula());
-        checkAtoms(statement);
-        initiallyStatements.add(statement);
-        return null;
-    }
+    // @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
+    //     BeliefFormula statement = (BeliefFormula) visit(ctx.beliefFormula());
+    //     initiallyStatements.add(statement);
+    //     return null;
+    // }
 
 
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
         GeneralFormula goal = (GeneralFormula) visit(ctx.generalFormula());
-        checkAtoms(goal);
         goals.add(goal);
         return null;
     }
@@ -534,8 +540,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             variableStack.push(variableMap);
             Action action = buildAction(ctx);
             if (!(action.getPrecondition() instanceof FluentFormulaFalse)) {
-                // SHOULD ALSO checkAtoms() FOR EFFECT CONDITIONS AND OBSERVES CONDITIONS
-                checkAtoms(action.getPrecondition());
                 domain.addAction(action.getActor(), action);
             }
             variableStack.pop();
@@ -782,7 +786,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                 parameters.add(resolveVariable(parameterCtx));
             }
         }
-        return new FluentAtom(atomName, parameters);
+        FluentAtom atom = new FluentAtom(atomName, parameters);
+        if (!domain.getAllAtoms().contains(atom)) {
+            throw new RuntimeException("Undefined atom: \"" + atom + "\". Defined atoms are: " + domain.getAllAtoms());
+        }
+        return atom;
     }
 
     @Override public FluentAtom visitConstant(DeplParser.ConstantContext ctx) {

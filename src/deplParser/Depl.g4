@@ -92,9 +92,10 @@ constantDefinition : NAME variableList? parameterList? ;
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' '{' (initiallyStatement ',')* initiallyStatement? '}' ;
+initiallySection : 'initially' (initiallyDef | '{' initiallyDef+ '}') ;
 
-initiallyStatement : beliefFormula ;
+initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
+
 
 atom : NAME parameterList? | '(' NAME parameterList? ')';
 
