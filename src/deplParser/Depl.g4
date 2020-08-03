@@ -92,7 +92,7 @@ constantDefinition : NAME variableList? parameterList? ;
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' (initiallyDef | '{' initiallyDef+ '}') ;
+initiallySection : 'initially' (initiallyDef | '{' (initiallyDef ',')* initiallyDef ','? '}') ;
 
 initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
@@ -189,7 +189,10 @@ awareActionField        : 'aware' variableList? '{' parameter '}' ;
 awareifActionField      : 'awareif' variableList? '{' parameter ',' fluentFormula '}' ;
 
 causesActionField       : 'causes' variableList? '{' literal '}' ;
-causesifActionField     : 'causesif' variableList? '{' literal ',' fluentFormula '}' ;
+causesifActionField
+    : 'causesif' variableList? '{' literal ',' fluentFormula '}'
+    | 'causes' variableList? '{' literal 'if' fluentFormula '}'
+    ;
 determinesActionField   : 'determines' variableList? '{' fluentFormula '}' ;
 announcesActionField    : 'announces' '{' fluentFormula '}' ;
 
