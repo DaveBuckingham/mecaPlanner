@@ -60,9 +60,9 @@ environmentAgent : NAME '{' CLASS '}' ;
 
 // PASSIVE AGENT DEFINITIONS
 
-passiveSection : 'passive' '{' (passiveAgent ',')* passiveAgent? '}' ;
+passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
 
-passiveAgent : NAME ;
+passiveDef : NAME ;
 
 
 

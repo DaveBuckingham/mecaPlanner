@@ -380,6 +380,15 @@ public class Initialize {
             }
         }
 
+        for (World world : allWorlds) {
+            for (String agent : domain.getAllAgents()) {
+                assert(beliefRelations.get(agent).getEdges().containsKey(world));
+                assert(!beliefRelations.get(agent).getEdges().get(world).isEmpty());
+                assert(knowledgeRelations.get(agent).getEdges().containsKey(world));
+                assert(!knowledgeRelations.get(agent).getEdges().get(world).isEmpty());
+            }
+        }
+
         KripkeStructure kripke = new KripkeStructure(allWorlds, beliefRelations, knowledgeRelations);
 
         World designated = null;

@@ -56,6 +56,9 @@ public class KripkeStructure implements java.io.Serializable {
         this.agents = new HashSet<>(belief.keySet());
 
         for (World w : worlds) {
+            //if (getChildren(w).isEmpty()) {
+            //    System.out.println(toString());
+            //}
             assert (!getChildren(w).isEmpty());
         }
 

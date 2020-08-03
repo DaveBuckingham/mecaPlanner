@@ -310,6 +310,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.typesSection());
         visit(ctx.objectsSection());
         visit(ctx.agentsSection());
+        visit(ctx.passiveSection());
         visit(ctx.atomsSection());
         visit(ctx.constantsSection());
         visit(ctx.initiallySection());
@@ -364,6 +365,17 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitAgentsSection(DeplParser.AgentsSectionContext ctx) {
         visitChildren(ctx);
+
+        if (domain.getAllAgents().isEmpty()) {
+            throw new RuntimeException("no agents defined");
+        }
+
+        if (this.systemAgentIndex == null) {
+            throw new RuntimeException("no system agent defined");
+        }
+
+        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
+
         return null;
     }
 
@@ -373,10 +385,11 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
-        String name = ctx.NAME().getText();
+        String agent = ctx.NAME().getText();
         if (this.systemAgentIndex != null) {
             throw new RuntimeException("cannot define multiple system agents");
         }
+        domain.addAgent(agent);
         this.systemAgentIndex = this.agentIndex;
         this.agentIndex += 1;
         return null;
@@ -421,8 +434,14 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
+    @Override public Void visitPassiveSection(DeplParser.PassiveSectionContext ctx) {
+        visitChildren(ctx);
+        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
+        return null;
+    }
 
-    @Override public Void visitPassiveAgent(DeplParser.PassiveAgentContext ctx) {
+
+    @Override public Void visitPassiveDef(DeplParser.PassiveDefContext ctx) {
         String name = ctx.NAME().getText();
         domain.addPassive(name);
         return null;

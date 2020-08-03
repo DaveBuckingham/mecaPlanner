@@ -24,6 +24,7 @@ public class AndNode extends GNode {
                 ) {
 
         super(estate, goal, time, parent, models, systemAgentIndex, domain);
+        assert(systemAgentIndex != time % domain.getNonPassiveAgents().size());
     }
 
     protected Set<Action> getPossibleActions() {

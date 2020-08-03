@@ -21,7 +21,11 @@ public abstract class GNode  {
     protected Set<GNode> successors;
     protected Map<String, Model> models;
     protected Domain domain;
+
     protected String agent;
+
+    private int agentIndex;
+    private int numAgents;
 
     
 
@@ -41,10 +45,14 @@ public abstract class GNode  {
         this.parent = parent;
         this.models = models;
         this.successors = new HashSet<GNode>();
-
         this.systemAgentIndex = systemAgentIndex;
+        this.domain = domain;
 
-        agent = domain.getNonPassiveAgents().get(time);
+        //System.out.println(domain);
+        //System.out.println("------");
+        this.numAgents = domain.getNonPassiveAgents().size();
+        this.agentIndex = this.time % this.numAgents;
+        this.agent = domain.getNonPassiveAgents().get(agentIndex);
     }
 
     public Set<GNode> getSuccessors() {
@@ -71,6 +79,10 @@ public abstract class GNode  {
         return goal.holds(estate, time);
     }
 
+    public int getAgentIndex() {
+        return agentIndex;
+    }
+
     public String getAgent() {
         return agent;
     }
@@ -78,8 +90,7 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            int numAgents = domain.getNonPassiveAgents().size();
-            if ((time % numAgents == ancestor.getTime() % numAgents) && estate.equivalent(ancestor.getState())) {
+            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equivalent(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();
@@ -89,8 +100,8 @@ public abstract class GNode  {
 
     public GNode transition(Action action) {
         Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
-        int nextTime = time + 1;
-        if (nextTime == systemAgentIndex) {
+        int nextTime = time+1;
+        if (nextTime % numAgents == systemAgentIndex) {
             return new OrNode(transitionResult.getState(), goal, nextTime, this, transitionResult.getModels(), systemAgentIndex, domain);
         }
         else {
