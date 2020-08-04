@@ -48,6 +48,11 @@ public class FluentAtom extends FluentFormula{
         return world.containsAtom(this);
     }
 
+    public FluentLiteral negate() {
+        return new FluentLiteral(false, this);
+    }
+
+
     public Set<FluentAtom> getAllAtoms() {
         Set<FluentAtom> allAtoms = new HashSet<>();
         if (!(this.name.equalsIgnoreCase("true") || this.name.equalsIgnoreCase("false"))) {

@@ -131,10 +131,10 @@ public class OnticAction extends Action implements java.io.Serializable{
 
 
         // AN EFFECT CONDITION IS REVEALED IN A WORLD IF
-        // IT IS SATISFIED IN THE WORLD AND THE EFFECT WAS FALSE
+        // IT IS SATISFIED IN THE WORLD AND THE EFFECT IS FALSE
         // (AN OBSERVER SEES THE EFFECT BECOME TRUE, INDICATING THE TRUTH OF THE CONDITION)
         // THE NEGATIN OF AN EFFECT CONDITION IS REVEALED IN A WORLD IF
-        // IT IS NOT SATISFIED IN THE WORLD AND THE EFFECT WAS FALSE
+        // IT IS NOT SATISFIED IN THE WORLD AND THE EFFECT IS FALSE
         // (AN OBSERVER SEES THE EFFECT REMAIN FALSE, INDICATING THE FALSITY OF THE CONDITION)
 
 
@@ -145,13 +145,11 @@ public class OnticAction extends Action implements java.io.Serializable{
                 FluentLiteral effect = e.getKey();
                 FluentFormula condition = e.getValue();
                 if (!effect.holds(w)) {
-                    boolean conditionHolds = condition.holds(w);
-                    FluentFormula notCondition = condition.negate();
-                    if (conditionHolds && !applicableEffects.get(w).contains(notCondition)) {
+                    if (condition.holds(w)) {
                         conditions.add(condition);
                     }
-                    else if (!conditionHolds && !applicableEffects.get(w).contains(condition)) {
-                        conditions.add(notCondition);
+                    else {
+                        conditions.add(condition.negate());
                     }
                 }
             }
