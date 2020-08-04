@@ -43,42 +43,77 @@ import depl.*;
 
 public class Simulator {
 
+    GeneralFormula goal;
 
     public static void main(String args[]) {
 
 
+        String planFileName = null;
 
         if (args.length != 1) {
-            throw new RuntimeException("expected single depl file parameter.");
+            throw new RuntimeException("expected single .plan file parameter.");
         }
 
-        String planFileName = args[0];
+        for (String arg : args) {
+            if (arg.matches(".*\\.plan")) {
+                if (planFileName != null) {
+                    throw new RuntimeException("expected a single plan file.");
+                }
+                planFileName = arg;
+            }
+ 
+        }
 
-        DeplToProblem visitor = new DeplToProblem();
-        Problem problem = visitor.buildProblem(deplFile);
-        Domain domain = problem.getDomain();
+
+        if (planFileName == null) {
+            throw new RuntimeException("expected a single plan file.");
+        }
+
+
 
         
+        Solution startSolution = null;
+        try {
+            FileInputStream fileIn = new FileInputStream(planFileName);
+            ObjectInputStream in = new ObjectInputStream(fileIn);
+            startSolution = (Solution) in.readObject();
+            in.close();
+            fileIn.close();
+        } catch (IOException i) {
+           i.printStackTrace();
+           return;
+        } catch (ClassNotFoundException c) {
+           System.out.println("Employee class not found");
+           c.printStackTrace();
+           return;
+        }
+
+        Domain domain = startSolution.getDomain();
+
+        GeneralFormula goal = domain.getGoal();
+
         Scanner stdin = new Scanner(System.in);
 
 
+
         Set<Solution> solutions = new HashSet<>();
-        EpistemicState currentState = problem.getStartState();
-        Map<String, Model> models = problem.getStartingModels();
-        GeneralFormula goal = problem.getGoal();
+        solutions.add(startSolution);
+        EpistemicState currentState = domain.getStartState();
+        Map<String, Model> models = domain.getStartingModels();
         int depth = 0;
-        Solution plan = new Solution;
 
+        while (!solutions.isEmpty()) {
 
-        while(!goal.holds(estate, depth)) {
+            System.out.println("STATE:");
+            System.out.println(currentState);
 
-            String currentAgent = domain.agentAtDepth(depth);
+            String agent = domain.agentAtDepth(depth);
 
-            displayState(domain, estate.getBeliefPerspective(currentAgent));
+            Perspective perspective = new Perspective(currentState, agent);
 
-            // ROBOT'S TURN
-            if (depth == problem.getSystemAgentIndex()) {
-                Perspective robotPerspective = new Perspective(currentState, currentAgent);
+            Action action = null;
+
+            if (domain.isSystemAgent(agent)) {
                 boolean foundPerspective = false;
                 for (Solution s : solutions) {
                     if (perspective.equals(s.getPerspective())) {
@@ -92,7 +127,6 @@ public class Simulator {
                 assert(foundPerspective);
             }
 
-            // HUMAN'S TURN
             else {
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
@@ -130,22 +164,6 @@ public class Simulator {
 
     }
 
-    private void displayState(Domain domain, NDState humanPerspective) {
-        System.out.println("STATE:");
-        for (FluentAtom atom : domain) {
-            if (humanPerspective.necessarily(atom)) {
-                System.out.println("\t" + atom);
-            }
-            else if (humanPerspective.possibly(atom)) {
-                System.out.println("\tpossibly " + atom);
-            }
-        }
-    }
-
-    private void getHumanAction(Perspective perspective) {
-        System.out.println("STATE:");
-        System.out.println(currentState.getDesignatedWorld());
-    }
 
 }
 

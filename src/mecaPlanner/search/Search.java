@@ -28,6 +28,7 @@ import java.util.HashMap;
 public class Search {
 
     Domain domain;
+    Problem problem;
 
 
     public Search() {
@@ -36,7 +37,8 @@ public class Search {
 
     public Set<Solution> findSolution(Problem problem) {
 
-        domain = problem.getDomain();
+        this.problem = problem;
+        this.domain = problem.getDomain();
 
         Set<EpistemicState> startStates = problem.getStartStates();
 
@@ -92,22 +94,21 @@ public class Search {
 
     
 
-    public Set<Solution> searchToDepth(Set<PNode> startPNodes, int maxDepth) {
+    public Solution searchToDepth(Set<PNode> startPNodes, int maxDepth) {
 
-        // one solution per possible start state
-        Set<Solution> solutions = new HashSet<>();
         for (PNode startPNode : startPNodes) {
             if (!startPNode.evaluate(maxDepth)) {
                 return null;
             }
-            solutions.add(pnodeToSolution(startPNode));
         }
-
-        return solutions;
+        return pnodesToSolution(startPNodes);
     }
 
-    private Solution pnodeToSolution(PNode pnode) {
-        Solution s = new Solution(pnode.getPerspective(), pnode.getAction(), pnode.getTime(), domain);
+    private Solution pnodesToSolution(Set<PNode> pnodes) {
+        Solution s = new Solution(problem);
+        for (PNode p : pnodes) {
+            s.addChild(
+        }
         for (PNode successor : pnode.getSuccessors()) {
             s.addChild(pnodeToSolution(successor));
         }

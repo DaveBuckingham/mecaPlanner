@@ -20,27 +20,27 @@ public class World implements java.io.Serializable {
 
     private final int id;
 
-    private final Set<FluentAtom> fluents;
+    private final Set<FluentAtom> atoms;
 
     private String name;
 
-    public World(String name, Set<FluentAtom> fluents) {
+    public World(String name, Set<FluentAtom> atoms) {
         this.id = World.idCounter++;
         this.name = name;
-        this.fluents = fluents;
+        this.atoms = atoms;
     }
 
     public World(String name, String ...atomNames) {
         this.id = World.idCounter++;
         this.name = name;
-        fluents = new HashSet<FluentAtom>();
+        atoms = new HashSet<FluentAtom>();
         for (String atomName : atomNames) {
-            fluents.add(new FluentAtom(atomName));
+            atoms.add(new FluentAtom(atomName));
         }
     }
 
-    public World(Set<FluentAtom> fluents) {
-        this(null, fluents);
+    public World(Set<FluentAtom> atoms) {
+        this(null, atoms);
     }
 
     public World(World toCopy) {
@@ -48,7 +48,7 @@ public class World implements java.io.Serializable {
     }
 
     public World update(Set<FluentLiteral> literals) {
-        Set<FluentAtom> newFluents = new HashSet<FluentAtom>(fluents);
+        Set<FluentAtom> newFluents = new HashSet<FluentAtom>(atoms);
         for (FluentLiteral literal : literals) {
             if (literal.getValue()){
                 newFluents.add(literal.getAtom());
@@ -60,8 +60,11 @@ public class World implements java.io.Serializable {
         return (new World(newFluents));
     }
 
+    public Set<FluentAtom> getAtoms() {
+        return atoms;
+    }
     public Set<FluentAtom> getFluents() {
-        return fluents;
+        return getAtoms();
     }
 
     public int getId() {
@@ -69,11 +72,11 @@ public class World implements java.io.Serializable {
     }
 
     public Boolean containsAtom(FluentAtom a) {
-        return fluents.contains(a);
+        return atoms.contains(a);
     }
 
     public boolean equivalent(World otherWorld) {
-        return this.fluents.equals(otherWorld.getFluents());
+        return this.atoms.equals(otherWorld.getFluents());
     }
 
     public String getName() {
@@ -85,8 +88,8 @@ public class World implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(name == null ? id : name);
         str.append("{");
-        if (fluents.size() > 0) {
-            for (FluentAtom fluent : fluents) {
+        if (atoms.size() > 0) {
+            for (FluentAtom fluent : atoms) {
                 str.append(fluent);
                 str.append(",");
             }
