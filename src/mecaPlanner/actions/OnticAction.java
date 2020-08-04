@@ -76,6 +76,8 @@ public class OnticAction extends Action implements java.io.Serializable{
         World newDesignatedWorld = null;
         Map<World, World> newWorldsToOld = new HashMap<World, World>();
 
+        // AN EFFECT IS APPLICABLE IN WORLDS THAT SATISFY ITS PRECONDITIONS
+
         Map<World, Set<FluentLiteral>> applicableEffects = new HashMap<>();
         for (World w : oldWorlds) {
             applicableEffects.put(w, new HashSet<FluentLiteral>());
@@ -128,6 +130,14 @@ public class OnticAction extends Action implements java.io.Serializable{
         }
 
 
+        // AN EFFECT CONDITION IS REVEALED IN A WORLD IF
+        // IT IS SATISFIED IN THE WORLD AND THE EFFECT WAS FALSE
+        // (AN OBSERVER SEES THE EFFECT BECOME TRUE, INDICATING THE TRUTH OF THE CONDITION)
+        // THE NEGATIN OF AN EFFECT CONDITION IS REVEALED IN A WORLD IF
+        // IT IS NOT SATISFIED IN THE WORLD AND THE EFFECT WAS FALSE
+        // (AN OBSERVER SEES THE EFFECT REMAIN FALSE, INDICATING THE FALSITY OF THE CONDITION)
+
+
         Map<World, FluentFormula> revealedConditions = new HashMap<>();
         for (World w : oldWorlds) {
             List<FluentFormula> conditions = new ArrayList<>();
@@ -171,7 +181,15 @@ public class OnticAction extends Action implements java.io.Serializable{
         }
 
 
+
+
+
         for (String agent : observantAwareAgents) {
+
+
+            // AN OBSERVER RESETS BELIEFS
+            // IF AN ACTION CONDITION CONTRADICTS BELIEFS
+            // OR IF A REVEALED EFFECT CONDITION CONTRADICTS BELIEFS
 
             BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent, 
                                                         new BeliefFormulaNot(getPrecondition()));
@@ -195,6 +213,13 @@ public class OnticAction extends Action implements java.io.Serializable{
                     }
                 }
             }
+
+
+            // AN OBSERVER COMES TO BELIEVE AND KNOW
+            // ACTION EFFECTS
+            // ACTION PRECONDITIONS WHOSE NEGATIONS ARE NOT ACTION EFFECTS
+            // REVEALED EFFECT CONDITIONS WHOSE NEGATIONS ARE NOT ACTION EFFECTS
+
 
             for (World fromWorld: observedWorlds) {
                 for (World toWorld: observedWorlds) {
@@ -222,6 +247,9 @@ public class OnticAction extends Action implements java.io.Serializable{
             }
         }
 
+        // AN OBLIVIOUS AGENT COMES TO KNOW THE POSSIBILITY OF ACTION EFFECTS
+        // ACTION PRECONDITIONS AND EFFECT CONDITIONS ARE NOT RELEVANT
+        // BECAUSE OBLIVIOUS KNOWLEDGE UPDATE IS TO CAPTURE ACTUAL CHANGES TO THE ENVIRONMENT
 
         for (String agent : obliviousAgents) {
 
