@@ -1,0 +1,50 @@
+types{}
+
+objects{thief-object}
+
+agents{thief}
+
+passive{}
+
+atoms{v,l,r,d}
+
+constants{}
+
+//initially{{},{r}}
+initially{r}
+
+goals{d}
+
+actions{
+
+    take_left[](){
+        owner{thief},
+        precondition{v & ~d},
+        observes[]{thief},
+        causes{d if ~r}
+    }
+
+    take_right[](){
+        owner{thief},
+        precondition{v & ~d},
+        observes[]{thief},
+        causes{d if r}
+    }
+
+    flick[](){
+        owner{thief},
+        precondition{v},
+        observes[]{thief},
+        determines{r}
+    }
+
+    move[](){
+        owner{thief},
+        precondition{T},
+        observes[]{thief},
+        //causes{v},
+        causes{v if ~v},
+        //causes{~v if v}
+    }
+
+}
