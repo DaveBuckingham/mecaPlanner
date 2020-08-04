@@ -32,6 +32,11 @@ public class BeliefFormulaNot extends BeliefFormula{
     }
 
     @Override
+    public BeliefFormula negate() {
+        return formula;
+    }
+
+    @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("not(");

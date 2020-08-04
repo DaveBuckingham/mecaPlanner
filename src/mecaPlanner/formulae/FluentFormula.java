@@ -15,6 +15,9 @@ public abstract class FluentFormula extends BeliefFormula {
         return this.holds(world);
     }
 
+    public FluentFormula negate() {
+        return new FluentFormulaNot(this);
+    }
 
 
 }

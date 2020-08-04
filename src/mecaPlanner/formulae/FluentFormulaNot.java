@@ -32,6 +32,11 @@ public class FluentFormulaNot extends FluentFormula{
     }
 
     @Override
+    public FluentFormula negate() {
+        return formula;
+    }
+
+    @Override
     public String toString() {
         return ("not(" + formula.toString() + ")");
     }

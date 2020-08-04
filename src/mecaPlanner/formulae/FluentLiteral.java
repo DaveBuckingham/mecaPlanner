@@ -48,6 +48,10 @@ public class FluentLiteral extends FluentFormula{
     }
 
     public FluentLiteral negated() {
+        return negate();
+    }
+
+    public FluentLiteral negate() {
         return new FluentLiteral(!value, atom);
     }
 

@@ -24,5 +24,9 @@ public abstract class BeliefFormula extends GeneralFormula{
 
     public abstract Boolean holdsAtWorld(KripkeStructure kripke, World world);
 
+    public BeliefFormula negate() {
+        return new BeliefFormulaNot(this);
+    }
+
 
 }

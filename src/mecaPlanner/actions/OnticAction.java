@@ -53,17 +53,6 @@ public class OnticAction extends Action implements java.io.Serializable{
         return this.effects;
     }
 
-    public Set<FluentLiteral> getApplicableEffects(World world) {
-        Set<FluentLiteral> applicableEffects = new HashSet<FluentLiteral>();
-        for (Map.Entry<FluentLiteral, FluentFormula> entry : effects.entrySet()) {
-            if (entry.getValue().holds(world)) {       // SHOULD ALWAYS BE TRUE IF NO CONDITION, I.E. CONDITION = TRUE
-                applicableEffects.add(entry.getKey());
-            }
-        }
-        return applicableEffects;
-    }
-
-
 
 
     @Override
@@ -87,12 +76,25 @@ public class OnticAction extends Action implements java.io.Serializable{
         World newDesignatedWorld = null;
         Map<World, World> newWorldsToOld = new HashMap<World, World>();
 
+        Map<World, Set<FluentLiteral>> applicableEffects = new HashMap<>();
+        for (World w : oldWorlds) {
+            applicableEffects.put(w, new HashSet<FluentLiteral>());
+            for (Map.Entry<FluentLiteral, FluentFormula> e : effects.entrySet()) {
+                FluentLiteral effect = e.getKey();
+                FluentFormula condition = e.getValue();
+                if (condition.holds(w)) {
+                    applicableEffects.get(w).add(effect);
+                }
+            }
+        }
+
+
         for (World oldWorld : oldWorlds) {
             World obliviousWorld = new World(oldWorld);
             obliviousWorlds.add(obliviousWorld);
             newWorldsToOld.put(obliviousWorld, oldWorld);
             if (this.executable(oldKripke, oldWorld)) {
-                World observedWorld = oldWorld.update(this.getApplicableEffects(oldWorld));
+                World observedWorld = oldWorld.update(applicableEffects.get(oldWorld));
                 observedWorlds.add(observedWorld);
                 newWorldsToOld.put(observedWorld, oldWorld);
                 if (oldWorld.equals(beforeState.getDesignatedWorld())) {
@@ -126,23 +128,24 @@ public class OnticAction extends Action implements java.io.Serializable{
         }
 
 
-
-        Map<World, FluentFormula> conditionsFormulae = new HashMap<>();
+        Map<World, FluentFormula> revealedConditions = new HashMap<>();
         for (World w : oldWorlds) {
             List<FluentFormula> conditions = new ArrayList<>();
             for (Map.Entry<FluentLiteral, FluentFormula> e : effects.entrySet()) {
                 FluentLiteral effect = e.getKey();
                 FluentFormula condition = e.getValue();
                 if (!effect.holds(w)) {
-                    if (condition.holds(w)) {
+                    boolean conditionHolds = condition.holds(w);
+                    FluentFormula notCondition = condition.negate();
+                    if (conditionHolds && !applicableEffects.get(w).contains(notCondition)) {
                         conditions.add(condition);
                     }
-                    else {
-                        conditions.add(new FluentFormulaNot(condition));
+                    else if (!conditionHolds && !applicableEffects.get(w).contains(condition)) {
+                        conditions.add(notCondition);
                     }
                 }
             }
-            conditionsFormulae.put(w, new FluentFormulaAnd(conditions));
+            revealedConditions.put(w, new FluentFormulaAnd(conditions));
         }
 
 
@@ -175,7 +178,7 @@ public class OnticAction extends Action implements java.io.Serializable{
             for (World fromWorld: oldWorlds) {
 
                 BeliefFormula believesNotEffectConditions = new BeliefFormulaBelieves(agent, 
-                                                                new BeliefFormulaNot(conditionsFormulae.get(fromWorld)));
+                                                                new BeliefFormulaNot(revealedConditions.get(fromWorld)));
                 if(believesNotPrecondition.holdsAtWorld(oldKripke, fromWorld) ||
                    believesNotEffectConditions.holdsAtWorld(oldKripke,fromWorld)) {
                     for (World toWorld: oldWorlds) {
@@ -200,14 +203,18 @@ public class OnticAction extends Action implements java.io.Serializable{
                     // THE AGENT WILL BELIEVE THE TOWOLRD TO BE POSSIBLE IN THE NEW FROMWORLD.
                     if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
                                                               newWorldsToOld.get(toWorld))) {
-                        if (conditionsFormulae.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
+                        System.out.println("A");
+                        if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
+                        System.out.println("B");
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
                     }
                     if (oldKripke.isConnectedKnowledge(agent, 
                                                        newWorldsToOld.get(fromWorld),
                                                        newWorldsToOld.get(toWorld))) {
-                        if (conditionsFormulae.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
+                        System.out.println("C");
+                        if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
+                        System.out.println("D");
                             newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
                     }
@@ -235,7 +242,7 @@ public class OnticAction extends Action implements java.io.Serializable{
                     if (oldKripke.isConnectedKnowledge(agent,
                                                        newWorldsToOld.get(fromWorld),
                                                        newWorldsToOld.get(toWorld))) {
-                        if (conditionsFormulae.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
+                        if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
                             newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
                     }
