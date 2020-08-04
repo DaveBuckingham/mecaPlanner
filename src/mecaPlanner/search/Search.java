@@ -107,10 +107,7 @@ public class Search {
     private Solution pnodesToSolution(Set<PNode> pnodes) {
         Solution s = new Solution(problem);
         for (PNode p : pnodes) {
-            s.addChild(
-        }
-        for (PNode successor : pnode.getSuccessors()) {
-            s.addChild(pnodeToSolution(successor));
+            s.addAction(p.getPerspective, p.getSuccessfulAction, pnodesToSolution(p.getSuccessors));
         }
         return s;
     }

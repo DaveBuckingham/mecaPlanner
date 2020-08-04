@@ -138,13 +138,7 @@ public class Planner {
 
         Search search = new Search();
 
-        Set<Solution> solutions = search.findSolution(problem);
-
-
-        // WE NEED A BETTER SYSTEM THAN THIS
-        assert(solutions.size() == 1);
-
-        Solution solution = solutions.iterator().next();
+        Solution solution = search.findSolution(problem);
 
         System.out.println(solution);
 
