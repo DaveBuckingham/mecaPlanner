@@ -35,7 +35,7 @@ public class Search {
     }
 
 
-    public Set<Solution> findSolution(Problem problem) {
+    public Solution findSolution(Problem problem) {
 
         this.problem = problem;
         this.domain = problem.getDomain();
@@ -83,13 +83,13 @@ public class Search {
         }
 
         int maxDepth = 0;
-        Set<Solution> solutions = null;
-        while (solutions == null) {
+        Solution solution = null;
+        while (solution == null) {
             System.out.println(maxDepth);
-            solutions = searchToDepth(startPNodes, maxDepth);
+            solution = searchToDepth(startPNodes, maxDepth);
             maxDepth += 1;
         }
-        return solutions;
+        return solution;
     }
 
     
@@ -107,7 +107,7 @@ public class Search {
     private Solution pnodesToSolution(Set<PNode> pnodes) {
         Solution s = new Solution(problem);
         for (PNode p : pnodes) {
-            s.addAction(p.getPerspective, p.getSuccessfulAction, pnodesToSolution(p.getSuccessors));
+            s.addAction(p.getPerspective(), p.getAction(), pnodesToSolution(p.getSuccessors()));
         }
         return s;
     }

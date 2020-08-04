@@ -11,6 +11,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 
 public class Solution implements java.io.Serializable{
 
@@ -18,7 +20,7 @@ public class Solution implements java.io.Serializable{
     private Map<Perspective, Solution> children;
     private Problem problem;
 
-    public Solution(Problem problem);
+    public Solution(Problem problem) {
         this.problem = problem;
         this.actions = new HashMap<>();
         this.children = new HashMap<>();
@@ -33,13 +35,13 @@ public class Solution implements java.io.Serializable{
         return actions.get(p);
     }
 
-    public Action getChild(Perspective p) {
+    public Solution getChild(Perspective p) {
         return children.get(p);
     }
 
 
     public String toString() {
-        return listPerspectives() + printPlan(0);
+        return printPlan(0);
     }
 
     public Problem getProblem() {
@@ -52,8 +54,9 @@ public class Solution implements java.io.Serializable{
             str.append("  ");
         }
         for (Perspective p : actions.keySet()) {
-            str.append(p + ": " + actions.get(p));
-            children.get(p).printPlan(d+1));
+            str.append(p + ": " + actions.get(p).getSignatureWithActor());
+            str.append("\n");
+            str.append(children.get(p).printPlan(d+1));
         }
         return str.toString();
     }
