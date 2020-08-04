@@ -226,18 +226,14 @@ public class OnticAction extends Action implements java.io.Serializable{
                     // THE AGENT WILL BELIEVE THE TOWOLRD TO BE POSSIBLE IN THE NEW FROMWORLD.
                     if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
                                                               newWorldsToOld.get(toWorld))) {
-                        System.out.println("A");
                         if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
-                        System.out.println("B");
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
                     }
                     if (oldKripke.isConnectedKnowledge(agent, 
                                                        newWorldsToOld.get(fromWorld),
                                                        newWorldsToOld.get(toWorld))) {
-                        System.out.println("C");
                         if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
-                        System.out.println("D");
                             newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
                     }
