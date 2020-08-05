@@ -40,6 +40,10 @@ public class Solution implements java.io.Serializable{
         return children.get(p);
     }
 
+    public boolean hasPerspective(Perspective p) {
+        return actions.containsKey(p);
+    }
+
     public Problem getProblem() {
         return problem;
     }

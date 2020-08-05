@@ -2,19 +2,16 @@ package simulator;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
-import mecaPlanner.state.Relation;
-import mecaPlanner.models.BurglerModel;
-import mecaPlanner.models.*;
-import mecaPlanner.actions.*;
+import mecaPlanner.models.Model;
+import mecaPlanner.actions.Action;
 import mecaPlanner.search.Perspective;
-import mecaPlanner.state.Initialize;
+import mecaPlanner.search.Search;
 import mecaPlanner.formulae.*;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
-import mecaPlanner.Test;
+import mecaPlanner.Problem;
 
 import java.util.Scanner;
 import java.util.List;
@@ -33,8 +30,6 @@ import java.io.FileOutputStream;
 import java.io.ObjectOutputStream;
 import java.io.ObjectInputStream;
 
-import java.io.IOException;
-
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -52,7 +47,7 @@ public class Simulator {
             throw new RuntimeException("expected single depl file parameter.");
         }
 
-        String planFileName = args[0];
+        String deplFile = args[0];
 
         DeplToProblem visitor = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFile);
@@ -67,72 +62,107 @@ public class Simulator {
         Map<String, Model> models = problem.getStartingModels();
         GeneralFormula goal = problem.getGoal();
         int depth = 0;
-        Solution plan = new Solution;
+        Solution plan = new Solution(problem);
 
 
-        while(!goal.holds(estate, depth)) {
+        while(!goal.holds(currentState, depth)) {
 
             String currentAgent = domain.agentAtDepth(depth);
 
-            displayState(domain, estate.getBeliefPerspective(currentAgent));
+            displayState(domain, currentState.getBeliefPerspective(currentAgent));
+
+            Action action = null;
 
             // ROBOT'S TURN
             if (depth == problem.getSystemAgentIndex()) {
                 Perspective robotPerspective = new Perspective(currentState, currentAgent);
-                boolean foundPerspective = false;
-                for (Solution s : solutions) {
-                    if (perspective.equals(s.getPerspective())) {
-                        action = s.getAction();
-                        System.out.println(agent + ": " + action.getSignature() + "\n");
-                        solutions = s.getChildren();
-                        foundPerspective = true;
-                        break;
+                if (!plan.hasPerspective(robotPerspective)) {
+                    Set<EpistemicState> robotPerspectiveStates =
+                        currentState.getBeliefPerspective(currentAgent).getEpistemicStates();
+                    Problem newProblem = new Problem(problem.getDomain(),
+                                                     problem.getSystemAgentIndex(),
+                                                     robotPerspectiveStates,
+                                                     models,
+                                                     problem.getGoals()
+                                                    );
+                    Search search = new Search();
+                    plan = search.findSolution(problem);
+                    if (plan == null) {
+                        System.out.println("No solution found for estate:\n" + currentState);
+                        System.exit(0);
+                    }
+                    if (!plan.hasPerspective(robotPerspective)) {
+                        throw new RuntimeException("got a bad plan.");
                     }
                 }
-                assert(foundPerspective);
+
+                action = plan.getAction(robotPerspective);
+                plan = plan.getChild(robotPerspective);
             }
 
             // HUMAN'S TURN
             else {
+
+                NDState humanPerspective = currentState.getBeliefPerspective(currentAgent);
+
+                Set<Action> applicable = new HashSet<>();
+                for (Action a : domain.getAgentActions(currentAgent)) {
+                    if (a.necessarilyExecutable(humanPerspective)){
+                        applicable.add(a);
+                    }
+                }
+
+                Set<Action> predictions = models.get(currentAgent).getPrediction(humanPerspective);
+                for (Action a : predictions) {
+                     if (!applicable.contains(a)) {
+                        throw new RuntimeException("Agent doesn't think a predicted action is applicable");
+                     }
+                }
+
+                if (predictions.isEmpty()) {
+                    throw new RuntimeException("model gave no applicable actions.");
+                }
+                if (applicable.isEmpty()) {
+                    throw new RuntimeException("no applicable actions for s-agent");
+                }
+
+                System.out.println("Pick an action. \"*\" indicates model predicitons.");
+
                 List<Action> options = new ArrayList<>();
                 Integer index = 0;
-                for (Action a : models.get(agent).getPrediction(perspective.getAgentView())) {
+                for (Action a : applicable) {
+                    if (predictions.contains(action)) {
+                        System.out.print("*");
+                    }
                     System.out.println(index.toString() + ": " + a.getSignatureWithActor());
                     options.add(a);
                     index += 1;
                 }
-                assert(options.size() > 0);
+
                 Integer selection = -1;
-                if (options.size() > 1) {
-                    while (selection < 0 || selection >= index) {
-                        selection = stdin.nextInt();
-                    }
-                }
-                else {
-                    selection = 0;
+                while (selection < 0 || selection >= index) {
+                    selection = stdin.nextInt();
                 }
                 action = options.get(selection);
-                System.out.println(agent + ": " + action.getSignature() + "\n");
             }
 
-            assert (action != null);
+            if (action == null) {
+                throw new RuntimeException("somehow failed to pick an action");
+            }
 
+            System.out.println(currentAgent + ": " + action.getSignature() + "\n");
             Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
             currentState = transitionResult.getState();
             models = transitionResult.getModels();
-
             depth += 1;
         }
         
 
-
-
-
     }
 
-    private void displayState(Domain domain, NDState humanPerspective) {
+    private static void displayState(Domain domain, NDState humanPerspective) {
         System.out.println("STATE:");
-        for (FluentAtom atom : domain) {
+        for (FluentAtom atom : domain.getAllAtoms()) {
             if (humanPerspective.necessarily(atom)) {
                 System.out.println("\t" + atom);
             }
@@ -142,9 +172,7 @@ public class Simulator {
         }
     }
 
-    private void getHumanAction(Perspective perspective) {
-        System.out.println("STATE:");
-        System.out.println(currentState.getDesignatedWorld());
+    private static void getHumanAction(Perspective perspective) {
     }
 
 }

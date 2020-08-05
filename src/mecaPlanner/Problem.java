@@ -39,9 +39,15 @@ public class Problem implements java.io.Serializable {
     }
 
 
-
     public Set<EpistemicState> getStartStates() {
         return startStates;
+    }
+
+    public EpistemicState getStartState() {
+        if (startStates.size() != 1) {
+            throw new RuntimeException("problem contains " + startStates.size() + " start states.");
+        }
+        return startStates.iterator().next();
     }
 
     public int getSystemAgentIndex() {
