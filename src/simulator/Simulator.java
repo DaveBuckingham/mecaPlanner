@@ -2,13 +2,11 @@ package simulator;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.World;
 import mecaPlanner.models.Model;
 import mecaPlanner.actions.Action;
 import mecaPlanner.search.Perspective;
 import mecaPlanner.search.Search;
 import mecaPlanner.formulae.*;
-import mecaPlanner.Log;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
@@ -21,10 +19,7 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
-import org.antlr.v4.runtime.*;
-import org.antlr.v4.runtime.tree.*;
-
-import depl.*;
+import depl.DeplToProblem;
 
 
 public class Simulator {
