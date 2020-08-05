@@ -16,19 +16,15 @@ import java.util.HashMap;
 
 public class Solution implements java.io.Serializable{
 
-    private static int idCounter = 0;
 
     private Map<Perspective, Action> actions;
     private Map<Perspective, Solution> children;
     private Problem problem;
-    private int id;
 
     public Solution(Problem problem) {
         this.problem = problem;
         this.actions = new HashMap<>();
         this.children = new HashMap<>();
-        this.id = Solution.idCounter;
-        Solution.idCounter += 1;
     }
 
     public void addAction(Perspective p, Action a, Solution s) {
@@ -44,64 +40,56 @@ public class Solution implements java.io.Serializable{
         return children.get(p);
     }
 
-
-    public String toString() {
-        return listPerspectives() + printPlan(0);
-    }
-
     public Problem getProblem() {
         return problem;
     }
 
-    private String listPerspectives() {
+
+    public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("[");
-        str.append(id);
-        str.append("] ");
-        str.append("t=");
-        str.append(time);
-        str.append(" \n");
-        str.append(perspective);
-        str.append("\n");
-        for (Solution s : children) {
-            str.append(s.listPerspectives());
+        str.append("SOLUTION PERSPECTIVE STATES:\n");
+        List<Perspective> perspectives = listPerspectives();
+        Map<Perspective, Integer> perspectiveNames = new HashMap<>();
+        for (Integer i = 0; i < perspectives.size(); i++) {
+            perspectiveNames.put(perspectives.get(i), i);
+            str.append("[");
+            str.append(i);
+            str.append("] ");
+            str.append(perspectives.get(i));
         }
+        str.append("SOLUTION ACTIONS:\n");
+        str.append(printPlan(perspectiveNames, 0));
         return str.toString();
     }
 
 
+    public List<Perspective> listPerspectives() {
+        List<Perspective> list = new ArrayList<>();
+        for (Perspective p : actions.keySet()) {
+            list.add(p);
+        }
+        for (Solution s : children.values()) {
+            list.addAll(s.listPerspectives());
+        }
+        return list;
+    }
 
-    private String printPlan(int d) {
+
+    private String printPlan(Map<Perspective, Integer> perspectiveNames, int d) {
         StringBuilder str = new StringBuilder();
         for (int i = 0; i<d; i++) {
             str.append("  ");
         }
         for (Perspective p : actions.keySet()) {
-            str.append(p + ": " + actions.get(p).getSignatureWithActor());
+            str.append("[");
+            str.append(perspectiveNames.get(p));
+            str.append("] ");
+            str.append(actions.get(p).getSignatureWithActor());
             str.append("\n");
-            str.append(children.get(p).printPlan(d+1));
+            str.append(children.get(p).printPlan(perspectiveNames, d+1));
         }
         return str.toString();
     }
-
-
-    private String printPlan(int d) {
-        StringBuilder str = new StringBuilder();
-        for (int i = 0; i<d; i++) {
-            str.append("  ");
-        }
-        str.append("[");
-        str.append(id);
-        str.append("] ");
-        str.append(action.getSignatureWithActor());
-        str.append("\n");
-        for (Solution s : children) {
-            str.append(s.printPlan(d+1));
-        }
-        return str.toString();
-    }
-
-
 
 
 
