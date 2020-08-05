@@ -56,7 +56,7 @@ public class FluentFormulaNot extends FluentFormula{
 
      @Override
      public int hashCode() {
-         return formula.hashCode() * 31;
+         return formula.hashCode() * 11;
      }
 
 

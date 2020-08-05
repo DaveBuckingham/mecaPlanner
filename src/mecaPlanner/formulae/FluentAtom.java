@@ -105,16 +105,15 @@ public class FluentAtom extends FluentFormula{
     }
 
 
-     @Override
-     public int hashCode() {
-         final int prime = 31;
-         int result = 7;
-         result = (prime * result) + ((this.name == null) ? 0 : this.name.hashCode());
-         for (String p : this.parameters) {
-             result = (prime * result) + ((p == null) ? 0 : p.hashCode());
-         }
-         return result;
-     }
+    @Override
+    public int hashCode() {
+        int hash = 7;
+        hash = (31 * hash) + this.name.hashCode();
+        for (String p : this.parameters) {
+            hash = (31 * hash) + p.hashCode();
+        }
+        return hash;
+    }
 
 
 }

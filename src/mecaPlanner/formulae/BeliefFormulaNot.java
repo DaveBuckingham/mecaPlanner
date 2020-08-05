@@ -36,6 +36,28 @@ public class BeliefFormulaNot extends BeliefFormula{
         return formula;
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        BeliefFormulaNot other = (BeliefFormulaNot) obj;
+        return formula.equals(other.getFormula());
+    }
+
+
+    @Override
+    public int hashCode() {
+        return formula.hashCode() * 7;
+    }
+
+
+
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

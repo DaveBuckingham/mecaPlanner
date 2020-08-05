@@ -57,10 +57,9 @@ public class BeliefFormulaBelieves extends BeliefFormula {
 
      @Override
      public int hashCode() {
-         final int prime = 31;
-         int result = 7;
-         result = (prime * result) + ((this.agent == null) ? 0 : this.agent.hashCode());
-         result = (prime * result) + ((this.formula == null) ? 0 : this.formula.hashCode());
+         int result = 11;
+         result = (31 * result) + agent.hashCode();
+         result = (31 * result) + formula.hashCode();
          return result;
      }
 

@@ -46,6 +46,33 @@ public class FluentFormulaAnd extends FluentFormula{
         return allAtoms;
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        FluentFormulaAnd other = (FluentFormulaAnd) obj;
+        Set<FluentFormula> asSet = new HashSet<>(formulae);
+        return asSet.equals(new HashSet<FluentFormula>(other.getFormulae()));
+        //return formulae.containsAll(other.getFormulae()) && other.getFormulae().containsAll(formulae);
+    }
+
+
+
+    @Override
+    public int hashCode() {
+        final int prime = 31;
+        int result = 7;
+        for (FluentFormula f : formulae) {
+            result = (prime * result) + f.hashCode();
+        }
+        return result;
+    }
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
@@ -60,46 +87,5 @@ public class FluentFormulaAnd extends FluentFormula{
         str.append(")");
         return str.toString();
     }
-
-    //@Override
-    //public boolean equals(Object obj) {
-    //    if (obj == this) {
-    //        return true;
-    //    }
-    //    if (obj == null || obj.getClass() != this.getClass()) {
-    //        return false;
-    //    }
-    //    FluentFormulaAnd other = (FluentFormulaAnd) obj;
-    //    List<FluentFormula> otherFormulae = other.getFormulae();
-
-    //    if (formulae.size() != otherFormulae.size()) {
-    //        return false;
-    //    }
-
-    //    return formulae.containsAll(otherFormulae);
-
-    //    // Iterator thisIt = formulae.iterator();
-    //    // Iterator otherIt = otherFormulae.iterator();
-    //    // while(thisIt.hasNext() || otherIt.hasNext()) {
-    //    //     if (!(thisIt.hasNext() && otherIt.hasNext())) {
-    //    //         return false;
-    //    //     }
-    //    //     if (!(thisIt.next().equals(otherIt.next()))) {
-    //    //         return false;
-    //    //     }
-    //    // }
-    //    // return true;
-    //}
-
-    @Override
-    public int hashCode() {
-        final int prime = 31;
-        int result = 7;
-        for (FluentFormula f : formulae) {
-            result = (prime * result) + f.hashCode();
-        }
-        return result;
-    }
-
 
 }

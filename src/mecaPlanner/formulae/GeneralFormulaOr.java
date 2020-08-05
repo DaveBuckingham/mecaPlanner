@@ -47,6 +47,35 @@ public class GeneralFormulaOr extends GeneralFormula{
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        GeneralFormulaOr other = (GeneralFormulaOr) obj;
+        Set<GeneralFormula> asSet = new HashSet<>(formulae);
+        return asSet.equals(new HashSet<GeneralFormula>(other.getFormulae()));
+    }
+
+
+    @Override
+    public int hashCode() {
+        int hash = 11;
+        for (GeneralFormula f : this.formulae) {
+            hash = (31 * hash) + f.hashCode();
+        }
+        return hash;
+    }
+
+
+
+
+
+
+
+    @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("or(");

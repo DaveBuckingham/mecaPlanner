@@ -45,5 +45,9 @@ public class FluentFormulaTrue extends FluentFormula{
         return true;
     }
 
+    public int hashCode() {
+        return 2;
+    }
+
 
 }

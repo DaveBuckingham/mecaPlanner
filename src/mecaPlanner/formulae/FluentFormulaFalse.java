@@ -45,5 +45,10 @@ public class FluentFormulaFalse extends FluentFormula{
         return true;
     }
 
+    @Override
+    public int hashCode() {
+        return 1;
+    }
+
 
 }

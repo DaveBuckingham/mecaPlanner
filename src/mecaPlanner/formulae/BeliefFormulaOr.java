@@ -46,6 +46,30 @@ public class BeliefFormulaOr extends BeliefFormula{
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        BeliefFormulaOr other = (BeliefFormulaOr) obj;
+        Set<BeliefFormula> asSet = new HashSet<>(formulae);
+        return asSet.equals(new HashSet<BeliefFormula>(other.getFormulae()));
+    }
+
+
+    @Override
+    public int hashCode() {
+        int hash = 11;
+        for (BeliefFormula f : this.formulae) {
+            hash = (31 * hash) + f.hashCode();
+        }
+        return hash;
+    }
+
+
+    @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("or(");

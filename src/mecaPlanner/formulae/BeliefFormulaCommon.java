@@ -52,6 +52,29 @@ public class BeliefFormulaCommon extends BeliefFormula {
     }
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        BeliefFormulaCommon otherFormula = (BeliefFormulaCommon) obj;
+        return (this.commonAgents.equals(otherFormula.getAgents()) && this.formula.equals(otherFormula.getFormula()));
+    }
+
+     @Override
+     public int hashCode() {
+         int result = 7;
+         result = (31 * result) + commonAgents.hashCode();
+         result = (31 * result) + formula.hashCode();
+         return result;
+     }
+
+
+
+
+    @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("C[");

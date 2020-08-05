@@ -88,6 +88,13 @@ public class FluentLiteral extends FluentFormula{
         return (this.value.equals(otherLiteral.getValue()) && this.atom.equals(otherLiteral.getAtom()));
     }
 
+     @Override
+     public int hashCode() {
+         return this.atom.hashCode() + this.value.hashCode();
+     }
+
+
+
 
 
     @Override

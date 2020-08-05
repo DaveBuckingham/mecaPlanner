@@ -61,6 +61,7 @@ public class FluentFormulaOr extends FluentFormula{
         return str.toString();
     }
 
+
     @Override
     public boolean equals(Object obj) {
         if (obj == this) {
@@ -69,34 +70,15 @@ public class FluentFormulaOr extends FluentFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaOr other = (FluentFormulaOr) obj;
-        List<FluentFormula> otherFormulae = other.getFormulae();
-
-        if (formulae.size() != otherFormulae.size()) {
-            return false;
-        }
-
-        return formulae.containsAll(otherFormulae);
-
-        //Iterator thisIt = formulae.iterator();
-        //Iterator otherIt = otherFormulae.iterator();
-        //while(thisIt.hasNext() || otherIt.hasNext()) {
-        //    if (!(thisIt.hasNext() && otherIt.hasNext())) {
-        //        return false;
-        //    }
-        //    if (!(thisIt.next().equals(otherIt.next()))) {
-        //        return false;
-        //    }
-        //}
-        //return true;
+        FluentFormulaAnd other = (FluentFormulaAnd) obj;
+        return formulae.containsAll(other.getFormulae()) && other.getFormulae().containsAll(formulae);
     }
 
     @Override
     public int hashCode() {
-        final int prime = 31;
         int result = 7;
         for (FluentFormula f : formulae) {
-            result = (prime * result) + f.hashCode();
+            result = (31 * result) + f.hashCode();
         }
         return result;
     }
