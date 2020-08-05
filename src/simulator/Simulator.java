@@ -53,9 +53,6 @@ public class Simulator {
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
 
-        
-        Scanner stdin = new Scanner(System.in);
-
 
         Set<Solution> solutions = new HashSet<>();
         EpistemicState currentState = problem.getStartState();
@@ -74,7 +71,7 @@ public class Simulator {
             Action action = null;
 
             // ROBOT'S TURN
-            if (depth == problem.getSystemAgentIndex()) {
+            if (depth % domain.getNonPassiveAgents().size() == problem.getSystemAgentIndex()) {
                 Perspective robotPerspective = new Perspective(currentState, currentAgent);
                 if (!plan.hasPerspective(robotPerspective)) {
                     Set<EpistemicState> robotPerspectiveStates =
@@ -102,7 +99,6 @@ public class Simulator {
 
             // HUMAN'S TURN
             else {
-
                 NDState humanPerspective = currentState.getBeliefPerspective(currentAgent);
 
                 Set<Action> applicable = new HashSet<>();
@@ -113,11 +109,6 @@ public class Simulator {
                 }
 
                 Set<Action> predictions = models.get(currentAgent).getPrediction(humanPerspective);
-                for (Action a : predictions) {
-                     if (!applicable.contains(a)) {
-                        throw new RuntimeException("Agent doesn't think a predicted action is applicable");
-                     }
-                }
 
                 if (predictions.isEmpty()) {
                     throw new RuntimeException("model gave no applicable actions.");
@@ -125,25 +116,11 @@ public class Simulator {
                 if (applicable.isEmpty()) {
                     throw new RuntimeException("no applicable actions for s-agent");
                 }
-
-                System.out.println("Pick an action. \"*\" indicates model predicitons.");
-
-                List<Action> options = new ArrayList<>();
-                Integer index = 0;
-                for (Action a : applicable) {
-                    if (predictions.contains(action)) {
-                        System.out.print("*");
-                    }
-                    System.out.println(index.toString() + ": " + a.getSignatureWithActor());
-                    options.add(a);
-                    index += 1;
+                if (!applicable.containsAll(predictions)) {
+                    throw new RuntimeException("Agent doesn't think a predicted action is applicable");
                 }
 
-                Integer selection = -1;
-                while (selection < 0 || selection >= index) {
-                    selection = stdin.nextInt();
-                }
-                action = options.get(selection);
+                action = getHumanAction(applicable, predictions);
             }
 
             if (action == null) {
@@ -170,9 +147,27 @@ public class Simulator {
                 System.out.println("\tpossibly " + atom);
             }
         }
+        System.out.println("\n");
     }
 
-    private static void getHumanAction(Perspective perspective) {
+
+    private static Action getHumanAction(Set<Action> applicable, Set<Action> predictions) {
+        
+        Scanner stdin = new Scanner(System.in);
+
+        System.out.println("Pick an action. \"*\" indicates model predicitons.");
+
+        List<Action> options = new ArrayList<>(applicable);
+        for (Integer i = 0; i < options.size(); i++) {
+            System.out.print(predictions.contains(options.get(i)) ? "* " : "  ");
+            System.out.println(i + ": " + options.get(i).getSignatureWithActor());
+        }
+
+        Integer selection = -1;
+        while (selection < 0 || selection >= options.size()) {
+            selection = stdin.nextInt();
+        }
+        return options.get(selection);
     }
 
 }

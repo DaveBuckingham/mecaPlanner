@@ -44,7 +44,7 @@ public class World implements java.io.Serializable {
     }
 
     public World(World toCopy) {
-        this(null, toCopy.getFluents());
+        this(null, toCopy.getAtoms());
     }
 
     public World update(Set<FluentLiteral> literals) {
@@ -63,9 +63,6 @@ public class World implements java.io.Serializable {
     public Set<FluentAtom> getAtoms() {
         return atoms;
     }
-    public Set<FluentAtom> getFluents() {
-        return getAtoms();
-    }
 
     public int getId() {
         return this.id;
@@ -76,7 +73,7 @@ public class World implements java.io.Serializable {
     }
 
     public boolean equivalent(World otherWorld) {
-        return this.atoms.equals(otherWorld.getFluents());
+        return this.atoms.equals(otherWorld.getAtoms());
     }
 
     public String getName() {

@@ -21,7 +21,7 @@ agents{
     human1{PizzaModel},
 }
 
-atoms{
+fluents{
     at[?a - locatable, ?b - location](?a,?b),
     human_hungry(),
     door_open(),
@@ -29,6 +29,12 @@ atoms{
 }
 
 constants{
+    same[?a - location, ?b - location](?a,?b),
+}
+
+constraints {
+    same(room1, room1),
+    same(room2, room2),
 }
 
 initially{
@@ -48,6 +54,7 @@ actions{
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{door_open()},
+        precondition{~same(?f,?t)},
         observes[?o-actor]{?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},

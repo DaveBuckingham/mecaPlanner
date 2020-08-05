@@ -60,37 +60,6 @@ public class EpistemicState extends NDState {
     }
 
 
-//    public String toStringCompact() {
-//        StringBuilder str = new StringBuilder();
-//        List<World> worldsSorted = kripkeStructure.getWorlds().stream().collect(Collectors.toList());
-//        worldsSorted.sort(Comparator.comparingInt(World::getId));
-//        str.append("t=");
-//        str.append(time.toString());
-//        str.append("\n");
-//        for (World world : worldsSorted) {
-//            if (world.equals(designatedWorld)) {
-//                str.append("*");
-//            }
-//            str.append(world);
-//            str.append(" --> ");
-//            for (Agent agent : domain.getAllAgents()) {
-//                str.append(agent.getName());
-//                str.append("(");
-//                Set<World> accessibleWorlds = kripkeStructure.getBelievedWorlds(agent, world);
-//                if (!accessibleWorlds.isEmpty()) {
-//                    for (World to : accessibleWorlds) {
-//                        str.append(to.getId());
-//                        str.append(",");
-//                    }
-//                    str.deleteCharAt(str.length() - 1);
-//                }
-//                str.append(")");
-//            }
-//            str.append("\n");
-//        }
-//        return str.toString();
-//    }
-   
 
     @Override
     public String toString() {

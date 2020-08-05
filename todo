@@ -48,6 +48,8 @@ predicates as action parameters, variables?
 
 iterated dfs: iterate cost instead of # actions?
 
+hashCode and equals functions for actions, so we don't have to search through action names or whatever
+
 
 
 heurisitics to speed search

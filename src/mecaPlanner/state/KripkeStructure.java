@@ -121,10 +121,10 @@ public class KripkeStructure implements java.io.Serializable {
     private Set<Set<World>> getInitialPartition() {
         Map<Set<FluentAtom>, Set<World>> mapValuation = new HashMap<>();
         for (World w : worlds) {
-            if (!mapValuation.containsKey(w.getFluents())) {
-                mapValuation.put(w.getFluents(), new HashSet<World>());
+            if (!mapValuation.containsKey(w.getAtoms())) {
+                mapValuation.put(w.getAtoms(), new HashSet<World>());
             }
-            mapValuation.get(w.getFluents()).add(w);
+            mapValuation.get(w.getAtoms()).add(w);
         }
         return new HashSet<Set<World>>(mapValuation.values());
     }
@@ -172,6 +172,7 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
     public KripkeStructure union(KripkeStructure other) {
+        // IF THIS ASSERT FAILS, SEE COMMENT  IN NDState.equals()
         assert(this != other);
         Set<World> unionWorlds = new HashSet<World>(worlds);
         unionWorlds.addAll(other.getWorlds());

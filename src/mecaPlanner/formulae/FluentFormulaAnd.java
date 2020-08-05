@@ -65,10 +65,9 @@ public class FluentFormulaAnd extends FluentFormula{
 
     @Override
     public int hashCode() {
-        final int prime = 31;
         int result = 7;
         for (FluentFormula f : formulae) {
-            result = (prime * result) + f.hashCode();
+            result = (31 * result) + f.hashCode();
         }
         return result;
     }

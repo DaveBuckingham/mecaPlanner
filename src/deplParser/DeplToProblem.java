@@ -41,6 +41,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer agentIndex;
     private Set<String> allObjects;  // to check for undefined objects
     private Set<FluentAtom> constants;
+    private Set<FluentAtom> constraints;
     private Map<String, TypeNode> typeDefs;  // key is type name
     private Stack<Map<String, String>> variableStack;
 
@@ -60,15 +61,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         ANNOUNCEMENT
     }
 
-    // RECURSIVELY CHECK THAT EVERY ATOM IN THE FORMULA HAS BEEN DEFINED
-    //private void checkAtoms(GeneralFormula f) {
-    //    for (FluentAtom a : f.getAllAtoms()) {
-    //        if (!domain.getAllAtoms().contains(a)) {
-    //            System.out.println("Undefined atom: \"" + a + "\". Defined atoms are: " + domain.getAllAtoms());
-    //            System.exit(1);
-    //        }
-    //    }
-    //}
 
 
     // READ A "PARAMETER" WHICH COULD BE AN OBJECT NAME OR A VARIABLE
@@ -171,7 +163,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // RECURSIVELY RESOLVE CONSTANTS IN A FORMULA
     // WILL EVENTUALLY RETURN TRUE, FALSE, OR A FF WITHOUT CONSTANTS
-    // WE CAN USE THIS TO FILTER OUT AT PARSET TIME ANY 
+    // WE CAN USE THIS TO FILTER OUT AT PARSE TIME ANY 
     // ACTIONS, ACTION EFFECTS, OR OBSERVATION EFFECTS
     // THAT ARE CONSTANTLY FALSE.
     FluentFormula removeConstants(FluentFormula ff) {
@@ -183,20 +175,14 @@ public class DeplToProblem extends DeplBaseVisitor {
             if (domain.getAllAtoms().contains(fa)) {
                 return fa;
             }
-            if (domain.getConstants().contains(fa)) {
+            if (constraints.contains(fa)) {
                 return new FluentFormulaTrue();
             }
             return new FluentFormulaFalse();
         }
         if (ff instanceof FluentFormulaNot) {
             FluentFormulaNot fn = (FluentFormulaNot) ff;
-            if (fn.getFormula() instanceof FluentFormulaTrue) {
-                return new FluentFormulaFalse();
-            }
-            if (fn.getFormula() instanceof FluentFormulaFalse) {
-                return new FluentFormulaTrue();
-            }
-            return new FluentFormulaNot(removeConstants(fn.getFormula()));
+            return removeConstants(fn.getFormula()).negate();
         }
         if (ff instanceof FluentFormulaAnd) {
             FluentFormulaAnd fa = (FluentFormulaAnd) ff;
@@ -250,11 +236,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
     }
 
-    //public void buildDomain (ParseTree tree) {
-    //    Domain.clear();
-    //    visit(tree);
-    //}
-
 
     public Problem buildProblem (String deplFileName) {
         
@@ -281,6 +262,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.agentIndex = 0;
         this.allObjects = new HashSet<String>();
         this.constants = new HashSet<FluentAtom>();
+        this.constraints = new HashSet<FluentAtom>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
 
@@ -313,6 +295,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.passiveSection());
         visit(ctx.atomsSection());
         visit(ctx.constantsSection());
+        visit(ctx.constraintsSection());
         visit(ctx.initiallySection());
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
@@ -452,64 +435,54 @@ public class DeplToProblem extends DeplBaseVisitor {
     // PREDICATES
 
     @Override public Void visitAtomsSection(DeplParser.AtomsSectionContext ctx) {
-        visitChildren(ctx);
+        for (DeplParser.AtomDefinitionContext atomDefCtx : ctx.atomDefinition()) {
+            Set<FluentAtom> atoms = (Set<FluentAtom>) visit(atomDefCtx);
+            domain.addAtoms(atoms);
+        }
         return null;
     }
 
-    @Override public Void visitAtomDefinition(DeplParser.AtomDefinitionContext ctx) {
-
-        String atomName = ctx.NAME().getText();
-        if (ctx.parameterList() == null) {
-            domain.addAtom(new FluentAtom(atomName));
+    @Override public Set<FluentAtom> visitAtomDefinition(DeplParser.AtomDefinitionContext ctx) {
+        Set<FluentAtom> atoms = new HashSet<>();;
+        String name = ctx.NAME().getText();
+        if (ctx.variableList() == null) {
+            atoms.add(new FluentAtom(name));
         }
         for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
             variableStack.push(variableMap);
             List<String> groundParameters = new ArrayList<String>();
-            if (ctx.parameterList() != null) {
-                for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-                    groundParameters.add(resolveVariable(parameterCtx));
-                }
+            for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
+                groundParameters.add(resolveVariable(parameterCtx));
             }
-            domain.addAtom(new FluentAtom(atomName, groundParameters));
+            atoms.add(new FluentAtom(name, groundParameters));
             variableStack.pop();
         }
-        return null;
+        return atoms;
     }
 
 
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
-        visitChildren(ctx);
-        return null;
-    }
-
-    @Override public Void visitConstantDefinition(DeplParser.ConstantDefinitionContext ctx) {
-
-        String constantName = ctx.NAME().getText();
-
-        for (FluentAtom atom : domain.getAllAtoms()) {
-            if (constantName.equals(atom.getName())) {
-                throw new RuntimeException("invalid constant name already used for atom: " + constantName);
-            }
-        }
-
-        if (ctx.parameterList() == null) {
-            domain.addConstant(new FluentAtom(constantName));
-        }
-        for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
-            variableStack.push(variableMap);
-            List<String> groundParameters = new ArrayList<String>();
-            if (ctx.parameterList() != null) {
-                for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-                    groundParameters.add(resolveVariable(parameterCtx));
-                }
-            }
-            domain.addConstant(new FluentAtom(constantName, groundParameters));
-            variableStack.pop();
+        for (DeplParser.AtomDefinitionContext atomDefCtx : ctx.atomDefinition()) {
+            Set<FluentAtom> atoms = (Set<FluentAtom>) visit(atomDefCtx);
+            constants.addAll(atoms);
         }
         return null;
     }
+
+    @Override public Void visitConstraintsSection(DeplParser.ConstraintsSectionContext ctx) {
+        for (DeplParser.AtomContext atomCtx : ctx.atom()) {
+            FluentAtom atom = (FluentAtom) visit(atomCtx);
+            constraints.add(atom);
+        }
+        return null;
+    }
+
+
+
+
+
 
 
 
@@ -806,23 +779,13 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
         }
         FluentAtom atom = new FluentAtom(atomName, parameters);
-        if (!domain.getAllAtoms().contains(atom)) {
-            throw new RuntimeException("Undefined atom: \"" + atom + "\". Defined atoms are: " + domain.getAllAtoms());
+        if (!domain.getAllAtoms().contains(atom) && !constants.contains(atom)) {
+            throw new RuntimeException("Undefined atom: " + atom + ". Defined atoms are: " + domain.getAllAtoms() +
+                                       " Defined constants are: " + constants);
         }
         return atom;
     }
 
-    @Override public FluentAtom visitConstant(DeplParser.ConstantContext ctx) {
-        String atomName = ctx.NAME().getText();
-        List<String> parameters = new ArrayList<String>();
-        if (ctx.parameterList() != null) {
-            for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-                parameters.add(resolveVariable(parameterCtx));
-            }
-        }
-        FluentAtom constant = new FluentAtom(atomName, parameters);
-        return new FluentAtom(atomName, parameters);
-    }
 
     @Override public FluentFormula visitFluentAtom(DeplParser.FluentAtomContext ctx) {
         return (FluentAtom) visit(ctx.atom());

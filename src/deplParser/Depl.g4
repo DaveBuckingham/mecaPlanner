@@ -25,6 +25,7 @@ init :
     passiveSection
     atomsSection
     constantsSection
+    constraintsSection
     initiallySection
     goalsSection
     actionsSection
@@ -70,7 +71,7 @@ passiveDef : NAME ;
 
 // PREDICATES DEFINITIONS
 
-atomsSection : 'atoms' '{' (atomDefinition ',')* atomDefinition? '}' ;
+atomsSection : 'fluents' '{' (atomDefinition ',')* atomDefinition? '}' ;
 
 atomDefinition : NAME variableList? parameterList? ;
 
@@ -85,9 +86,9 @@ parameter : NAME | VARIABLE ;
 
 // CONSTANTS DEFINITIONS
 
-constantsSection : 'constants' '{' (constantDefinition ',')* constantDefinition? '}' ;
+constantsSection : 'constants' '{' (atomDefinition ',')* atomDefinition? '}' ;
 
-constantDefinition : NAME variableList? parameterList? ;
+constraintsSection : 'constraints' '{' (atom ',')* atom? '}' ;
 
 
 // INITIAL STATE DEFINITION
@@ -98,8 +99,6 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
 
 atom : NAME parameterList? | '(' NAME parameterList? ')';
-
-constant : NAME parameterList? | '(' NAME parameterList? ')';
 
 
 // FORMULAE

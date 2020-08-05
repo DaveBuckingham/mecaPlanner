@@ -19,7 +19,7 @@ import java.util.ArrayList;
 public class Domain implements java.io.Serializable {
 
     private Set<FluentAtom> allAtoms;
-    private Set<FluentAtom> constants;
+    //private Set<FluentAtom> constants;
     //private Set<BeliefFormula> initiallyStatements;
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
@@ -32,7 +32,7 @@ public class Domain implements java.io.Serializable {
 
     public Domain() {
         allAtoms = new HashSet<>();
-        constants = new HashSet<>();
+        //constants = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
@@ -46,9 +46,9 @@ public class Domain implements java.io.Serializable {
         return allAtoms;
     }
 
-    public Set<FluentAtom> getConstants() {
-        return constants;
-    }
+    //public Set<FluentAtom> getConstants() {
+    //    return constants;
+    //}
 
 
     public Map<String,Set<Action>> getActionMap() {
@@ -122,9 +122,13 @@ public class Domain implements java.io.Serializable {
         allAtoms.add(f);
     }
 
-    public void addConstant(FluentAtom f) {
-        constants.add(f);
+    public void addAtoms(Set<FluentAtom> f) {
+        allAtoms.addAll(f);
     }
+
+    //public void addConstant(FluentAtom f) {
+    //    constants.add(f);
+    //}
 
 
     public void addAgent(String agent) {

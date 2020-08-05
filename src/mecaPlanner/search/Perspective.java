@@ -27,6 +27,11 @@ public class Perspective implements java.io.Serializable {
         return agentView.equals(((Perspective) obj).getAgentView());
     }
 
+    @Override
+    public int hashCode() {
+        return agentView.hashCode();
+    }
+
     public String toString() {
         return agentView.toString();
     }

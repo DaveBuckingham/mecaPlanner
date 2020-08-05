@@ -200,6 +200,24 @@ public abstract class Action implements java.io.Serializable {
 
 
     @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        Action other = (Action) obj;
+        return (this.getSignatureWithActor() == other.getSignatureWithActor());
+    }
+
+    @Override
+    public int hashCode() {
+        return getSignatureWithActor().hashCode();
+    }
+
+
+    @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
 
