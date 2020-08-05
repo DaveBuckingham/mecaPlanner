@@ -21,15 +21,6 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.InputStream;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.FileOutputStream;
-import java.io.ObjectOutputStream;
-import java.io.ObjectInputStream;
-
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
@@ -41,66 +32,93 @@ public class Simulator {
 
     public static void main(String args[]) {
 
-
-
+        // READ AND PARSE A .depl FILE
         if (args.length != 1) {
             throw new RuntimeException("expected single depl file parameter.");
         }
-
         String deplFile = args[0];
-
         DeplToProblem visitor = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
+        final GeneralFormula goal = problem.getGoal();
 
-
-        Set<Solution> solutions = new HashSet<>();
+        // VARIABLES TO TRACK THE SYSTEM STATE
         EpistemicState currentState = problem.getStartState();
         Map<String, Model> models = problem.getStartingModels();
-        GeneralFormula goal = problem.getGoal();
         int depth = 0;
-        Solution plan = new Solution(problem);
+
+        // START WITH AN EMPTY PLAN
+        Solution plan = new Solution(problem); 
+
+        // TO HELP KEEP TRACK OF AGENTS
+        final int numAgents = domain.getNonPassiveAgents().size();
+        if (numAgents != 2) {
+            throw new RuntimeException("simulator requires a single s-agent and a single e-agent");
+        }
+
+        // THESE WILL BE 0 AND 1, OR 1 AND 0
+        final int sIndex = problem.getSystemAgentIndex();
+        final int eIndex = 1 - sIndex;
 
 
+        // MAIN LOOP, CONTINUE UNTIL THE GOAL IS ACHIEVED
         while(!goal.holds(currentState, depth)) {
 
             String currentAgent = domain.agentAtDepth(depth);
 
-            displayState(domain, currentState.getBeliefPerspective(currentAgent));
+            // DRAW THE STATE FROM THE HUMAN'S PERSPECTIVE
+            displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
 
+            // THE ACTION TAKEN BY THE CURRENT AGENT
             Action action = null;
 
-            // ROBOT'S TURN
-            if (depth % domain.getNonPassiveAgents().size() == problem.getSystemAgentIndex()) {
-                Perspective robotPerspective = new Perspective(currentState, currentAgent);
-                if (!plan.hasPerspective(robotPerspective)) {
+            // IF IT'S THE ROBOT'S TURN
+            if (depth % numAgents == sIndex) {
+                Perspective robotView = new Perspective(currentState, currentAgent);
+
+                // IF OUR CURRENT PLAN DOESN'T KNOW WHAT TO DO, RUN THE PLANNER
+                if (!plan.hasPerspective(robotView)) {
+                    System.out.println("PLANNING...");
+
+                    // WE'LL HAVE TO BUILD THIS FROM ADE BELIEF
                     Set<EpistemicState> robotPerspectiveStates =
                         currentState.getBeliefPerspective(currentAgent).getEpistemicStates();
+
+                    Search search = new Search();
                     Problem newProblem = new Problem(problem.getDomain(),
-                                                     problem.getSystemAgentIndex(),
+                                                     sIndex,
                                                      robotPerspectiveStates,
                                                      models,
                                                      problem.getGoals()
                                                     );
-                    Search search = new Search();
-                    plan = search.findSolution(problem);
+                    plan = search.findSolution(newProblem);
                     if (plan == null) {
-                        System.out.println("No solution found for estate:\n" + currentState);
+                        System.out.println("NO SOLUTION FOUND, ABORTING.");
                         System.exit(0);
                     }
-                    if (!plan.hasPerspective(robotPerspective)) {
+                    if (!plan.hasPerspective(robotView)) {
                         throw new RuntimeException("got a bad plan.");
                     }
+                    System.out.println("SOLUTION FOUND.");
                 }
 
-                action = plan.getAction(robotPerspective);
-                plan = plan.getChild(robotPerspective);
+                // THE PLAN GIVES US THE ROBOT'S ACTION
+                action = plan.getAction(robotView);
+
+                // THE PLAN IS A TREE, PROCEDE ACCORDING TO THE STATE
+                plan = plan.getChild(robotView);
             }
 
-            // HUMAN'S TURN
+
+            // OTHERWISE, IT'S THE HUMAN'S TURN
             else {
+
+                // WHAT THE HUMAN BELIEVES, ACCORDING TO THE CURRENT STATE
                 NDState humanPerspective = currentState.getBeliefPerspective(currentAgent);
 
+                // AN ACTION IS APPLICABLE IN THE CURRENT STATE IF
+                // ITS PRECONDITIONS ARE SATISFIED AND IF THE HUMAN BELIEVES
+                // THAT ITS PRECONDITIONS ARE SATISFIED (WE MIGHT WANT TO RELAX THIS)
                 Set<Action> applicable = new HashSet<>();
                 for (Action a : domain.getAgentActions(currentAgent)) {
                     if (a.necessarilyExecutable(humanPerspective)){
@@ -108,6 +126,7 @@ public class Simulator {
                     }
                 }
 
+                // THE CURRENT PLAN ASSUMES THE HUMAN WILL PERFORM A PREDICTED ACTION
                 Set<Action> predictions = models.get(currentAgent).getPrediction(humanPerspective);
 
                 if (predictions.isEmpty()) {
@@ -120,23 +139,31 @@ public class Simulator {
                     throw new RuntimeException("Agent doesn't think a predicted action is applicable");
                 }
 
+                // ASK THE USER TO SELECT AN ACTION
                 action = getHumanAction(applicable, predictions);
             }
 
             if (action == null) {
-                throw new RuntimeException("somehow failed to pick an action");
+                throw new RuntimeException("somehow failed to select an action");
             }
 
-            System.out.println(currentAgent + ": " + action.getSignature() + "\n");
+            // EXECUTE THE ACTION
+            System.out.println(currentAgent + " ACTS: " + action.getSignature());
             Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
             currentState = transitionResult.getState();
             models = transitionResult.getModels();
+
             depth += 1;
         }
-        
 
+        // GOAL ACHIEVED
+        displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
+        System.out.println("ACHIEVED GOAL: " + goal + "\n");
+        
     }
 
+
+    // PRINT OUT THE CURRENT STATE
     private static void displayState(Domain domain, NDState humanPerspective) {
         System.out.println("STATE:");
         for (FluentAtom atom : domain.getAllAtoms()) {
@@ -147,22 +174,18 @@ public class Simulator {
                 System.out.println("\tpossibly " + atom);
             }
         }
-        System.out.println("\n");
     }
 
 
+    // GET AN ACTION SELECTION FROM THE USER
     private static Action getHumanAction(Set<Action> applicable, Set<Action> predictions) {
-        
         Scanner stdin = new Scanner(System.in);
-
-        System.out.println("Pick an action. \"*\" indicates model predicitons.");
-
+        System.out.println("PICK AN ACTION, \"*\" INDICATES MODEL PREDICITONS:");
         List<Action> options = new ArrayList<>(applicable);
         for (Integer i = 0; i < options.size(); i++) {
             System.out.print(predictions.contains(options.get(i)) ? "* " : "  ");
-            System.out.println(i + ": " + options.get(i).getSignatureWithActor());
+            System.out.println(i + ": " + options.get(i).getSignature());
         }
-
         Integer selection = -1;
         while (selection < 0 || selection >= options.size()) {
             selection = stdin.nextInt();

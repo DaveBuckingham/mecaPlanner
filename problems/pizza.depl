@@ -21,6 +21,8 @@ agents{
     human1{PizzaModel},
 }
 
+passive{}
+
 fluents{
     at[?a - locatable, ?b - location](?a,?b),
     human_hungry(),
