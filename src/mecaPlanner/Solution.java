@@ -16,14 +16,19 @@ import java.util.HashMap;
 
 public class Solution implements java.io.Serializable{
 
+    private static int idCounter = 0;
+
     private Map<Perspective, Action> actions;
     private Map<Perspective, Solution> children;
     private Problem problem;
+    private int id;
 
     public Solution(Problem problem) {
         this.problem = problem;
         this.actions = new HashMap<>();
         this.children = new HashMap<>();
+        this.id = Solution.idCounter;
+        Solution.idCounter += 1;
     }
 
     public void addAction(Perspective p, Action a, Solution s) {
@@ -41,12 +46,30 @@ public class Solution implements java.io.Serializable{
 
 
     public String toString() {
-        return printPlan(0);
+        return listPerspectives() + printPlan(0);
     }
 
     public Problem getProblem() {
         return problem;
     }
+
+    private String listPerspectives() {
+        StringBuilder str = new StringBuilder();
+        str.append("[");
+        str.append(id);
+        str.append("] ");
+        str.append("t=");
+        str.append(time);
+        str.append(" \n");
+        str.append(perspective);
+        str.append("\n");
+        for (Solution s : children) {
+            str.append(s.listPerspectives());
+        }
+        return str.toString();
+    }
+
+
 
     private String printPlan(int d) {
         StringBuilder str = new StringBuilder();
@@ -60,4 +83,28 @@ public class Solution implements java.io.Serializable{
         }
         return str.toString();
     }
+
+
+    private String printPlan(int d) {
+        StringBuilder str = new StringBuilder();
+        for (int i = 0; i<d; i++) {
+            str.append("  ");
+        }
+        str.append("[");
+        str.append(id);
+        str.append("] ");
+        str.append(action.getSignatureWithActor());
+        str.append("\n");
+        for (Solution s : children) {
+            str.append(s.printPlan(d+1));
+        }
+        return str.toString();
+    }
+
+
+
+
+
+
+
 }
