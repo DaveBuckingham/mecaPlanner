@@ -32,13 +32,9 @@ beliefRelation and KnowledgeRelation subtypes, just for type safety in kripkeStr
 
 try to execute an action without preconditions satisfied, e.g. using test system: not caught except that there is no designated world...
 
-if an initially statement has unmatched parens, e.g. 'C(inKitchen(bob)', this isn't caught by parser and gives funky initial state
+make parser die on parse error
 
 improve makefile, still finnicky
-
-when printing policy, give agent names instead of just agent number
-
-currently i don't think we check that the "owner" field of actions is sensible
 
 observesif uses undefined type in expansion, catch error
 
