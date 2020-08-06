@@ -292,10 +292,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.typesSection());
         visit(ctx.objectsSection());
         visit(ctx.agentsSection());
-        visit(ctx.passiveSection());
+        if (ctx.passiveSection() != null) {visit(ctx.passiveSection());}
         visit(ctx.atomsSection());
-        visit(ctx.constantsSection());
-        visit(ctx.constraintsSection());
+        if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
+        if (ctx.constraintsSection() != null) {visit(ctx.constraintsSection());}
         visit(ctx.initiallySection());
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
@@ -447,6 +447,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         String name = ctx.NAME().getText();
         if (ctx.variableList() == null) {
             atoms.add(new FluentAtom(name));
+            return atoms;
         }
         for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
             variableStack.push(variableMap);

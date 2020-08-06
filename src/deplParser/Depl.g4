@@ -22,10 +22,10 @@ init :
     typesSection
     objectsSection
     agentsSection
-    passiveSection
+    passiveSection?
     atomsSection
-    constantsSection
-    constraintsSection
+    constantsSection?
+    constraintsSection?
     initiallySection
     goalsSection
     actionsSection

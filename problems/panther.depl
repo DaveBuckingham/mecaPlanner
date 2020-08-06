@@ -6,7 +6,7 @@ agents{thief}
 
 passive{}
 
-atoms{v,l,r,d}
+fluents{v,l,r,d}
 
 constants{}
 
