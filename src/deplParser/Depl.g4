@@ -101,12 +101,15 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
-kripkeFormula :
-    : NAME '=' '{' (atom ',')* atom? '}'                                                   # kripkeWorld
-    | 'B_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeBelief
-    | 'K_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeKnowledge
+
+kripkeFormula
+    : NAME '=' '{' (atom ',')* atom? '}'                                                               # kripkeWorld
+    | relationType '_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
     ;
 
+relationType : 'B' | 'K' ;
+fromWorld : NAME;
+toWorld : NAME;
 
 
 

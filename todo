@@ -18,6 +18,9 @@ DONE FOR AIJ
     observesif (and causesif, and what else?) should check constants as well as fluents
     handle mulitple observes and observesif rules per agent, probably or them together
 
+move check for right types of agents etc to planner instead of parser:
+e.g. should be able to have depls with no system agent just for testing actions
+
 remove static id counter from Solution
 
 stop early if cycles

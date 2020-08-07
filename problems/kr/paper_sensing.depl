@@ -7,12 +7,11 @@ objects{
     bob - actor,
 }
 
-agents{
-    alice,
-    bob,
-}
+agents{ alice }
 
-predicates{
+passive{bob}
+
+fluents{
     key,
     tails,
 }

@@ -8,8 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.actions.*;
-import mecaPlanner.state.Initialize;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.*;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -495,7 +494,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        //for (BeliefFormula statement : visitChildren(ctx));
         Set<BeliefFormula> initiallyStatements = new HashSet<>();
         for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
             BeliefFormula statement = (BeliefFormula) visit(statementContext);
@@ -511,11 +509,76 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    // @Override public Void visitInitiallyStatement(DeplParser.InitiallyStatementContext ctx) {
-    //     BeliefFormula statement = (BeliefFormula) visit(ctx.beliefFormula());
-    //     initiallyStatements.add(statement);
-    //     return null;
-    // }
+
+    @Override public Void visitKripkeModel(DeplParser.KripkeModelContext ctx) {
+        Map<String, World> worlds = new HashMap<>();
+        World designatedWorld = null;
+        Map<String, Relation> beliefRelation = new HashMap<>();
+        Map<String, Relation> knowledgeRelation = new HashMap<>();
+        for (DeplParser.KripkeFormulaContext statementContext : ctx.kripkeFormula()) {
+            if (statementContext instanceof DeplParser.KripkeWorldContext) {
+                World world = (World) visit(statementContext);
+                worlds.put(world.getName(), world);
+                if (designatedWorld == null) {
+                    designatedWorld = world;
+                }
+            }
+            else if (statementContext instanceof DeplParser.KripkeRelationContext) {
+                DeplParser.KripkeRelationContext relationContext = (DeplParser.KripkeRelationContext) statementContext;
+                String agent = relationContext.NAME().getText();
+                Relation relation = new Relation();
+                List<String> fromWorlds = new ArrayList<>();
+                List<String> toWorlds = new ArrayList<>();
+                for (DeplParser.FromWorldContext fromWorld : relationContext.fromWorld()) {
+                    String fromWorldName = fromWorld.getText();
+                    if (!worlds.containsKey(fromWorldName)) {
+                        throw new RuntimeException("unknown world: " + fromWorldName);
+                    }
+                    fromWorlds.add(fromWorldName);
+                }
+                for (DeplParser.ToWorldContext toWorld : relationContext.toWorld()) {
+                    String toWorldName = toWorld.getText();
+                    if (!worlds.containsKey(toWorldName)) {
+                        throw new RuntimeException("unknown world: " + toWorldName);
+                    }
+                    toWorlds.add(toWorldName);
+                }
+                assert(fromWorlds.size() == toWorlds.size());
+                for (int i = 0; i < fromWorlds.size(); i++) {
+                    relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
+                }
+                String relationType = relationContext.relationType().getText();
+                if (relationType.equals('B')) {
+                    beliefRelation.put(agent, relation);
+                }
+                else if (relationType.equals('K')) {
+                    knowledgeRelation.put(agent, relation);
+                }
+                else {
+                    throw new RuntimeException("unknow relation specifier: " + relationType);
+                }
+            }
+            else {
+                throw new RuntimeException("unknow KripkeFormulaContext");
+            }
+        }
+        assert(designatedWorld != null);
+        KripkeStructure kripke = new KripkeStructure(new HashSet<World>(worlds.values()), beliefRelation, knowledgeRelation);
+        startStates.add(new EpistemicState(kripke, designatedWorld));
+        return null;
+    }
+
+
+    @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
+        String worldName = ctx.NAME().getText();
+        Set<FluentAtom> atoms = new HashSet<>();
+        for (DeplParser.AtomContext atomCtx : ctx.atom()) {
+            atoms.add((FluentAtom) visit(atomCtx));
+        }
+        return new World(worldName, atoms);
+    }
+
+
 
 
 
