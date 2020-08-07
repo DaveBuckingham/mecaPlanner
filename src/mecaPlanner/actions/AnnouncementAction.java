@@ -36,7 +36,7 @@ public class AnnouncementAction extends Action {
                               List<String> parameters,
                               String actor,
                               int cost,
-                              BeliefFormula precondition,
+                              FluentFormula precondition,
                               Map<String, FluentFormula> observesIf,
                               Map<String, FluentFormula> awareIf,
                               FluentFormula announces,

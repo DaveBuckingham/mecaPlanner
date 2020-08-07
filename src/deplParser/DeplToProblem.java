@@ -566,7 +566,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         Map<FluentLiteral, FluentFormula> effects = new HashMap<FluentLiteral, FluentFormula>();
         //Set<FluentLiteral> effects = new HashSet<>();
         FluentFormula announces = null;
-        Set<FluentFormula> determines = new HashSet<FluentFormula>();
+        List<FluentFormula> determinesList = new ArrayList<FluentFormula>();
 
         for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -673,7 +673,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.determinesActionField().variableList())) {
                     variableStack.push(variableMap);
-                    determines.add((FluentFormula) visit(fieldCtx.determinesActionField().fluentFormula()));
+                    determinesList.add((FluentFormula) visit(fieldCtx.determinesActionField().fluentFormula()));
                     variableStack.pop();
                 }
             }
@@ -742,7 +742,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                                    precondition,
                                    observes,
                                    aware,
-                                   determines,
+                                   new FluentFormulaAnd(determinesList),
                                    domain
                                   );
         }

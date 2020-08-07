@@ -308,15 +308,15 @@ public class Test {
 //        System.out.println("ONTIC RESULT STATE:");
 //        System.out.println(onticResultState);
 //
-//        EpistemicState sensingStartState = constructOnticExampleStart();
-//        Action sensingAction = constructOnticExampleAction();
-//        EpistemicState sensingResultState = sensingAction.transition(sensingStartState);
-//        System.out.println("SENSING START STATE:");
-//        System.out.println(sensingStartState);
-//        System.out.println("SENSING ACTION:");
-//        System.out.println(sensingAction);
-//        System.out.println("SENSING RESULT STATE:");
-//        System.out.println(sensingResultState);
+        EpistemicState sensingStartState = constructSensingExampleStart();
+        Action sensingAction = constructSensingExampleAction();
+        EpistemicState sensingResultState = sensingAction.transition(sensingStartState);
+        System.out.println("SENSING START STATE:");
+        System.out.println(sensingStartState);
+        System.out.println("SENSING ACTION:");
+        System.out.println(sensingAction);
+        System.out.println("SENSING RESULT STATE:");
+        System.out.println(sensingResultState);
 //
 //        EpistemicState announcementStartState = constructOnticExampleStart();
 //        Action announcementAction = constructOnticExampleAction();

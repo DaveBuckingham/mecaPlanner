@@ -1,14 +1,6 @@
 package mecaPlanner.actions;
 
-import mecaPlanner.formulae.FluentLiteral;
-import mecaPlanner.formulae.FluentFormula;
-import mecaPlanner.formulae.FluentFormulaOr;
-import mecaPlanner.formulae.FluentFormulaNot;
-import mecaPlanner.formulae.FluentFormulaAnd;
-import mecaPlanner.formulae.BeliefFormula;
-import mecaPlanner.formulae.BeliefFormulaBelieves;
-import mecaPlanner.formulae.BeliefFormulaNot;
-import mecaPlanner.formulae.BeliefFormulaAnd;
+import mecaPlanner.formulae.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
@@ -35,16 +27,16 @@ public class SensingAction extends Action {
 
     //private static final Logger LOGGER = Logger.getLogger( ClassName.class.getName() );
 
-    private Set<FluentFormula> determines;
+    private FluentFormula determines;
 
     public SensingAction(String name,
                   List<String> parameters,
                   String actor,
                   Integer cost,
-                  BeliefFormula precondition,
+                  FluentFormula precondition,
                   Map<String, FluentFormula> observesIf,
                   Map<String, FluentFormula> awareIf,
-                  Set<FluentFormula> determines,
+                  FluentFormula determines,
                   Domain domain
                  ) {
         super(name, parameters, actor, cost, precondition, observesIf, awareIf, domain);
@@ -53,6 +45,26 @@ public class SensingAction extends Action {
 
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("sensing transition: " + getSignatureWithActor());
+
+        Map<String, FluentFormula> observesAndAware = new HashMap<>();
+        observesAndAware.putAll(observesIf);
+        observesAndAware.putAll(awareIf);
+
+        if (precondition != new FluentFormulaTrue()) {
+            SensingAction computeReset = new SensingAction(name,
+                                                           parameters,
+                                                           actor,
+                                                           cost,
+                                                           new FluentFormulaTrue(), // NO NEW PRECONDITION
+                                                           observesAndAware,    // THESE LEARN PERCONDITIONS
+                                                           new HashMap<String,FluentFormula>(),
+                                                           precondition,        // SENSE THE OLD PRECONDITION
+                                                           domain
+                                                          );
+            Action.UpdatedStateAndModels afterReset = computeReset.transition(beforeState, oldModels);
+            beforeState = afterReset.getState();
+            oldModels = afterReset.getModels();
+        }
 
         //LOGGER.log(Level.FINE, "transitioning ontic action");
 
@@ -95,11 +107,6 @@ public class SensingAction extends Action {
         Set<String> obliviousAgents = getOblivious(beforeState);
 
 
-        Map<String, Relation> resetRelations = new HashMap<>();
-        for (String a : getAnyObservers(beforeState)) {
-            resetRelations.put(a, new Relation());
-        }
-
         Map<String, Relation> newBeliefs = new HashMap<>();
         for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
@@ -111,24 +118,6 @@ public class SensingAction extends Action {
         }
 
         Set<World> resultWorlds = new HashSet<World>(observedWorlds);
-
-
-
-
-        // S(w)
-        Map<World, FluentFormula> sensedFormulae = new HashMap<>();
-        for (World world : oldWorlds) {
-            List<FluentFormula> sensedFactsInWorld = new ArrayList<>();
-            for (FluentFormula sensedFormula : determines) {
-                if (sensedFormula.holds(world)) {
-                    sensedFactsInWorld.add(sensedFormula);
-                }
-                else {
-                    sensedFactsInWorld.add(new FluentFormulaNot(sensedFormula));
-                }
-            }
-            sensedFormulae.put(world, new FluentFormulaAnd(sensedFactsInWorld));
-        }
 
 
 
@@ -160,44 +149,28 @@ public class SensingAction extends Action {
 
         for (String agent : observantAgents) {
 
+            BeliefFormula believesNotSensed = new BeliefFormulaBelieves(agent, new BeliefFormulaNot(determines));
+
             for (World fromWorld: oldWorlds) {
 
-                BeliefFormula believesNotPreconditionAndSensed = new BeliefFormulaBelieves(agent,
-                                                                     new BeliefFormulaNot(
-                                                                         new BeliefFormulaAnd(
-                                                                             getPrecondition(),
-                                                                             sensedFormulae.get(fromWorld))));
+                boolean reset = believesNotSensed.holdsAtWorld(oldKripke,fromWorld);
 
-                boolean reset = believesNotPreconditionAndSensed.holdsAtWorld(oldKripke,fromWorld);
-
-                if (reset) {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-                else {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedBelief(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-            }
-
-
-            for (World fromWorld: observedWorlds) {
                 for (World toWorld: observedWorlds) {
 
-                    boolean worldsNotDistinguished = sensedFormulae.get(newWorldsToOld.get(fromWorld)).equals(
-                                                     sensedFormulae.get(newWorldsToOld.get(toWorld)));
+                    boolean worldsNotDistinguished = determines.holds(fromWorld) == determines.holds(toWorld);
 
-                    if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld), newWorldsToOld.get(toWorld))) {
+                    World oldFromWorld = newWorldsToOld.get(fromWorld);
+                    World oldToWorld = newWorldsToOld.get(toWorld);
+                    if ((oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) ||
+                        (reset && oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld))
+                       ) {
                         if (worldsNotDistinguished) {
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
                     }
+
+
+
                     if (oldKripke.isConnectedKnowledge(agent,
                                                        newWorldsToOld.get(fromWorld),
                                                        newWorldsToOld.get(toWorld))) {
@@ -211,35 +184,12 @@ public class SensingAction extends Action {
 
 
         for (String agent : awareAgents) {
-            BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent,
-                                                        new BeliefFormulaNot(
-                                                            getPrecondition()));
-            for (World fromWorld: oldWorlds) {
-
-                boolean reset = believesNotPrecondition.holdsAtWorld(oldKripke, fromWorld);
-
-                for (World toWorld: oldWorlds) {
-
-                    if(reset) {
-                        if (oldKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                    else {
-                        if (oldKripke.isConnectedBelief(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-
-            }
-
-
 
             for (World fromWorld: observedWorlds) {
                 for (World toWorld: observedWorlds) {
-                    if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
-                                                              newWorldsToOld.get(toWorld))) {
+                    if (oldKripke.isConnectedBelief(agent,
+                                                    newWorldsToOld.get(fromWorld),
+                                                    newWorldsToOld.get(toWorld))) {
                         newBeliefs.get(agent).connect(fromWorld, toWorld);
                     }
                     if (oldKripke.isConnectedKnowledge(agent,
@@ -294,10 +244,8 @@ public class SensingAction extends Action {
         for (String agent : oldModels.keySet()) {
             if (observantAgents.contains(agent)) {
                 NDState perspective = beforeState.getBeliefPerspective(agent);
-                // THIS IS A FORREAL HACK, WE'RE PUTTING WHAT IS SENSED IN THE DESIGNATED
-                // WORLD INTO THE SENSING ACTION FIELD FOR SPECIFYING FORMULAE TO BE SENSED
-                Set<FluentFormula> actualSensed = new HashSet<>();
-                actualSensed.add(sensedFormulae.get(beforeState.getDesignatedWorld()));
+                // THIS IS WRONG, WE NEED A WAY TO PUT THE SENSED INFORMATION 
+                // INSTEAD OF THE DETERMINES FORMULA...
                 SensingAction informed = new SensingAction(this.name,
                                                            this.parameters,
                                                            this.actor,
@@ -305,7 +253,7 @@ public class SensingAction extends Action {
                                                            this.precondition,
                                                            this.observesIf,
                                                            this.awareIf,
-                                                           actualSensed,
+                                                           this.determines,
                                                            domain
                                                           );
                 Model updatedModel = oldModels.get(agent).update(perspective, informed);
@@ -334,12 +282,9 @@ public class SensingAction extends Action {
         StringBuilder str = new StringBuilder();
         str.append("Sensing ");
         str.append(super.toString());
-        str.append("\tDetermines\n");
-        for (FluentFormula sensed : determines) {
-            str.append("\t\t");
-            str.append(sensed);
-            str.append("\n");
-        }
+        str.append("\tDetermines: ");
+        str.append(determines);
+        str.append("\n");
         return str.toString();
     }
 

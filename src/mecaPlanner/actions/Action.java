@@ -28,7 +28,7 @@ public abstract class Action implements java.io.Serializable {
     protected List<String> parameters;
     protected int cost;
     protected String actor;
-    protected BeliefFormula precondition;
+    protected FluentFormula precondition;
     protected Map<String, FluentFormula> observesIf;
     protected Map<String, FluentFormula> awareIf;
 
@@ -37,7 +37,7 @@ public abstract class Action implements java.io.Serializable {
                   List<String> parameters,
                   String actor,
                   int cost,
-                  BeliefFormula precondition,
+                  FluentFormula precondition,
                   Map<String, FluentFormula> observesIf,
                   Map<String, FluentFormula> awareIf,
                   Domain domain

@@ -21,6 +21,17 @@ constants{
 }
 
 initially{
+    w1={tails,key},
+    w2={key},
+    w3={tails},
+    w4={},
+    B_alice={(w1,w2),(w2,w2),(w3,w4),(w4,w4)},
+    K_alice={(w1,w1),(w1,w2),(w2,w2),(w3,w3),(w3,w4),(w4,w4)},
+    B_bob={(w1,w3),(w1,w4),(w2,w3),(w2,w4),(w3,w3),(w3,w4),(w4,w3),(w4,w4)},
+    K_bob={(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+           (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+           (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+           (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
 }
 
 goals{

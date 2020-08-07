@@ -36,7 +36,7 @@ public class OnticAction extends Action implements java.io.Serializable{
                        List<String> parameters,
                        String actor,
                        Integer cost,
-                       BeliefFormula precondition,
+                       FluentFormula precondition,
                        Map<String, FluentFormula> observesIf,
                        Map<String, FluentFormula> awareIf,
                        Map<FluentLiteral, FluentFormula> effects,

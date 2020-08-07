@@ -93,9 +93,21 @@ constraintsSection : 'constraints' '{' (atom ',')* atom? '}' ;
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' (initiallyDef | '{' (initiallyDef ',')* initiallyDef ','? '}') ;
+initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
+
+startStateDef : initiallyDef | kripkeModel ;
 
 initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
+
+kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
+
+kripkeFormula :
+    : NAME '=' '{' (atom ',')* atom? '}'                                                   # kripkeWorld
+    | 'B_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeBelief
+    | 'K_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeKnowledge
+    ;
+
+
 
 
 atom : NAME parameterList? | '(' NAME parameterList? ')';
