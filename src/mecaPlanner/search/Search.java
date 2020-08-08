@@ -40,6 +40,20 @@ public class Search {
         this.problem = problem;
         this.domain = problem.getDomain();
 
+        if (problem.getSystemAgentIndex() == null) {
+            throw new RuntimeException("system agent not defined");
+        }
+        if (problem.getStartStates().isEmpty()) {
+            throw new RuntimeException("no start state defined");
+        }
+        if (problem.getGoals().isEmpty()) {
+            throw new RuntimeException("no goals defined");
+        }
+        // ADD OTHER CHECKS
+
+
+
+
         Set<EpistemicState> startStates = problem.getStartStates();
 
         int systemAgentIndex = problem.getSystemAgentIndex();

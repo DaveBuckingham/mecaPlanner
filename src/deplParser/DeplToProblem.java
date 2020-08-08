@@ -268,17 +268,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        if (systemAgentIndex == null) {
-            throw new RuntimeException("system agent not defined");
-        }
-        if (startStates.isEmpty()) {
-            throw new RuntimeException("no start state defined");
-        }
-        if (goals.isEmpty()) {
-            throw new RuntimeException("no goals defined");
-        }
-        // ADD OTHER CHECKS
-
         return new Problem(domain, systemAgentIndex, startStates, startingModels, goals);
     }
 
@@ -548,10 +537,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                     relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
                 }
                 String relationType = relationContext.relationType().getText();
-                if (relationType.equals('B')) {
+                if (relationType.equals("B_")) {
                     beliefRelation.put(agent, relation);
                 }
-                else if (relationType.equals('K')) {
+                else if (relationType.equals("K_")) {
                     knowledgeRelation.put(agent, relation);
                 }
                 else {

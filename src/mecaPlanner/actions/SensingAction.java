@@ -46,19 +46,24 @@ public class SensingAction extends Action {
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("sensing transition: " + getSignatureWithActor());
 
-        Map<String, FluentFormula> observesAndAware = new HashMap<>();
-        observesAndAware.putAll(observesIf);
-        observesAndAware.putAll(awareIf);
+        Map<String, FluentFormula> observesOrAware = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            observesOrAware.put(agent, new FluentFormulaOr(observesIf.get(agent), awareIf.get(agent)));
+        }
 
-        if (precondition != new FluentFormulaTrue()) {
-            SensingAction computeReset = new SensingAction(name,
+        if (!precondition.equals(determines)) {  // COULD INSTEAD CHECK IF THEY DISTINGUISH THE SAME WORLDS
+            //System.out.println("----");
+            //System.out.println(precondition);
+            //System.out.println(determines);
+            //System.out.println("----");
+            SensingAction computeReset = new SensingAction(name+"[preconditions]",
                                                            parameters,
                                                            actor,
                                                            cost,
-                                                           new FluentFormulaTrue(), // NO NEW PRECONDITION
-                                                           observesAndAware,    // THESE LEARN PERCONDITIONS
+                                                           precondition,
+                                                           observesOrAware,    // THESE LEARN PERCONDITIONS
                                                            new HashMap<String,FluentFormula>(),
-                                                           precondition,        // SENSE THE OLD PRECONDITION
+                                                           precondition,        // SENSE THE PRECONDITION
                                                            domain
                                                           );
             Action.UpdatedStateAndModels afterReset = computeReset.transition(beforeState, oldModels);
@@ -120,9 +125,6 @@ public class SensingAction extends Action {
         Set<World> resultWorlds = new HashSet<World>(observedWorlds);
 
 
-
-
-
         if (!obliviousAgents.isEmpty()) {
             resultWorlds.addAll(obliviousWorlds);
 
@@ -151,16 +153,16 @@ public class SensingAction extends Action {
 
             BeliefFormula believesNotSensed = new BeliefFormulaBelieves(agent, new BeliefFormulaNot(determines));
 
-            for (World fromWorld: oldWorlds) {
+            for (World fromWorld: observedWorlds) {
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
 
-                boolean reset = believesNotSensed.holdsAtWorld(oldKripke,fromWorld);
+                boolean reset = believesNotSensed.holdsAtWorld(oldKripke,oldFromWorld);
 
                 for (World toWorld: observedWorlds) {
+                    World oldToWorld = newWorldsToOld.get(toWorld);
 
                     boolean worldsNotDistinguished = determines.holds(fromWorld) == determines.holds(toWorld);
 
-                    World oldFromWorld = newWorldsToOld.get(fromWorld);
-                    World oldToWorld = newWorldsToOld.get(toWorld);
                     if ((oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) ||
                         (reset && oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld))
                        ) {

@@ -32,6 +32,8 @@ public class Test {
 
     public static void main(String args[]) {
 
+        Log.setThreshold(Log.Level.DEBUG);
+
         if (args.length < 1) {
             System.out.println("missing arg");
             return;
@@ -240,6 +242,7 @@ public class Test {
 
     private static void runActions(String deplFile, List<String> actionNames) {
 
+
         DeplToProblem visitor = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
@@ -288,7 +291,7 @@ public class Test {
             }
 
             System.out.println(currentState);
-            System.out.println("check relations: " + checkRelations(domain, currentState));
+            //System.out.println("check relations: " + checkRelations(domain, currentState));
         }
 
     }
@@ -671,28 +674,34 @@ public class Test {
             Relation relation = state.getKripke().getBeliefRelations().get(agent);
             if (!checkSerial(relation, worlds)) {
                 System.out.println("failed check: serial belief for agent " + agent);
+                System.out.println(state);
                 return false;
             }
             if (!checkTransitive(relation, worlds)) {
                 System.out.println("failed check: transitive belief for agent " + agent);
+                System.out.println(state);
                 return false;
             }
             if (!checkEuclidean(relation, worlds)) {
                 System.out.println("failed check: euclidean belief for agent " + agent);
+                System.out.println(state);
                 return false;
             }
 
             relation = state.getKripke().getKnowledgeRelations().get(agent);
             if (!checkReflexive(relation, worlds)) {
                 System.out.println("failed check: reflexive knowledge for agent " + agent);
+                System.out.println(state);
                 return false;
             }
             if (!checkTransitive(relation, worlds)) {
                 System.out.println("failed check: transitive knowledge for agent " + agent);
+                System.out.println(state);
                 return false;
             }
             if (!checkSymmetric(relation, worlds)) {
                 System.out.println("failed check: symmetric knowledge for agent " + agent);
+                System.out.println(state);
                 return false;
             }
         }

@@ -50,7 +50,7 @@ public class Problem implements java.io.Serializable {
         return startStates.iterator().next();
     }
 
-    public int getSystemAgentIndex() {
+    public Integer getSystemAgentIndex() {
         return systemAgentIndex;
     }
 

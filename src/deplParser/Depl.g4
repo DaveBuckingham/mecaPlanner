@@ -18,6 +18,7 @@ COMMENT: '/*' .*? '*/' -> skip;
 WS: [ \n\t\r]+ -> skip;
 
 
+
 init :
     typesSection
     objectsSection
@@ -104,10 +105,10 @@ kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
 kripkeFormula
     : NAME '=' '{' (atom ',')* atom? '}'                                                               # kripkeWorld
-    | relationType '_' NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
+    | relationType NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
     ;
 
-relationType : 'B' | 'K' ;
+relationType : 'B_' | 'K_' ;
 fromWorld : NAME;
 toWorld : NAME;
 
