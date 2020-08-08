@@ -8,25 +8,31 @@ objects{
     carol - actor
 }
 
-agents{
-    alice,
+agents{alice}
+
+passive{
     bob,
     carol
 }
 
-predicates{
-    raining,
+fluents{
+    r,
 }
 
-constants{
-}
+constants{}
 
 initially{
+    w1={},
+    w2={r},
+    B_alice={(w1,w1),(w2,w2)},
+    B_bob=  {(w1,w1),(w2,w2)},
+    B_carol={(w1,w1),(w2,w2)},
+    K_alice={(w1,w1),(w2,w2)},
+    K_bob=  {(w1,w1),(w2,w2)},
+    K_carol={(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
 }
 
-goals{
-    
-}
+goals{}
 
 actions{
 
@@ -34,7 +40,7 @@ actions{
         owner{alice},
         precondition{T},
         observes[?o - actor]{?o},
-        announces{raining}
+        announces{r}
     }
 
 }

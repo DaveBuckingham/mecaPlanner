@@ -20,12 +20,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Objects;
 
-//import java.util.logging.Logger;
-
 
 public class SensingAction extends Action {
-
-    //private static final Logger LOGGER = Logger.getLogger( ClassName.class.getName() );
 
     private FluentFormula determines;
 
@@ -46,16 +42,17 @@ public class SensingAction extends Action {
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("sensing transition: " + getSignatureWithActor());
 
-        Map<String, FluentFormula> observesOrAware = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            observesOrAware.put(agent, new FluentFormulaOr(observesIf.get(agent), awareIf.get(agent)));
-        }
-
         if (!precondition.equals(determines)) {  // COULD INSTEAD CHECK IF THEY DISTINGUISH THE SAME WORLDS
-            //System.out.println("----");
-            //System.out.println(precondition);
-            //System.out.println(determines);
-            //System.out.println("----");
+
+            // NOTE: WE'RE SEPARATING NEW WORLDS BASED ON PRECONDITION
+            // TWICE, WHICH IS UNNECESSARY, AFTER THIS SUB-ACTION
+            // RUNS, THE MAIN ACTION'S PRECONDITION WILL SELECT ALL OF THE WORLDS...
+
+            Map<String, FluentFormula> observesOrAware = new HashMap<>();
+            for (String agent : domain.getAllAgents()) {
+                observesOrAware.put(agent, new FluentFormulaOr(observesIf.get(agent), awareIf.get(agent)));
+            }
+
             SensingAction computeReset = new SensingAction(name+"[preconditions]",
                                                            parameters,
                                                            actor,
@@ -70,8 +67,6 @@ public class SensingAction extends Action {
             beforeState = afterReset.getState();
             oldModels = afterReset.getModels();
         }
-
-        //LOGGER.log(Level.FINE, "transitioning ontic action");
 
         assert(this.executable(beforeState));
         //if (!this.executable(before)) {

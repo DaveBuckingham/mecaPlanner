@@ -1,12 +1,6 @@
 package mecaPlanner.actions;
 
-import mecaPlanner.formulae.FluentFormula;
-import mecaPlanner.formulae.BeliefFormula;
-import mecaPlanner.formulae.FluentLiteral;
-import mecaPlanner.formulae.BeliefFormulaBelieves;
-import mecaPlanner.formulae.BeliefFormulaNot;
-import mecaPlanner.formulae.BeliefFormulaAnd;
-import mecaPlanner.formulae.BeliefFormulaKnows;
+import mecaPlanner.formulae.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
@@ -56,6 +50,30 @@ public class AnnouncementAction extends Action {
     @Override
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("announcement transition: " + getSignatureWithActor());
+
+
+        if (!precondition.equals(new FluentFormulaTrue())) {
+
+            Map<String, FluentFormula> observesOrAware = new HashMap<>();
+            for (String agent : domain.getAllAgents()) {
+                observesOrAware.put(agent, new FluentFormulaOr(observesIf.get(agent), awareIf.get(agent)));
+            }
+
+            SensingAction computeReset = new SensingAction(name+"[preconditions]",
+                                                           parameters,
+                                                           actor,
+                                                           cost,
+                                                           precondition,
+                                                           observesOrAware,    // THESE LEARN PERCONDITIONS
+                                                           new HashMap<String,FluentFormula>(),
+                                                           precondition,        // SENSE THE PRECONDITION
+                                                           domain
+                                                          );
+            Action.UpdatedStateAndModels afterReset = computeReset.transition(beforeState, oldModels);
+            beforeState = afterReset.getState();
+            oldModels = afterReset.getModels();
+        }
+
 
 
         assert(this.executable(beforeState));
@@ -139,108 +157,77 @@ public class AnnouncementAction extends Action {
 
 
 
-
         for (String agent : observantAgents) {
 
-            BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent,
-                                                        new BeliefFormulaNot(getPrecondition()));
-
-            BeliefFormula believesNotPreconditionAndAnnouncement = new BeliefFormulaBelieves(agent,
-                                                                       new BeliefFormulaNot(
-                                                                           new BeliefFormulaAnd(
-                                                                               getPrecondition(),
-                                                                               getAnnounces())));
-
-            BeliefFormula knowsNotPreconditionAndAnnouncement = new BeliefFormulaKnows(agent,
-                                                                    new BeliefFormulaNot(
-                                                                        new BeliefFormulaAnd(
-                                                                            getPrecondition(),
-                                                                            getAnnounces())));
-
-
-            for (World fromWorld: oldWorlds) {
-
-                // (M,u) |= B_i ~a.pre
-                boolean resetForPre = believesNotPrecondition.holdsAtWorld(oldKripke,fromWorld);
-
-                // (M,u) |= K_i ~(a.pre ^ a.ann)
-                boolean reject = knowsNotPreconditionAndAnnouncement.holdsAtWorld(oldKripke,fromWorld);
-
-                // (M,u) |= B_i ~(a.pre ^ a.ann)
-                boolean resetForAnn = believesNotPreconditionAndAnnouncement.holdsAtWorld(oldKripke,fromWorld);
-
-                if (resetForPre || ((!reject) && resetForAnn)) {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-                else {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedBelief(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-            }
+            BeliefFormula believesNotAnnounces = new BeliefFormulaBelieves(agent, new BeliefFormulaNot(announces));
+            BeliefFormula knowsNotAnnounces = new BeliefFormulaKnows(agent, new BeliefFormulaNot(announces));
 
             for (World fromWorld: observedWorlds) {
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
 
-                boolean reject = knowsNotPreconditionAndAnnouncement.holdsAtWorld(oldKripke, newWorldsToOld.get(fromWorld)); 
+                // REJECT
+                if (knowsNotAnnounces.holdsAtWorld(oldKripke,oldFromWorld)) {
 
-                for (World toWorld: observedWorlds) {
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = newWorldsToOld.get(toWorld);
 
-                    if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
-                                                              newWorldsToOld.get(toWorld))) { 
-                        if (reject || getAnnounces().holdsAtWorld(oldKripke, newWorldsToOld.get(toWorld))) {
+                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
+
+                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        }
                     }
-                    if (oldKripke.isConnectedKnowledge(agent,
-                                                       newWorldsToOld.get(fromWorld),
-                                                       newWorldsToOld.get(toWorld))) {
-                        newKnowledges.get(agent).connect(fromWorld, toWorld);
+                }
+
+                // RESET
+                else if (believesNotAnnounces.holdsAtWorld(oldKripke,oldFromWorld)) {
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = newWorldsToOld.get(toWorld);
+
+                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                            // AFTER RESET, WE STILL LEARN THE THING
+                            if (announces.holds(oldToWorld)) {
+                                newBeliefs.get(agent).connect(fromWorld, toWorld);
+                            }
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        }
                     }
+                }
+
+                // LEARN ANNOUNCEMENT
+                else {
+
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = newWorldsToOld.get(toWorld);
+                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                            if (announces.holds(oldToWorld)) {
+                                newBeliefs.get(agent).connect(fromWorld, toWorld);
+                            }
+                        }
+                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        }
+                    }
+
                 }
             }
         }
 
 
         for (String agent : getAware(beforeState)) {
-            BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent, new BeliefFormulaNot(getPrecondition()));
-            for (World fromWorld: oldWorlds) {
-
-                // [paper] (M,u) |= B_i ~a.pre
-                boolean resetForPre = believesNotPrecondition.holdsAtWorld(oldKripke,fromWorld);
-
-                if(resetForPre) {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-                else {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedBelief(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-            }
-
 
             for (World fromWorld: observedWorlds) {
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
 
                 for (World toWorld: observedWorlds) {
-                    if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
-                                                              newWorldsToOld.get(toWorld))) {
+                    World oldToWorld = newWorldsToOld.get(toWorld);
+
+                    if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                         newBeliefs.get(agent).connect(fromWorld, toWorld);
                     }
-                    if (oldKripke.isConnectedKnowledge(agent,
-                                                       newWorldsToOld.get(fromWorld),
-                                                       newWorldsToOld.get(toWorld))) {
+                    if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                         newKnowledges.get(agent).connect(fromWorld, toWorld);
                     }
                 }
@@ -249,30 +236,23 @@ public class AnnouncementAction extends Action {
 
 
         for (String agent : obliviousAgents) {
-
             for (World fromWorld: observedWorlds) {
-                for (World toWorld: obliviousWorlds) {
-                    if (oldKripke.isConnectedBelief(agent, newWorldsToOld.get(fromWorld), newWorldsToOld.get(toWorld))) {
-                        newBeliefs.get(agent).connect(fromWorld, toWorld);
-                    }
-                    if (oldKripke.isConnectedKnowledge(agent,
-                                                       newWorldsToOld.get(fromWorld),
-                                                       newWorldsToOld.get(toWorld))) {
-                        newKnowledges.get(agent).connect(fromWorld, toWorld);
-                        newKnowledges.get(agent).connect(toWorld, fromWorld);
-                    }
-                }
-            }
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
 
-            for (World fromWorld: observedWorlds) {
                 for (World toWorld: observedWorlds) {
-                    if (oldKripke.isConnectedKnowledge(agent,
-                                                       newWorldsToOld.get(fromWorld),
-                                                       newWorldsToOld.get(toWorld))) {
+                    World oldToWorld = newWorldsToOld.get(toWorld);
+
+                    if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                        newBeliefs.get(agent).connect(fromWorld, oldToWorld);
+                    }
+                    if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                         newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        newKnowledges.get(agent).connect(fromWorld, oldToWorld);
+                        newKnowledges.get(agent).connect(oldToWorld, fromWorld);
                     }
                 }
             }
+
         }
 
 
