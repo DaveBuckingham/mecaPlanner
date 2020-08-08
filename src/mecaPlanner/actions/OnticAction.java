@@ -30,7 +30,6 @@ public class OnticAction extends Action implements java.io.Serializable{
 
 
     private Map<FluentLiteral, FluentFormula> effects;
-    //private Set<FluentLiteral> effects;
 
     public OnticAction(String name,
                        List<String> parameters,
@@ -40,7 +39,6 @@ public class OnticAction extends Action implements java.io.Serializable{
                        Map<String, FluentFormula> observesIf,
                        Map<String, FluentFormula> awareIf,
                        Map<FluentLiteral, FluentFormula> effects,
-                       //Set<FluentLiteral> effects
                        Domain domain
                       ) {
         super(name, parameters, actor, cost, precondition, observesIf, awareIf, domain);
@@ -58,6 +56,33 @@ public class OnticAction extends Action implements java.io.Serializable{
     @Override
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("ontic transition: " + getSignatureWithActor());
+
+
+        if (!precondition.equals(new FluentFormulaTrue())) {
+
+            Map<String, FluentFormula> observesOrAware = new HashMap<>();
+            for (String agent : domain.getAllAgents()) {
+                observesOrAware.put(agent, new FluentFormulaOr(observesIf.get(agent), awareIf.get(agent)));
+            }
+
+            SensingAction computeReset = new SensingAction(name+"[preconditions]",
+                                                           parameters,
+                                                           actor,
+                                                           cost,
+                                                           precondition,
+                                                           observesOrAware,    // THESE LEARN PERCONDITIONS
+                                                           new HashMap<String,FluentFormula>(),
+                                                           precondition,        // SENSE THE PRECONDITION
+                                                           domain
+                                                          );
+            Action.UpdatedStateAndModels afterReset = computeReset.transition(beforeState, oldModels);
+            beforeState = afterReset.getState();
+            oldModels = afterReset.getModels();
+        }
+
+
+
+
 
 
         assert(this.executable(beforeState));
@@ -113,11 +138,6 @@ public class OnticAction extends Action implements java.io.Serializable{
         observantAwareAgents.addAll(getAware(beforeState));
         Set<String> obliviousAgents = getOblivious(beforeState);
 
-        Map<String, Relation> resetRelations = new HashMap<>();
-        for (String a : getAnyObservers(beforeState)) {
-            resetRelations.put(a, new Relation());
-        }
-
         
         Map<String, Relation> newBeliefs = new HashMap<>();
         for (String a : domain.getAllAgents()) {
@@ -129,13 +149,6 @@ public class OnticAction extends Action implements java.io.Serializable{
             newKnowledges.put(a, new Relation());
         }
 
-
-        // AN EFFECT CONDITION IS REVEALED IN A WORLD IF
-        // IT IS SATISFIED IN THE WORLD AND THE EFFECT IS FALSE
-        // (AN OBSERVER SEES THE EFFECT BECOME TRUE, INDICATING THE TRUTH OF THE CONDITION)
-        // THE NEGATIN OF AN EFFECT CONDITION IS REVEALED IN A WORLD IF
-        // IT IS NOT SATISFIED IN THE WORLD AND THE EFFECT IS FALSE
-        // (AN OBSERVER SEES THE EFFECT REMAIN FALSE, INDICATING THE FALSITY OF THE CONDITION)
 
 
         Map<World, FluentFormula> revealedConditions = new HashMap<>();
@@ -185,45 +198,20 @@ public class OnticAction extends Action implements java.io.Serializable{
         for (String agent : observantAwareAgents) {
 
 
-            // AN OBSERVER RESETS BELIEFS
-            // IF AN ACTION CONDITION CONTRADICTS BELIEFS
-            // OR IF A REVEALED EFFECT CONDITION CONTRADICTS BELIEFS
-
-            BeliefFormula believesNotPrecondition = new BeliefFormulaBelieves(agent, 
-                                                        new BeliefFormulaNot(getPrecondition()));
-            for (World fromWorld: oldWorlds) {
+            for (World fromWorld: observedWorlds) {
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
 
                 BeliefFormula believesNotEffectConditions = new BeliefFormulaBelieves(agent, 
                                                                 new BeliefFormulaNot(revealedConditions.get(fromWorld)));
-                if(believesNotPrecondition.holdsAtWorld(oldKripke, fromWorld) ||
-                   believesNotEffectConditions.holdsAtWorld(oldKripke,fromWorld)) {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-                else {
-                    for (World toWorld: oldWorlds) {
-                        if (oldKripke.isConnectedBelief(agent, fromWorld, toWorld)) {
-                            resetRelations.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-            }
 
 
-            // AN OBSERVER COMES TO BELIEVE AND KNOW
-            // ACTION EFFECTS
-            // ACTION PRECONDITIONS WHOSE NEGATIONS ARE NOT ACTION EFFECTS
-            // REVEALED EFFECT CONDITIONS WHOSE NEGATIONS ARE NOT ACTION EFFECTS
-
-
-            for (World fromWorld: observedWorlds) {
                 for (World toWorld: observedWorlds) {
-                    // IFF THE TOWORLD DOESN'T CONTRADICT FACTS REVEALED BY
-                    // THE ACTION'S EXECUTION IN THE OLD FROMWORLD BY VIRTUE OF THE ACTION'S PRECONDITIONS,
-                    // THE AGENT WILL BELIEVE THE TOWOLRD TO BE POSSIBLE IN THE NEW FROMWORLD.
+                    World oldToWorld = newWorldsToOld.get(toWorld);
+
+
+
+
+
                     if (resetRelations.get(agent).isConnected(newWorldsToOld.get(fromWorld),
                                                               newWorldsToOld.get(toWorld))) {
                         if (revealedConditions.get(newWorldsToOld.get(fromWorld)).holds(toWorld)) {
