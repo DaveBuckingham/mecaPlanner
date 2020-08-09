@@ -24,6 +24,10 @@ public class FluentFormulaTrue extends FluentFormula{
         return true;
     }
 
+    public Boolean alwaysHolds() {
+        return true;
+    }
+
     public Set<FluentAtom> getAllAtoms() {
         return new HashSet<>();
     }

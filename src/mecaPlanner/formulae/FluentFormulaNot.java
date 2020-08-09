@@ -27,6 +27,13 @@ public class FluentFormulaNot extends FluentFormula{
         return !formula.holds(world);
     }
 
+    public Boolean alwaysHolds() {
+        if (formula instanceof FluentFormulaFalse) {
+            return true;
+        }
+        return false;
+    }
+
     public Set<FluentAtom> getAllAtoms() {
         return formula.getAllAtoms();
     }

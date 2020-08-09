@@ -48,6 +48,10 @@ public class FluentAtom extends FluentFormula{
         return world.containsAtom(this);
     }
 
+    public Boolean alwaysHolds() {
+        return false;
+    }
+
     public FluentLiteral negate() {
         return new FluentLiteral(false, this);
     }

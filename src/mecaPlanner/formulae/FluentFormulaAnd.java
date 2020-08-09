@@ -25,6 +25,10 @@ public class FluentFormulaAnd extends FluentFormula{
         this.formulae = formulae;
     }
 
+    public FluentFormulaAnd(Set<FluentFormula> formulae) {
+        this.formulae = new ArrayList<FluentFormula>(formulae);
+    }
+
     public List<FluentFormula> getFormulae() {
         return formulae;
     }
@@ -32,6 +36,15 @@ public class FluentFormulaAnd extends FluentFormula{
     public Boolean holds(World world) {
         for (FluentFormula formula : formulae) {
             if (!formula.holds(world)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Boolean alwaysHolds() {
+        for (FluentFormula formula : formulae) {
+            if (!formula.alwaysHolds()) {
                 return false;
             }
         }

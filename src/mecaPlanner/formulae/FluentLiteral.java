@@ -70,6 +70,10 @@ public class FluentLiteral extends FluentFormula{
         return (!this.atom.holds(world));
     }
 
+    public Boolean alwaysHolds() {
+        return false;
+    }
+
     public Set<FluentAtom> getAllAtoms() {
         Set<FluentAtom> allAtoms = new HashSet<>();
         allAtoms.add(atom);

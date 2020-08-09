@@ -11,6 +11,8 @@ public abstract class FluentFormula extends BeliefFormula {
 
     public abstract Boolean holds(World world);
 
+    public abstract Boolean alwaysHolds();
+
     public final Boolean holdsAtWorld(KripkeStructure kripke, World world) {
         return this.holds(world);
     }

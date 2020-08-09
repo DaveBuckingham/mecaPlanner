@@ -38,6 +38,15 @@ public class FluentFormulaOr extends FluentFormula{
         return false;
     }
 
+    public Boolean alwaysHolds() {
+        for (FluentFormula formula : formulae) {
+            if (formula.alwaysHolds()) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     public Set<FluentAtom> getAllAtoms() {
         Set<FluentAtom> allAtoms = new HashSet<>();
         for (FluentFormula formula : formulae) {

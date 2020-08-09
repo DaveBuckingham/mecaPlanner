@@ -25,8 +25,8 @@ constants{
 }
 
 initially{
-    w1={closed},
-    w2={closed,locked},
+    w1={closed,looking(alice),looking(bob)},
+    w2={closed,locked,looking(alice),looking(bob)},
     B_alice={(w1,w1),(w2,w2)},
     B_bob=  {(w1,w2),(w2,w2)},
     B_carol={(w1,w1),(w2,w2)},
