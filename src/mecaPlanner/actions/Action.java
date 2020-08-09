@@ -20,7 +20,7 @@ import java.util.Objects;
 
 
 
-public abstract class Action implements java.io.Serializable {
+public class Action implements java.io.Serializable {
 
     protected Domain domain;
 
@@ -40,6 +40,9 @@ public abstract class Action implements java.io.Serializable {
                   FluentFormula precondition,
                   Map<String, FluentFormula> observesIf,
                   Map<String, FluentFormula> awareIf,
+                  Set<FluentFormula> determines,
+                  Set<BeliefFormula> announces,
+                  Map<FluentLiteral, FluentFormula> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -75,16 +78,17 @@ public abstract class Action implements java.io.Serializable {
     }
 
     public boolean executable(EpistemicState state) {
-        return precondition.holds(state);
+        return precondition.holds(state.getDesignatedWorld());
     }
 
-    protected boolean executable(KripkeStructure kripke, World world) {
-        return precondition.holdsAtWorld(kripke, world);
+    protected boolean executable(World world) {
+        return precondition.holds(world);
     }
 
     public Boolean necessarilyExecutable(NDState state) {
         for (World w : state.getDesignatedWorlds()) {
-            if (!executable(state.getKripke(), w)) {
+            //if (!executable(state.getKripke(), w)) {
+            if (!executable(w)) {
                 return false;
             }
         }
@@ -162,7 +166,252 @@ public abstract class Action implements java.io.Serializable {
         }
     }
 
-    public abstract UpdatedStateAndModels transition(EpistemicState priorState, Map<String, Model> priorModels);
+    public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
+        Log.debug("transition: " + getSignatureWithActor());
+
+        KripkeStructure oldKripke = beforeState.getKripke();
+        Set<World> oldWorlds = oldKripke.getWorlds();
+        Set<World> obliviousWorlds = new HashSet<>();
+        Set<World> observedWorlds = new HashSet<>();
+        World newDesignatedWorld = null;
+        Map<World, World> newWorldsToOld = new HashMap<World, World>();
+        Map<World, World> oldWorldsToOblivious = new HashMap<World, World>();
+
+
+        Set<FluentLiteral> applicableEffects = new HashSet<>();
+        Set<FluentFormula> revealedConditions = new HashSet<>();
+        revealedConditions.add(precondition);
+        for (Map.Entry<FluentLiteral, FluentFormula> e : effects.entrySet()) {
+            FluentLiteral effect = e.getKey();
+            FluentFormula condition = e.getValue();
+            boolean conditionHolds = condition.holds(designatedWorld);
+            if (conditionHolds) {
+                applicableEffects.add(effect);
+            }
+            if (!effect.holds(designatedWorld) && !condition.alwaysHolds()) {
+                if (conditionHolds) {
+                    revealedConditions.add(condition);
+                }
+                else {
+                    revealedConditions.add(condition.negate());
+                }
+            }
+        }
+        //FluentFormula joinedConditions = FluentFormula.buildConjunction(revealedConditions);
+        FluentFormula joinedConditions = new FluentFormulaAnd(revealedConditions);
+
+        Map<String, Relation> newBeliefs = new HashMap<>();
+        for (String a : domain.getAllAgents()) {
+            newBeliefs.put(a, new Relation());
+        }
+
+        Map<String, Relation> newKnowledges = new HashMap<>();
+        for (String a : domain.getAllAgents()) {
+            newKnowledges.put(a, new Relation());
+        }
+
+
+
+        
+        for (World oldWorld : oldWorlds) {
+            if (joinedConditions.holds(oldWorld)) {
+                World observedWorld = oldWorld.update(applicableEffects);
+                observedWorlds.add(observedWorld);
+                newWorldsToOld.put(observedWorld, oldWorld);
+                if (oldWorld.equals(beforeState.getDesignatedWorld())) {
+                    newDesignatedWorld = observedWorld;
+                }
+            }
+        }
+
+        assert(newDesignatedWorld != null);
+        assert(observedWorlds.contains(newDesignatedWorld));
+
+        Set<World> resultWorlds = new HashSet<World>(observedWorlds);
+
+        if (!obliviousAgents.isEmpty()) {
+            for (World oldWorld : oldWorlds) {
+                World obliviousWorld = new World(oldWorld);
+                obliviousWorlds.add(obliviousWorld);
+                oldWorldsToOblivious.put(oldWorld, obliviousWorld);
+            }
+            for (String agent : domain.getAllAgents()) {
+                for (World oldFromWorld: oldWorlds) {
+                    World fromWorld = oldWorldsToOblivioius.get(oldFromWorld);
+                    for (World oldToWorld: oldWorlds) {
+                        World toWorld = oldWorldsToOblivious.get(oldToWorld);
+                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld) {
+                            newBeliefs.get(agent).connect(fromWorld, toWorld);
+                        }
+                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld) {
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        }
+                    }
+                }
+            }
+            resultWorlds.addAll(obliviousWorlds);
+        }
+ 
+
+
+
+
+
+        Set<String> observantAgents = getFullyObservant(beforeState);
+        Set<String> awareAgents = getAware(beforeState);
+        Set<String> obliviousAgents = getOblivious(beforeState);
+
+        Map<String, BeliefFormula> agentLearns = new HashSet<>();
+        for (String agent : observantAgents) {
+            FluentFormula joinedDetermines = new FluentFormulaAnd(determines);
+            BeliefFormula joinedHears = new FluentFormulaAnd(announces);
+            BeliefFormula knowsNotAnnounces = new BeliefFormulaKnows(agent, new BeliefFormulaNot(joinedHears));
+            boolean reject = knowsNotAnnounces.holds(beforeState);
+            if (reject) {
+                agentLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedConditions));
+            }
+            else {
+                agentLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedHears, joinedConditions));
+            }
+        }
+        for (String agent : awareAgents) {
+            agentLearns.put(agent, joinedConditions);
+        }
+
+        Set<String> observantAndAware = new HashSet<>();
+        observantAndAware.addAll(observantAgents);
+        observantAndAware.addAll(awareAgents);
+
+
+RESET
+
+
+        for (String agent : observantAndAware) {
+
+            for (World fromWorld: observedWorlds) {
+                World oldFromWorld = newWorldsToOld.get(fromWorld);
+
+                for (World toWorld: observedWorlds) {
+                    World oldToWorld = newWorldsToOld.get(toWorld);
+
+                    boolean worldsNotDistinguished = determines.holds(fromWorld) == determines.holds(toWorld);
+
+                    if ((oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) ||
+                        (reset && oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld))
+                       ) {
+                        if (worldsNotDistinguished) {
+                            newBeliefs.get(agent).connect(fromWorld, toWorld);
+                        }
+                    }
+
+
+
+                    if (oldKripke.isConnectedKnowledge(agent,
+                                                       newWorldsToOld.get(fromWorld),
+                                                       newWorldsToOld.get(toWorld))) {
+                        if (worldsNotDistinguished) {
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        }
+                    }
+                }
+            }
+        }
+
+
+        for (String agent : awareAgents) {
+
+            for (World fromWorld: observedWorlds) {
+                for (World toWorld: observedWorlds) {
+                    if (oldKripke.isConnectedBelief(agent,
+                                                    newWorldsToOld.get(fromWorld),
+                                                    newWorldsToOld.get(toWorld))) {
+                        newBeliefs.get(agent).connect(fromWorld, toWorld);
+                    }
+                    if (oldKripke.isConnectedKnowledge(agent,
+                                                       newWorldsToOld.get(fromWorld),
+                                                       newWorldsToOld.get(toWorld))) {
+                        newKnowledges.get(agent).connect(fromWorld, toWorld);
+                    }
+                }
+            }
+        }
+
+
+        for (String agent : obliviousAgents) {
+
+            for (World fromWorld: observedWorlds) {
+                for (World toWorld: obliviousWorlds) {
+                    if (oldKripke.isConnectedBelief(agent,
+                                                    newWorldsToOld.get(fromWorld),
+                                                    newWorldsToOld.get(toWorld))) {
+                        newBeliefs.get(agent).connect(fromWorld, toWorld);
+                    }
+                    if (oldKripke.isConnectedKnowledge(agent,
+                                                       newWorldsToOld.get(fromWorld),
+                                                       newWorldsToOld.get(toWorld))) {
+                        newKnowledges.get(agent).connect(fromWorld, toWorld);
+                        newKnowledges.get(agent).connect(toWorld, fromWorld);
+                    }
+                }
+            }
+
+            for (World fromWorld: observedWorlds) {
+                for (World toWorld: observedWorlds) {
+                    if (oldKripke.isConnectedKnowledge(agent,
+                                                       newWorldsToOld.get(fromWorld),
+                                                       newWorldsToOld.get(toWorld))) {
+                        newKnowledges.get(agent).connect(fromWorld, toWorld);
+                    }
+                }
+            }
+        }
+
+
+        KripkeStructure newKripke = new KripkeStructure(resultWorlds, newBeliefs, newKnowledges);
+
+        EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
+
+        assert(Test.checkRelations(domain, newState));
+
+
+        Map<String, Model> newModels = new HashMap();
+
+        for (String agent : oldModels.keySet()) {
+            if (observantAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
+                // THIS IS WRONG, WE NEED A WAY TO PUT THE SENSED INFORMATION 
+                // INSTEAD OF THE DETERMINES FORMULA...
+                SensingAction informed = new SensingAction(this.name,
+                                                           this.parameters,
+                                                           this.actor,
+                                                           this.cost,
+                                                           this.precondition,
+                                                           this.observesIf,
+                                                           this.awareIf,
+                                                           this.determines,
+                                                           domain
+                                                          );
+                Model updatedModel = oldModels.get(agent).update(perspective, informed);
+                newModels.put(agent, updatedModel);
+            }
+            else if (awareAgents.contains(agent)) {
+                NDState perspective = beforeState.getBeliefPerspective(agent);
+                Model updatedModel = oldModels.get(agent).update(perspective, this);
+                newModels.put(agent, updatedModel);
+            }
+            else {
+                newModels.put(agent, oldModels.get(agent));
+            }
+        }
+
+        return new Action.UpdatedStateAndModels(newState, newModels);
+
+
+
+    }
+
+
+
 
 
     public String getSignatureWithActor() {

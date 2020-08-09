@@ -21,5 +21,15 @@ public abstract class FluentFormula extends BeliefFormula {
         return new FluentFormulaNot(this);
     }
 
+    //public static buildConjunction(Set<FluentFormula> parts) {
+    //    Set<FluentFormula> conjuncts = new HashSet<>();
+    //    for (FluentF
+    //}
+
+    //public static Set<FluentFormula> breakConjunction(FluentFormula conjunction) {
+    //    if (conjunction instanceof FluentFormu
+
+    //}
+
 
 }

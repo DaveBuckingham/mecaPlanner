@@ -89,7 +89,8 @@ public class SensingAction extends Action {
             World obliviousWorld = new World(oldWorld);
             obliviousWorlds.add(obliviousWorld);
             newWorldsToOld.put(obliviousWorld, oldWorld);
-            if (this.executable(oldKripke, oldWorld)) {
+            //if (this.executable(oldKripke, oldWorld)) {
+            if (this.executable(oldWorld)) {
                 World observedWorld = new World(oldWorld);
                 observedWorlds.add(observedWorld);
                 newWorldsToOld.put(observedWorld, oldWorld);

@@ -105,6 +105,8 @@ public class OnticAction extends Action implements java.io.Serializable{
 
 
         assert(Test.checkRelations(domain, beforeState));
+        System.out.println(beforeState);
+        System.exit(1);
 
 
 
@@ -134,10 +136,9 @@ public class OnticAction extends Action implements java.io.Serializable{
         Set<String> obliviousAgents = getOblivious(beforeState);
 
 
-
         for (World oldWorld : oldWorlds) {
             World observedWorld = oldWorld.update(applicableEffects);
-            if (this.executable(oldKripke, oldWorld)) {
+            if (this.executable(oldWorld)) {
                 observedWorlds.add(observedWorld);
                 newWorldsToOld.put(observedWorld, oldWorld);
                 if (oldWorld.equals(beforeState.getDesignatedWorld())) {
@@ -152,17 +153,19 @@ public class OnticAction extends Action implements java.io.Serializable{
             }
         }
 
-            System.out.println(oldWorlds);
-            System.out.println(obliviousWorlds);
-            System.out.println(observedWorlds);
-            System.exit(1);
+            //System.out.println("=========");
+            //System.out.println(oldWorlds);
+            //System.out.println(obliviousWorlds);
+            //System.out.println(observedWorlds);
+            //System.out.println("=========");
+            //System.exit(1);
 
 
         assert(newDesignatedWorld != null);
         assert(observedWorlds.contains(newDesignatedWorld));
 
 
-        
+ 
         Map<String, Relation> newBeliefs = new HashMap<>();
         for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
@@ -212,6 +215,14 @@ public class OnticAction extends Action implements java.io.Serializable{
                     }
 
                 }
+                //if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                //    System.out.println(fromWorld);
+                //    System.out.println(oldFromWorld);
+                //    System.out.println(agent);
+                //    System.out.println(beforeState);
+                //    System.out.println(observedWorlds);
+                //    System.exit(1);
+                //}
             }
         }
 
