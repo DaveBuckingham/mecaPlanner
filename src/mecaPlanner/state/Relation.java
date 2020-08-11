@@ -50,6 +50,10 @@ public class Relation implements java.io.Serializable {
         return edges.get(from);
     }
 
+    public boolean deadEnd(World from) {
+        return (edges.containsKey(from) && !edges.get(from).isEmpty());
+    }
+
     protected Map<World, Set<World>> getEdges() {
         assert (edges != null);
         return edges;

@@ -261,21 +261,30 @@ public class Action implements java.io.Serializable {
         Set<String> awareAgents = getAware(beforeState);
         Set<String> obliviousAgents = getOblivious(beforeState);
 
-        Map<String, BeliefFormula> agentLearns = new HashSet<>();
+        Map<String, BeliefFormula> agentBeliefLearns = new HashSet<>();
         for (String agent : observantAgents) {
-            FluentFormula joinedDetermines = new FluentFormulaAnd(determines);
+            Set<FluentFormula> groundDetermines = new HashSet<>();
+            for (FluentFormula f : determines) {
+                if (f.holds(designatedWorld)) {
+                    groundDetermines.add(f);
+                }
+                else {
+                    groundDetermines.add(f.negate());
+                }
+            }
+            FluentFormula joinedDetermines = new FluentFormulaAnd(groundDetermines);
             BeliefFormula joinedHears = new FluentFormulaAnd(announces);
             BeliefFormula knowsNotAnnounces = new BeliefFormulaKnows(agent, new BeliefFormulaNot(joinedHears));
             boolean reject = knowsNotAnnounces.holds(beforeState);
             if (reject) {
-                agentLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedConditions));
+                agentBeliefLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedConditions));
             }
             else {
-                agentLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedHears, joinedConditions));
+                agentBeliefLearns.put(agent, new BliefFormulaAnd(joinedDetermines, joinedHears, joinedConditions));
             }
         }
         for (String agent : awareAgents) {
-            agentLearns.put(agent, joinedConditions);
+            agentBeliefLearns.put(agent, joinedConditions);
         }
 
         Set<String> observantAndAware = new HashSet<>();
@@ -283,10 +292,11 @@ public class Action implements java.io.Serializable {
         observantAndAware.addAll(awareAgents);
 
 
-RESET
-
 
         for (String agent : observantAndAware) {
+
+            BeliefFormula beliefLearns = agentBeliefLearns.get(agent);
+
 
             for (World fromWorld: observedWorlds) {
                 World oldFromWorld = newWorldsToOld.get(fromWorld);
@@ -294,15 +304,20 @@ RESET
                 for (World toWorld: observedWorlds) {
                     World oldToWorld = newWorldsToOld.get(toWorld);
 
-                    boolean worldsNotDistinguished = determines.holds(fromWorld) == determines.holds(toWorld);
+                    if (beliefLearns.holds(oldToWorld) && oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                        newBeliefs.get(agent).connect(fromWorld, toWorld);
+                    }
+                }
 
-                    if ((oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) ||
-                        (reset && oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld))
-                       ) {
-                        if (worldsNotDistinguished) {
+                if (newBeliefs.get(agent).deadEnd(fromWorld)) {
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = newWorldsToOld.get(toWorld);
+
+                        if (beliefLearns.holds(oldToWorld) && oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
                     }
+                }
 
 
 
@@ -318,23 +333,6 @@ RESET
         }
 
 
-        for (String agent : awareAgents) {
-
-            for (World fromWorld: observedWorlds) {
-                for (World toWorld: observedWorlds) {
-                    if (oldKripke.isConnectedBelief(agent,
-                                                    newWorldsToOld.get(fromWorld),
-                                                    newWorldsToOld.get(toWorld))) {
-                        newBeliefs.get(agent).connect(fromWorld, toWorld);
-                    }
-                    if (oldKripke.isConnectedKnowledge(agent,
-                                                       newWorldsToOld.get(fromWorld),
-                                                       newWorldsToOld.get(toWorld))) {
-                        newKnowledges.get(agent).connect(fromWorld, toWorld);
-                    }
-                }
-            }
-        }
 
 
         for (String agent : obliviousAgents) {
