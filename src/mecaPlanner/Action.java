@@ -27,8 +27,9 @@ public class Action implements java.io.Serializable {
     protected FluentFormula precondition;
     protected Map<String, FluentFormula> observesIf;
     protected Map<String, FluentFormula> awareIf;
-    protected Map<FluentLiteral, FluentFormula> effects;
+    protected Set<FluentFormula> determines;
     protected Set<BeliefFormula> announces;
+    protected Map<FluentLiteral, FluentFormula> effects;
 
 
     public Action(String name,
@@ -51,6 +52,7 @@ public class Action implements java.io.Serializable {
         this.precondition = precondition;
         this.observesIf = observesIf;
         this.awareIf = awareIf;
+        this.determines = determines;
         this.announces = announces;
         this.effects = effects;
         this.domain = domain;
@@ -174,7 +176,7 @@ public class Action implements java.io.Serializable {
         // FOR EACH OLD WORLD, IF PRECONDITIONS HOLD, MUTATE INTO NEW, USING CONDITIONAL EFFECTS
         for (World oldWorld : oldWorlds) {
             if (precondition.holds(oldWorld)) {
-                World observedWorld = oldWorld.update(getApplicableEffects(oldWordl));
+                World observedWorld = oldWorld.update(getApplicableEffects(oldWorld));
                 observedWorlds.add(observedWorld);
                 observedWorldsToOld.put(observedWorld, oldWorld);
                 if (oldWorld.equals(beforeState.getDesignatedWorld())) {
@@ -190,16 +192,16 @@ public class Action implements java.io.Serializable {
         // IN ANY OF THE NEW WORLDS, ARE THERE ANY OBSERVANT AGENTS? ANY AWARE? ANY OBLIVIOUS?
         boolean anyObservers = false;
         boolean anyAware = false;
-        booldean anyOblivious = false;
+        boolean anyOblivious = false;
         for (World world : observedWorlds) {
             if (anyObservers && anyAware && anyOblivious) {
                 break;
             }
-            for (String a : agents) {
-                if (isObservant(agent, world)){
+            for (String a : domain.getAllAgents()) {
+                if (isObservant(a, world)){
                     anyObservers = true;
                 }
-                else if (isAware(agent, world)){
+                else if (isAware(a, world)){
                     anyAware = true;
                 }
                 else {

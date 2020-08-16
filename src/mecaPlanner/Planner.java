@@ -3,7 +3,6 @@ package mecaPlanner;
 import mecaPlanner.state.Initialize;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.*;
-import mecaPlanner.actions.*;
 import mecaPlanner.models.*;
 import mecaPlanner.search.Search;
 

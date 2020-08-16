@@ -209,5 +209,5 @@ causesifActionField
     | 'causes' variableList? '{' literal 'if' fluentFormula '}'
     ;
 determinesActionField   : 'determines' variableList? '{' fluentFormula '}' ;
-announcesActionField    : 'announces' '{' fluentFormula '}' ;
+announcesActionField    : 'announces' variableList? '{' beliefFormula '}' ;
 

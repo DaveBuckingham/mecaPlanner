@@ -1,6 +1,6 @@
 package mecaPlanner.search;
 
-import mecaPlanner.actions.Action;
+import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 import java.util.Set;

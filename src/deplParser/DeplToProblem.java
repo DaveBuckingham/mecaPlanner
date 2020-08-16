@@ -7,7 +7,6 @@ import org.antlr.v4.runtime.tree.*;
 
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
-import mecaPlanner.actions.*;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -52,14 +51,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     // HELPER FUNCTIONS
-
-
-    enum ActionType {
-        ONTIC,
-        SENSING,
-        ANNOUNCEMENT
-    }
-
 
 
     // READ A "PARAMETER" WHICH COULD BE AN OBJECT NAME OR A VARIABLE
@@ -602,7 +593,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         // MANDATORY
         String owner = null;
-        DeplToProblem.ActionType actionType = null;
 
         // OPTIONAL
         int cost = 1;
@@ -614,11 +604,9 @@ public class DeplToProblem extends DeplBaseVisitor {
             awareLists.put(a, new ArrayList<FluentFormula>());
         }
 
-        // ACTION-TYPE-SPECIFIC
+        Set<BeliefFormula> announces = new HashSet<>();
+        Set<FluentFormula> determines = new HashSet<>();
         Map<FluentLiteral, FluentFormula> effects = new HashMap<FluentLiteral, FluentFormula>();
-        //Set<FluentLiteral> effects = new HashSet<>();
-        FluentFormula announces = null;
-        List<FluentFormula> determinesList = new ArrayList<FluentFormula>();
 
         for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -687,10 +675,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.causesActionField() != null) {
-                if (actionType != null && actionType != DeplToProblem.ActionType.ONTIC) {
-                    throw new RuntimeException("action " + actionName + " has illegal action-type-specifying fields.");
-                }
-                actionType = DeplToProblem.ActionType.ONTIC;
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesActionField().variableList())) {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesActionField().literal());
@@ -701,10 +685,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.causesifActionField() != null) {
-                if (actionType != null && actionType != DeplToProblem.ActionType.ONTIC) {
-                    throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
-                }
-                actionType = DeplToProblem.ActionType.ONTIC;
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesifActionField().variableList())) {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
@@ -718,25 +698,19 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
 
             else if (fieldCtx.determinesActionField() != null) {
-                if (actionType != null && actionType != DeplToProblem.ActionType.SENSING) {
-                    throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
-                }
-                actionType = DeplToProblem.ActionType.SENSING;
-
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.determinesActionField().variableList())) {
                     variableStack.push(variableMap);
-                    determinesList.add((FluentFormula) visit(fieldCtx.determinesActionField().fluentFormula()));
+                    determines.add((FluentFormula) visit(fieldCtx.determinesActionField().fluentFormula()));
                     variableStack.pop();
                 }
             }
 
             else if (fieldCtx.announcesActionField() != null) {
-                if (actionType != null) {
-                    throw new RuntimeException("action " + actionName + "has illegal action-type-specifying fields.");
+                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.announcesActionField().variableList())) {
+                    variableStack.push(variableMap);
+                    announces.add((BeliefFormula) visit(fieldCtx.announcesActionField().beliefFormula()));
+                    variableStack.pop();
                 }
-                actionType = DeplToProblem.ActionType.ANNOUNCEMENT;
-                announces = (FluentFormula) visit(fieldCtx.announcesActionField().fluentFormula());
-
             }
 
             else {
@@ -762,10 +736,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("illegal action definition, no owner: " + actionName);
         }
 
-        if (actionType == null) {
-            actionType = DeplToProblem.ActionType.ONTIC;  // default
-        }
-
         Map<String, FluentFormula> observes = new HashMap<>();
         Map<String, FluentFormula> aware = new HashMap<>();
         for (String a : domain.getAgents()) {
@@ -773,48 +743,20 @@ public class DeplToProblem extends DeplBaseVisitor {
             aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
         }
 
-        if (actionType == DeplToProblem.ActionType.ONTIC) {
-            return new OnticAction(actionName,
-                                   actionParameters,
-                                   owner,
-                                   cost,
-                                   precondition,
-                                   observes,
-                                   aware,
-                                   effects,
-                                   domain
-                                  );
-        }
 
-        else if (actionType == DeplToProblem.ActionType.SENSING) {
-            return new SensingAction(actionName,
-                                   actionParameters,
-                                   owner,
-                                   cost,
-                                   precondition,
-                                   observes,
-                                   aware,
-                                   new FluentFormulaAnd(determinesList),
-                                   domain
-                                  );
-        }
+        return new Action(actionName,
+                               actionParameters,
+                               owner,
+                               cost,
+                               precondition,
+                               observes,
+                               aware,
+                               determines,
+                               announces,
+                               effects,
+                               domain
+                              );
 
-        else if (actionType == DeplToProblem.ActionType.ANNOUNCEMENT) {
-            return new AnnouncementAction(actionName,
-                                   actionParameters,
-                                   owner,
-                                   cost,
-                                   precondition,
-                                   observes,
-                                   aware,
-                                   announces,
-                                   domain
-                                  );
-        }
-
-        else {
-            throw new RuntimeException("invalid action type");
-        }
     }
 
 

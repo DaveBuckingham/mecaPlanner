@@ -4,12 +4,12 @@ import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
-import mecaPlanner.actions.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.formulae.GeneralFormula;
 import mecaPlanner.Solution;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
+import mecaPlanner.Action;
 
 import java.util.List;
 import java.util.ArrayList;

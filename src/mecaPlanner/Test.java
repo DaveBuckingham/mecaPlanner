@@ -5,7 +5,7 @@ import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.Relation;
 import mecaPlanner.state.World;
 import mecaPlanner.state.Initialize;
-import mecaPlanner.actions.Action;
+import mecaPlanner.Action;
 import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.models.*;
 

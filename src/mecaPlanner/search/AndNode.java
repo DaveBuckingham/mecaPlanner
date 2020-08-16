@@ -2,7 +2,7 @@ package mecaPlanner.search;
 
 import mecaPlanner.search.GNode;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.actions.Action;
+import mecaPlanner.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.Log;
 import mecaPlanner.formulae.GeneralFormula;
