@@ -214,7 +214,7 @@ public class Action implements java.io.Serializable {
 
 
         for (World fromWorld : observedWorlds) {
-            World oldFromWorld = observedWorldsToOld(fromWorld);
+            World oldFromWorld = observedWorldsToOld.get(fromWorld);
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Set<FluentFormula> revealedConditions = new HashSet<>();
@@ -259,12 +259,12 @@ public class Action implements java.io.Serializable {
                 }
                 for (String a : domain.getAllAgents()) {
                     for (World w : oldWorlds) {
-                        World oblivousFrom = oldWorldsToOblivioius.get(w);
-                        for (World oldToWorld: oldKripke.getBelievedWorlds(agent, w)) {
-                            newBeliefs.get(agent).connect(oblivousFrom, oldWorldsToOblivious(oldToWorld));
+                        World oblivousFrom = oldWorldsToOblivious.get(w);
+                        for (World oldToWorld: oldKripke.getBelievedWorlds(a, w)) {
+                            newBeliefs.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
                         }
-                        for (World oldToWorld: oldKripke.getKnownWorlds(agent, w)) {
-                            newKnowledges.get(agent).connect(oblivousFrom, oldWorldsToOblivious(oldToWorld));
+                        for (World oldToWorld: oldKripke.getKnownWorlds(a, w)) {
+                            newKnowledges.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
                         }
                     }
                 }
@@ -273,7 +273,7 @@ public class Action implements java.io.Serializable {
 
             // GO FOR EACH AGENT, CONNECT TO-WORLDS FOR BELIEF AND KNOWLEDGE
             for (String agent : domain.getAllAgents()) {
-                if (isObservant(agent, oldWorld)){
+                if (isObservant(agent, oldFromWorld)){
 
                     // WHAT DOES THE AGENT HEAR ANNOUNCED AND NOT REJECT
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
@@ -299,10 +299,10 @@ public class Action implements java.io.Serializable {
                     BeliefFormula learnedBeliefFormula = new BeliefFormulaAnd(allBeliefLearned);
 
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
-                    for (World toWorld: observantWorlds) {
-                        World oldtoWorld = observedWorldsToOld(toWorld);
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedBeliefFormula.holds(oldToWorld)) {
+                            if (learnedBeliefFormula.holdsAtWorld(oldKripke, oldToWorld)) {
                                 newBeliefs.get(agent).connect(fromWorld, toWorld);
                             }
                         }
@@ -310,10 +310,10 @@ public class Action implements java.io.Serializable {
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     if (oldKripke.getBelievedWorlds(agent, oldFromWorld).isEmpty()) {
-                        for (World toWorld: observantWorlds) {
-                            World oldtoWorld = observedWorldsToOld(toWorld);
+                        for (World toWorld: observedWorlds) {
+                            World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                                if (learnedBeliefFormula.holds(oldToWorld)) {
+                                if (learnedBeliefFormula.holdsAtWorld(oldKripke, oldToWorld)) {
                                     newBeliefs.get(agent).connect(fromWorld, toWorld);
                                 }
                             }
@@ -321,8 +321,8 @@ public class Action implements java.io.Serializable {
                     }
 
                     // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION UNLESS TO-WORLD CONTRADICTS LEARNED KNOWLEDGE
-                    for (World toWorld: observantWorlds) {
-                        World oldToWorld = observedWorldsToOld(toWorld);
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                             if (learnedKnowledgeFormula.holds(oldToWorld)) {
                                 newKnowledges.get(agent).connect(fromWorld, toWorld);
@@ -331,7 +331,7 @@ public class Action implements java.io.Serializable {
                     }
 
                 }
-                if (isAware(agent, oldWorld)){
+                if (isAware(agent, oldFromWorld)){
 
                     // SHOULD AWARE AGENTS LEARN REVEALED EFFECT CONDITIONS? COULD GO EITHER WAY.
                     // IF YES, THERE'S NO DISTINCTION BETWEEN OBSERVERS AND AWARE FOR PURELY ONTIC ACTIONS
@@ -339,8 +339,8 @@ public class Action implements java.io.Serializable {
                     // IN THE KR2020 THAT THERE IS NO DIFFERENCE BETWEEN OBSERVERS AND AWARE FOR PURELY ONTIC ACTINOS
 
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION
-                    for (World toWorld: observantWorlds) {
-                        World oldtoWorld = observedWorldsToOld(toWorld);
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                             newBeliefs.get(agent).connect(fromWorld, toWorld);
                         }
@@ -349,8 +349,8 @@ public class Action implements java.io.Serializable {
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     // SPECIFICALLY, A NEW WORLD HAS OUTGOING EDGES ONLY TO OLD WORLDS
                     if (oldKripke.getBelievedWorlds(agent, oldFromWorld).isEmpty()) {
-                        for (World toWorld: observantWorlds) {
-                            World oldtoWorld = observedWorldsToOld(toWorld);
+                        for (World toWorld: observedWorlds) {
+                            World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                                 newBeliefs.get(agent).connect(fromWorld, toWorld);
                             }
@@ -358,8 +358,8 @@ public class Action implements java.io.Serializable {
                     }
 
                     // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION 
-                    for (World toWorld: observantWorlds) {
-                        World oldtoWorld = observedWorldsToOld(toWorld);
+                    for (World toWorld: observedWorlds) {
+                        World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                             newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
@@ -371,13 +371,13 @@ public class Action implements java.io.Serializable {
                             newBeliefs.get(agent).connect(fromWorld, oldWorldsToOblivious.get(oldToWorld));
                         }
                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                            newKnowledge.get(agent).connect(fromWorld, oldWorldsToOblivious.get(oldToWorld));
-                            newKnowledge.get(agent).connect(oldWorldsToOblivious.get(oldToWorld), fromWorld);
+                            newKnowledges.get(agent).connect(fromWorld, oldWorldsToOblivious.get(oldToWorld));
+                            newKnowledges.get(agent).connect(oldWorldsToOblivious.get(oldToWorld), fromWorld);
                         }
                     }
                     for (World toWorld: observedWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, observedWorldsToOld.get(ToWorld))) {
-                            newKnowledge.get(agent).connect(fromWorld, toWorld);
+                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, observedWorldsToOld.get(toWorld))) {
+                            newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
                     }
                 }
@@ -395,20 +395,23 @@ public class Action implements java.io.Serializable {
         // UPDATE THE MODELS
         Map<String, Model> newModels = new HashMap();
         for (String agent : oldModels.keySet()) {
-            // THIS IS WRONG, NEED TO HIDE INFO THE AGENT SHOULDN'T GET
-            if (isObservant(agent)) {
-                NDState perspective = beforeState.getBeliefPerspective(agent);
-                Model updatedModel = oldModels.get(agent).update(perspective, this);
-                newModels.put(agent, updatedModel);
-            }
-            else if (isAware(agent)) {
-                NDState perspective = beforeState.getBeliefPerspective(agent);
-                Model updatedModel = oldModels.get(agent).update(perspective, this);
-                newModels.put(agent, updatedModel);
-            }
-            else {
-                newModels.put(agent, oldModels.get(agent));
-            }
+            NDState perspective = beforeState.getBeliefPerspective(agent);
+            Model updatedModel = oldModels.get(agent).update(perspective, this);
+            newModels.put(agent, updatedModel);
+            //// THIS IS WRONG, NEED TO HIDE INFO THE AGENT SHOULDN'T GET
+            //if (isObservant(agent)) {
+            //    NDState perspective = beforeState.getBeliefPerspective(agent);
+            //    Model updatedModel = oldModels.get(agent).update(perspective, this);
+            //    newModels.put(agent, updatedModel);
+            //}
+            //else if (isAware(agent)) {
+            //    NDState perspective = beforeState.getBeliefPerspective(agent);
+            //    Model updatedModel = oldModels.get(agent).update(perspective, this);
+            //    newModels.put(agent, updatedModel);
+            //}
+            //else {
+            //    newModels.put(agent, oldModels.get(agent));
+            //}
         }
 
         return new Action.UpdatedStateAndModels(newState, newModels);

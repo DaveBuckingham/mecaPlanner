@@ -2,7 +2,6 @@
 package mecaPlanner;
 
 import mecaPlanner.state.NDState;
-import mecaPlanner.actions.Action;
 import mecaPlanner.search.Perspective;
 
 

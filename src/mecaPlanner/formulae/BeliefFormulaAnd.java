@@ -23,6 +23,10 @@ public class BeliefFormulaAnd extends BeliefFormula{
         this(new ArrayList<BeliefFormula>(Arrays.asList(formula)));
     }
 
+    public BeliefFormulaAnd(Set<BeliefFormula> formulae) {
+        this(new ArrayList<BeliefFormula>(formulae));
+    }
+
     public List<BeliefFormula> getFormulae() {
         return formulae;
     }
