@@ -2,7 +2,7 @@ package mecaPlanner.models;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.actions.Action;
+import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 
