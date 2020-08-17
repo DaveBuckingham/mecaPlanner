@@ -1,0 +1,70 @@
+types{
+    location-object,
+    locatable-object,
+    actor-locatable,
+}
+
+objects{
+    robot-actor,
+    sheep-actor,
+    knight-actor,
+    dragon-actor
+    turnip-locatable,
+    field-location,
+    forest-location,
+    castle-location,
+}
+
+agents{
+    robot,
+    sheep{sheep.SheepModel},
+    knight{sheep.KnightModel},
+    dragon{sheep.DragonModel},
+}
+
+passive{}
+
+fluents{v,l,r,d}
+
+constants{}
+
+initially{
+    {C(~B_thief(r) & ~B_thief(~r))},
+    {r, C(~B_thief(r) & ~B_thief(~r))},
+}
+//initially{r}
+
+goals{d}
+
+actions{
+
+    take_left[](){
+        owner{thief},
+        precondition{v & ~d & ~r},
+        observes[]{thief},
+        causes{d}
+    }
+
+    take_right[](){
+        owner{thief},
+        precondition{v & ~d & r},
+        observes[]{thief},
+        causes{d}
+    }
+
+    flick[](){
+        owner{thief},
+        precondition{v},
+        observes[]{thief},
+        determines{r}
+    }
+
+    move[](){
+        owner{thief},
+        precondition{T},
+        observes[]{thief},
+        causes{v if ~v},
+        causes{~v if v}
+    }
+
+}
