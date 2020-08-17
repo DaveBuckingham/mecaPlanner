@@ -8,11 +8,11 @@ objects{
     robot-actor,
     sheep-actor,
     knight-actor,
-    dragon-actor
-    turnip-locatable,
+    dragon-actor,
     field-location,
     forest-location,
     castle-location,
+    lair-location,
 }
 
 agents{
@@ -24,47 +24,70 @@ agents{
 
 passive{}
 
-fluents{v,l,r,d}
+fluents{
+    at[?a-locatable,?b-location](?a,?b),
+    jousting(),
+    robot_has_turnip(),
+    knight_has_treasure(),
+    sheep_alive(),
+}
 
 constants{}
 
 initially{
-    {C(~B_thief(r) & ~B_thief(~r))},
-    {r, C(~B_thief(r) & ~B_thief(~r))},
+    sheep_alive(),
+    at(sheep,field),
+    at(robot,castle),
+    at(knight,castle),
+    at(dragon,lair),
 }
-//initially{r}
 
-goals{d}
+goals{
+    t>=5 & sheep_alive()
+}
 
 actions{
 
-    take_left[](){
-        owner{thief},
-        precondition{v & ~d & ~r},
-        observes[]{thief},
-        causes{d}
+    announce_dragon[](){
+        owner{robot},
+        observes[?o - actor]{?o},
+        announces[]{at(dragon,lair)},
     }
 
-    take_right[](){
-        owner{thief},
-        precondition{v & ~d & r},
-        observes[]{thief},
-        causes{d}
+    announce_treasure[](){
+        owner{robot},
+        observes[?o - actor]{?o},
+        announces[]{knight_has_treasure()},
     }
 
-    flick[](){
-        owner{thief},
-        precondition{v},
-        observes[]{thief},
-        determines{r}
+    take_turnip[](){
+        owner{robot},
+        precondition{at(robot,field) & ~robot_has_turnip()},
+        observes{robot},
+        observes{sheep},
+        observes{knight},
+        observesif{dragon, ~jousting()},
+        causes{robot_has_turnip}
     }
 
-    move[](){
-        owner{thief},
-        precondition{T},
-        observes[]{thief},
-        causes{v if ~v},
-        causes{~v if v}
+    joust[?l-location](?l){
+        owner{dragon},
+        precondition{~jousting & at(dragon,?l) & at(knight,?l)},
+        observes[?o-actor]{?o},
+        causes{jousting}
     }
+
+    move[?a-actor, ?f-location,?t-location](?f,?t){
+        owner{?a},
+        precondition{at(?a, ?f)},
+        observes{?a},
+        observes{robot},
+        observes{sheep},
+        observes{knight},
+        observesif{dragon, ~jousting()}
+        causes{at(?a, ?t)},
+        causes{~(at(?a, ?f))},
+    }
+
 
 }

@@ -5,6 +5,8 @@ visitor := -no-listener -visitor
 java    = javac -Xmaxerrs 4 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
 jarname := mecaPlanner-`cat VERSION`.jar
 
+builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)
+
 .PHONY: clean planner simulator efp2depl debug
 
 
@@ -21,10 +23,10 @@ meca: mecaPlanner.jar
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*" mecaPlanner.Planner "$$@"' >> ./mecad
 	chmod +x ./mecad
 
-mecaPlanner.jar: build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class)
+mecaPlanner.jar: $(builtClasses)
 	jar -cf $(jarname) -C build depl/ -C build mecaPlanner/ && ln -fs $(jarname) mecaPlanner.jar
 
-build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) : build/depl/ src/mecaPlanner/ $(wildcard src/mecaPlanner/*)
+$(builtClasses) : build/depl/ src/mecaPlanner/ $(wildcard src/mecaPlanner/*) $(wildcard src/mecaPlanner/*/*) $(wildcard src/mecaPlanner/*/*/*)
 	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java -d build/
 
 build/depl/: src/deplParser/DeplToProblem.java build/deplSrc/
