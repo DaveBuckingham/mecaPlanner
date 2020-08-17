@@ -103,6 +103,7 @@ public class Planner {
         //Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
         //Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
         Log.setThreshold(prop.getProperty("logThreshold", "info"));
+        //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
         Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
 

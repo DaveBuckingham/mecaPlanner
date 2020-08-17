@@ -105,6 +105,7 @@ public class Action implements java.io.Serializable {
 
     public Boolean necessarilyExecutable(NDState state) {
         for (World w : state.getDesignatedWorlds()) {
+            assert (w != null);
             if (!executable(w)) {
                 return false;
             }
@@ -274,6 +275,7 @@ public class Action implements java.io.Serializable {
             // GO FOR EACH AGENT, CONNECT TO-WORLDS FOR BELIEF AND KNOWLEDGE
             for (String agent : domain.getAllAgents()) {
                 if (isObservant(agent, oldFromWorld)){
+                    assert(anyObservers);
 
                     // WHAT DOES THE AGENT HEAR ANNOUNCED AND NOT REJECT
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
@@ -309,7 +311,7 @@ public class Action implements java.io.Serializable {
                     }
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                    if (oldKripke.getBelievedWorlds(agent, oldFromWorld).isEmpty()) {
+                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
                         for (World toWorld: observedWorlds) {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
@@ -331,7 +333,8 @@ public class Action implements java.io.Serializable {
                     }
 
                 }
-                if (isAware(agent, oldFromWorld)){
+                else if (isAware(agent, oldFromWorld)){
+                    assert(anyAware);
 
                     // SHOULD AWARE AGENTS LEARN REVEALED EFFECT CONDITIONS? COULD GO EITHER WAY.
                     // IF YES, THERE'S NO DISTINCTION BETWEEN OBSERVERS AND AWARE FOR PURELY ONTIC ACTIONS
@@ -348,7 +351,7 @@ public class Action implements java.io.Serializable {
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     // SPECIFICALLY, A NEW WORLD HAS OUTGOING EDGES ONLY TO OLD WORLDS
-                    if (oldKripke.getBelievedWorlds(agent, oldFromWorld).isEmpty()) {
+                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
                         for (World toWorld: observedWorlds) {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
@@ -366,6 +369,7 @@ public class Action implements java.io.Serializable {
                     }
                 }
                 else {  //oblivious
+                    assert(anyOblivious);
                     for (World oldToWorld: oldWorlds) {
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                             newBeliefs.get(agent).connect(fromWorld, oldWorldsToOblivious.get(oldToWorld));

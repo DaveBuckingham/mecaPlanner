@@ -28,6 +28,8 @@ public class Relation implements java.io.Serializable {
     }
 
     public void connect(World from, World to) {
+        assert (from != null);
+        assert (to != null);
         if (!edges.containsKey(from)) {
             edges.put(from, new HashSet<World>());
         }

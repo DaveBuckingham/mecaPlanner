@@ -743,6 +743,17 @@ public class DeplToProblem extends DeplBaseVisitor {
             aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
         }
 
+        assert (actionName != null);
+        assert (actionParameters != null);
+        assert (owner != null);
+        assert (precondition != null);
+        assert (observes != null);
+        assert (aware != null);
+        assert (determines != null);
+        assert (announces != null);
+        assert (effects != null);
+        assert (domain != null);
+
 
         return new Action(actionName,
                                actionParameters,

@@ -27,6 +27,9 @@ public class NDState implements java.io.Serializable {
 
     public NDState(KripkeStructure kripkeStructure, Set<World> designatedWorlds) {
         assert(kripkeStructure.containsWorlds(designatedWorlds));
+        for (World w : designatedWorlds) {
+            assert (w != null);
+        }
         this.kripkeStructure = kripkeStructure;
         this.designatedWorlds = designatedWorlds;
     }
