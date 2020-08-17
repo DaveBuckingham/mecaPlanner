@@ -10,8 +10,11 @@ fluents{v,l,r,d}
 
 constants{}
 
-//initially{{},{r}}
-initially{r}
+initially{
+    {C(~B_thief(r) & ~B_thief(~r))},
+    {r, C(~B_thief(r) & ~B_thief(~r))},
+}
+//initially{r}
 
 goals{d}
 
@@ -19,16 +22,16 @@ actions{
 
     take_left[](){
         owner{thief},
-        precondition{v & ~d},
+        precondition{v & ~d & ~r},
         observes[]{thief},
-        causes{d if ~r}
+        causes{d}
     }
 
     take_right[](){
         owner{thief},
-        precondition{v & ~d},
+        precondition{v & ~d & r},
         observes[]{thief},
-        causes{d if r}
+        causes{d}
     }
 
     flick[](){
@@ -42,9 +45,8 @@ actions{
         owner{thief},
         precondition{T},
         observes[]{thief},
-        //causes{v},
         causes{v if ~v},
-        //causes{~v if v}
+        causes{~v if v}
     }
 
 }

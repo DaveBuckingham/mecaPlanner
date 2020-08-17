@@ -142,18 +142,10 @@ public class Action implements java.io.Serializable {
     }
 
 
-//1. copy old worlds into oblivious worlds
-//2. hook up oblivious worlds as old
-//4. for each world in new, for each agent:
-//    determine if oblivious, aware, or observant
-//    oblivious, hook aback to oblivious workds, knowledge three ways?
-//    aware and observant: determine what is learned (not action preconditons though, no point)
-//        aware: revealed effect conditions
-//        observant: revealed effect conditions, sensed facts, non-rejected announcements
-//    connect to to-worlds according to old relation, except if to-world violates learned
-//    if no no-world connections, connect according to old knowledge relation, exept if violates learned
-//5. trim
 
+    // SHOULD TRIM UNREACHABLE WORLDS AT THE END OF TRANSITION
+    // THESE CAN COME ABOUT IF EFFEC PRECONDITIONS CAUSE AGENTS TO BELIEVE
+    // WORLDS NOT POSSIBLE EVEN THOUGH THEY WERE CREATED
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
 

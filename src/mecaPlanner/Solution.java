@@ -55,9 +55,9 @@ public class Solution implements java.io.Serializable{
         Map<Perspective, Integer> perspectiveNames = new HashMap<>();
         for (Integer i = 0; i < perspectives.size(); i++) {
             perspectiveNames.put(perspectives.get(i), i);
-            str.append("[");
+            str.append("---");
             str.append(i);
-            str.append("] ");
+            str.append("---\n");
             str.append(perspectives.get(i));
         }
         str.append("SOLUTION ACTIONS:\n");
@@ -80,10 +80,10 @@ public class Solution implements java.io.Serializable{
 
     private String printPlan(Map<Perspective, Integer> perspectiveNames, int d) {
         StringBuilder str = new StringBuilder();
-        for (int i = 0; i<d; i++) {
-            str.append("  ");
-        }
         for (Perspective p : actions.keySet()) {
+            for (int i = 0; i<d; i++) {
+                str.append("  ");
+            }
             str.append("[");
             str.append(perspectiveNames.get(p));
             str.append("] ");
