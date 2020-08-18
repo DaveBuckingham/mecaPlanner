@@ -170,6 +170,18 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             return new FluentFormulaFalse();
         }
+        if (ff instanceof FluentLiteral) {
+            FluentLiteral fl = (FluentLiteral) ff;
+            FluentAtom fa = fl.getAtom();
+            if (domain.getAllAtoms().contains(fa)) {
+                return fl;
+            }
+            if (constraints.contains(fa)) {
+                return new FluentFormulaTrue();
+            }
+            return new FluentFormulaFalse();
+        }
+
         if (ff instanceof FluentFormulaNot) {
             FluentFormulaNot fn = (FluentFormulaNot) ff;
             return removeConstants(fn.getFormula()).negate();
@@ -208,7 +220,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             return new FluentFormulaOr(newFormulae);
         }
-        throw new RuntimeException("unknown formula type");
+        throw new RuntimeException("unknown formula type: " + ff.getClass());
     }
 
 

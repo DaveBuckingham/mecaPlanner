@@ -4,6 +4,7 @@ import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
+import mecaPlanner.models.Model;
 
 import java.util.Objects;
 import java.util.Set;
