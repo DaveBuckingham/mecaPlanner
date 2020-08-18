@@ -27,7 +27,7 @@ mecaPlanner.jar: $(builtClasses)
 	jar -cf $(jarname) -C build depl/ -C build mecaPlanner/ && ln -fs $(jarname) mecaPlanner.jar
 
 $(builtClasses) : build/depl/ src/mecaPlanner/ $(wildcard src/mecaPlanner/*) $(wildcard src/mecaPlanner/*/*) $(wildcard src/mecaPlanner/*/*/*)
-	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java -d build/
+	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java src/mecaPlanner/*/*/*.java -d build/
 
 build/depl/: src/deplParser/DeplToProblem.java build/deplSrc/
 	$(java) src/deplParser/DeplToProblem.java build/deplSrc/*.java -d build/
