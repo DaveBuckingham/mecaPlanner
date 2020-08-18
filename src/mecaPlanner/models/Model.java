@@ -18,8 +18,8 @@ import java.util.Arrays;
 
 public abstract class Model implements java.io.Serializable {
 
-    String agent;
-    Domain domain;
+    protected String agent;
+    protected Domain domain;
 
 
     public Model(String agent, Domain domain) {

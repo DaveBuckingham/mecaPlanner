@@ -32,7 +32,16 @@ fluents{
     sheep_alive(),
 }
 
-constants{}
+constants{
+    sameLocation[?a-location,?b-location](?a,?b);
+}
+
+constraints{
+    sameLocation(field,field),
+    sameLocation(forest,forest),
+    sameLocation(castle,castle),
+    sameLocation(lair,lair),
+}
 
 initially{
     sheep_alive(),
@@ -40,6 +49,7 @@ initially{
     at(robot,castle),
     at(knight,castle),
     at(dragon,lair),
+    C(~B_knight(at(dragon,lair)) & ~B_knight(~at(dragon,lair)))
 }
 
 goals{
@@ -77,16 +87,30 @@ actions{
         causes{jousting}
     }
 
+    eat_sheep[?l-location](?l) {
+        owner{dragon},
+        precondition{at(dragon,?l) & at(sheep,?l)},
+        observes[?o-actor]{?o},
+        causes{~sheep_alive}
+        causes{~at(sheep,?l)}
+    }
+
     move[?a-actor, ?f-location,?t-location](?f,?t){
         owner{?a},
         precondition{at(?a, ?f)},
+        precondition{~sameLocation(?f,?t)},
         observes{?a},
         observes{robot},
         observes{sheep},
         observes{knight},
         observesif{dragon, ~jousting()}
-        causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
+        causes{at(?a, ?t)},
+    }
+
+    wait[?a-actor]() {
+        owner{?a},
+        observes[?o-actor]{?o},
     }
 
 

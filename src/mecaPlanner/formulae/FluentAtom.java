@@ -38,10 +38,10 @@ public class FluentAtom extends FluentFormula{
     }
 
     public String getParameter(int i) {
-        if (i >= 0 && i < parameters.size()) {
-            return parameters.get(i);
+        if (i < 0 || i >= parameters.size()) {
+            throw new RuntimeException("atom parameter index out of bounds");
         }
-        return "";
+        return parameters.get(i);
     }
 
     public Boolean holds(World world) {
