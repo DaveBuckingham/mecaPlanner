@@ -57,7 +57,7 @@ public class KnightModel extends Model {
         }
 
         if (dragonLocation.equals(knightLocation)) {
-            return domain.getActionBySignature("knight", String.format("joust(%s)", knightLocation));
+            return domain.getActionBySignature("knight", String.format("duel(%s)", knightLocation));
         }
 
         if (knightLocation.equals("forest")) {

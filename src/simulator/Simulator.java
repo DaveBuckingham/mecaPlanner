@@ -142,7 +142,12 @@ public class Simulator {
                     throw new RuntimeException("no applicable actions for s-agent");
                 }
                 if (!applicable.containsAll(predictions)) {
-                    throw new RuntimeException("Agent doesn't think a predicted action is applicable");
+                    System.out.println("Agent doesn't think a predicted action is applicable:");
+                    System.out.println("Predictions:");
+                    System.out.println(predictions);
+                    System.out.println("State");
+                    System.out.println(currentState);
+                    System.exit(1);
                 }
 
                 // ASK THE USER TO SELECT AN ACTION

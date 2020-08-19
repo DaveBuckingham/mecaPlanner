@@ -26,7 +26,7 @@ passive{}
 
 fluents{
     at[?a-locatable,?b-location](?a,?b),
-    jousting(),
+    dueling(),
     knight_has_treasure(),
     sheep_alive(),
 }
@@ -70,18 +70,18 @@ actions{
         announces[]{knight_has_treasure()},
     }
 
-    joust[?l-location](?l){
+    duel[?l-location](?l){
         owner{dragon},
-        precondition{~jousting & at(dragon,?l) & at(knight,?l)},
+        precondition{at(dragon,?l) & at(knight,?l)},
         observes[?o-actor]{?o},
-        causes{jousting}
+        causes{dueling}
     }
 
-    joust[?l-location](?l){
+    duel[?l-location](?l){
         owner{knight},
-        precondition{~jousting & at(dragon,?l) & at(knight,?l)},
+        precondition{~dueling & at(dragon,?l) & at(knight,?l)},
         observes[?o-actor]{?o},
-        causes{jousting}
+        causes{dueling}
     }
 
     eat_sheep[?l-location](?l) {
@@ -101,7 +101,7 @@ actions{
         observes{sheep},
         observes{knight},
         observes{dragon},
-        observesif{dragon, ~jousting()}
+        observesif{dragon, ~dueling()}
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},
     }
