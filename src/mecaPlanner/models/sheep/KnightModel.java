@@ -21,8 +21,6 @@ public class KnightModel extends Model {
         super(agent, domain);
     }
 
-    private Action waitAction;
-
 
     public Set<Action> getPrediction(NDState ndState) {
 

@@ -58,15 +58,15 @@ goals{
 
 actions{
 
-    announce_dragon[](){
+    announce_dragon[?l-location](){
         owner{robot},
-        observes[?o - actor]{?o},
+        observesif[?o - actor]{?o, at(?o,?l)},
         announces[]{at(dragon,lair)},
     }
 
-    announce_treasure[](){
+    announce_treasure[?l-location](){
         owner{robot},
-        observes[?o - actor]{?o},
+        observesif[?o - actor]{?o, at(?o,?l)},
         announces[]{knight_has_treasure()},
     }
 
@@ -103,7 +103,8 @@ actions{
         observes{robot},
         observes{sheep},
         observes{knight},
-        observesif{dragon, ~jousting()}
+        observes{dragon},
+    //    observesif{dragon, ~jousting()}
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},
     }
