@@ -63,8 +63,9 @@ actions{
 //        announces[]{at(dragon,hill)},
 //    }
 
-    announce_treasure[?l-location](){
+    announce_treasure[?l-location](?l){
         owner{robot},
+        precondition{at(robot,?l)},
         observesif[?o - actor]{?o, at(?o,?l)},
         announces[]{knight_has_treasure()},
     }
