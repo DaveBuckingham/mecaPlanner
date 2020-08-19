@@ -27,14 +27,14 @@ public class SheepModel extends Model {
 
         String sheepLocation = null;
         String robotLocation = null;
-        boolean robotHasTurnip = false;
+        //boolean robotHasTurnip = false;
 
         for (FluentAtom atom : domain.getAllAtoms()) {
             if (ndState.necessarily(atom)) {
-                if (atom.getName().equals("robot_has_turnip")) {
-                    robotHasTurnip = true;
-                }
-                else if (atom.getName().equals("at")) {
+                //if (atom.getName().equals("robot_has_turnip")) {
+                //    robotHasTurnip = true;
+                //}
+                if (atom.getName().equals("at")) {
                     if (atom.getParameter(0).equals("sheep")) {
                         sheepLocation = atom.getParameter(1);
                     }
@@ -53,11 +53,12 @@ public class SheepModel extends Model {
             throw new RuntimeException("failed to determine robot location");
         }
 
-        if (!robotHasTurnip || robotLocation.equals(sheepLocation)) {
+        //if (!robotHasTurnip || robotLocation.equals(sheepLocation)) {
+        if (robotLocation.equals(sheepLocation)) {
             predictions.add(domain.getActionBySignature("sheep", "wait()"));
             return predictions;
         }
-        predictions.add(domain.getActionBySignature("sheep", "move(%s,%s)".format(sheepLocation, robotLocation)));
+        predictions.add(domain.getActionBySignature("sheep", String.format("move(%s,%s)", sheepLocation, robotLocation)));
         return predictions;
     }
 

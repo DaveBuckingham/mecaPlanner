@@ -385,7 +385,14 @@ public class Action implements java.io.Serializable {
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
-        assert(Test.checkRelations(domain, newState));
+        Log.debug("Testing result of action: " + getSignatureWithActor());
+        if (Test.checkRelations(domain, newState)) {
+            Log.debug("Success.");
+        }
+        else {
+            Log.debug("Fail.");
+            System.exit(1);
+        }
 
 
         // UPDATE THE MODELS

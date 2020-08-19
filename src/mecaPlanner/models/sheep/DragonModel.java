@@ -57,19 +57,19 @@ public class DragonModel extends Model {
         }
 
         if (dragonLocation == null) {
-            System.out.println(ndState);
             throw new RuntimeException("failed to determine dragon location");
         }
 
-        if (dragonLocation.equals("lair")) {
-            return domain.getActionBySignature("dragon", "move(%s,%s)".format(dragonLocation, "field"));
+        if (dragonLocation.equals(knightLocation)) {
+            return domain.getActionBySignature("dragon", String.format("joust(%s)", dragonLocation));
         }
+
 
         if (treasure) {
             if (dragonLocation.equals(knightLocation)) {
                 return domain.getActionBySignature("dragon", "wait()");
             }
-            return domain.getActionBySignature("dragon", "move(%s,%s)".format(dragonLocation, knightLocation));
+            return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, knightLocation));
         }
 
 
@@ -78,7 +78,7 @@ public class DragonModel extends Model {
         }
 
         if (dragonLocation.equals(sheepLocation)) {
-            return domain.getActionBySignature("dragon", "eat_sheep()");
+            return domain.getActionBySignature("dragon", String.format("eat_sheep(%s)", sheepLocation));
         }
 
 
@@ -88,7 +88,7 @@ public class DragonModel extends Model {
             }
         }
 
-        return domain.getActionBySignature("dragon", "move(%s,%s)".format(dragonLocation, sheepLocation));
+        return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, sheepLocation));
 
  
 
