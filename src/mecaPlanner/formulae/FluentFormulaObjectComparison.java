@@ -21,7 +21,7 @@ public class FluentFormulaObjectComparison extends FluentFormula{
     }
 
     public Boolean holds(World world) {
-        return (world.resolve(lhs.equals(world.resolve(rhs))));
+        return (world.resolveObjectFluent(lhs.equals(world.resolveObjectFluent(rhs))));
     }
 
     // COULD IMPROVE THIS

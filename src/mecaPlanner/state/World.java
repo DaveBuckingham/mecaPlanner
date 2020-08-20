@@ -8,6 +8,8 @@ import java.util.ArrayList;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Map;
+import java.util.HashMap;
 import java.util.Objects;
 import java.util.BitSet;
 import java.util.Comparator;
@@ -21,59 +23,73 @@ public class World implements java.io.Serializable {
     private final int id;
 
     private final Set<FluentAtom> atoms;
+    private final Map<Fluent, Boolean> booleanFluents;
+    private final Map<Fluent, Integer> integerFluents;
+    private final Map<Fluent, String> objectFluents;
 
     private String name;
 
-    public World(String name, Set<FluentAtom> atoms) {
+    public World(String name,
+                 Map<Fluent, Boolean> booleanFluents,
+                 Map<Fluent, Integer> integerFluents,
+                 Map<Fluent, String> objectFluents
+                ) {
         this.id = World.idCounter++;
         this.name = name;
-        this.atoms = atoms;
-    }
-
-    public World(String name, String ...atomNames) {
-        this.id = World.idCounter++;
-        this.name = name;
-        atoms = new HashSet<FluentAtom>();
-        for (String atomName : atomNames) {
-            atoms.add(new FluentAtom(atomName));
-        }
-    }
-
-    public World(Set<FluentAtom> atoms) {
-        this(null, atoms);
+        this.booleanFluents = booleanFluents;
+        this.integerFluents = integerFluents;
+        this.objectFluents = objectFluents;
     }
 
     public World(World toCopy) {
         this(null, toCopy.getAtoms());
+        booleanFluents = new HashMap<Fluent, Boolean>();
+        integerFluents = new HashMap<Fluent, Integer>();
+        objectFluents = new HashMap<Fluent, String>();
+        booleanFluents.addAll(toCopy.getBooleanFluents());
+        integerFluents.addAll(toCopy.getIntegerFluents());
+        objectFluents.addAll(toCopy.getObjectFluents());
     }
 
-    public World update(Set<FluentLiteral> literals) {
-        Set<FluentAtom> newFluents = new HashSet<FluentAtom>(atoms);
-        for (FluentLiteral literal : literals) {
-            if (literal.getValue()){
-                newFluents.add(literal.getAtom());
-            }
-            else {
-                newFluents.remove(literal.getAtom());
-            }
-        }
-        return (new World(newFluents));
+    public Map<Fluent, Boolean> getBooleanFluents() {
+        return booleanFluents;
     }
 
-    public Set<FluentAtom> getAtoms() {
-        return atoms;
+    public Map<Fluent, Integer> getIntegerFluents() {
+        return integerFluents;
+    }
+
+    public Map<Fluent, String> getObjectFluents() {
+        return objectFluents;
     }
 
     public int getId() {
         return this.id;
     }
 
-    public Boolean containsAtom(FluentAtom a) {
-        return atoms.contains(a);
+    public Boolean resolveBooleanFluent(Fluent f) {
+        if (!booleanFluents.containsKey(f)) {
+            throw new RuntimException("unknown boolean fluent: " + f);
+        }
+        return booleanFluents.get(f);
     }
 
+    public Integer resolveIntegerFluent(Fluent f) {
+        if (!integer.containsKey(f)) {
+            throw new RuntimException("unknown integer fluent: " + f);
+        }
+        return integerFluents.get(f);
+    }
+
+    public String resolveObjectFluent(Fluent f) {
+        if (!objectFluents.containsKey(f)) {
+            throw new RuntimException("unknown object fluent: " + f);
+        }
+        return objectFluents.get(f);
+    }
+
+
     public boolean equivalent(World otherWorld) {
-        return this.atoms.equals(otherWorld.getAtoms());
     }
 
     public String getName() {

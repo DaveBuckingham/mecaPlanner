@@ -83,22 +83,22 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
     }
 
     public FluentFormulaIntegerComparison(String strInequality, Integer lhs, Integer rhs) {
-        if (strInequality.equalsIgnoreCase("eq") {
+        if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("ne") {
+        else if (strInequality.equalsIgnoreCase("ne")) {
             this(Inequality.NE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lt") {
+        else if (strInequality.equalsIgnoreCase("lt")) {
             this(Inequality.LT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lte") {
+        else if (strInequality.equalsIgnoreCase("lte")) {
             this(Inequality.LTE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gt") {
+        else if (strInequality.equalsIgnoreCase("gt")) {
             this(Inequality.GT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gte") {
+        else if (strInequality.equalsIgnoreCase("gte")) {
             this(Inequality.GTE, lhs, rhs);
         }
         else {
@@ -107,22 +107,22 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
     }
 
     public FluentFormulaIntegerComparison(String inequality, IntegerFluent lhs, Integer rhs) {
-        if (strInequality.equalsIgnoreCase("eq") {
+        if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("ne") {
+        else if (strInequality.equalsIgnoreCase("ne")) {
             this(Inequality.NE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lt") {
+        else if (strInequality.equalsIgnoreCase("lt")) {
             this(Inequality.LT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lte") {
+        else if (strInequality.equalsIgnoreCase("lte")) {
             this(Inequality.LTE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gt") {
+        else if (strInequality.equalsIgnoreCase("gt")) {
             this(Inequality.GT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gte") {
+        else if (strInequality.equalsIgnoreCase("gte")) {
             this(Inequality.GTE, lhs, rhs);
         }
         else {
@@ -132,22 +132,22 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
     }
 
     public FluentFormulaIntegerComparison(String inequality, Integer lhs, IntegerFluent rhs) {
-        if (strInequality.equalsIgnoreCase("eq") {
+        if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("ne") {
+        else if (strInequality.equalsIgnoreCase("ne")) {
             this(Inequality.NE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lt") {
+        else if (strInequality.equalsIgnoreCase("lt")) {
             this(Inequality.LT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lte") {
+        else if (strInequality.equalsIgnoreCase("lte")) {
             this(Inequality.LTE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gt") {
+        else if (strInequality.equalsIgnoreCase("gt")) {
             this(Inequality.GT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gte") {
+        else if (strInequality.equalsIgnoreCase("gte")) {
             this(Inequality.GTE, lhs, rhs);
         }
         else {
@@ -157,22 +157,22 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
     }
 
     public FluentFormulaIntegerComparison(String inequality, IntegerFluent lhs, IntegerFluent rhs) {
-         if (strInequality.equalsIgnoreCase("eq") {
+         if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("ne") {
+        else if (strInequality.equalsIgnoreCase("ne")) {
             this(Inequality.NE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lt") {
+        else if (strInequality.equalsIgnoreCase("lt")) {
             this(Inequality.LT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("lte") {
+        else if (strInequality.equalsIgnoreCase("lte")) {
             this(Inequality.LTE, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gt") {
+        else if (strInequality.equalsIgnoreCase("gt")) {
             this(Inequality.GT, lhs, rhs);
         }
-        else if (strInequality.equalsIgnoreCase("gte") {
+        else if (strInequality.equalsIgnoreCase("gte")) {
             this(Inequality.GTE, lhs, rhs);
         }
         else {
@@ -182,8 +182,8 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
 
 
     public Boolean holds(World world) {
-        Integer lhsValue = lhsIsFluent ? world.resolve(lhsFluent) : lhsLiteral;
-        Integer rhsValue = rhsIsFluent ? world.resolve(rhsFluent) : rhsLiteral;
+        Integer lhsValue = lhsIsFluent ? world.resolveIntegerFluent(lhsFluent) : lhsLiteral;
+        Integer rhsValue = rhsIsFluent ? world.resolveIntegerFluent(rhsFluent) : rhsLiteral;
         switch (this.inequality) {
             case EQ:
                 return lhsValue == rhsValue;
