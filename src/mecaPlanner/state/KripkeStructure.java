@@ -236,37 +236,37 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
 
-    public static boolean checkRelations() {
+    public boolean checkRelations() {
         for (String agent : agents) {
             if (!beliefRelations.get(agent).checkSerial(worlds)) {
-                System.out.println("failed check: serial belief for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: serial belief for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
             if (!beliefRelations.get(agent).checkTransitive(worlds)) {
-                System.out.println("failed check: transitive belief for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: transitive belief for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
             if (!beliefRelations.get(agent).checkEuclidean(worlds)) {
-                System.out.println("failed check: euclidean belief for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: euclidean belief for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
 
             if (!knowledgeRelations.get(agent).checkReflexive(worlds)) {
-                System.out.println("failed check: reflexive knowledge for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: reflexive knowledge for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
             if (!knowledgeRelations.get(agent).checkTransitive(worlds)) {
-                System.out.println("failed check: transitive knowledge for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: transitive knowledge for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
             if (!knowledgeRelations.get(agent).checkSymmetric(worlds)) {
-                System.out.println("failed check: symmetric knowledge for agent " + agent);
-                System.out.println(state);
+                Log.severe("failed check: symmetric knowledge for agent " + agent);
+                Log.debug(toString());
                 return false;
             }
         }
