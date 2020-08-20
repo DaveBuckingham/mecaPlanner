@@ -388,20 +388,9 @@ public class Action implements java.io.Serializable {
 
         KripkeStructure newKripke = new KripkeStructure(resultWorlds, newBeliefs, newKnowledges);
 
-        EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
+        assert(newKripke.checkRelations());
 
-        Log.debug("Testing result of action: " + getSignatureWithActor());
-        if (Test.checkRelations(domain, newState)) {
-            Log.debug("Success.");
-        }
-        else {
-            Log.debug("Fail.");
-            System.out.println("OLD:");
-            System.out.println(beforeState);
-            System.out.println("NEW:");
-            System.out.println(newState);
-            System.exit(1);
-        }
+        EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
 
         // UPDATE THE MODELS

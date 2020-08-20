@@ -107,8 +107,6 @@ public class NDState implements java.io.Serializable {
 
     private Map<String, Relation> knowledgeRelations;
 
-    private Set<World> worlds;
-
     @Override
     public int hashCode() {
         // NOT SURE IF THIS WILL OUTPERFORM return 1;

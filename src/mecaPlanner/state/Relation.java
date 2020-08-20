@@ -68,6 +68,73 @@ public class Relation implements java.io.Serializable {
         return new Relation(unionEdges);
     }
 
+
+    // u implies some u->v
+    public static boolean checkSerial(Set<World> worlds) {
+        for (World u : worlds) {
+            if (getToWorlds(u).isEmpty()) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    // u->v and v->z implies u->z
+    public static boolean checkTransitive(Set<World> worlds) {
+        for (World u : worlds) {
+            for (World v : worlds) {
+                for (World z : worlds) {
+                    if (isConnected(u, v) && isConnected(v, z)) {
+                        if (!isConnected(u, z)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    // u->v and u->z implies v->z
+    public static boolean checkEuclidean(Set<World> worlds) {
+        for (World u : worlds) {
+            for (World v : worlds) {
+                for (World z : worlds) {
+                    if (isConnected(u, v) && isConnected(u, z)) {
+                        if (!isConnected(v, z)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkReflexive(Set<World> worlds) {
+        for (World u : worlds) {
+            if (!isConnected(u, u)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public static boolean checkSymmetric(Set<World> worlds) {
+        for (World u : worlds) {
+            for (World v : worlds) {
+                if (isConnected(u, v)) {
+                    if (!isConnected(v, u)) {
+                        return false;
+                    }
+                }
+            }
+        }
+        return true;
+    }
+
+
+
     public String toString() {
         StringBuilder str = new StringBuilder();
         for (World fromWorld : edges.keySet()) {
