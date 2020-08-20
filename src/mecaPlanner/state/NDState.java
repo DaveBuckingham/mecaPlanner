@@ -1,7 +1,6 @@
 package mecaPlanner.state;
 
 import mecaPlanner.formulae.BeliefFormula;
-import mecaPlanner.formulae.FluentAtom;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -111,16 +110,8 @@ public class NDState implements java.io.Serializable {
 
     @Override
     public int hashCode() {
-        // NOT SURE IF THIS WILL OUTPERFORM return 1;
-        Set<FluentAtom> allPossibly = new HashSet<>();
-        for (World w : designatedWorlds) {
-            allPossibly.addAll(w.getAtoms());
-        }
-        int result = 7;
-        for (FluentAtom a : allPossibly) {
-            result = (31 * result) + a.hashCode();
-        }
-        return result;
+        // MAYBE ROOM FOR IMPROEMENT HERE...
+        return 1;
     }
 
 

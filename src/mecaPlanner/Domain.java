@@ -1,11 +1,8 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.FluentAtom;
-import mecaPlanner.formulae.FluentAtom;
+import mecaPlanner.state.Fluent;
 import mecaPlanner.formulae.BeliefFormula;
-import mecaPlanner.formulae.GeneralFormula;
-import mecaPlanner.formulae.GeneralFormulaAnd;
 import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;

@@ -1,6 +1,7 @@
 package mecaPlanner.formulae;
 
 import mecaPlanner.state.World;
+import mecaPlanner.state.Fluent;
 
 
 import java.util.List;
@@ -14,14 +15,14 @@ import java.util.HashSet;
 
 public class FluentFormulaObjectComparison extends FluentFormula{
 
-    private ObjectFluent lhs;
-    private ObjectFluent rhs;
+    private Fluent lhs;
+    private Fluent rhs;
 
-    public FluentFormulaObjectComparison(ObjectFluent lhs, ObjectFluent rhs) {
+    public FluentFormulaObjectComparison(Fluent lhs, Fluent rhs) {
     }
 
     public Boolean holds(World world) {
-        return (world.resolveObjectFluent(lhs.equals(world.resolveObjectFluent(rhs))));
+        return (world.resolveFluent(lhs.equals(world.resolveFluent(rhs))));
     }
 
     // COULD IMPROVE THIS
@@ -52,27 +53,11 @@ public class FluentFormulaObjectComparison extends FluentFormula{
         return str.toString();
     }
 
-    public boolean isLhsFluent() {
-        return lhsIsFluent;
-    }
-
-    public boolean isRhsFluent() {
-        return rhsIsFluent;
-    }
-
-    public Integer getLhsLiteral() {
-        return lhsLiteral;
-    }
-
-    public Integer getRhsLiteral() {
-        return rhsLiteral;
-    }
-
-    public FluentInteger getlhsFluent() {
+    public Fluent getLhs() {
         reutrn lhsFluent;
     }
 
-    public FluentInteger getRhsFluent() {
+    public Fluent getRhs() {
         reutrn rhsFluent;
     }
 

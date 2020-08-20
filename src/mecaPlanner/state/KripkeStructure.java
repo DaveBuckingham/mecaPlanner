@@ -117,16 +117,39 @@ public class KripkeStructure implements java.io.Serializable {
         return this.knowledgeRelations;
     }
 
+//    // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK WOULD BE FASTER?
+//    private Set<Set<World>> getInitialPartition() {
+//        Map<Set<FluentAtom>, Set<World>> mapValuation = new HashMap<>();
+//        for (World w : worlds) {
+//            if (!mapValuation.containsKey(w.getAtoms())) {
+//                mapValuation.put(w.getAtoms(), new HashSet<World>());
+//            }
+//            mapValuation.get(w.getAtoms()).add(w);
+//        }
+//        return new HashSet<Set<World>>(mapValuation.values());
+//    }
+
     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK WOULD BE FASTER?
     private Set<Set<World>> getInitialPartition() {
-        Map<Set<FluentAtom>, Set<World>> mapValuation = new HashMap<>();
+        Set<Set<World>> partition = new HashSet<>();
         for (World w : worlds) {
-            if (!mapValuation.containsKey(w.getAtoms())) {
-                mapValuation.put(w.getAtoms(), new HashSet<World>());
+            boolean foundPart = false;
+            for (Set<World> part : partition) {
+                assert(!part.isEmpty());
+                World sample = part.iterator().next();
+                if (sample.equivalent(w)) {
+                    part.put(w);
+                    foundPart = true;
+                    break;
+                }
             }
-            mapValuation.get(w.getAtoms()).add(w);
+            if (!foundPart) {
+                Set<World> newPart = new HashSet<>();
+                newPart.add(w);
+                partition.add(newPart);
+            }
         }
-        return new HashSet<Set<World>>(mapValuation.values());
+        return partition;
     }
 
     private Set<Set<World>> refinePartition(Set<Set<World>> partition, Set<World> splitter) {

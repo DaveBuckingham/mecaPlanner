@@ -1,6 +1,7 @@
 package mecaPlanner.formulae;
 
 import mecaPlanner.state.World;
+import mecaPlanner.state.Fluent;
 
 
 import java.util.List;
@@ -29,10 +30,10 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
     boolean rhsIsFluent;
 
     private Integer lhsLiteral;
-    private IntegerFluent lhsFluent;
+    private Fluent lhsFluent;
 
     private Integer rhsLiteral;
-    private IntegerFluent rhsFluent;
+    private Fluent rhsFluent;
 
     public FluentFormulaIntegerComparison(Inequality inequality, Integer lhs, Integer rhs) {
         this.inequality = inequality;
@@ -46,7 +47,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         rhsIsFluent = false;
     }
 
-    public FluentFormulaIntegerComparison(Inequality inequality, IntegerFluent lhs, Integer rhs) {
+    public FluentFormulaIntegerComparison(Inequality inequality, Fluent lhs, Integer rhs) {
         this.inequality = inequality;
 
         rhsLiteral = null;
@@ -58,7 +59,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         rhsIsFluent = false;
     }
 
-    public FluentFormulaIntegerComparison(Inequality inequality, Integer lhs, IntegerFluent rhs) {
+    public FluentFormulaIntegerComparison(Inequality inequality, Integer lhs, Fluent rhs) {
         this.inequality = inequality;
 
         lhsLiteral = lhs;
@@ -70,7 +71,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         rhsIsFluent = true;
     }
 
-    public FluentFormulaIntegerComparison(Inequality inequality, IntegerFluent lhs, IntegerFluent rhs) {
+    public FluentFormulaIntegerComparison(Inequality inequality, Fluent lhs, Fluent rhs) {
         this.inequality = inequality;
 
         lhsLiteral = null;
@@ -106,7 +107,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         }
     }
 
-    public FluentFormulaIntegerComparison(String inequality, IntegerFluent lhs, Integer rhs) {
+    public FluentFormulaIntegerComparison(String inequality, Fluent lhs, Integer rhs) {
         if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
@@ -131,7 +132,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
 
     }
 
-    public FluentFormulaIntegerComparison(String inequality, Integer lhs, IntegerFluent rhs) {
+    public FluentFormulaIntegerComparison(String inequality, Integer lhs, Fluent rhs) {
         if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
@@ -156,7 +157,7 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
 
     }
 
-    public FluentFormulaIntegerComparison(String inequality, IntegerFluent lhs, IntegerFluent rhs) {
+    public FluentFormulaIntegerComparison(String inequality, Fluent lhs, Fluent rhs) {
          if (strInequality.equalsIgnoreCase("eq")) {
             this(Inequality.EQ, lhs, rhs);
         }
@@ -178,12 +179,11 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         else {
             throw new RuntimeException("invalid inequality string: " + strInequality);
         }
-   }
-
+    }
 
     public Boolean holds(World world) {
-        Integer lhsValue = lhsIsFluent ? world.resolveIntegerFluent(lhsFluent) : lhsLiteral;
-        Integer rhsValue = rhsIsFluent ? world.resolveIntegerFluent(rhsFluent) : rhsLiteral;
+        Integer lhsValue = lhsIsFluent ? world.resolveFluent(lhsFluent) : lhsLiteral;
+        Integer rhsValue = rhsIsFluent ? world.resolveFluent(rhsFluent) : rhsLiteral;
         switch (this.inequality) {
             case EQ:
                 return lhsValue == rhsValue;
@@ -246,11 +246,11 @@ public class FluentFormulaIntegerComparison extends FluentFormula{
         return rhsLiteral;
     }
 
-    public IntegerFluent getlhsFluent() {
+    public Fluent getLhsFluent() {
         reutrn lhsFluent;
     }
 
-    public IntegerFluent getRhsFluent() {
+    public Fluent getRhsFluent() {
         reutrn rhsFluent;
     }
 
