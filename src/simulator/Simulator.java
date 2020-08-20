@@ -3,13 +3,14 @@ package simulator;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.models.Model;
-import mecaPlanner.actions.Action;
+import mecaPlanner.Action;
 import mecaPlanner.search.Perspective;
 import mecaPlanner.search.Search;
 import mecaPlanner.formulae.*;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
+import mecaPlanner.Log;
 
 import java.util.Scanner;
 import java.util.List;
@@ -26,6 +27,9 @@ public class Simulator {
 
 
     public static void main(String args[]) {
+
+        //Log.setThreshold("info");
+        Log.setThreshold("debug");
 
         // READ AND PARSE A .depl FILE
         if (args.length != 1) {
@@ -47,13 +51,13 @@ public class Simulator {
 
         // TO HELP KEEP TRACK OF AGENTS
         final int numAgents = domain.getNonPassiveAgents().size();
-        if (numAgents != 2) {
-            throw new RuntimeException("simulator requires a single s-agent and a single e-agent");
-        }
+        //if (numAgents != 2) {
+        //    throw new RuntimeException("simulator requires a single s-agent and a single e-agent");
+        //}
 
         // THESE WILL BE 0 AND 1, OR 1 AND 0
         final int sIndex = problem.getSystemAgentIndex();
-        final int eIndex = 1 - sIndex;
+        //final int eIndex = 1 - sIndex;
 
 
         // MAIN LOOP, CONTINUE UNTIL THE GOAL IS ACHIEVED
@@ -62,7 +66,8 @@ public class Simulator {
             String currentAgent = domain.agentAtDepth(depth);
 
             // DRAW THE STATE FROM THE HUMAN'S PERSPECTIVE
-            displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
+            //displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
+            displayState(domain, currentState);
 
             // THE ACTION TAKEN BY THE CURRENT AGENT
             Action action = null;
@@ -105,10 +110,10 @@ public class Simulator {
             }
 
 
-            // OTHERWISE, IT'S THE HUMAN'S TURN
+            // OTHERWISE, IT'S AN E-AGENT'S HUMAN'S TURN
             else {
 
-                // WHAT THE HUMAN BELIEVES, ACCORDING TO THE CURRENT STATE
+                // WHAT THE E-AGENT BELIEVES, ACCORDING TO THE CURRENT STATE
                 NDState humanPerspective = currentState.getBeliefPerspective(currentAgent);
 
                 // AN ACTION IS APPLICABLE IN THE CURRENT STATE IF
@@ -124,6 +129,12 @@ public class Simulator {
                 // THE CURRENT PLAN ASSUMES THE HUMAN WILL PERFORM A PREDICTED ACTION
                 Set<Action> predictions = models.get(currentAgent).getPrediction(humanPerspective);
 
+                for (Action a : predictions) {
+                    if (!a.getActor().equals(currentAgent)) {
+                        throw new RuntimeException("model returned an action for the wrong agent");
+                    }
+                }
+
                 if (predictions.isEmpty()) {
                     throw new RuntimeException("model gave no applicable actions.");
                 }
@@ -131,11 +142,16 @@ public class Simulator {
                     throw new RuntimeException("no applicable actions for s-agent");
                 }
                 if (!applicable.containsAll(predictions)) {
-                    throw new RuntimeException("Agent doesn't think a predicted action is applicable");
+                    System.out.println("Agent doesn't think a predicted action is applicable:");
+                    System.out.println("Predictions:");
+                    System.out.println(predictions);
+                    System.out.println("State");
+                    System.out.println(currentState);
+                    System.exit(1);
                 }
 
                 // ASK THE USER TO SELECT AN ACTION
-                action = getHumanAction(applicable, predictions);
+                action = getHumanAction(currentAgent, applicable, predictions);
             }
 
             if (action == null) {
@@ -152,7 +168,8 @@ public class Simulator {
         }
 
         // GOAL ACHIEVED
-        displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
+        //displayState(domain, currentState.getBeliefPerspective(domain.agentAtDepth(eIndex)));
+        displayState(domain, currentState);
         System.out.println("ACHIEVED GOAL: " + goal + "\n");
         
     }
@@ -173,9 +190,9 @@ public class Simulator {
 
 
     // GET AN ACTION SELECTION FROM THE USER
-    private static Action getHumanAction(Set<Action> applicable, Set<Action> predictions) {
+    private static Action getHumanAction(String agent, Set<Action> applicable, Set<Action> predictions) {
         Scanner stdin = new Scanner(System.in);
-        System.out.println("PICK AN ACTION, \"*\" INDICATES MODEL PREDICITONS:");
+        System.out.println("PICK AN ACTION FOR " + agent + ", \"*\" INDICATES MODEL PREDICITONS:");
         List<Action> options = new ArrayList<>(applicable);
         for (Integer i = 0; i < options.size(); i++) {
             System.out.print(predictions.contains(options.get(i)) ? "* " : "  ");

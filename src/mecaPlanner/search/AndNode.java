@@ -35,6 +35,12 @@ public class AndNode extends GNode {
             throw new RuntimeException("Model returned null, indicating model failure.");
         }
 
+        for (Action a : prediction) {
+            if (!a.getActor().equals(agent)) {
+                throw new RuntimeException("model returned an action for the wrong agent");
+            }
+        }
+
         Log.debug(agent + " prediction:");
         for (Action action : prediction) {
             Log.debug("  " + action.getSignature());
@@ -44,7 +50,7 @@ public class AndNode extends GNode {
         }
 
         if (possibleActions.isEmpty()) {
-            Log.warning("Model for " + agent + "predicted no necessarily executable action.");
+            Log.warning("Model for " + agent + " predicted no necessarily executable action.");
         }
 
         return possibleActions;

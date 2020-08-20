@@ -22,35 +22,54 @@ public class SheepModel extends Model {
         super(agent, domain);
     }
 
-    private Action waitAction;
-
 
     public Set<Action> getPrediction(NDState ndState) {
 
         String sheepLocation = null;
-        String turnipLocation = null;
+        String robotLocation = null;
+        boolean alive = false;
+        //boolean robotHasTurnip = false;
 
         for (FluentAtom atom : domain.getAllAtoms()) {
-            if (atom.getName().equals("at")) {
-                if (atom.getParameter(0).equals("sheep")) {
-                    sheepLocation = atom.getParameter(1);
+            if (ndState.necessarily(atom)) {
+                //if (atom.getName().equals("robot_has_turnip")) {
+                //    robotHasTurnip = true;
+                //}
+                if (atom.getName().equals("sheep_alive")) {
+                    alive = true;
                 }
-                else if (atom.getParameter(0).equals("turnip")) {
-                    turnipLocation = atom.getParameter(1);
+                else if (atom.getName().equals("at")) {
+                    if (atom.getParameter(0).equals("sheep")) {
+                        sheepLocation = atom.getParameter(1);
+                    }
+                    else if (atom.getParameter(0).equals("robot")) {
+                        robotLocation = atom.getParameter(1);
+                    }
                 }
             }
         }
 
         Set<Action> predictions = new HashSet<>();
-        if (sheepLocation == null || turnipLocation == null) {
-            throw new RuntimeException("failed to determine sheep or turnip location");
-        }
 
-        if (turnipLocation.equals(sheepLocation)) {
+        if (!alive) {
             predictions.add(domain.getActionBySignature("sheep", "wait()"));
             return predictions;
         }
-        predictions.add(domain.getActionBySignature("sheep", "move(%s,%s)".format(sheepLocation, turnipLocation)));
+
+
+        if (sheepLocation == null) {
+            throw new RuntimeException("failed to determine sheep location");
+        }
+        if (robotLocation == null) {
+            throw new RuntimeException("failed to determine robot location");
+        }
+
+        //if (!robotHasTurnip || robotLocation.equals(sheepLocation)) {
+        if (robotLocation.equals(sheepLocation)) {
+            predictions.add(domain.getActionBySignature("sheep", "wait()"));
+            return predictions;
+        }
+        predictions.add(domain.getActionBySignature("sheep", String.format("move(%s,%s)", sheepLocation, robotLocation)));
         return predictions;
     }
 

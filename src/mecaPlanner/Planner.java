@@ -83,28 +83,31 @@ public class Planner {
         }
 
 
-        Properties prop = new Properties();
+        // Properties prop = new Properties();
 
-        if (configFileName != null)  {
-            InputStream is = null;
-            try {
-                is = new FileInputStream(configFileName);
-            } catch (FileNotFoundException ex) {
-                throw new RuntimeException("config file not found: " + configFileName);
-            }
-            try {
-                prop.load(is);
-            } catch (IOException ex) {
-                System.out.println("failed to read config file...using defaults");
-            }
-        }
+        // if (configFileName != null)  {
+        //     InputStream is = null;
+        //     try {
+        //         is = new FileInputStream(configFileName);
+        //     } catch (FileNotFoundException ex) {
+        //         throw new RuntimeException("config file not found: " + configFileName);
+        //     }
+        //     try {
+        //         prop.load(is);
+        //     } catch (IOException ex) {
+        //         System.out.println("failed to read config file...using defaults");
+        //     }
+        // }
 
-        //Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
-        //Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
-        //Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
-        Log.setThreshold(prop.getProperty("logThreshold", "info"));
-        //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
-        Log.setOutput(prop.getProperty("logOutput", "stdout"));
+        // //Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
+        // //Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
+        // //Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
+        // Log.setThreshold(prop.getProperty("logThreshold", "info"));
+        // //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
+        // Log.setOutput(prop.getProperty("logOutput", "stdout"));
+
+        //Log.setThreshold("info");
+        Log.setThreshold("debug");
 
 
         Log.info("loading domain");
