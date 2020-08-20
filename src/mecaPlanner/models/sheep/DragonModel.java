@@ -66,12 +66,8 @@ public class DragonModel extends Model {
 
 
         if (treasure) {
-            if (dragonLocation.equals(knightLocation)) {
-                return domain.getActionBySignature("dragon", "wait()");
-            }
             return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, knightLocation));
         }
-
 
         if (sheepLocation == null) {
             return domain.getActionBySignature("dragon", "wait()");
@@ -82,10 +78,12 @@ public class DragonModel extends Model {
         }
 
 
-        if (dragonLocation.equals("field")) {
-            if (sheepLocation.equals("field")) {
-                return domain.getActionBySignature("dragon", "eat_sheep()");
-            }
+        if (dragonLocation.equals("hill")) {
+            return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, "field"));
+        }
+
+        if (dragonLocation.equals(sheepLocation)) {
+            return domain.getActionBySignature("dragon", "eat_sheep()");
         }
 
         return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, sheepLocation));
