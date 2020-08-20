@@ -152,27 +152,14 @@ inequality
     | '>='                # inequalityGte
     ;
 
-timeFormula : ('t' | 'time' | 'timestep')  inequality INTEGER;
 
-generalFormula
-    : beliefFormula                                              # generalBelief
-    | timeFormula                                                # generalTime
-    | '~' generalFormula                                         # generalNot
-    | generalFormula '&' generalFormula ('&' generalFormula)*    # generalAnd
-    | generalFormula '|' generalFormula ('|' generalFormula)*    # generalOr
-    ;
-
-literal
-    : atom                                  # literalTrue
-    | '~' atom                              # literalFalse
-    ;
 
 
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
 
-goal : generalFormula ;
+goal : beliefFormula ;
 
 
 // ACTION DEFINITIONS

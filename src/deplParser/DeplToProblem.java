@@ -33,7 +33,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
-    private Set<GeneralFormula> goals;
+    private Set<BeliefFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
     private Integer agentIndex;
@@ -576,7 +576,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        GeneralFormula goal = (GeneralFormula) visit(ctx.generalFormula());
+        BeliefFormula goal = (BeliefFormula) visit(ctx.generalFormula());
         goals.add(goal);
         return null;
     }
@@ -932,39 +932,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-
-
-
-    // GENERAL FORMULAE
-
-    @Override public GeneralFormula visitGeneralBelief(DeplParser.GeneralBeliefContext ctx) {
-        return (BeliefFormula) visit(ctx.beliefFormula());
-    }
-
-    @Override public GeneralFormula visitGeneralTime(DeplParser.GeneralTimeContext ctx) {
-        return (TimeFormula) visit(ctx.timeFormula());
-    }
-
-    @Override public GeneralFormula visitGeneralNot(DeplParser.GeneralNotContext ctx) {
-        GeneralFormula inner = (GeneralFormula) visit(ctx.generalFormula());
-        return (new GeneralFormulaNot(inner));
-    }
-
-    @Override public GeneralFormula visitGeneralAnd(DeplParser.GeneralAndContext ctx) {
-        List<GeneralFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.GeneralFormulaContext subFormula : ctx.generalFormula()) {
-            subFormulae.add((GeneralFormula) visit(subFormula));
-        }
-        return (new GeneralFormulaAnd(subFormulae));
-    }
-
-    @Override public GeneralFormula visitGeneralOr(DeplParser.GeneralOrContext ctx) {
-        List<GeneralFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.GeneralFormulaContext subFormula : ctx.generalFormula()) {
-            subFormulae.add((GeneralFormula) visit(subFormula));
-        }
-        return (new GeneralFormulaOr(subFormulae));
-    }
 
 
 
