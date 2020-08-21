@@ -24,15 +24,15 @@ agents{
 
 passive{}
 
+constants{
+    sameLocation[?a-location,?b-location](?a,?b)
+}
+
 fluents{
     at[?a-locatable,?b-location](?a,?b),
     dueling(),
     knight_has_treasure(),
     sheep_alive(),
-}
-
-constants{
-    sameLocation[?a-location,?b-location](?a,?b)
 }
 
 constraints{

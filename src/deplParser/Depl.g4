@@ -1,17 +1,20 @@
 grammar Depl;
 
-NAME: LOWER ANYCHAR*;
-CLASS: (ANYCHAR*'.')* UPPER LETTER*;
-VARIABLE: '?' NAME;
-INTEGER: DIGIT+;
-OBJECT : 'object';
+LOWER_NAME     : LOWER ANYCHAR*;
+UPPER_NAME     : UPPER ANYCHAR*;
+CLASS          : (ANYCHAR*'.')* UPPER LETTER*;
+VARIABLE       : '?' LOWER_NAME;
+INTEGER        : DIGIT+;
+
+KEYWORD_OBJECT : 'Object' ;
+KEYWORD_TRUE   : 'true' ;
+KEYWORD_FALSE  : 'false' ;
 
 fragment LOWER: [a-z];
 fragment UPPER: [A-Z];
 fragment LETTER: LOWER | UPPER;
 fragment ANYCHAR: LETTER | DIGIT | '_';
 fragment DIGIT:  [0-9];
-fragment DECIMAL: '.' DIGIT+;
 
 LINECOMMENT: '//' .*? '\r'? '\n' -> skip;
 COMMENT: '/*' .*? '*/' -> skip;
@@ -24,9 +27,8 @@ init :
     objectsSection
     agentsSection
     passiveSection?
-    atomsSection
     constantsSection?
-    constraintsSection?
+    fluentsSection
     initiallySection
     goalsSection
     actionsSection
@@ -37,16 +39,16 @@ init :
 
 typesSection : 'types' '{' (typeDefinition ',')* typeDefinition? '}' ;
 
-typeDefinition : NAME '-' type ;
+typeDefinition : type '-' type ;
 
 
 // OBJECT DEFINITIONS
 
 objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
 
-objectDefinition : NAME '-' type ;
+objectDefinition : LOWER_NAME '-' type ;
 
-type : NAME | OBJECT ;
+type : UPPER_NAME | KEYWORD_OBJECT ;
 
 
 // AGENT DEFINITIONS
@@ -55,41 +57,37 @@ agentsSection : 'agents' '{' (agentDef ',')* agentDef? '}' ;
 
 agentDef : systemAgent | environmentAgent ;
 
-systemAgent : NAME ;
+systemAgent : LOWER_NAME ;
 
-environmentAgent : NAME '{' CLASS '}' ;
+environmentAgent : LOWER_NAME '{' CLASS '}' ;
 
 
 // PASSIVE AGENT DEFINITIONS
 
 passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
 
-passiveDef : NAME ;
-
-
-
-
-
-// PREDICATES DEFINITIONS
-
-atomsSection : 'fluents' '{' (atomDefinition ',')* atomDefinition? '}' ;
-
-atomDefinition : NAME variableList? parameterList? ;
-
-variableList : '[' (variableDefinition ',')* variableDefinition? ']' ;
-
-parameterList : '(' (parameter ',')* parameter? ')' ;
-
-variableDefinition : VARIABLE '-' NAME ;
-
-parameter : NAME | VARIABLE ;
+passiveDef : LOWER_NAME ;
 
 
 // CONSTANTS DEFINITIONS
 
-constantsSection : 'constants' '{' (atomDefinition ',')* atomDefinition? '}' ;
+constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
 
-constraintsSection : 'constraints' '{' (atom ',')* atom? '}' ;
+constantAssignment : predicateDefinition ('<-'|'=') | (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
+
+predicateDefinition : LOWER_NAME parameterList ;
+
+
+
+// FLUENTS DEFINITIONS
+
+fluentsSection : 'fluents' '{' (fluentDefinition ',')* fluentDefinition? '}' ;
+
+fluentDefinition : predicateDefinition '-' type ;
+
+parameterList : '(' (parameter ',')* parameter? ')' ;
+
+parameter : LOWER_NAME | VARIABLE - type ;
 
 
 // INITIAL STATE DEFINITION
