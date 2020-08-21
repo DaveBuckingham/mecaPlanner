@@ -46,9 +46,9 @@ initially{
     sheep_alive(),
     at(sheep,field),
     at(robot,field),
-    at(knight,castle),
+    at(knight,field),
     at(dragon,hill),
-    //C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
+    C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
 }
 
 goals{
