@@ -1,21 +1,32 @@
 grammar Depl;
 
-LOWER_NAME     : LOWER ANYCHAR*;
-UPPER_NAME     : UPPER ANYCHAR*;
-CLASS          : (ANYCHAR*'.')* UPPER LETTER*;
-VARIABLE       : '?' LOWER_NAME;
-INTEGER        : DIGIT+;
-
-KEYWORD_OBJECT : 'Object' ;
-KEYWORD_TRUE   : 'true' ;
-KEYWORD_FALSE  : 'false' ;
-
 fragment LOWER: [a-z];
 fragment UPPER: [A-Z];
 fragment LETTER: LOWER | UPPER;
 fragment ANYCHAR: LETTER | DIGIT | '_';
 fragment DIGIT:  [0-9];
 
+fragment OP_EQ          : '==';
+fragment OP_NE          : '!=';
+fragment OP_LT          : '<';
+fragment OP_LTE         : '<=';
+fragment OP_GE          : '>';
+fragment OP_GTE         : '>=';
+
+LOWER_NAME     : LOWER ANYCHAR*;
+UPPER_NAME     : UPPER ANYCHAR*;
+CLASS          : (ANYCHAR*'.')* UPPER LETTER*;
+VARIABLE       : '?' LOWER_NAME;
+INTEGER        : DIGIT+;
+ASSIGN         : '<-'|'=';
+
+OP_INEQUALITY  : OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
+
+% KEYWORD_OBJECT : 'Object' ;
+% KEYWORD_TIME   : 'time' | 'timestep' ;
+KEYWORD_TRUE   : 'true' ;
+KEYWORD_FALSE  : 'false' ;
+ 
 LINECOMMENT: '//' .*? '\r'? '\n' -> skip;
 COMMENT: '/*' .*? '*/' -> skip;
 WS: [ \n\t\r]+ -> skip;
@@ -48,7 +59,8 @@ objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
 
 objectDefinition : LOWER_NAME '-' type ;
 
-type : UPPER_NAME | KEYWORD_OBJECT ;
+% type : UPPER_NAME | KEYWORD_OBJECT ;
+type : UPPER_NAME ;
 
 
 // AGENT DEFINITIONS
@@ -69,13 +81,21 @@ passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
 passiveDef : LOWER_NAME ;
 
 
-// CONSTANTS DEFINITIONS
-
-constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
-
-constantAssignment : predicateDefinition ('<-'|'=') | (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
+// PREDICATES
 
 predicateDefinition : LOWER_NAME parameterList ;
+
+parameterList : '(' (parameter ',')* parameter? ')' ;
+
+parameter : LOWER_NAME | VARIABLE - type ;
+
+assignment : predicateDefinition ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
+
+
+
+// CONSTANTS
+
+constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
 
 
 
@@ -85,9 +105,6 @@ fluentsSection : 'fluents' '{' (fluentDefinition ',')* fluentDefinition? '}' ;
 
 fluentDefinition : predicateDefinition '-' type ;
 
-parameterList : '(' (parameter ',')* parameter? ')' ;
-
-parameter : LOWER_NAME | VARIABLE - type ;
 
 
 // INITIAL STATE DEFINITION
@@ -100,35 +117,40 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
-
 kripkeFormula
-    : NAME '=' '{' (atom ',')* atom? '}'                                                               # kripkeWorld
-    | relationType NAME '=' '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
+    : LOWER_NAME ASSIGN '{' (atom ',')* atom? '}'                                                     # kripkeWorld
+    | relationType NAME ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
     ;
-
 relationType : 'B_' | 'K_' ;
-fromWorld : NAME;
-toWorld : NAME;
+fromWorld : LOWER_NAME;
+toWorld : LOWER_NAME;
 
 
 
-atom : NAME parameterList? | '(' NAME parameterList? ')';
 
+assignment : predicateDefinition ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
 
 // FORMULAE
 
+inequality
+    : INTEGER OP_INEQUALITY INTEGER
+    | predicate OP_INEQUALITY INTEGER
+    | INTEGER OP_INEQUALITY predicate
+    | predicate OP_INEQUALITY predicate
+    ;
+
 fluentFormula 
-    : atom                                                       # fluentAtom
+    : predicate                                                  # fluentAtom
     | '(' fluentFormula ')'                                      # fluentParens
     | '~' fluentFormula                                          # fluentNot
     | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
     | fluentFormula '|' fluentFormula ('|' fluentFormula)*       # fluentOr
-    | 'true'                                                     # fluentTrue
-    | 'True'                                                     # fluentTrue
-    | 'T'                                                        # fluentTrue
-    | 'false'                                                    # fluentFalse
-    | 'False'                                                    # fluentFalse
-    | 'F'                                                        # fluentFalse
+    | fluentFormula '==' fluentFormula ('==' fluentFormula)*     # fluentEquals
+    | KEYWORD_TRUE                                               # fluentTrue
+    | KEYWORD_FALSE                                              # fluentFalse
+    | INTEGER                                                    # fluentInteger
+    | LOWER_NAME                                                 # fluentObject
+    | inequality                                                 # fluentInequality
     ;
 
 beliefFormula 
@@ -140,16 +162,6 @@ beliefFormula
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
     | 'B_' parameter '(' beliefFormula ')'                       # beliefBelieves
     ;
-
-inequality
-    : '=='                # inequalityEq
-    | '!='                # inequalityNe
-    | '<'                 # inequalityLt
-    | '<='                # inequalityLte
-    | '>'                 # inequalityGt
-    | '>='                # inequalityGte
-    ;
-
 
 
 
@@ -164,7 +176,7 @@ goal : beliefFormula ;
 
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
-actionDefinition : NAME variableList? parameterList '{' (actionField ','?)* '}' ;
+actionDefinition : NAME parameterList '{' (actionField ','?)* '}' ;
 
 actionField
     : ownerActionField
