@@ -1,10 +1,10 @@
 grammar Depl;
 
-fragment LOWER: [a-z];
-fragment UPPER: [A-Z];
-fragment LETTER: LOWER | UPPER;
-fragment ANYCHAR: LETTER | DIGIT | '_';
-fragment DIGIT:  [0-9];
+fragment LOWER          : [a-z];
+fragment UPPER          : [A-Z];
+fragment LETTER         : LOWER | UPPER;
+fragment ANYCHAR        : LETTER | DIGIT | '_';
+fragment DIGIT          :  [0-9];
 
 fragment OP_EQ          : '==';
 fragment OP_NE          : '!=';
@@ -12,24 +12,26 @@ fragment OP_LT          : '<';
 fragment OP_LTE         : '<=';
 fragment OP_GE          : '>';
 fragment OP_GTE         : '>=';
+COMPARE_OPERATION       : OP_EQ | OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
 
-LOWER_NAME     : LOWER ANYCHAR*;
-UPPER_NAME     : UPPER ANYCHAR*;
-CLASS          : (ANYCHAR*'.')* UPPER LETTER*;
-VARIABLE       : '?' LOWER_NAME;
-INTEGER        : DIGIT+;
-ASSIGN         : '<-'|'=';
+LOWER_NAME              : LOWER ANYCHAR*;
+UPPER_NAME              : UPPER ANYCHAR*;
+INTEGER                 : DIGIT+;
+ASSIGN                  : '<-'|'=';
 
-OP_INEQUALITY  : OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
+% KEYWORD_OBJECT         : 'Object' ;
+% KEYWORD_TIME           : 'time' | 'timestep' ;
+KEYWORD_TRUE            : 'true' ;
+KEYWORD_FALSE           : 'false' ;
 
-% KEYWORD_OBJECT : 'Object' ;
-% KEYWORD_TIME   : 'time' | 'timestep' ;
-KEYWORD_TRUE   : 'true' ;
-KEYWORD_FALSE  : 'false' ;
+TYPE                    : UPPER_NAME ;
+OBJECT                  : LOWER_NAME ;
+VARIABLE                : '?' LOWER_NAME;
+CLASS                   : (ANYCHAR*'.')* UPPER LETTER*;
  
-LINECOMMENT: '//' .*? '\r'? '\n' -> skip;
-COMMENT: '/*' .*? '*/' -> skip;
-WS: [ \n\t\r]+ -> skip;
+LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;
+COMMENT                 : '/*' .*? '*/' -> skip;
+WS                      : [ \n\t\r]+ -> skip;
 
 
 
@@ -50,17 +52,15 @@ init :
 
 typesSection : 'types' '{' (typeDefinition ',')* typeDefinition? '}' ;
 
-typeDefinition : type '-' type ;
+typeDefinition : TYPE '-' TYPE ;
 
 
 // OBJECT DEFINITIONS
 
 objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
 
-objectDefinition : LOWER_NAME '-' type ;
+objectDefinition : OBJECT '-' TYPE ;
 
-% type : UPPER_NAME | KEYWORD_OBJECT ;
-type : UPPER_NAME ;
 
 
 // AGENT DEFINITIONS
@@ -83,13 +83,13 @@ passiveDef : LOWER_NAME ;
 
 // PREDICATES
 
-predicateDefinition : LOWER_NAME parameterList ;
 
+predicate : LOWER_NAME parameterList ;
 parameterList : '(' (parameter ',')* parameter? ')' ;
+parameter : OBJECT | VARIABLE | TYPE ;
 
-parameter : LOWER_NAME | VARIABLE - type ;
+assignment : predicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
 
-assignment : predicateDefinition ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
 
 
 
@@ -103,7 +103,7 @@ constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
 
 fluentsSection : 'fluents' '{' (fluentDefinition ',')* fluentDefinition? '}' ;
 
-fluentDefinition : predicateDefinition '-' type ;
+fluentDefinition : predicate '-' TYPE ;
 
 
 
@@ -118,39 +118,36 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
 kripkeFormula
-    : LOWER_NAME ASSIGN '{' (atom ',')* atom? '}'                                                     # kripkeWorld
-    | relationType NAME ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'   # kripkeRelation
+    : assignment
+    | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
     ;
 relationType : 'B_' | 'K_' ;
 fromWorld : LOWER_NAME;
 toWorld : LOWER_NAME;
 
 
-
-
-assignment : predicateDefinition ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | LOWER_NAME);
-
 // FORMULAE
 
-inequality
-    : INTEGER OP_INEQUALITY INTEGER
-    | predicate OP_INEQUALITY INTEGER
-    | INTEGER OP_INEQUALITY predicate
-    | predicate OP_INEQUALITY predicate
+atom : predicate | KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
+
+atomicFormula                                                                          % predicate(s) must be:
+    : INTEGER   INEQUALITY INTEGER                               # atomicInequality
+    | predicate INEQUALITY INTEGER                               # atomicInequality    % Integer
+    | INTEGER   INEQUALITY predicate                             # atomicInequality    % Integer
+    | predicate INEQUALITY predicate                             # atomicInequality    % Integers
+    | atom '==' atom                                             # atomicEqual         % of the same type
+    | predicate                                                  # atomicPredicate     % Boolean
+    | KEYWORD_FALSE                                              # atomicFalse
+    | KEYWORD_TRUE                                               # atomicTrue
     ;
 
 fluentFormula 
-    : predicate                                                  # fluentAtom
+    : predicateFormula                                           # fluentPredicate
     | '(' fluentFormula ')'                                      # fluentParens
     | '~' fluentFormula                                          # fluentNot
     | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
     | fluentFormula '|' fluentFormula ('|' fluentFormula)*       # fluentOr
     | fluentFormula '==' fluentFormula ('==' fluentFormula)*     # fluentEquals
-    | KEYWORD_TRUE                                               # fluentTrue
-    | KEYWORD_FALSE                                              # fluentFalse
-    | INTEGER                                                    # fluentInteger
-    | LOWER_NAME                                                 # fluentObject
-    | inequality                                                 # fluentInequality
     ;
 
 beliefFormula 
