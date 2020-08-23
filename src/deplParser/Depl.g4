@@ -28,6 +28,7 @@ TYPE                    : UPPER_NAME ;
 OBJECT                  : LOWER_NAME ;
 VARIABLE                : '?' LOWER_NAME;
 CLASS                   : (ANYCHAR*'.')* UPPER LETTER*;
+
  
 LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;
 COMMENT                 : '/*' .*? '*/' -> skip;
@@ -69,41 +70,35 @@ agentsSection : 'agents' '{' (agentDef ',')* agentDef? '}' ;
 
 agentDef : systemAgent | environmentAgent ;
 
-systemAgent : LOWER_NAME ;
+systemAgent : OBJECT ;
 
-environmentAgent : LOWER_NAME '{' CLASS '}' ;
+environmentAgent : OBJECT '{' CLASS '}' ;
 
 
 // PASSIVE AGENT DEFINITIONS
 
 passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
 
-passiveDef : LOWER_NAME ;
+passiveDef : OBJECT ;
 
 
-// PREDICATES
 
 
-predicate : LOWER_NAME parameterList ;
-parameterList : '(' (parameter ',')* parameter? ')' ;
-parameter : OBJECT | VARIABLE | TYPE ;
+// FLUENTS DEFINITIONS
 
-assignment : predicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
+expandablePredicate : LOWER_NAME '[' ((OBJECT|TYPE) ',')* (OBJECT|TYPE)? ']' ;
+fluentDef : expandablePredicate '-' TYPE ;
+fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 
 
 
 // CONSTANTS
 
+assignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
 constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
 
 
-
-// FLUENTS DEFINITIONS
-
-fluentsSection : 'fluents' '{' (fluentDefinition ',')* fluentDefinition? '}' ;
-
-fluentDefinition : predicate '-' TYPE ;
 
 
 
@@ -118,7 +113,7 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
 kripkeFormula
-    : assignment
+    : LOWER_NAME ASSIGN '{' (expandablePredicate ',')* expandablePredicate? '}' ;
     | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
     ;
 relationType : 'B_' | 'K_' ;
@@ -128,6 +123,8 @@ toWorld : LOWER_NAME;
 
 // FORMULAE
 
+groundable : OBJECT | VARIABLE ;
+predicate : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
 atom : predicate | KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
 
 atomicFormula                                                                          % predicate(s) must be:
@@ -142,7 +139,7 @@ atomicFormula                                                                   
     ;
 
 fluentFormula 
-    : predicateFormula                                           # fluentPredicate
+    : atomicFormula                                              # fluentAtomic
     | '(' fluentFormula ')'                                      # fluentParens
     | '~' fluentFormula                                          # fluentNot
     | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
@@ -169,11 +166,16 @@ goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
 goal : beliefFormula ;
 
 
+
+
+
+
 // ACTION DEFINITIONS
 
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
-actionDefinition : NAME parameterList '{' (actionField ','?)* '}' ;
+actionDefinition : LOWER_NAME '(' (actionParameter ',')* actionParameter? ')' '{' (actionField ','?)* '}' ;
+actionParemter : (VARIABLE '-' TYPE) OBJECT ;
 
 actionField
     : ownerActionField
@@ -189,19 +191,12 @@ actionField
     | announcesActionField
     ;
 
-ownerActionField        : 'owner' '{' parameter '}' ;
+ownerActionField        : 'owner' '{' groundable '}' ;
 costActionField         : 'cost' '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableList? '{' fluentFormula '}' ;
-observesActionField     : 'observes' variableList? '{' parameter '}' ;
-observesifActionField   : 'observesif' variableList? '{' parameter ',' fluentFormula '}' ;
-awareActionField        : 'aware' variableList? '{' parameter '}' ;
-awareifActionField      : 'awareif' variableList? '{' parameter ',' fluentFormula '}' ;
-
-causesActionField       : 'causes' variableList? '{' literal '}' ;
-causesifActionField
-    : 'causesif' variableList? '{' literal ',' fluentFormula '}'
-    | 'causes' variableList? '{' literal 'if' fluentFormula '}'
-    ;
-determinesActionField   : 'determines' variableList? '{' fluentFormula '}' ;
-announcesActionField    : 'announces' variableList? '{' beliefFormula '}' ;
+preconditionActionField : 'precondition' '{' fluentFormula '}' ;
+observesActionField     : 'observes' '{' groundable ('if' fluentFormula)? '}' ;
+awareActionField        : 'aware' '{' parameter ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes' {' literal ('if' fluentFormula)? '}' ;
+determinesActionField   : 'determines' '{' fluentFormula '}' ;
+announcesActionField    : 'announces' '{' beliefFormula '}' ;
 
