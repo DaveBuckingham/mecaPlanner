@@ -43,8 +43,13 @@ public class World implements java.io.Serializable {
         this(null, atoms);
     }
 
+
+    public World(String newName, World toCopy) {
+        this(newName, toCopy.getAtoms());
+    }
+
     public World(World toCopy) {
-        this(null, toCopy.getAtoms());
+        this(null, toCopy);
     }
 
     public World update(Set<FluentLiteral> literals) {

@@ -42,6 +42,7 @@ constraints{
 
 initially{
     sheep_alive(),
+    knight_alive(),
     at(sheep,field),
     at(robot,field),
     at(knight,field),
@@ -53,13 +54,14 @@ initially{
 }
 
 goals{
-    t>=15 & sheep_alive()
+    t>=20 & sheep_alive()
 }
 
 actions{
 
-    announce_dragon[?l-location](){
+    announce_dragon[?l-location](?l){
         owner{robot},
+        precondition{at(robot,?l)},
         observesif[?o - actor]{?o, at(?o,?l)},
         announces[]{at(dragon,hill)},
     }
@@ -73,7 +75,7 @@ actions{
 
     duel[?l-location](?l){
         owner{knight},
-        precondition{~dueling & at(dragon,?l) & at(knight,?l)},
+        precondition{at(dragon,?l) & at(knight,?l)},
         observes[?o-actor]{?o},
         causes{dueling}
     }
@@ -92,20 +94,19 @@ actions{
         observes[?o-actor]{?o},
         causes{~knight_alive}
         causes{~at(knight,?l)}
+        causes{~dueling}
     }
-
-
 
     move[?a-actor, ?f-location,?t-location](?f,?t){
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{~sameLocation(?f,?t)},
-        observes{?a},
         observes{robot},
         observes{sheep},
         observes{knight},
-        observes{dragon},
-        observesif{dragon, ~dueling()}
+        observesif{dragon, at(dragon,?f) | at(dragon,?t) | ~dueling()}
+        //determines[?l-locatable]{at(?l,?t)},
+        determines{at(sheep,?t)},
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},
     }

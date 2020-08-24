@@ -28,8 +28,8 @@ public class Simulator {
 
     public static void main(String args[]) {
 
-        //Log.setThreshold("info");
-        Log.setThreshold("debug");
+        Log.setThreshold("info");
+        //Log.setThreshold("debug");
 
         // READ AND PARSE A .depl FILE
         if (args.length != 1) {
@@ -160,6 +160,7 @@ public class Simulator {
 
             // EXECUTE THE ACTION
             System.out.println(currentAgent + " ACTS: " + action.getSignature());
+            System.out.println();
             Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
             currentState = transitionResult.getState();
             models = transitionResult.getModels();

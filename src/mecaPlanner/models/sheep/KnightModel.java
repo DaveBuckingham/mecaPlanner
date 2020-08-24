@@ -24,8 +24,8 @@ public class KnightModel extends Model {
 
     public Set<Action> getPrediction(NDState ndState) {
         Set<Action> predictions = new HashSet<>();
-        //predictions.add(getSinglePrediction(ndState));
-        predictions.add(domain.getActionBySignature("knight", "wait()"));
+        Action p = getSinglePrediction(ndState);
+        predictions.add(p);
         return predictions;
     }
 
