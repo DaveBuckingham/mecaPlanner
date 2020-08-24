@@ -110,6 +110,7 @@ public class Initialize {
         return (FluentFormula) innerInner;
     }
 
+    // C(Bi(f) V Bi(~f))
     public static AgentFormulaPair isType3(BeliefFormula f) {
         if (!(f instanceof BeliefFormulaCommon)) {
             return null;
@@ -140,6 +141,7 @@ public class Initialize {
         return (new AgentFormulaPair(agent, leftFormula));
     }
 
+    // C(~Bi(f) V ~Bi(~f))
     public static AgentFormulaPair isType4(BeliefFormula f) {
         if (!(f instanceof BeliefFormulaCommon)) {
             return null;
@@ -243,7 +245,7 @@ public class Initialize {
         for (String a : type3.keySet()) {
             for (BeliefFormula f : type3.get(a)) {
                 if (type4.get(a).contains(f)) {
-                    System.err.println("illegal initial state, " + a + " believes and doesn't believe " + f);
+                    System.err.println("illegal initial state, " + a + " knows whether and doesn't know whether " + f);
                     System.exit(1);
                 }
             }

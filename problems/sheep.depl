@@ -46,7 +46,10 @@ initially{
     at(robot,field),
     at(knight,field),
     at(dragon,hill),
-    //C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
+    C(B_sheep(at(dragon,hill)) | B_sheep(~at(dragon,hill))),
+    C(B_dragon(at(dragon,hill)) | B_dragon(~at(dragon,hill))),
+    C(B_robot(at(dragon,hill)) | B_robot(~at(dragon,hill))),
+    C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
 }
 
 goals{
@@ -102,7 +105,7 @@ actions{
         observes{sheep},
         observes{knight},
         observes{dragon},
-        //observesif{dragon, ~dueling()}
+        observesif{dragon, ~dueling()}
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},
     }

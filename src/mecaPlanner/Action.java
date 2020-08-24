@@ -303,8 +303,8 @@ public class Action implements java.io.Serializable {
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
-                        Log.severe("observant agent " + agent + " reset by " + getSignatureWithActor());
-                        System.exit(1);
+                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
+                        //System.exit(1);
                         for (World toWorld: observedWorlds) {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
@@ -383,14 +383,16 @@ public class Action implements java.io.Serializable {
             }
         }
 
-        assert (resultWorlds.size() == (anyOblivious ? oldWorlds.size() * 2 : oldWorlds.size()));
 
+
+        //assert (resultWorlds.size() == (anyOblivious ? oldWorlds.size() * 2 : oldWorlds.size()));
 
         KripkeStructure newKripke = new KripkeStructure(resultWorlds, newBeliefs, newKnowledges);
 
         assert(newKripke.checkRelations());
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
+
 
 
         // UPDATE THE MODELS

@@ -76,11 +76,13 @@ public class Problem implements java.io.Serializable {
     public String toString() {
         StringBuilder str = new StringBuilder();
 
-        str.append("DOMAIN:\n");
-        str.append(domain);
+        //str.append("DOMAIN:\n");
+        //str.append(domain);
 
         str.append("INITIALLY:\n");
-        //str.append(startState.toString());
+        for (EpistemicState s : startStates) {
+            str.append(s.toString());
+        }
         str.append("\n");
 
         str.append("GOALS:\n");

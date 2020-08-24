@@ -129,6 +129,8 @@ public class Planner {
 
         DeplToProblem visitor     = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFileName);
+        //System.out.println(problem);
+        //System.exit(1);
 
 //        visitor.buildDomain(tree);
 
