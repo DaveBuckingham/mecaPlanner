@@ -10,7 +10,6 @@ objects{
     knight-actor,
     dragon-actor,
     field-location,
-    forest-location,
     castle-location,
     hill-location,
 }
@@ -27,8 +26,8 @@ passive{}
 fluents{
     at[?a-locatable,?b-location](?a,?b),
     dueling(),
-    knight_has_treasure(),
     sheep_alive(),
+    knight_alive()
 }
 
 constants{
@@ -37,7 +36,6 @@ constants{
 
 constraints{
     sameLocation(field,field),
-    sameLocation(forest,forest),
     sameLocation(castle,castle),
     sameLocation(hill,hill),
 }
@@ -48,7 +46,7 @@ initially{
     at(robot,field),
     at(knight,field),
     at(dragon,hill),
-    C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
+    //C(~B_knight(at(dragon,hill)) & ~B_knight(~at(dragon,hill)))
 }
 
 goals{
@@ -57,17 +55,10 @@ goals{
 
 actions{
 
-//    announce_dragon[?l-location](){
-//        owner{robot},
-//        observesif[?o - actor]{?o, at(?o,?l)},
-//        announces[]{at(dragon,hill)},
-//    }
-
-    announce_treasure[?l-location](?l){
+    announce_dragon[?l-location](){
         owner{robot},
-        precondition{at(robot,?l)},
         observesif[?o - actor]{?o, at(?o,?l)},
-        announces[]{knight_has_treasure()},
+        announces[]{at(dragon,hill)},
     }
 
     duel[?l-location](?l){
@@ -92,6 +83,16 @@ actions{
         causes{~at(sheep,?l)}
     }
 
+    eat_knight[?l-location](?l) {
+        owner{dragon},
+        precondition{at(dragon,?l) & at(knight,?l)},
+        observes[?o-actor]{?o},
+        causes{~knight_alive}
+        causes{~at(knight,?l)}
+    }
+
+
+
     move[?a-actor, ?f-location,?t-location](?f,?t){
         owner{?a},
         precondition{at(?a, ?f)},
@@ -101,7 +102,7 @@ actions{
         observes{sheep},
         observes{knight},
         observes{dragon},
-        observesif{dragon, ~dueling()}
+        //observesif{dragon, ~dueling()}
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},
     }

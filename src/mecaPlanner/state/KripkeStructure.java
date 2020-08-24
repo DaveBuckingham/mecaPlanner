@@ -64,6 +64,36 @@ public class KripkeStructure implements java.io.Serializable {
 
     }
 
+    public KripkeStructure(KripkeStructure toCopy) {
+        Map<World,World> originalToNew = new HashMap<>();
+        Set<World> originalWorlds = toCopy.getWorlds();
+        worlds = new HashSet<World>();
+        for (World original : originalWorlds) {
+            World duplicate = new World(original);
+            worlds.add(duplicate);
+            originalToNew.put(original,duplicate);
+        }
+        beliefRelations = new HashMap<String,Relation>();
+        knowledgeRelations = new HashMap<String,Relation>();
+        for (String agent : toCopy.getBeliefRelations().keySet()) {
+            Relation oldBelief = toCopy.getBeliefRelations().get(agent);
+            Relation newBelief = new Relation();
+            Relation oldKnowledge = toCopy.getKnowledgeRelations().get(agent);
+            Relation newKnowledge = new Relation();
+            for (World originalFrom : originalWorlds) {
+                for (World originalTo : oldBelief.getToWorlds(originalFrom)) {
+                    newBelief.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
+                }
+                for (World originalTo : oldKnowledge.getToWorlds(originalFrom)) {
+                    newKnowledge.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
+                }
+            }
+            beliefRelations.put(agent, newBelief);
+            knowledgeRelations.put(agent, newKnowledge);
+
+        }
+    }
+
     public Set<World> getWorlds() {
         return worlds;
     }
@@ -172,15 +202,15 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
     public KripkeStructure union(KripkeStructure other) {
-        // IF THIS ASSERT FAILS, SEE COMMENT  IN NDState.equals()
-        assert(this != other);
+        if (this == other) {
+            other = new KripkeStructure(other);
+        }
+
         Set<World> unionWorlds = new HashSet<World>(worlds);
         unionWorlds.addAll(other.getWorlds());
-        assert(unionWorlds.size() == (worlds.size() + other.getWorlds().size()));
 
         Map<String, Relation> unionBelief = new HashMap<>();
         Map<String, Relation> unionKnowledge = new HashMap<>();
-
         for (String agent : agents) {
             unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
             unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));

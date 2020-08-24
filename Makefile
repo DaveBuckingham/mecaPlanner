@@ -37,9 +37,9 @@ build/deplSrc/: src/deplParser/Depl.g4
 
 
 simulator: mecaPlanner.jar
-	$(java) src/simulator/Simulator.java -d build/
+	$(java) src/tools/Simulator.java -d build/
 	echo '#!/bin/bash' > ./sim
-	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" simulator.Simulator "$$@"' >> ./sim
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./sim
 	chmod +x ./sim
 
 

@@ -34,10 +34,18 @@ public class KnightModel extends Model {
 
         String dragonLocation = null;
         String knightLocation = null;
+        boolean knight_alive = false;
+        boolean dueling = false;
 
         for (FluentAtom atom : domain.getAllAtoms()) {
             if (ndState.necessarily(atom)) {
-                if (atom.getName().equals("at")) {
+                if (atom.getName().equals("dueling")) {
+                    dueling = true;
+                }
+                else if (atom.getName().equals("knight_alive")) {
+                    knight_alive = true;
+                }
+                else if (atom.getName().equals("at")) {
                     if (atom.getParameter(0).equals("dragon")) {
                         dragonLocation = atom.getParameter(1);
                     }
@@ -48,20 +56,20 @@ public class KnightModel extends Model {
             }
         }
 
+        if (!knight_alive) {
+            return domain.getActionBySignature("knight", "wait()");
+        }
+
         if (knightLocation == null) {
             throw new RuntimeException("failed to determine knight location");
         }
 
         if (dragonLocation == null) {
-                return domain.getActionBySignature("knight", "wait()");
+            return domain.getActionBySignature("knight", "wait()");
         }
 
         if (dragonLocation.equals(knightLocation)) {
             return domain.getActionBySignature("knight", String.format("duel(%s)", knightLocation));
-        }
-
-        if (knightLocation.equals("forest")) {
-            return domain.getActionBySignature("knight", "wait()");
         }
 
         return domain.getActionBySignature("knight", String.format("move(%s,%s)", knightLocation, dragonLocation));

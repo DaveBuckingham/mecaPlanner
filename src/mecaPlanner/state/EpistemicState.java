@@ -47,6 +47,7 @@ public class EpistemicState extends NDState {
 
     public NDState getBeliefPerspective(String agent) {
         return new NDState(kripkeStructure, getBelievedWorlds(agent));
+        //return new NDState(new KirpkeStructure(kripkeStructure), getBelievedWorlds(agent));
     }
 
     public Set<World> getKnownWorlds(String agent) {

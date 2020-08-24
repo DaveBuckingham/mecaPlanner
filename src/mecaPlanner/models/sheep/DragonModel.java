@@ -35,11 +35,22 @@ public class DragonModel extends Model {
         String dragonLocation = null;
         String sheepLocation = null;
         String knightLocation = null;
-        boolean treasure = false;
+        boolean sheep_alive = false;
+        boolean knight_alive = false;
+        boolean dueling = false;
 
         for (FluentAtom atom : domain.getAllAtoms()) {
             if (ndState.necessarily(atom)) {
-                if (atom.getName().equals("at")) {
+                if (atom.getName().equals("dueling")) {
+                    dueling = true;
+                }
+                else if (atom.getName().equals("sheep_alive")) {
+                    sheep_alive = true;
+                }
+                else if (atom.getName().equals("knight_alive")) {
+                    knight_alive = true;
+                }
+                else if (atom.getName().equals("at")) {
                     if (atom.getParameter(0).equals("sheep")) {
                         sheepLocation = atom.getParameter(1);
                     }
@@ -50,45 +61,30 @@ public class DragonModel extends Model {
                         knightLocation = atom.getParameter(1);
                     }
                 }
-                else if (atom.getName().equals("knight_has_treasure")) {
-                    treasure = true;
-                }
             }
         }
+
 
         if (dragonLocation == null) {
             throw new RuntimeException("failed to determine dragon location");
         }
 
-        if (dragonLocation.equals(knightLocation)) {
-            return domain.getActionBySignature("dragon", String.format("duel(%s)", dragonLocation));
+        if (dragonLocation.equals(sheepLocation)) {
+            return domain.getActionBySignature("dragon", String.format("eat_sheep(%s)", dragonLocation));
         }
 
-
-        if (treasure) {
-            return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, knightLocation));
+        if (dragonLocation.equals(knightLocation)) {
+            if (dueling) {
+                return domain.getActionBySignature("dragon", String.format("eat_knight(%s)", dragonLocation));
+            }
+            return domain.getActionBySignature("dragon", String.format("duel(%s)", dragonLocation));
         }
 
         if (sheepLocation == null) {
             return domain.getActionBySignature("dragon", "wait()");
         }
 
-        if (dragonLocation.equals(sheepLocation)) {
-            return domain.getActionBySignature("dragon", String.format("eat_sheep(%s)", sheepLocation));
-        }
-
-
-        if (dragonLocation.equals("hill")) {
-            return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, "field"));
-        }
-
-        if (dragonLocation.equals(sheepLocation)) {
-            return domain.getActionBySignature("dragon", "eat_sheep()");
-        }
-
         return domain.getActionBySignature("dragon", String.format("move(%s,%s)", dragonLocation, sheepLocation));
-
- 
 
     }
 
