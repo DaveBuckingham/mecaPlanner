@@ -105,7 +105,7 @@ actions{
         observes{sheep},
         observes{knight},
         observesif{dragon, at(dragon,?f) | at(dragon,?t) | ~dueling()}
-        //determines[?l-locatable]{at(?l,?t)},
+        determines[?l-locatable]{at(?l,?t)},
         determines{at(sheep,?t)},
         causes{~(at(?a, ?f))},
         causes{at(?a, ?t)},

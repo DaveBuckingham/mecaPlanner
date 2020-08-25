@@ -154,7 +154,7 @@ beliefFormula
     | beliefFormula '&' beliefFormula ('&' beliefFormula)*       # beliefAnd
     | beliefFormula '|' beliefFormula ('|' beliefFormula)*       # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B_' parameter '(' beliefFormula ')'                       # beliefBelieves
+    | 'B_' groundable '(' beliefFormula ')'                      # beliefBelieves
     ;
 
 
@@ -174,8 +174,9 @@ goal : beliefFormula ;
 
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
-actionDefinition : LOWER_NAME '(' (actionParameter ',')* actionParameter? ')' '{' (actionField ','?)* '}' ;
-actionParemter : (VARIABLE '-' TYPE) OBJECT ;
+actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
+parameterList : '(' (parameter ',')* parameter? ')' ;
+paremter : VARIABLE '-' TYPE ;
 
 actionField
     : ownerActionField
@@ -192,11 +193,11 @@ actionField
     ;
 
 ownerActionField        : 'owner' '{' groundable '}' ;
-costActionField         : 'cost' '{' INTEGER '}' ;
-preconditionActionField : 'precondition' '{' fluentFormula '}' ;
-observesActionField     : 'observes' '{' groundable ('if' fluentFormula)? '}' ;
-awareActionField        : 'aware' '{' parameter ('if' fluentFormula)? '}' ;
-causesActionField       : 'causes' {' literal ('if' fluentFormula)? '}' ;
-determinesActionField   : 'determines' '{' fluentFormula '}' ;
-announcesActionField    : 'announces' '{' beliefFormula '}' ;
+costActionField         : 'cost'  '{' INTEGER '}' ;
+preconditionActionField : 'precolndition' parameterList? '{' fluentFormula '}' ;
+observesActionField     : 'observes'      parameterList? '{' groundable ('if' fluentFormula)? '}' ;
+awareActionField        : 'aware'         parameterList? '{' parameter ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'        parameterList? '{' literal ('if' fluentFormula)? '}' ;
+determinesActionField   : 'determines'    parameterList? '{' fluentFormula '}' ;
+announcesActionField    : 'announces'     parameterList? '{' beliefFormula '}' ;
 
