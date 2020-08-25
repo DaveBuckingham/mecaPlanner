@@ -27,6 +27,7 @@ public class SheepModel extends Model {
 
         String sheepLocation = null;
         String robotLocation = null;
+        String dragonLocation = null;
         boolean alive = false;
         //boolean robotHasTurnip = false;
 
@@ -45,6 +46,9 @@ public class SheepModel extends Model {
                     else if (atom.getParameter(0).equals("robot")) {
                         robotLocation = atom.getParameter(1);
                     }
+                    else if (atom.getParameter(0).equals("dragon")) {
+                        dragonLocation = atom.getParameter(1);
+                    }
                 }
             }
         }
@@ -56,12 +60,16 @@ public class SheepModel extends Model {
             return predictions;
         }
 
-
         if (sheepLocation == null) {
             throw new RuntimeException("failed to determine sheep location");
         }
         if (robotLocation == null) {
             throw new RuntimeException("failed to determine robot location");
+        }
+
+        if (dragonLocation.equals(sheepLocation)) {
+            predictions.add(domain.getActionBySignature("sheep", "wait()"));
+            return predictions;
         }
 
         //if (!robotHasTurnip || robotLocation.equals(sheepLocation)) {

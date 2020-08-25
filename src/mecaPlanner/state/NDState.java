@@ -33,6 +33,42 @@ public class NDState implements java.io.Serializable {
         this.designatedWorlds = designatedWorlds;
     }
 
+    public NDState(NDState toCopy) {
+
+        KripkeStructure kripkeToCopy = toCopy.getKripke();
+        Map<World,World> originalToNew = new HashMap<>();
+        Set<World> originalWorlds = kripkeToCopy.getWorlds();
+        Set<World> newWorlds = new HashSet<World>();
+        for (World original : originalWorlds) {
+            World duplicate = new World(original);
+            newWorlds.add(duplicate);
+            originalToNew.put(original,duplicate);
+        }
+        beliefRelations = new HashMap<String,Relation>();
+        knowledgeRelations = new HashMap<String,Relation>();
+        for (String agent : kripkeToCopy.getBeliefRelations().keySet()) {
+            Relation oldBelief = kripkeToCopy.getBeliefRelations().get(agent);
+            Relation newBelief = new Relation();
+            Relation oldKnowledge = kripkeToCopy.getKnowledgeRelations().get(agent);
+            Relation newKnowledge = new Relation();
+            for (World originalFrom : originalWorlds) {
+                for (World originalTo : oldBelief.getToWorlds(originalFrom)) {
+                    newBelief.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
+                }
+                for (World originalTo : oldKnowledge.getToWorlds(originalFrom)) {
+                    newKnowledge.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
+                }
+            }
+            beliefRelations.put(agent, newBelief);
+            knowledgeRelations.put(agent, newKnowledge);
+        }
+        kripkeStructure = new KripkeStructure(newWorlds, beliefRelations, knowledgeRelations);
+        designatedWorlds = new HashSet<World>();
+        for (World d : toCopy.getDesignatedWorlds()) {
+            designatedWorlds.add(originalToNew.get(d));
+        }
+    }
+
     public KripkeStructure getKripke() {
         return this.kripkeStructure;
     }
@@ -76,11 +112,9 @@ public class NDState implements java.io.Serializable {
             return false;
         }
         NDState other = (NDState) obj;
-        // THIS WILL CATCH PROBLEM CAUSED BY EPISTEMICSTATE.GETPERSPECTIVE() REUSING
-        // KRIPKE, BUT ONLY IF DESIGNATED WORLDS ARE THE SAME. MIGHT BE A BUG
-        // IN CASE TWO NDSTATES HAVE THE SAME KRIPKE BUT DIFFERENT DESIGNATED WORLDS:
-        // COULD GO THROUG TO EQUIVALENT() AND THROUGH TO UNION() WHERE
-        // WILL BREAK BECAUSE BOTH KRIPKE'S HAVE SAME WORLDS (SINCE THEY ARE THE SAME KRIPKE).
+        // IF THE KRIPKES ARE THE SAME OBJECT BUT THE DESIGNATED WORLDS DIFFER,
+        // WE'LL PROCEDE TO equivalent(other), THAT'S OK, BECUASE KripkeStructure.union()
+        // WILL DUPLICATE THE KRIPKE STRUCTURE.
         if (this.kripkeStructure == other.getKripke() && this.designatedWorlds == other.getDesignatedWorlds()) {
             return true;
         }
@@ -89,7 +123,10 @@ public class NDState implements java.io.Serializable {
 
 
     public Boolean equivalent(NDState other) {
-        //assert (this.kripkeStructure != other.getKripke());
+        if (this.kripkeStructure == other.getKripke()) {
+            other = new NDState(other);
+        }
+
         KripkeStructure unionKripke = this.kripkeStructure.union(other.getKripke());
 
         Set<World> otherInitials = other.getDesignatedWorlds();
@@ -105,8 +142,6 @@ public class NDState implements java.io.Serializable {
     private Map<String, Relation> beliefRelations;
 
     private Map<String, Relation> knowledgeRelations;
-
-    private Set<World> worlds;
 
     @Override
     public int hashCode() {

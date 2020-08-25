@@ -56,9 +56,6 @@ public class KripkeStructure implements java.io.Serializable {
         this.agents = new HashSet<>(belief.keySet());
 
         for (World w : worlds) {
-            if (getChildren(w).isEmpty()) {
-                System.out.println(toString());
-            }
             assert (!getChildren(w).isEmpty());
         }
 
@@ -195,15 +192,13 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
     public KripkeStructure union(KripkeStructure other) {
-        // IF THIS ASSERT FAILS, SEE COMMENT  IN NDState.equals()
-        assert(this != other);
+        assert (this != other);
+
         Set<World> unionWorlds = new HashSet<World>(worlds);
         unionWorlds.addAll(other.getWorlds());
-        assert(unionWorlds.size() == (worlds.size() + other.getWorlds().size()));
 
         Map<String, Relation> unionBelief = new HashMap<>();
         Map<String, Relation> unionKnowledge = new HashMap<>();
-
         for (String agent : agents) {
             unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
             unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
@@ -257,6 +252,45 @@ public class KripkeStructure implements java.io.Serializable {
         this.knowledgeRelations = newKnowledgeRelations;
         return true;
     }
+
+
+    public boolean checkRelations() {
+        for (String agent : agents) {
+            if (!beliefRelations.get(agent).checkSerial(worlds)) {
+                Log.severe("failed check: serial belief for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+            if (!beliefRelations.get(agent).checkTransitive(worlds)) {
+                Log.severe("failed check: transitive belief for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+            if (!beliefRelations.get(agent).checkEuclidean(worlds)) {
+                Log.severe("failed check: euclidean belief for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+
+            if (!knowledgeRelations.get(agent).checkReflexive(worlds)) {
+                Log.severe("failed check: reflexive knowledge for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+            if (!knowledgeRelations.get(agent).checkTransitive(worlds)) {
+                Log.severe("failed check: transitive knowledge for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+            if (!knowledgeRelations.get(agent).checkSymmetric(worlds)) {
+                Log.severe("failed check: symmetric knowledge for agent " + agent);
+                //Log.debug(toString());
+                return false;
+            }
+        }
+        return true;
+    }
+
 
 
 

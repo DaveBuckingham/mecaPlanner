@@ -106,31 +106,20 @@ public class Planner {
         // //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
         // Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
-        //Log.setThreshold("info");
-        Log.setThreshold("debug");
+        Log.setThreshold("info");
+        //Log.setThreshold("debug");
 
 
         Log.info("loading domain");
 
-//        CharStream inputStream = null;
-//        try {
-//            inputStream = CharStreams.fromFileName(deplFileName);
-//        }
-//        catch (IOException e) {
-//            System.err.println("failed to read input depl file: " + e.getMessage());
-//            System.exit(1);
-//        }
-//
-//
-//        DeplLexer lexer          = new DeplLexer(inputStream);
-//        CommonTokenStream tokens = new CommonTokenStream(lexer);
-//        DeplParser parser        = new DeplParser(tokens);
-//        ParseTree tree           = parser.init();
 
         DeplToProblem visitor     = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFileName);
 
-//        visitor.buildDomain(tree);
+        //System.out.println(problem.getDomain().getNonPassiveAgents());
+        //System.out.println(problem.getSystemAgentIndex());
+        //System.exit(1);
+
 
         Log.info("done loading problem");
 
