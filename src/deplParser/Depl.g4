@@ -12,7 +12,7 @@ fragment OP_LT          : '<';
 fragment OP_LTE         : '<=';
 fragment OP_GE          : '>';
 fragment OP_GTE         : '>=';
-COMPARE_OPERATION       : OP_EQ | OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
+COMPARE                 : OP_EQ | OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
 
 LOWER_NAME              : LOWER ANYCHAR*;
 UPPER_NAME              : UPPER ANYCHAR*;
@@ -127,16 +127,10 @@ groundable : OBJECT | VARIABLE ;
 predicate : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
 atom : predicate | KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
 
-atomicFormula                                                                          % predicate(s) must be:
-    : INTEGER   INEQUALITY INTEGER                               # atomicInequality
-    | predicate INEQUALITY INTEGER                               # atomicInequality    % Integer
-    | INTEGER   INEQUALITY predicate                             # atomicInequality    % Integer
-    | predicate INEQUALITY predicate                             # atomicInequality    % Integers
-    | atom '==' atom                                             # atomicEqual         % of the same type
-    | predicate                                                  # atomicPredicate     % Boolean
-    | KEYWORD_FALSE                                              # atomicFalse
-    | KEYWORD_TRUE                                               # atomicTrue
-    ;
+// IF JUST AN ATOM, MUST BE TRUE, FALSE, OR PREDICATE
+// IF COMPARE, ATOMS MUST BE OR REFERENCE SAME PREDICATE TYPE.
+// >,>=,<,<= ARE ONLY VALID FOR INTEGERS
+atomicFormula : atom | atom COMPARE atom;
 
 fluentFormula 
     : atomicFormula                                              # fluentAtomic

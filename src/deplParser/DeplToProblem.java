@@ -155,7 +155,18 @@ public class DeplToProblem extends DeplBaseVisitor {
     // WILL EVENTUALLY RETURN TRUE, FALSE, OR A FF WITHOUT CONSTANTS
     // WE CAN USE THIS TO FILTER OUT AT PARSE TIME ANY 
     // ACTIONS OR ACTION FIELDS THAT ARE CONSTANTLY FALSE.
-    FluentFormula removeConstants(FluentFormula ff) {
+
+    FluentFormula simplify(AtomicFormula af) {
+        if (af instanceof AtomicTrue || af instanceof AtomicFalse) {
+            return af;
+        }
+        if (af instanceof AtomicInequality) {
+            return af;
+        }
+    }
+
+
+    FluentFormula simplify(FluentFormula ff) {
         if (ff instanceof FluentFormulaTrue || ff instanceof FluentFormulaFalse) {
             return ff;
         }
