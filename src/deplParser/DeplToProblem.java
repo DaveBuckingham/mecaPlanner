@@ -46,25 +46,25 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     public DeplToProblem() {
         super();
-
     }
 
 
     // HELPER FUNCTIONS
 
 
-    // READ A "PARAMETER" WHICH COULD BE AN OBJECT NAME OR A VARIABLE
+    // READ A GROUNDABLE WHICH COULD BE AN OBJECT OR A VARIABLE
     // IF IT IS AN OBJECT, MAKE SURE IT WAS DEFINED 
     // IF IT IS A VARIABLE, USE THE VARIABLE STACK TO RESOLVE IT
 
-    private String resolveVariable(DeplParser.ParameterContext ctx) {
-        if (ctx.NAME() != null) {
-            String name = ctx.NAME().getText();
+    private String resolveVariable(DeplParser.GroundableContext ctx) {
+        if (ctx.OBJECT() != null) {
+            String name = ctx.OBJECT().getText();
             if (!allObjects.contains(name)) {
                 throw new RuntimeException("undefined object: " + name);
             }
             return name;
         }
+
         String variable = ctx.VARIABLE().getText();
         String grounding = null;
         Stack<Map<String, String>> tempStack = new Stack<Map<String, String>>();
@@ -92,11 +92,11 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    // READ A VARIABLE LIST AND GET A LIST OF MAPS
+    // READ A PARAMETER LIST AND GET A LIST OF MAPS
     // EACH LIST ELEMENT MAPS FROM EACH VARIABLE NAME TO ONE GROUND OBJECT
     // THE LIST GIVES THE CARTESIAN PRODUCT OF EACH POSSIBLE VARIABLE GROUNDING
 
-    private List<Map<String, String>> getVariableMaps(DeplParser.VariableListContext ctx) {
+    private List<Map<String, String>> getVariableMaps(DeplParser.ParameterListContext ctx) {
         List<Map<String, String>> maps = new ArrayList<Map<String,String>>();
         if (ctx == null) {
             maps.add(new HashMap<String,String>());
@@ -105,9 +105,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         List<String> varNames = new ArrayList<String>();
         List<List<String>> varGroundings = new ArrayList<List<String>>();
-        for (DeplParser.VariableDefinitionContext varDefCtx : ctx.variableDefinition()) {
+        for (DeplParser.ParameterContext varDefCtx : ctx.parameter()) {
             varNames.add(varDefCtx.VARIABLE().getText());
-            varGroundings.add(typeDefs.get(varDefCtx.NAME().getText()).groundings);
+            varGroundings.add(typeDefs.get(varDefCtx.TYPE().getText()).groundings);
         }
 
         for (List<String> grounding : cartesianProduct(varGroundings)) {
@@ -154,8 +154,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     // RECURSIVELY RESOLVE CONSTANTS IN A FORMULA
     // WILL EVENTUALLY RETURN TRUE, FALSE, OR A FF WITHOUT CONSTANTS
     // WE CAN USE THIS TO FILTER OUT AT PARSE TIME ANY 
-    // ACTIONS, ACTION EFFECTS, OR OBSERVATION EFFECTS
-    // THAT ARE CONSTANTLY FALSE.
+    // ACTIONS OR ACTION FIELDS THAT ARE CONSTANTLY FALSE.
     FluentFormula removeConstants(FluentFormula ff) {
         if (ff instanceof FluentFormulaTrue || ff instanceof FluentFormulaFalse) {
             return ff;

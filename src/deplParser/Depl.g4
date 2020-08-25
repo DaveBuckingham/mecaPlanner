@@ -95,8 +95,8 @@ fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 // CONSTANTS
 
-assignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
-constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
+constantAssignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
+constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
 
 
 
@@ -177,6 +177,7 @@ actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
 parameterList : '(' (parameter ',')* parameter? ')' ;
 paremter : VARIABLE '-' TYPE ;
+onticAssignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
 
 actionField
     : ownerActionField
@@ -196,8 +197,8 @@ ownerActionField        : 'owner' '{' groundable '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
 preconditionActionField : 'precolndition' parameterList? '{' fluentFormula '}' ;
 observesActionField     : 'observes'      parameterList? '{' groundable ('if' fluentFormula)? '}' ;
-awareActionField        : 'aware'         parameterList? '{' parameter ('if' fluentFormula)? '}' ;
-causesActionField       : 'causes'        parameterList? '{' literal ('if' fluentFormula)? '}' ;
+awareActionField        : 'aware'         parameterList? '{' groundable ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'        parameterList? '{' predicate ASSIGN atom ('if' fluentFormula)? '}' ;
 determinesActionField   : 'determines'    parameterList? '{' fluentFormula '}' ;
 announcesActionField    : 'announces'     parameterList? '{' beliefFormula '}' ;
 
