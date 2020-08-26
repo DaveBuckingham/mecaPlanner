@@ -141,6 +141,10 @@ public class Action implements java.io.Serializable {
         }
     }
 
+    public EpistemicState transition(EpistemicState beforeState) {
+        Action.UpdatedStateAndModels result = transition(beforeState, new HashMap<String, Model>());
+        return result.getState();
+    }
 
 
     // SHOULD TRIM UNREACHABLE WORLDS AT THE END OF TRANSITION
@@ -494,6 +498,9 @@ public class Action implements java.io.Serializable {
         str.append("\n\tOwner: ");
         str.append(actor);
 
+        str.append("\n\tCost: ");
+        str.append(cost);
+
         str.append("\n\tPrecondition: ");
         str.append(precondition);
 
@@ -514,10 +521,32 @@ public class Action implements java.io.Serializable {
             str.append(a.getValue());
             str.append("\n");
         }
+
+        str.append("\tDetermines\n");
+        for (FluentFormula ff : determines) {
+            str.append("\t\t");
+            str.append(ff);
+            str.append("\n");
+        }
+
+        str.append("\tAnnounces\n");
+        for (BeliefFormula bf : announces) {
+            str.append("\t\t");
+            str.append(bf);
+            str.append("\n");
+        }
+
+        str.append("\tCauses\n");
+        for (Map.Entry<FluentLiteral, FluentFormula> a : effects.entrySet()) {
+            str.append("\t\t");
+            str.append(a.getKey());
+            str.append(" if ");
+            str.append(a.getValue());
+            str.append("\n");
+        }
+ 
         return str.toString();
     }
-
-
 
 }
 
