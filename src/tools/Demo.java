@@ -4,21 +4,12 @@ import mecaPlanner.*;
 import mecaPlanner.state.*;
 import depl.*;
 
-import java.util.Set;
-import java.util.HashSet;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Arrays;
-
-
 
 public class Demo {
 
     public static void main(String args[]) {
-        //onticExample();
-        //sensingExample();
+        onticExample();
+        sensingExample();
         announcementExample();
     }
 
@@ -79,10 +70,6 @@ public class Demo {
         System.out.println(endState);
         pause();
     }
-
-
-
-
 
 
 
