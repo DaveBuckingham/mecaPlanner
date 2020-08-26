@@ -95,7 +95,8 @@ fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 // CONSTANTS
 
-constantAssignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
+value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
+constantAssignment : expandablePredicate ASSIGN value;
 constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
 
 
@@ -125,20 +126,19 @@ toWorld : LOWER_NAME;
 
 groundable : OBJECT | VARIABLE ;
 predicate : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
-atom : predicate | KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
+atom : predicate | value ;
 
 // IF JUST AN ATOM, MUST BE TRUE, FALSE, OR PREDICATE
 // IF COMPARE, ATOMS MUST BE OR REFERENCE SAME PREDICATE TYPE.
 // >,>=,<,<= ARE ONLY VALID FOR INTEGERS
-atomicFormula : atom | atom COMPARE atom;
 
 fluentFormula 
-    : atomicFormula                                              # fluentAtomic
+    : atom                                                       # fluentAtom
+    | atom COMPARE atom                                          # fluentCompare
     | '(' fluentFormula ')'                                      # fluentParens
     | '~' fluentFormula                                          # fluentNot
     | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
     | fluentFormula '|' fluentFormula ('|' fluentFormula)*       # fluentOr
-    | fluentFormula '==' fluentFormula ('==' fluentFormula)*     # fluentEquals
     ;
 
 beliefFormula 
@@ -171,7 +171,7 @@ actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
 parameterList : '(' (parameter ',')* parameter? ')' ;
 paremter : VARIABLE '-' TYPE ;
-onticAssignment : expandablePredicate ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT);
+onticAssignment : expandablePredicate ASSIGN value ;
 
 actionField
     : ownerActionField

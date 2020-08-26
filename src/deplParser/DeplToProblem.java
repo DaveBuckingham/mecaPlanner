@@ -38,8 +38,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
     private Integer agentIndex;
     private Set<String> allObjects;  // to check for undefined objects
-    private Set<FluentAtom> constants;
-    private Set<FluentAtom> constraints;
+    private Map<Fluent,Value> constants;
     private Map<String, TypeNode> typeDefs;  // key is type name
     private Stack<Map<String, String>> variableStack;
 
@@ -156,27 +155,11 @@ public class DeplToProblem extends DeplBaseVisitor {
     // WE CAN USE THIS TO FILTER OUT AT PARSE TIME ANY 
     // ACTIONS OR ACTION FIELDS THAT ARE CONSTANTLY FALSE.
 
-    FluentFormula simplify(AtomicFormula af) {
-        if (af instanceof AtomicTrue || af instanceof AtomicFalse) {
-            return af;
-        }
-        if (af instanceof AtomicInequality) {
-            return af;
-        }
-    }
-
-
     FluentFormula simplify(FluentFormula ff) {
-        if (ff instanceof FluentFormulaTrue || ff instanceof FluentFormulaFalse) {
-            return ff;
-        }
-        if (ff instanceof FluentAtom) {
-            FluentAtom fa = (FluentAtom) ff;
-            if (domain.getAllAtoms().contains(fa)) {
-                return fa;
-            }
-            if (constraints.contains(fa)) {
-                return new FluentFormulaTrue();
+        if (ff instanceof Atom) {
+            Atom fa = (Atom) ff;
+            if (constants.containsKey(fa)) {
+                constants.get(fa);
             }
             return new FluentFormulaFalse();
         }
@@ -194,13 +177,13 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         if (ff instanceof FluentFormulaNot) {
             FluentFormulaNot fn = (FluentFormulaNot) ff;
-            return removeConstants(fn.getFormula()).negate();
+            return simplify(fn.getFormula()).negate();
         }
         if (ff instanceof FluentFormulaAnd) {
             FluentFormulaAnd fa = (FluentFormulaAnd) ff;
             List<FluentFormula> newFormulae = new ArrayList<>();
             for (FluentFormula oldFormula : fa.getFormulae()) {
-                FluentFormula newFormula = removeConstants(oldFormula);
+                FluentFormula newFormula = simplify(oldFormula);
                 if (newFormula instanceof FluentFormulaFalse) {
                     return new FluentFormulaFalse();
                 }
@@ -217,7 +200,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             FluentFormulaOr fo = (FluentFormulaOr) ff;
             List<FluentFormula> newFormulae = new ArrayList<>();
             for (FluentFormula oldFormula : fo.getFormulae()) {
-                FluentFormula newFormula = removeConstants(oldFormula);
+                FluentFormula newFormula = simplify(oldFormula);
                 if (newFormula instanceof FluentFormulaTrue) {
                     return new FluentFormulaTrue();
                 }
@@ -669,7 +652,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     variableStack.push(variableMap);
                     String agentName = resolveVariable(fieldCtx.observesifActionField().parameter());
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.observesifActionField().fluentFormula());
-                    condition = removeConstants(condition);
+                    condition = simplify(condition);
                     if (!(condition instanceof FluentFormulaFalse)) {
                         observesLists.get(agentName).add(condition);
                     }
@@ -711,7 +694,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.causesifActionField().fluentFormula());
-                    condition = removeConstants(condition);
+                    condition = simplify(condition);
                     if (!(condition instanceof FluentFormulaFalse)) {
                         effects.put(effect, condition);
                     }
@@ -752,7 +735,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             precondition = new FluentFormulaAnd(preconditionList);
         }
 
-        precondition = removeConstants(precondition);
+        precondition = simplify(precondition);
 
         if (owner == null) {
             throw new RuntimeException("illegal action definition, no owner: " + actionName);
@@ -761,8 +744,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         Map<String, FluentFormula> observes = new HashMap<>();
         Map<String, FluentFormula> aware = new HashMap<>();
         for (String a : domain.getAgents()) {
-            observes.put(a, removeConstants(new FluentFormulaOr(observesLists.get(a))));
-            aware.put(a, removeConstants(new FluentFormulaOr(awareLists.get(a))));
+            observes.put(a, simplify(new FluentFormulaOr(observesLists.get(a))));
+            aware.put(a, simplify(new FluentFormulaOr(awareLists.get(a))));
         }
 
         assert (actionName != null);
