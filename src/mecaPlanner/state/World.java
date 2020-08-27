@@ -26,9 +26,7 @@ public class World implements java.io.Serializable {
 
     private String name;
 
-    public World(String name,
-                 Map<Fluent, Value> fluents,
-                ) {
+    public World(String name, Map<Fluent, Value> fluents) {
         this.id = World.idCounter++;
         this.name = name;
         this.fluentsluents = fluents;
@@ -39,7 +37,7 @@ public class World implements java.io.Serializable {
         this.fluents = new HashMap<Fluent, Value>(toCopy.getFluents());
     }
 
-    public Set<Fluent> getFluents() {
+    public Map<Fluent,Value> getFluents() {
         return fluents;
     }
 
@@ -47,7 +45,7 @@ public class World implements java.io.Serializable {
         return this.id;
     }
 
-    public Value resolveFluent(Fluent f) {
+    public Value resolve(Fluent f) {
         if (!fluents.containsKey(f)) {
             throw new RuntimeException("unknown fluent: " + f);
         }
@@ -57,8 +55,7 @@ public class World implements java.io.Serializable {
 
 
     public boolean equivalent(World otherWorld) {
-        assert(fluents.keySet() == otherWorld.getFluents.keySet());
-        return (fluents.equals(otherWorld.getFluents());
+        return fluents.equals(otherWorld.getFluents());
     }
 
     public String getName() {

@@ -6,7 +6,9 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import mecaPlanner.*;
-import mecaPlanner.formulae.*;
+import mecaPlanner.formulae.atomic.*;
+import mecaPlanner.formulae.fluent.*;
+import mecaPlanner.formulae.belief.*;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -50,44 +52,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // HELPER FUNCTIONS
 
-
-    // READ A GROUNDABLE WHICH COULD BE AN OBJECT OR A VARIABLE
-    // IF IT IS AN OBJECT, MAKE SURE IT WAS DEFINED 
-    // IF IT IS A VARIABLE, USE THE VARIABLE STACK TO RESOLVE IT
-
-    private String resolveVariable(DeplParser.GroundableContext ctx) {
-        if (ctx.OBJECT() != null) {
-            String name = ctx.OBJECT().getText();
-            if (!allObjects.contains(name)) {
-                throw new RuntimeException("undefined object: " + name);
-            }
-            return name;
-        }
-
-        String variable = ctx.VARIABLE().getText();
-        String grounding = null;
-        Stack<Map<String, String>> tempStack = new Stack<Map<String, String>>();
-
-        while (!variableStack.empty()) {
-            Map<String, String> variableMap = variableStack.pop();
-            tempStack.push(variableMap);
-            if (variableMap.containsKey(variable)) {
-                grounding = variableMap.get(variable);
-                break;
-            }
-        }
-
-        while (!tempStack.empty()) {
-            variableStack.push(tempStack.pop());
-        }
-
-        if (grounding == null) {
-            throw new RuntimeException("undefined variable: " + variable);
-        }
-        else {
-            return grounding;
-        }
-    }
 
 
 
@@ -149,72 +113,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return resultLists;
     }
 
-
-    // RECURSIVELY RESOLVE CONSTANTS IN A FORMULA
-    // WILL EVENTUALLY RETURN TRUE, FALSE, OR A FF WITHOUT CONSTANTS
-    // WE CAN USE THIS TO FILTER OUT AT PARSE TIME ANY 
-    // ACTIONS OR ACTION FIELDS THAT ARE CONSTANTLY FALSE.
-
-    FluentFormula simplify(FluentFormula ff) {
-        if (ff instanceof Atom) {
-            Atom fa = (Atom) ff;
-            if (constants.containsKey(fa)) {
-                constants.get(fa);
-            }
-            return new FluentFormulaFalse();
-        }
-        if (ff instanceof FluentLiteral) {
-            FluentLiteral fl = (FluentLiteral) ff;
-            FluentAtom fa = fl.getAtom();
-            if (domain.getAllAtoms().contains(fa)) {
-                return fl;
-            }
-            if (constraints.contains(fa)) {
-                return new FluentFormulaTrue();
-            }
-            return new FluentFormulaFalse();
-        }
-
-        if (ff instanceof FluentFormulaNot) {
-            FluentFormulaNot fn = (FluentFormulaNot) ff;
-            return simplify(fn.getFormula()).negate();
-        }
-        if (ff instanceof FluentFormulaAnd) {
-            FluentFormulaAnd fa = (FluentFormulaAnd) ff;
-            List<FluentFormula> newFormulae = new ArrayList<>();
-            for (FluentFormula oldFormula : fa.getFormulae()) {
-                FluentFormula newFormula = simplify(oldFormula);
-                if (newFormula instanceof FluentFormulaFalse) {
-                    return new FluentFormulaFalse();
-                }
-                if (!(newFormula instanceof FluentFormulaTrue)) {
-                    newFormulae.add(newFormula);
-                }
-            }
-            if (newFormulae.isEmpty()) {
-                return new FluentFormulaTrue();
-            }
-            return new FluentFormulaAnd(newFormulae);
-        }
-        if (ff instanceof FluentFormulaOr) {
-            FluentFormulaOr fo = (FluentFormulaOr) ff;
-            List<FluentFormula> newFormulae = new ArrayList<>();
-            for (FluentFormula oldFormula : fo.getFormulae()) {
-                FluentFormula newFormula = simplify(oldFormula);
-                if (newFormula instanceof FluentFormulaTrue) {
-                    return new FluentFormulaTrue();
-                }
-                if (!(newFormula instanceof FluentFormulaFalse)) {
-                    newFormulae.add(newFormula);
-                }
-            }
-            if (newFormulae.isEmpty()) {
-                return new FluentFormulaFalse();
-            }
-            return new FluentFormulaOr(newFormulae);
-        }
-        throw new RuntimeException("unknown formula type: " + ff.getClass());
-    }
 
 
 
@@ -416,17 +314,16 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    // PREDICATES
+    // FLUENTS
 
-    @Override public Void visitAtomsSection(DeplParser.AtomsSectionContext ctx) {
-        for (DeplParser.AtomDefinitionContext atomDefCtx : ctx.atomDefinition()) {
-            Set<FluentAtom> atoms = (Set<FluentAtom>) visit(atomDefCtx);
-            domain.addAtoms(atoms);
-        }
+    @Override public Void visitFluentsSection(DeplParser.FluentsSectionContext ctx) {
+        visitChildren(ctx);
         return null;
     }
 
-    @Override public Set<FluentAtom> visitAtomDefinition(DeplParser.AtomDefinitionContext ctx) {
+    //HERE
+    @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
+            domain.addAtoms(atoms);
         Set<FluentAtom> atoms = new HashSet<>();;
         String name = ctx.NAME().getText();
         if (ctx.variableList() == null) {
@@ -588,6 +485,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
+
     private Action buildAction(DeplParser.ActionDefinitionContext ctx) {
         String actionName = ctx.NAME().getText();
 
@@ -652,7 +550,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     variableStack.push(variableMap);
                     String agentName = resolveVariable(fieldCtx.observesifActionField().parameter());
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.observesifActionField().fluentFormula());
-                    condition = simplify(condition);
+                    condition = condition.simplify();
                     if (!(condition instanceof FluentFormulaFalse)) {
                         observesLists.get(agentName).add(condition);
                     }
@@ -694,7 +592,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     variableStack.push(variableMap);
                     FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
                     FluentFormula condition = (FluentFormula) visit(fieldCtx.causesifActionField().fluentFormula());
-                    condition = simplify(condition);
+                    condition = condition.simplify();
                     if (!(condition instanceof FluentFormulaFalse)) {
                         effects.put(effect, condition);
                     }
@@ -735,7 +633,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             precondition = new FluentFormulaAnd(preconditionList);
         }
 
-        precondition = simplify(precondition);
+        precondition = precondition.simplify();
 
         if (owner == null) {
             throw new RuntimeException("illegal action definition, no owner: " + actionName);
@@ -744,8 +642,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         Map<String, FluentFormula> observes = new HashMap<>();
         Map<String, FluentFormula> aware = new HashMap<>();
         for (String a : domain.getAgents()) {
-            observes.put(a, simplify(new FluentFormulaOr(observesLists.get(a))));
-            aware.put(a, simplify(new FluentFormulaOr(awareLists.get(a))));
+            observes.put(a, (new FluentFormulaOr(observesLists.get(a))).simplify());
+            aware.put(a, (new FluentFormulaOr(awareLists.get(a))).simplify());
         }
 
         assert (actionName != null);
@@ -779,27 +677,81 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    // FLUENT FORMULAE
+    //  ATOMIC
 
-    @Override public FluentAtom visitAtom(DeplParser.AtomContext ctx) {
-        String atomName = ctx.NAME().getText();
+    @Override public Value visitValue(DeplParser.ValueContext ctx) {
+        if (ctx.KEYWORD_FALSE() != null) {
+            return new BooleanValue(false);
+        }
+        if (ctx.KEYWORD_TRUE() != null) {
+            return new BooleanValue(true);
+        }
+        if (ctx.INTEGER() != null) {
+            return new IntegerValue(Integer.parseInt(ctx.INTEGER().getText()));
+        }
+        if (ctx.groundable() != null) {
+            return visit(ctx.groundable());
+        }
+        throw new RuntimeException("invalid value");
+    }
+
+    @Override public ObjectValue visitGroundable(DeplParser.GroundableContext ctx) {
+        if (ctx.OBJECT() != null) {
+            String name = ctx.OBJECT().getText();
+            if (!allObjects.contains(name)) {
+                throw new RuntimeException("undefined object: " + name);
+            }
+            return new ObjectValue(name);
+        }
+
+        String variable = ctx.VARIABLE().getText();
+        String grounding = null;
+        Stack<Map<String, String>> tempStack = new Stack<Map<String, String>>();
+
+        while (!variableStack.empty()) {
+            Map<String, String> variableMap = variableStack.pop();
+            tempStack.push(variableMap);
+            if (variableMap.containsKey(variable)) {
+                grounding = variableMap.get(variable);
+                break;
+            }
+        }
+
+        while (!tempStack.empty()) {
+            variableStack.push(tempStack.pop());
+        }
+
+        if (grounding == null) {
+            throw new RuntimeException("undefined variable: " + variable);
+        }
+        else {
+            return new ObjectValue(grounding);
+        }
+    }
+
+
+    @Override public Fluent visitFluent(DeplParser.FluentContext ctx) {
+        String fluentName = ctx.NAME().getText();
         List<String> parameters = new ArrayList<String>();
         if (ctx.parameterList() != null) {
             for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
                 parameters.add(resolveVariable(parameterCtx));
             }
         }
-        FluentAtom atom = new FluentAtom(atomName, parameters);
-        if (!domain.getAllAtoms().contains(atom) && !constants.contains(atom)) {
-            throw new RuntimeException("Undefined atom: " + atom + ". Defined atoms are: " + domain.getAllAtoms() +
-                                       " Defined constants are: " + constants);
+        return new Fluent(fluentName, parameters);
+    }
+
+    @Override public Atom visitAtom(DeplParser.AtomContext ctx) {
+        if (ctx.fluent() != null) {
+            return visit(ctx.fluent());
         }
-        return atom;
+        assert (ctx.value() != null);
+        return visit(ctx.value());
     }
 
 
     @Override public FluentFormula visitFluentAtom(DeplParser.FluentAtomContext ctx) {
-        return (FluentAtom) visit(ctx.atom());
+        return (FluentFormula) visit(ctx.atom());
     }
 
     @Override public FluentFormula visitFluentParens(DeplParser.FluentParensContext ctx) {
@@ -808,7 +760,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public FluentFormula visitFluentNot(DeplParser.FluentNotContext ctx) {
         FluentFormula inner = (FluentFormula) visit(ctx.fluentFormula());
-        return (new FluentFormulaNot(inner));
+        return (FluentFormulaNot.make(inner));
     }
 
     @Override public FluentFormula visitFluentAnd(DeplParser.FluentAndContext ctx) {
@@ -816,7 +768,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.FluentFormulaContext subFormula : ctx.fluentFormula()) {
             subFormulae.add((FluentFormula) visit(subFormula));
         }
-        return (new FluentFormulaAnd(subFormulae));
+        return (FluentFormulaAnd.make(subFormulae));
     }
 
     @Override public FluentFormula visitFluentOr(DeplParser.FluentOrContext ctx) {
@@ -824,27 +776,9 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.FluentFormulaContext subFormula : ctx.fluentFormula()) {
             subFormulae.add((FluentFormula) visit(subFormula));
         }
-        return (new FluentFormulaOr(subFormulae));
+        return (FluentFormulaOr.make(subFormulae));
     }
 
-    @Override public FluentFormula visitFluentTrue(DeplParser.FluentTrueContext ctx) {
-        return (new FluentFormulaTrue());
-    }
-
-    @Override public FluentFormula visitFluentFalse(DeplParser.FluentFalseContext ctx) {
-        return (new FluentFormulaFalse());
-    }
-
-
-
-    // LITERALS
-    @Override public FluentLiteral visitLiteralTrue(DeplParser.LiteralTrueContext ctx) {
-        return new FluentLiteral(true, (FluentAtom) visit(ctx.atom()));
-    }
-
-    @Override public FluentLiteral visitLiteralFalse(DeplParser.LiteralFalseContext ctx) {
-        return new FluentLiteral(false, (FluentAtom) visit(ctx.atom()));
-    }
 
 
 

@@ -19,8 +19,8 @@ UPPER_NAME              : UPPER ANYCHAR*;
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-'|'=';
 
-% KEYWORD_OBJECT         : 'Object' ;
-% KEYWORD_TIME           : 'time' | 'timestep' ;
+// KEYWORD_OBJECT         : 'Object' ;
+// KEYWORD_TIME           : 'time' | 'timestep' ;
 KEYWORD_TRUE            : 'true' ;
 KEYWORD_FALSE           : 'false' ;
 
@@ -86,8 +86,8 @@ passiveDef : OBJECT ;
 
 // FLUENTS DEFINITIONS
 
-expandablePredicate : LOWER_NAME '[' ((OBJECT|TYPE) ',')* (OBJECT|TYPE)? ']' ;
-fluentDef : expandablePredicate '-' TYPE ;
+expandableFluent : LOWER_NAME '[' ((OBJECT|TYPE) ',')* (OBJECT|TYPE)? ']' ;
+fluentDef : expandableFluent '-' TYPE ;
 fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 
@@ -95,8 +95,7 @@ fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 // CONSTANTS
 
-value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | OBJECT;
-constantAssignment : expandablePredicate ASSIGN value;
+constantAssignment : expandableFluent ASSIGN value;
 constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
 
 
@@ -114,7 +113,7 @@ initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
 kripkeFormula
-    : LOWER_NAME ASSIGN '{' (expandablePredicate ',')* expandablePredicate? '}' ;
+    : LOWER_NAME ASSIGN '{' (expandableFluent ',')* expandableFluent? '}'
     | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
     ;
 relationType : 'B_' | 'K_' ;
@@ -125,8 +124,9 @@ toWorld : LOWER_NAME;
 // FORMULAE
 
 groundable : OBJECT | VARIABLE ;
-predicate : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
-atom : predicate | value ;
+fluent : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
+value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | groundable;
+atom : fluent | value ;
 
 // IF JUST AN ATOM, MUST BE TRUE, FALSE, OR PREDICATE
 // IF COMPARE, ATOMS MUST BE OR REFERENCE SAME PREDICATE TYPE.
@@ -170,19 +170,16 @@ actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
 actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
 parameterList : '(' (parameter ',')* parameter? ')' ;
-paremter : VARIABLE '-' TYPE ;
-onticAssignment : expandablePredicate ASSIGN value ;
+parameter : VARIABLE '-' TYPE ;
+onticAssignment : expandableFluent ASSIGN value ;
 
 actionField
     : ownerActionField
     | costActionField
     | preconditionActionField
     | observesActionField
-    | observesifActionField
     | awareActionField
-    | awareifActionField
     | causesActionField
-    | causesifActionField
     | determinesActionField
     | announcesActionField
     ;
@@ -192,7 +189,7 @@ costActionField         : 'cost'  '{' INTEGER '}' ;
 preconditionActionField : 'precolndition' parameterList? '{' fluentFormula '}' ;
 observesActionField     : 'observes'      parameterList? '{' groundable ('if' fluentFormula)? '}' ;
 awareActionField        : 'aware'         parameterList? '{' groundable ('if' fluentFormula)? '}' ;
-causesActionField       : 'causes'        parameterList? '{' predicate ASSIGN atom ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'        parameterList? '{' fluent ASSIGN atom ('if' fluentFormula)? '}' ;
 determinesActionField   : 'determines'    parameterList? '{' fluentFormula '}' ;
 announcesActionField    : 'announces'     parameterList? '{' beliefFormula '}' ;
 

@@ -1,8 +1,8 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.state.Fluent;
-import mecaPlanner.formulae.BeliefFormula;
+import mecaPlanner.formulae.atomic.Fluent;
+import mecaPlanner.formulae.belief.BeliefFormula;
 import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;
@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
 
-    private Set<FluentAtom> allAtoms;
+    private Set<FluentAtom> allFluents;
     //private Set<FluentAtom> constants;
     //private Set<BeliefFormula> initiallyStatements;
     private Map<String,Set<Action>> actions;
@@ -27,7 +27,7 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
-        allAtoms = new HashSet<>();
+        allFluents = new HashSet<>();
         //constants = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
@@ -39,7 +39,7 @@ public class Domain implements java.io.Serializable {
     }
 
     public Set<FluentAtom> getAllAtoms() {
-        return allAtoms;
+        return allFluents;
     }
 
     //public Set<FluentAtom> getConstants() {
@@ -114,12 +114,12 @@ public class Domain implements java.io.Serializable {
         return allAgents;
     }
 
-    public void addAtom(FluentAtom f) {
-        allAtoms.add(f);
+    public void addFluent(Fluent f) {
+        allFluents.add(f);
     }
 
-    public void addAtoms(Set<FluentAtom> f) {
-        allAtoms.addAll(f);
+    public void addFluents(Set<Fluent> f) {
+        allFluents.addAll(f);
     }
 
     //public void addConstant(FluentAtom f) {
