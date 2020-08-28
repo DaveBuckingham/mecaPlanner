@@ -155,26 +155,10 @@ toWorld : LOWER_NAME;
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
-
 goal : beliefFormula ;
-
-
-
 
 
 
@@ -182,9 +166,9 @@ goal : beliefFormula ;
 
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
-actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
-parameterList : '(' (parameter ',')* parameter? ')' ;
-parameter : VARIABLE '-' OBJECT_TYPE ;
+actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
+variableDefList : '(' (variableDef ',')* variableDef? ')' ;
+variableDef : VARIABLE '-' OBJECT_TYPE ;
 
 actionField
     : ownerActionField
@@ -199,10 +183,10 @@ actionField
 
 ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precolndition' parameterList? '{' fluentFormula '}' ;
-observesActionField     : 'observes'      parameterList? '{' groundableObject ('if' fluentFormula)? '}' ;
-awareActionField        : 'aware'         parameterList? '{' groundableObject ('if' fluentFormula)? '}' ;
-causesActionField       : 'causes'        parameterList? '{' assignment ('if' fluentFormula)? '}' ;
-determinesActionField   : 'determines'    parameterList? '{' fluentFormula '}' ;
-announcesActionField    : 'announces'     parameterList? '{' beliefFormula '}' ;
+preconditionActionField : 'precondition' variableDefList '{' fluentFormula '}' ;
+observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' fluentFormula)? '}' ;
+awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' fluentFormula)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' fluentFormula '}' ;
+announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
+causesActionField       : 'causes'       variableDefList '{' assignment ('if' fluentFormula)? '}' ;
 

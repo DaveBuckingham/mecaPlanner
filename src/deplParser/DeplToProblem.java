@@ -58,22 +58,18 @@ public class DeplToProblem extends DeplBaseVisitor {
     // EACH LIST ELEMENT MAPS FROM EACH VARIABLE NAME TO ONE GROUND OBJECT
     // THE LIST GIVES THE CARTESIAN PRODUCT OF EACH POSSIBLE VARIABLE GROUNDING
 
-    private List<Map<String, String>> getVariableMaps(DeplParser.ParameterListContext ctx) {
-        List<Map<String, String>> maps = new ArrayList<Map<String,String>>();
-        if (ctx == null) {
-            maps.add(new HashMap<String,String>());
-            return maps;
-        }
+    private List<LinkedHashMap<String, String>> getVariableMaps(DeplParser.VariableDefListContext ctx) {
+        List<Map<String, String>> maps = new ArrayList<LinkedHashMap<String,String>>();
 
         List<String> varNames = new ArrayList<String>();
         List<List<String>> varGroundings = new ArrayList<List<String>>();
-        for (DeplParser.ParameterContext varDefCtx : ctx.parameter()) {
-            varNames.add(varDefCtx.VARIABLE().getText());
-            varGroundings.add(typeDefs.get(varDefCtx.TYPE().getText()).groundings);
+        for (DeplParser.ParameterContext variableDefCtx : ctx.variableDef()) {
+            varNames.add(variableDefCtx.VARIABLE().getText());
+            varGroundings.add(typeDefs.get(varDefCtx.OBJECT_TYPE().getText()).groundings);
         }
 
-        for (List<String> grounding : cartesianProduct(varGroundings)) {
-            Map<String,String> groundingMap = new HashMap<String,String>();
+        for (List<String> grounding : cartesianProduct(variableGroundings)) {
+            Map<String,String> groundingMap = new LinkedHashMap<String,String>();
             Iterator<String> nameIterator = varNames.iterator();
             Iterator<String> groundingIterator = grounding.iterator();
             while(nameIterator.hasNext() && groundingIterator.hasNext()) {
@@ -85,8 +81,16 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             maps.add(groundingMap);
         }
+        if (maps.isEmpty()) {
+            maps.put(new LinkedHashMap<String,String>());
+        }
 
         return maps;
+    }
+
+
+    private isFalse(FluentFormula ff) {
+        return (ff instanceof BooleanValue && !((BooleanValue) ff).get()) {
     }
 
 
@@ -523,118 +527,90 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // ACTIONS
     @Override public Void visitActionDefinition(DeplParser.ActionDefinitionContext ctx) {
-        for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
+        String actionName = ctx.LOWER_NAME().getText();
+        for (LinkedHashMap<String,String> variableMap : getVariableMaps(ctx.variableList())) {
             variableStack.push(variableMap);
-            Action action = buildAction(ctx);
-            if (!(action.getPrecondition() instanceof FluentFormulaFalse)) {
-                domain.addAction(action.getActor(), action);
+
+            List<String> actionParameters = new ArrayList<String>(variableMap.values());
+
+            String owner = null;
+
+            int cost = 1;
+            List<FluentFormula> preconditionList = new ArrayList<FluentFormula>();
+            Map<String, List<FluentFormula>> observesLists = new HashMap<>();
+            Map<String, List<FluentFormula>> awareLists = new HashMap<>();
+            for (String a : domain.getAgents()) {
+                observesLists.put(a, new ArrayList<FluentFormula>());
+                awareLists.put(a, new ArrayList<FluentFormula>());
             }
-            variableStack.pop();
-        }
-        return null;
-    }
 
+            Set<FluentFormula> determines = new HashSet<>();
+            Set<BeliefFormula> announces = new HashSet<>();
+            Map<FluentLiteral, FluentFormula> effects = new HashMap<FluentLiteral, FluentFormula>();
 
-    private Action buildAction(DeplParser.ActionDefinitionContext ctx) {
-        String actionName = ctx.NAME().getText();
+            for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
-        List<String> actionParameters = new ArrayList<String>();
-        for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-            actionParameters.add(resolveVariable(parameterCtx));
-        }
-
-        // MANDATORY
-        String owner = null;
-
-        // OPTIONAL
-        int cost = 1;
-        List<FluentFormula> preconditionList = new ArrayList<FluentFormula>();
-        Map<String, List<FluentFormula>> observesLists = new HashMap<>();
-        Map<String, List<FluentFormula>> awareLists = new HashMap<>();
-        for (String a : domain.getAgents()) {
-            observesLists.put(a, new ArrayList<FluentFormula>());
-            awareLists.put(a, new ArrayList<FluentFormula>());
-        }
-
-        Set<BeliefFormula> announces = new HashSet<>();
-        Set<FluentFormula> determines = new HashSet<>();
-        Map<FluentLiteral, FluentFormula> effects = new HashMap<FluentLiteral, FluentFormula>();
-
-        for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
-
-            if (fieldCtx.ownerActionField() != null) {
-                owner = resolveVariable(fieldCtx.ownerActionField().parameter());
-                if (!domain.isNonPassiveAgent(owner)) {
-                    throw new RuntimeException("action " +
-                                               actionName +
-                                               " owner " +
-                                               owner +
-                                               " not a declared system or environment agent.");
+                if (fieldCtx.ownerActionField() != null) {
+                    owner = ((ObjectValue)fieldCtx.ownerActionField().groundableObject()).get();
+                    if (!domain.isNonPassiveAgent(owner)) {
+                        throw new RuntimeException("action " + actionName + " owner " + owner +
+                                                   " not a declared system or environment agent.");
+                    }
                 }
-            }
 
-            else if (fieldCtx.costActionField() != null) {
-                cost = Integer.parseInt(fieldCtx.costActionField().INTEGER().getText());
-            }
+                else if (fieldCtx.costActionField() != null) {
+                    cost = Integer.parseInt(fieldCtx.costActionField().INTEGER().getText());
+                }
+
 
             else if (fieldCtx.preconditionActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.preconditionActionField().variableList())) {
+                DeplParser.PreconditionActionFieldContext preCtx = visit(fieldCtx.preconditionActionField());
+                for (Map<String,String> variableMap : getVariableMaps(preCtx().variableDefList())) {
                     variableStack.push(variableMap);
-                    preconditionList.add((FluentFormula) visit(fieldCtx.preconditionActionField().fluentFormula()));
+                    preconditionList.add((FluentFormula) visit(preCtx().fluentFormula()));
                     variableStack.pop();
                 }
             }
 
             else if (fieldCtx.observesActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.observesActionField().variableList())) {
+                DeplParser.ObservesActitonFieldContext obsCtx = visit(fieldCtx.observesActionField());
+                for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableList())) {
                     variableStack.push(variableMap);
-                    String agentName = resolveVariable(fieldCtx.observesActionField().parameter());
-                    observesLists.get(agentName).add(new FluentFormulaTrue());
-                    variableStack.pop();
-                }
-            }
-
-            else if (fieldCtx.observesifActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.observesifActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    String agentName = resolveVariable(fieldCtx.observesifActionField().parameter());
-                    FluentFormula condition = (FluentFormula) visit(fieldCtx.observesifActionField().fluentFormula());
-                    condition = condition.simplify();
-                    if (!(condition instanceof FluentFormulaFalse)) {
+                    String agentName = ((ObjectValue) visit(obsCtx.groundableObject())).get();
+                    FluentFormula condition;
+                    if (obsCtx.fluentFormula() == null) {
+                        condition = new BoleanValue(true);
+                    }
+                    else {
+                        condition = (FluentFormula) visit(obsCtx.fluentFormula());
+                    }
+                    if (!isFalse(condition)) {
                         observesLists.get(agentName).add(condition);
                     }
                     variableStack.pop();
                 }
             }
 
+
             else if (fieldCtx.awareActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.awareActionField().variableList())) {
+                DeplParser.AwareActionFieldContext awaCtx = visit(fieldCtx.awareActionField());
+                for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableList())) {
                     variableStack.push(variableMap);
-                    String agentName = resolveVariable(fieldCtx.awareActionField().parameter());
-                    awareLists.get(agentName).add(new FluentFormulaTrue());
+                    String agentName = ((ObjectValue) visit(awaCtx.groundableObject())).get();
+                    FluentFormula condition;
+                    if (awaCtx.fluentFormula() == null) {
+                        condition = new BoleanValue(true);
+                    }
+                    else {
+                        condition = (FluentFormula) visit(awaCtx.fluentFormula());
+                    }
+                    if (!isFalse(condition)) {
+                        awareLists.get(agentName).add(condition);
+                    }
                     variableStack.pop();
                 }
             }
 
-            else if (fieldCtx.awareifActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.awareifActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    String agentName = resolveVariable(fieldCtx.awareifActionField().parameter());
-                    FluentFormula condition = (FluentFormula) visit(fieldCtx.awareifActionField().fluentFormula());
-                    awareLists.get(agentName).add(condition);
-                    variableStack.pop();
-                }
-            }
-
-            else if (fieldCtx.causesActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesActionField().literal());
-                    FluentFormula condition = new FluentFormulaTrue();
-                    effects.put(effect, condition);
-                    variableStack.pop();
-                }
-            }
 
             else if (fieldCtx.causesifActionField() != null) {
                 for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesifActionField().variableList())) {
@@ -684,6 +660,13 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         precondition = precondition.simplify();
 
+        if (isFalse(ff)) {
+            return null;
+        }
+
+
+
+
         if (owner == null) {
             throw new RuntimeException("illegal action definition, no owner: " + actionName);
         }
@@ -707,20 +690,25 @@ public class DeplToProblem extends DeplBaseVisitor {
         assert (domain != null);
 
 
-        return new Action(actionName,
-                               actionParameters,
-                               owner,
-                               cost,
-                               precondition,
-                               observes,
-                               aware,
-                               determines,
-                               announces,
-                               effects,
-                               domain
-                              );
+        Action action =  new Action(actionName,
+                                    actionParameters,
+                                    owner,
+                                    cost,
+                                    precondition,
+                                    observes,
+                                    aware,
+                                    determines,
+                                    announces,
+                                    effects,
+                                    domain
+                                   );
 
+        actions.add(action);
+        variableStack.pop();
+        return null;
     }
+
+
 
 
 
@@ -874,37 +862,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
         return new BeliefFormulaBelieves(agentName, inner);
-    }
-
-    // TIME FORMULAE
-
-    @Override public TimeFormula visitTimeFormula(DeplParser.TimeFormulaContext ctx) {
-        return new TimeFormula((TimeFormula.Inequality) visit(ctx.inequality()),
-                                Integer.parseInt(ctx.INTEGER().getText()));
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
-        return TimeFormula.Inequality.EQ;
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
-        return TimeFormula.Inequality.NE;
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
-        return TimeFormula.Inequality.LT;
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
-        return TimeFormula.Inequality.LTE;
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
-        return TimeFormula.Inequality.GT;
-    }
-
-    @Override public TimeFormula.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
-        return TimeFormula.Inequality.GTE;
     }
 
 
