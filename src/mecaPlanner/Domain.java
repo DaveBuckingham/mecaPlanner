@@ -14,9 +14,7 @@ import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
 
-    private Set<FluentAtom> allFluents;
-    //private Set<FluentAtom> constants;
-    //private Set<BeliefFormula> initiallyStatements;
+    //private Set<Fluent> allFluents;
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
 

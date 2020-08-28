@@ -38,10 +38,11 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Set<BeliefFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
+    private Map<Fluent,String> fluents;              // fluents and their fluent types
     private Integer agentIndex;
-    private Set<String> allObjects;  // to check for undefined objects
+    private Set<String> allObjects;          // to check for undefined objects
     private Map<Fluent,Value> constants;
-    private Map<String, TypeNode> typeDefs;  // key is type name
+    private Map<String, TypeNode> typeDefs;  // key is object type name
     private Stack<Map<String, String>> variableStack;
 
 
@@ -51,8 +52,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     // HELPER FUNCTIONS
-
-
 
 
     // READ A PARAMETER LIST AND GET A LIST OF MAPS
@@ -119,7 +118,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     // FOR STORING A TYPE DEFINITION, PARENT IS THE SUPERTYPE
     // GROUNDINGS ARE ALL OBJECTS OF THE TYPE
     // THE TYPE NAME ITSELF IS THE KEY TO THIS OBJECT IN A MAP
-
     private class TypeNode {
         public String parent;
         public List<String> groundings;
@@ -128,6 +126,27 @@ public class DeplToProblem extends DeplBaseVisitor {
             this.groundings = new ArrayList<String>();
         }
     }
+
+
+    // FOR STORING AN ASSIGNMENT TO A FLUENTS OR CONSTANTS
+    // MULTIPLE REFERENCES IN CASE ITS EXPANDABLE
+    private class Assignment {
+        private Set<Fluent> references;
+        private Value value;
+        public TypeNode(Set<Fluent> references, Value value) {
+            this.references = references;
+            this.value = valeu;
+        }
+        public Set<Fluent> getReferences() {
+            return references;
+        }
+        public Value getValue() {
+            return value;
+        }
+    }
+
+
+
 
 
     public Problem buildProblem (String deplFileName) {
@@ -321,44 +340,72 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    //HERE
-    @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
-            domain.addAtoms(atoms);
-        Set<FluentAtom> atoms = new HashSet<>();;
-        String name = ctx.NAME().getText();
+    @Override public Set<Fluent> visitExpandableFluent(DeplParser.ExpandableFluentContext ctx) {
+        String name = ctx.LOWER_NAME().getText();
         if (ctx.variableList() == null) {
             atoms.add(new FluentAtom(name));
             return atoms;
         }
-        for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
-            variableStack.push(variableMap);
-            List<String> groundParameters = new ArrayList<String>();
-            for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-                groundParameters.add(resolveVariable(parameterCtx));
-            }
-            atoms.add(new FluentAtom(name, groundParameters));
-            variableStack.pop();
+        List<List<String>> expandedParameters = new ArrayList<List<String>>();
+        for (DeplParser.ExpandableObjectContext parameterCtx : ctx.expandableObject()) {
+            expandedPareters.add(visit parameterCtx);
         }
-        return atoms;
+        Set<Fluent> expandedFluents = new HashSet<>();
+        for (List<String> expansion : cartesianProduct(expandedParameters)) {
+            expandedFluents.add(new Fluent(expansion));
+        }
+        return expandedFluents;
     }
+
+    //HERE
+    @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
+        String type = ctx.FLUENT_TYPE.getText();
+        for (Fluent fluent : visit(ctx.expandableFluent()) {
+            fluents.add(fluent, type);
+        }
+    }
+
+
+
+//              domain.addAtoms(atoms);
+//          Set<FluentAtom> atoms = new HashSet<>();;
+//          String name = ctx.NAME().getText();
+//          if (ctx.variableList() == null) {
+//              atoms.add(new FluentAtom(name));
+//              return atoms;
+//          }
+//          for (Map<String,String> variableMap : getVariableMaps(ctx.variableList())) {
+//              variableStack.push(variableMap);
+//              List<String> groundParameters = new ArrayList<String>();
+//              for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
+//                  groundParameters.add(resolveVariable(parameterCtx));
+//              }
+//              atoms.add(new FluentAtom(name, groundParameters));
+//              variableStack.pop();
+//          }
+//          return atoms;
+//      }
 
 
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
-        for (DeplParser.AtomDefinitionContext atomDefCtx : ctx.atomDefinition()) {
-            Set<FluentAtom> atoms = (Set<FluentAtom>) visit(atomDefCtx);
-            constants.addAll(atoms);
+        for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
+            Assignment assignment = (Assignment) visit(assignmentCtx);
+            for (Fluent constant : assignment.getReferences()) {
+                constants.put(constant, assignment.getValue());
+            }
         }
         return null;
     }
 
-    @Override public Void visitConstraintsSection(DeplParser.ConstraintsSectionContext ctx) {
-        for (DeplParser.AtomContext atomCtx : ctx.atom()) {
-            FluentAtom atom = (FluentAtom) visit(atomCtx);
-            constraints.add(atom);
+    @Override public Assignment visitAssignment(DeplParser.AssignmentContext ctx) {
+        Value value = visit(ctx.value());
+        Set<Fluent> fluents = new hashSet<>();
+        for (Fluent fluent : (Fluent) visit(ctx.expandableFluent()) {
+            fluent.add(fluent, value);
         }
-        return null;
+        return new Assignment(fluents, value);
     }
 
 
@@ -375,21 +422,21 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public Void visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        Set<BeliefFormula> initiallyStatements = new HashSet<>();
-        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
-            BeliefFormula statement = (BeliefFormula) visit(statementContext);
-            initiallyStatements.add(statement);
-        }
-        try {
-            startStates.add(Initialize.constructState(initiallyStatements, domain, true));
-        }
-        catch (Exception ex) {
-            ex.printStackTrace();
-            System.exit(1);
-        }
-        return null;
-    }
+    // @Override public Void visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+    //     Set<BeliefFormula> initiallyStatements = new HashSet<>();
+    //     for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
+    //         BeliefFormula statement = (BeliefFormula) visit(statementContext);
+    //         initiallyStatements.add(statement);
+    //     }
+    //     try {
+    //         startStates.add(Initialize.constructState(initiallyStatements, domain, true));
+    //     }
+    //     catch (Exception ex) {
+    //         ex.printStackTrace();
+    //         System.exit(1);
+    //     }
+    //     return null;
+    // }
 
 
     @Override public Void visitKripkeModel(DeplParser.KripkeModelContext ctx) {
@@ -452,21 +499,23 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
-        String worldName = ctx.NAME().getText();
-        Set<FluentAtom> atoms = new HashSet<>();
-        for (DeplParser.AtomContext atomCtx : ctx.atom()) {
-            atoms.add((FluentAtom) visit(atomCtx));
+        String worldName = ctx.LOWER_NAME().getText();
+        Map<Fluent, Value> fluentAssignments = new HashMap<>();
+        for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
+            Assignment assignment = (Assignment) visit(assignmentCrx);
+            for (Fluent fluent : assignment.getReferences()) {
+                fluentAssignments.put(fluent, assignment.getValue());
+            }
         }
-        return new World(worldName, atoms);
+        return new World(worldName, fluentAssignments);
     }
-
 
 
 
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        BeliefFormula goal = (BeliefFormula) visit(ctx.generalFormula());
+        BeliefFormula goal = (BeliefFormula) visit(ctx.beliefFormula());
         goals.add(goal);
         return null;
     }

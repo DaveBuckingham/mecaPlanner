@@ -19,12 +19,15 @@ UPPER_NAME              : UPPER ANYCHAR*;
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-'|'=';
 
-// KEYWORD_OBJECT         : 'Object' ;
 // KEYWORD_TIME           : 'time' | 'timestep' ;
 KEYWORD_TRUE            : 'true' ;
 KEYWORD_FALSE           : 'false' ;
+KEYWORD_BOOLEAN         : 'Boolean' ;
+KEYWORD_INTEGER         : 'Integer' ;
+KEYWORD_OBJECT          : 'Object' ;
 
-TYPE                    : UPPER_NAME ;
+FLUENT_TYPE             : KEYWORD_BOOLEAN | KEYWORD_INTEGER | KEYWORD_OBJECT ;
+OBJECT_TYPE             : UPPER_NAME ;
 OBJECT                  : LOWER_NAME ;
 VARIABLE                : '?' LOWER_NAME;
 CLASS                   : (ANYCHAR*'.')* UPPER LETTER*;
@@ -53,14 +56,14 @@ init :
 
 typesSection : 'types' '{' (typeDefinition ',')* typeDefinition? '}' ;
 
-typeDefinition : TYPE '-' TYPE ;
+typeDefinition : OBJECT_TYPE '-' OBJECT_TYPE ;
 
 
 // OBJECT DEFINITIONS
 
 objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
 
-objectDefinition : OBJECT '-' TYPE ;
+objectDefinition : OBJECT '-' OBJECT_TYPE ;
 
 
 
@@ -86,46 +89,25 @@ passiveDef : OBJECT ;
 
 // FLUENTS DEFINITIONS
 
-expandableFluent : LOWER_NAME '[' ((OBJECT|TYPE) ',')* (OBJECT|TYPE)? ']' ;
-fluentDef : expandableFluent '-' TYPE ;
-fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
+groundableObject : OBJECT | VARIABLE ;
+expandableObject : OBJECT | OBJECT_TYPE
 
+expandableFluent : LOWER_NAME '[' (expandableObject ',')* ? ']' ;
+fluentDef : expandableFluent '-' FLUENT_TYPE ;
+fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 
 
 // CONSTANTS
 
-constantAssignment : expandableFluent ASSIGN value;
-constantsSection : 'constants' '{' (constantAssignment ',')* constantAssignment? '}' ;
-
-
-
-
-
-// INITIAL STATE DEFINITION
-
-initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
-
-startStateDef : initiallyDef | kripkeModel ;
-
-initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
-
-kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
-
-kripkeFormula
-    : LOWER_NAME ASSIGN '{' (expandableFluent ',')* expandableFluent? '}'
-    | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
-    ;
-relationType : 'B_' | 'K_' ;
-fromWorld : LOWER_NAME;
-toWorld : LOWER_NAME;
+assignment : expandableFluent ASSIGN value;
+constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
 
 
 // FORMULAE
 
-groundable : OBJECT | VARIABLE ;
-fluent : LOWER_NAME '[' (groundable ',')* groundable? ']' ;
-value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | groundable;
+fluent : LOWER_NAME '[' (groundableObject ',')* groundableObject? ']' ;
+value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | groundableObject;
 atom : fluent | value ;
 
 // IF JUST AN ATOM, MUST BE TRUE, FALSE, OR PREDICATE
@@ -148,8 +130,40 @@ beliefFormula
     | beliefFormula '&' beliefFormula ('&' beliefFormula)*       # beliefAnd
     | beliefFormula '|' beliefFormula ('|' beliefFormula)*       # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B_' groundable '(' beliefFormula ')'                      # beliefBelieves
+    | 'B_' groundableObject '(' beliefFormula ')'                      # beliefBelieves
     ;
+
+
+// INITIAL STATE DEFINITION
+
+initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
+
+//startStateDef : initiallyDef | kripkeModel ;
+startStateDef : kripkeModel ;
+
+//initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
+
+kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
+
+kripkeFormula
+    : LOWER_NAME ASSIGN '{' (assignment ',')* assignment? '}'
+    | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
+    ;
+relationType : 'B_' | 'K_' ;
+fromWorld : LOWER_NAME;
+toWorld : LOWER_NAME;
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -170,8 +184,7 @@ actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
 actionDefinition : LOWER_NAME parameterList? '{' (actionField ','?)* '}' ;
 parameterList : '(' (parameter ',')* parameter? ')' ;
-parameter : VARIABLE '-' TYPE ;
-onticAssignment : expandableFluent ASSIGN value ;
+parameter : VARIABLE '-' OBJECT_TYPE ;
 
 actionField
     : ownerActionField
@@ -184,12 +197,12 @@ actionField
     | announcesActionField
     ;
 
-ownerActionField        : 'owner' '{' groundable '}' ;
+ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
 preconditionActionField : 'precolndition' parameterList? '{' fluentFormula '}' ;
-observesActionField     : 'observes'      parameterList? '{' groundable ('if' fluentFormula)? '}' ;
-awareActionField        : 'aware'         parameterList? '{' groundable ('if' fluentFormula)? '}' ;
-causesActionField       : 'causes'        parameterList? '{' fluent ASSIGN atom ('if' fluentFormula)? '}' ;
+observesActionField     : 'observes'      parameterList? '{' groundableObject ('if' fluentFormula)? '}' ;
+awareActionField        : 'aware'         parameterList? '{' groundableObject ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'        parameterList? '{' assignment ('if' fluentFormula)? '}' ;
 determinesActionField   : 'determines'    parameterList? '{' fluentFormula '}' ;
 announcesActionField    : 'announces'     parameterList? '{' beliefFormula '}' ;
 
