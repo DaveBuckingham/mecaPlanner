@@ -22,40 +22,71 @@ public class World implements java.io.Serializable {
 
     private final int id;
 
-    private final Map<Fluent, Value> fluents;
+    private final Map<Fluent, Boolean> booleanFluents;
+    private final Map<Fluent, Integer> integerFluents;
+    private final Map<Fluent, String> objectFluents;
 
     private String name;
 
-    public World(String name, Map<Fluent, Value> fluents) {
+    public World(String name, Map<Fluent, Boolean> booleanFluents,
+                              Map<Fluent, Integer> integerFluents,
+                              Map<Fluent, String> objectFluents) {
         this.id = World.idCounter++;
         this.name = name;
-        this.fluentsluents = fluents;
+        this.booleanFluents = booleanFluents;
+        this.integerFluents = integerFluents;
+        this.objectFluents = objectFluents;
     }
 
     public World(World toCopy) {
         this.name = toCopy.getName() + "'";
-        this.fluents = new HashMap<Fluent, Value>(toCopy.getFluents());
+        this.booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
+        this.integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
+        this.objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
     }
 
-    public Map<Fluent,Value> getFluents() {
-        return fluents;
+    protected Map<Fluent,Boolean> getBooleanFluents() {
+        return booleanFluents;
+    }
+
+    protected Map<Fluent,Integer> getIntegerFluents() {
+        return integerFluents;
+    }
+
+    protected Map<Fluent,String> getObjectFluents() {
+        return objectFluents;
     }
 
     public int getId() {
         return this.id;
     }
 
-    public Value resolve(Fluent f) {
-        if (!fluents.containsKey(f)) {
+    public Boolean resolveBoolean(Fluent f) {
+        if (!booleanFluents.containsKey(f)) {
             throw new RuntimeException("unknown fluent: " + f);
         }
-        return fluents.get(f);
+        return booleanFluents.get(f);
+    }
+
+    public Integer resolveInteger(Fluent f) {
+        if (!integerFluents.containsKey(f)) {
+            throw new RuntimeException("unknown fluent: " + f);
+        }
+        return integerFluents.get(f);
+    }
+
+    public String resolveObject(Fluent f) {
+        if (!objectFluents.containsKey(f)) {
+            throw new RuntimeException("unknown fluent: " + f);
+        }
+        return objectFluents.get(f);
     }
 
 
-
     public boolean equivalent(World otherWorld) {
-        return fluents.equals(otherWorld.getFluents());
+        return booleanFluents.equals(otherWorld.getBooleanFluents());
+        return integerFluents.equals(otherWorld.getIntegerFluents());
+        return objectFluents.equals(otherWorld.getobjectFluents());
     }
 
     public String getName() {
@@ -67,7 +98,15 @@ public class World implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(name == null ? id : name);
         str.append("{");
-        for (Map.Entry<Fluent, Value> entry : fluents.entrySet()) {
+        for (Map.Entry<Fluent, Boolean> entry : booleanFluents.entrySet()) {
+            str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
+            str.append(", ");
+        }
+        for (Map.Entry<Fluent, Integer> entry : integerFluents.entrySet()) {
+            str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
+            str.append(", ");
+        }
+        for (Map.Entry<Fluent, String> entry : objectFluents.entrySet()) {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
             str.append(", ");
         }

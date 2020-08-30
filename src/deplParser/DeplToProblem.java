@@ -90,7 +90,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     private isFalse(FluentFormula ff) {
-        return (ff instanceof BooleanValue && !((BooleanValue) ff).get()) {
+        return (ff instanceof FluentFormulaAtom && !((FluentFormulaAtom) ff).isFalse()) {
     }
 
 
@@ -563,83 +563,98 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
 
 
-            else if (fieldCtx.preconditionActionField() != null) {
-                DeplParser.PreconditionActionFieldContext preCtx = visit(fieldCtx.preconditionActionField());
-                for (Map<String,String> variableMap : getVariableMaps(preCtx().variableDefList())) {
-                    variableStack.push(variableMap);
-                    preconditionList.add((FluentFormula) visit(preCtx().fluentFormula()));
-                    variableStack.pop();
+                else if (fieldCtx.preconditionActionField() != null) {
+                    DeplParser.PreconditionActionFieldContext preCtx = visit(fieldCtx.preconditionActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(preCtx().variableDefList())) {
+                        variableStack.push(variableMap);
+                        preconditionList.add((FluentFormula) visit(preCtx().fluentFormula()));
+                        variableStack.pop();
+                    }
                 }
-            }
 
-            else if (fieldCtx.observesActionField() != null) {
-                DeplParser.ObservesActitonFieldContext obsCtx = visit(fieldCtx.observesActionField());
-                for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableList())) {
-                    variableStack.push(variableMap);
-                    String agentName = ((ObjectValue) visit(obsCtx.groundableObject())).get();
-                    FluentFormula condition;
-                    if (obsCtx.fluentFormula() == null) {
-                        condition = new BoleanValue(true);
+                else if (fieldCtx.observesActionField() != null) {
+                    DeplParser.ObservesActitonFieldContext obsCtx = visit(fieldCtx.observesActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        String agentName = ((ObjectValue) visit(obsCtx.groundableObject())).get();
+                        FluentFormula condition;
+                        if (obsCtx.fluentFormula() == null) {
+                            condition = new BoleanValue(true);
+                        }
+                        else {
+                            condition = (FluentFormula) visit(obsCtx.fluentFormula());
+                        }
+                        if (!isFalse(condition)) {
+                            observesLists.get(agentName).add(condition);
+                        }
+                        variableStack.pop();
                     }
-                    else {
-                        condition = (FluentFormula) visit(obsCtx.fluentFormula());
-                    }
-                    if (!isFalse(condition)) {
-                        observesLists.get(agentName).add(condition);
-                    }
-                    variableStack.pop();
                 }
-            }
 
 
-            else if (fieldCtx.awareActionField() != null) {
-                DeplParser.AwareActionFieldContext awaCtx = visit(fieldCtx.awareActionField());
-                for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableList())) {
-                    variableStack.push(variableMap);
-                    String agentName = ((ObjectValue) visit(awaCtx.groundableObject())).get();
-                    FluentFormula condition;
-                    if (awaCtx.fluentFormula() == null) {
-                        condition = new BoleanValue(true);
+                else if (fieldCtx.awareActionField() != null) {
+                    DeplParser.AwareActionFieldContext awaCtx = visit(fieldCtx.awareActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        String agentName = ((ObjectValue) visit(awaCtx.groundableObject())).get();
+                        FluentFormula condition;
+                        if (awaCtx.fluentFormula() == null) {
+                            condition = new BoleanValue(true);
+                        }
+                        else {
+                            condition = (FluentFormula) visit(awaCtx.fluentFormula());
+                        }
+                        if (!isFalse(condition)) {
+                            awareLists.get(agentName).add(condition);
+                        }
+                        variableStack.pop();
                     }
-                    else {
-                        condition = (FluentFormula) visit(awaCtx.fluentFormula());
+                }
+
+                else if (fieldCtx.determinesActionField() != null) {
+                    DeplParser.AwareActionFieldContext detCtx = visit(fieldCtx.determinesActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        determines.add((FluentFormula) visit(detCtx.fluentFormula()));
+                        variableStack.pop();
                     }
-                    if (!isFalse(condition)) {
-                        awareLists.get(agentName).add(condition);
+                }
+
+                else if (fieldCtx.announcesActionField() != null) {
+                    DeplParser.AwareActionFieldContext annCtx = visit(fieldCtx.announcementActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        announces.add((BeliefFormula) visit(annCtx.beliefFormula()));
+                        variableStack.pop();
                     }
-                    variableStack.pop();
                 }
-            }
 
 
-            else if (fieldCtx.causesifActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.causesifActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
-                    FluentFormula condition = (FluentFormula) visit(fieldCtx.causesifActionField().fluentFormula());
-                    condition = condition.simplify();
-                    if (!(condition instanceof FluentFormulaFalse)) {
-                        effects.put(effect, condition);
+                else if (fieldCtx.causesActionField() != null) {
+                    DeplParser.CausesActionFieldContext effCtx = visit(fieldCtx.causesActionField());
+                    for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        FluentLiteral effect = (FluentLiteral) visit(fieldCtx.causesifActionField().literal());
+                        // ASSIGNMENT
+                        //FluentFormula condition = (FluentFormula) visit(fieldCtx.causesifActionField().fluentFormula());
+                        condition = condition.simplify();
+                        if (!(condition instanceof FluentFormulaFalse)) {
+                            effects.put(effect, condition);
+                        }
+                        FluentFormula condition;
+                        if (effCtx.fluentFormula() == null) {
+                            condition = new BoleanValue(true);
+                        }
+                        else {
+                            condition = (FluentFormula) visit(effCtx.fluentFormula());
+                        }
+                        if (!isFalse(condition)) {
+                            awareLists.get(agentName).add(condition);
+                        }
+
+                        variableStack.pop();
                     }
-                    variableStack.pop();
                 }
-            }
-
-            else if (fieldCtx.determinesActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.determinesActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    determines.add((FluentFormula) visit(fieldCtx.determinesActionField().fluentFormula()));
-                    variableStack.pop();
-                }
-            }
-
-            else if (fieldCtx.announcesActionField() != null) {
-                for (Map<String,String> variableMap : getVariableMaps(fieldCtx.announcesActionField().variableList())) {
-                    variableStack.push(variableMap);
-                    announces.add((BeliefFormula) visit(fieldCtx.announcesActionField().beliefFormula()));
-                    variableStack.pop();
-                }
-            }
 
             else {
                 throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
@@ -793,6 +808,18 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public FluentFormula visitFluentParens(DeplParser.FluentParensContext ctx) {
         return (FluentFormula) visit(ctx.fluentFormula());
+    }
+
+    @Override public FluentFormula visitFluentCompare(DeplParser.FluentCompareContext ctx) {
+        if (ctx.fluentFormula().size == 2) {
+            DeplParser.FluentFormulaContext leftCtx = visit(ctx.fluentFormula().get(0));
+            DeplParser.FluentFormulaContext rightCtx = visit(ctx.fluentFormula().get(1));
+        }
+        else if (ctx.integerFormula().size == 2) {
+        }
+        else {
+            throw new RuntimeException("illegal comparison: " + ctx.getText());
+        }
     }
 
     @Override public FluentFormula visitFluentNot(DeplParser.FluentNotContext ctx) {

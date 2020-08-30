@@ -92,7 +92,7 @@ passiveDef : OBJECT ;
 groundableObject : OBJECT | VARIABLE ;
 expandableObject : OBJECT | OBJECT_TYPE
 
-expandableFluent : LOWER_NAME '[' (expandableObject ',')* ? ']' ;
+expandableFluent : LOWER_NAME '[' (expandableObject ',')* expandableObject? ']' ;
 fluentDef : expandableFluent '-' FLUENT_TYPE ;
 fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
@@ -100,8 +100,8 @@ fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 // CONSTANTS
 
-assignment : expandableFluent ASSIGN value;
-constantsSection : 'constants' '{' (assignment ',')* assignment? '}' ;
+valueAssignment : expandableFluent ASSIGN value;
+constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 
 
 // FORMULAE
@@ -110,14 +110,20 @@ fluent : LOWER_NAME '[' (groundableObject ',')* groundableObject? ']' ;
 value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | groundableObject;
 atom : fluent | value ;
 
-// IF JUST AN ATOM, MUST BE TRUE, FALSE, OR PREDICATE
-// IF COMPARE, ATOMS MUST BE OR REFERENCE SAME PREDICATE TYPE.
-// >,>=,<,<= ARE ONLY VALID FOR INTEGERS
+integerFormula  // EVALUATE TO INTEGER
+    : atom                                                       # integerAtom
+    | '(' integerFormula ')'                                     # integerParens
+    | integerFormula '+' integerFormula                          # integerAdd
+    | integerFormula '-' integerFormula                          # integerSubtract
+    | integerFormula '*' integerFormula                          # integerMultiply
+    | integerFormula '/' integerFormula                          # integerDivide
+    | integerFormula '%' integerFormula                          # integerModulo
+    ;
 
-fluentFormula 
+fluentFormula  // EVALUATE TO BOOLEAN
     : atom                                                       # fluentAtom
-    | atom COMPARE atom                                          # fluentCompare
     | '(' fluentFormula ')'                                      # fluentParens
+    | (fluentFormula|integerFormula) COMPARE (fluentFormula|integerFormula) # fluentCompare
     | '~' fluentFormula                                          # fluentNot
     | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
     | fluentFormula '|' fluentFormula ('|' fluentFormula)*       # fluentOr
@@ -146,7 +152,7 @@ startStateDef : kripkeModel ;
 kripkeModel : '{' (kripkeFormula ',')* kripkeFormula? '}' ;
 
 kripkeFormula
-    : LOWER_NAME ASSIGN '{' (assignment ',')* assignment? '}'
+    : LOWER_NAME ASSIGN '{' (valueAssignment ',')* valueAssignment? '}'
     | relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}'
     ;
 relationType : 'B_' | 'K_' ;
@@ -170,6 +176,8 @@ actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : '(' (variableDef ',')* variableDef? ')' ;
 variableDef : VARIABLE '-' OBJECT_TYPE ;
 
+formulaAssignment : groundableFluent ASSIGN fluentFormula | integerFormula;
+
 actionField
     : ownerActionField
     | costActionField
@@ -188,5 +196,5 @@ observesActionField     : 'observes'     variableDefList '{' groundableObject ('
 awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' fluentFormula)? '}' ;
 determinesActionField   : 'determines'   variableDefList '{' fluentFormula '}' ;
 announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
-causesActionField       : 'causes'       variableDefList '{' assignment ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' formulaAssignment ('if' fluentFormula)? '}' ;
 
