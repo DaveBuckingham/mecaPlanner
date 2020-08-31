@@ -13,59 +13,102 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-public class FluentFormulaObjectComparison extends FluentFormula{
+public class CompareIntegers extends BooleanFormula{
 
-    private FluentCompareInteger(Inequality op, Atom lhs, Atom rhs) {
+    public enum Inequality {
+        EQ,            // equals
+        NE,            // not equal
+        LT,            // less than 
+        LTE,           // less than or equal
+        GT,            // greater than
+        GTE            // greater than or equal
     }
 
-    public static FluentFormula make(Inequality op, Atom lhs, Atom rhs) {
-        lhsFluent = lhs instnaceof Fluent;
-        rhsFluent = rhs instnaceof Fluent;
-        assert (lhsFluent || lhs instanceof IntegerValue);
-        assert (rhsFluent || rhs instanceof IntegerValue);
-        if (lhsFluent || rhsFluent) {
-            return new FluentCompareInteger(op, lhs, rhs);
+    private BoleanFormula lhs;
+    private BoleanFormula rhs;
+    private Inequality operator;
+
+    private CompareIntegers(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
+        this.operator = op;
+        this.lhs = lhs;
+        this.rhs = rhs;
+    }
+
+    public static BooleanFormula make(String op, IntegerFormula lhs, IntegerFormula rhs) {
+        if (op.matches("[eE][qQ]|=|==") {
+            return make(Inequality.EQ, lhs, rhs);
         }
-        return new BooleanValue(evaluate(op, (IntegerValue) lhs, (IntegerValue rhs)));
+        if (op.matches("[nN][eE]|!=|~=") {
+            return make(Inequality.NE, lhs, rhs);
+        }
+        if (op.matches("[lL][tT]|<") {
+            return make(Inequality.LT, lhs, rhs);
+        }
+        if (op.matches("[lL][tT][eE]|<=") {
+            return make(Inequality.LTE, lhs, rhs);
+        }
+        if (op.matches("[gG][tT]|>") {
+            return make(Inequality.GT, lhs, rhs);
+        }
+        if (op.matches("[gG][tT][eE]|>=") {
+            return make(Inequality.GTE, lhs, rhs);
+        }
+        throw new RuntimeException("invalid integer inequality: " + op);
     }
 
-    private static boolean evaluate(Inequality.op, IntegerValue a, IntegerValue b) {
+    public static BooleanFormula make(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
+        Integer lhsLiteral = lhs.getLiteral();
+        if (lhsLiteral != null) {
+            Integer rhsLiteral = rhs.getLiteral();
+            if (rhsLiteral != null) {
+                return new BooleanAtom(compare(op, lhsLiteral, rhsLiteral));
+            }
+        }
+        return new CompareIntegers(op, lhs, rhs);
+    }
+
+    public IntegerFormula getLhs() {
+        return lhs;
+    }
+    public IntegerFormula getRhs() {
+        return Lhs;
+    }
+    public Inequality getOperator() {
+        return operator;
+    }
+
+
+    private static Boolean compare(Inequality.op, Integer a, Integer b) {
         switch (op) {
-            case Inequality.EQ:  return (a.get() == b.get());
-            case Inequality.NE:  return (a.get() != b.get());
-            case Inequality.LT:  return (a.get() <  b.get());
-            case Inequality.LTE: return (a.get() <= b.get());
-            case Inequality.GT:  return (a.get() >  b.get());
-            case Inequality.GTE: return (a.get() >= b.get());
+            case Inequality.EQ:  return (a == b);
+            case Inequality.NE:  return (a != b);
+            case Inequality.LT:  return (a <  b);
+            case Inequality.LTE: return (a <= b);
+            case Inequality.GT:  return (a >  b);
+            case Inequality.GTE: return (a >= b);
         }
     }
 
 
-    public Boolean holds(World world) {
-        IntegerValue lhsGround = lhsFluent ? world.resolve((Fluent) lhs) : (IntegerValue) lhs;
-        IntegerValue rhsGround = rhsFluent ? world.resolve((Fluent) rhs) : (IntegerValue) rhs;
-        return FluentCompareInteger.evaluate(op, lhsGround, rhsGround);
+    public Boolean evaluate(World world) {
+        return compare(compare(this.operator, lhs.evaluate(world), rhs.evaluate(world)));
     }
 
-    //public Set<FluentAtom> getAllAtoms() {
-    //    Set<FluentAtom> allAtoms = new HashSet<>();
-    //    for (FluentFormula formula : formulae) {
-    //        allAtoms.addAll(formula.getAllAtoms());
-    //    }
-    //    return allAtoms;
-    //}
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("equal(");
-        if (formulae.size() > 0) {
-            for (FluentFormula formula : formulae) {
-                str.append(formula);
-                str.append(",");
-            }
-            str.deleteCharAt(str.length() - 1);
+        str.append("(");
+        str.append(lhs.toString);
+        switch (operator) {
+            case Inequality.EQ:  str.append("==");
+            case Inequality.NE:  str.append("!=");
+            case Inequality.LT:  str.append("< ");
+            case Inequality.LTE: str.append("<=");
+            case Inequality.GT:  str.append("> ");
+            case Inequality.GTE: str.append(">=");
         }
+        str.append(rhs.toString);
         str.append(")");
         return str.toString();
     }
@@ -78,11 +121,10 @@ public class FluentFormulaObjectComparison extends FluentFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaIntegerComparison other = (FluentFormulaIntegerComparison) obj;
-        return (lhsIsFluent == other.isLhsFluent() &&
-                rhsIsFluent == other.isRhsFluent() &&
-                (lhsIsFluent ? lhsFluent.equals(other.getLhsFluent) : lhsLiteral == other.getLhsLiteral()) &&
-                (rhsIsFluent ? rhsFluent.equals(other.getRhsFluent) : rhsLiteral == other.getRhsLiteral())
+        CompareIntegers other = (CompareIntegers) obj;
+        return (lhs.equals(other.getLhs()) &&
+                rhs.equals(other.getRhs()) &&
+                operator.equals(other.getOperator())
                );
     }
 
@@ -90,9 +132,7 @@ public class FluentFormulaObjectComparison extends FluentFormula{
 
     @Override
     public int hashCode() {
-        return ((lhsIsFluent ? lhsFluent.hashCode() : lhsLiteral.hashCode()) *
-                (rhsIsFluent ? rhsFluent.hashCode() : rhsLiteral.hashCode())
-               );
+        return (operator.hashCode() * lhs.hashCode() * * rhs.hashCode());
     }
 
 

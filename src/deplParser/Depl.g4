@@ -6,13 +6,16 @@ fragment LETTER         : LOWER | UPPER;
 fragment ANYCHAR        : LETTER | DIGIT | '_';
 fragment DIGIT          :  [0-9];
 
-fragment OP_EQ          : '==';
-fragment OP_NE          : '!=';
+fragment OP_EQ          : '='|'==';
+fragment OP_NE          : '~='|'!=';
 fragment OP_LT          : '<';
 fragment OP_LTE         : '<=';
 fragment OP_GE          : '>';
 fragment OP_GTE         : '>=';
-COMPARE                 : OP_EQ | OP_NE | OP_LT | OP_LTE | OP_GE | OP_GTE;
+fragment OP_AND         : '&'|'&&';
+fragment OP_OR          : '|'|'||';
+fragment OP_NOT         : '~'|'!' ;
+COMPARE        : OP_LT | OP_LTE | OP_GE | OP_GTE;
 
 LOWER_NAME              : LOWER ANYCHAR*;
 UPPER_NAME              : UPPER ANYCHAR*;
@@ -90,7 +93,7 @@ passiveDef : OBJECT ;
 // FLUENTS DEFINITIONS
 
 groundableObject : OBJECT | VARIABLE ;
-expandableObject : OBJECT | OBJECT_TYPE
+expandableObject : OBJECT | OBJECT_TYPE;
 
 expandableFluent : LOWER_NAME '[' (expandableObject ',')* expandableObject? ']' ;
 fluentDef : expandableFluent '-' FLUENT_TYPE ;
@@ -107,11 +110,18 @@ constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 // FORMULAE
 
 fluent : LOWER_NAME '[' (groundableObject ',')* groundableObject? ']' ;
-value : KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | groundableObject;
-atom : fluent | value ;
+formula : integerFormula | beliefFormula | groundableObject ;
+
+value 
+    : KEYWORD_FALSE           # valueFalse
+    | KEYWORD_TRUE            # valueTrue
+    | INTEGER                 # valueInteger
+    | OBJECT                  # valueObject
+    ;
 
 integerFormula  // EVALUATE TO INTEGER
-    : atom                                                       # integerAtom
+    : fluent                                                     # integerFluent
+    | INTEGER                                                    # integerLiteral
     | '(' integerFormula ')'                                     # integerParens
     | integerFormula '+' integerFormula                          # integerAdd
     | integerFormula '-' integerFormula                          # integerSubtract
@@ -120,21 +130,25 @@ integerFormula  // EVALUATE TO INTEGER
     | integerFormula '%' integerFormula                          # integerModulo
     ;
 
-fluentFormula  // EVALUATE TO BOOLEAN
-    : atom                                                       # fluentAtom
-    | '(' fluentFormula ')'                                      # fluentParens
-    | (fluentFormula|integerFormula) COMPARE (fluentFormula|integerFormula) # fluentCompare
-    | '~' fluentFormula                                          # fluentNot
-    | fluentFormula '&' fluentFormula ('&' fluentFormula)*       # fluentAnd
-    | fluentFormula '|' fluentFormula ('|' fluentFormula)*       # fluentOr
+booleanFormula  // EVALUATE TO BOOLEAN
+    : fluent                                                     # booleanFluent
+    | KEYWORD_TRUE                                               # booleanLiteralTrue
+    | KERYWORD_FALSE                                             # booleanLiteralFalse
+    | '(' booleanFormula ')'                                     # boleanParens
+    | integerFormula COMPARE integerFormula                      # booleanCompareIntegers
+    | formula ('='|'==') formula                             # booleanEquals
+    | formula ('!='|'~=') formula                            # booleanUnequals
+    | ('~'|'!') booleanFormula                                   # booleanNot
+    | booleanFormula OP_AND booleanFormula (OP_AND booleanFormula)*       # booleanAnd
+    | booleanFormula OP_OR  booleanFormula (OP_OR booleanFormula)*       # booleanOr
     ;
 
 beliefFormula 
-    : fluentFormula                                              # beliefFluent
+    : booleanFormula                                              # beliefFluent
     | '(' beliefFormula ')'                                      # beliefParens
-    | '~' beliefFormula                                          # beliefNot
-    | beliefFormula '&' beliefFormula ('&' beliefFormula)*       # beliefAnd
-    | beliefFormula '|' beliefFormula ('|' beliefFormula)*       # beliefOr
+    | ('~'|'!') beliefFormula                                    # beliefNot
+    | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)*       # beliefAnd
+    | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*       # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
     | 'B_' groundableObject '(' beliefFormula ')'                      # beliefBelieves
     ;
@@ -176,7 +190,7 @@ actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : '(' (variableDef ',')* variableDef? ')' ;
 variableDef : VARIABLE '-' OBJECT_TYPE ;
 
-formulaAssignment : groundableFluent ASSIGN fluentFormula | integerFormula;
+formulaAssignment : fluent ASSIGN formula ;
 
 actionField
     : ownerActionField
@@ -191,10 +205,10 @@ actionField
 
 ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableDefList '{' fluentFormula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' fluentFormula)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' fluentFormula)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' fluentFormula '}' ;
+preconditionActionField : 'precondition' variableDefList '{' booleanFormula '}' ;
+observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' booleanFormula)? '}' ;
+awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' booleanFormula)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' booleanFormula '}' ;
 announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
-causesActionField       : 'causes'       variableDefList '{' formulaAssignment ('if' fluentFormula)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' formulaAssignment ('if' booleanFormula)? '}' ;
 

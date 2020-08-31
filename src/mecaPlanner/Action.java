@@ -24,24 +24,45 @@ public class Action implements java.io.Serializable {
     protected List<String> parameters;
     protected int cost;
     protected String actor;
-    protected FluentFormula precondition;
-    protected Map<String, FluentFormula> observesIf;
-    protected Map<String, FluentFormula> awareIf;
-    protected Set<FluentFormula> determines;
+    protected BooleanFormula precondition;
+    protected Map<String, BooleanFormula> observesIf;
+    protected Map<String, BooleanFormula> awareIf;
+    protected Set<BooleanFormula> determines;
     protected Set<BeliefFormula> announces;
-    protected Map<FluentLiteral, FluentFormula> effects;
+    protected Set<FormulaAssignment> effects;
+
+
+    private class FormulaAssignment {
+        private Fluent reference;
+        private Formula value;
+        private BooleanFormula condition;
+        public FormulaAssignment(Fluent reference, Formula value, BooleanFormula condition) {
+            this.references = references;
+            this.value = value;
+            this.condition = condition;
+        }
+        public Fluent getReference() {
+            return references;
+        }
+        public Formula getValue() {
+            return value;
+        }
+        public BooleanFormula getCondition() {
+            return condition;
+        }
+    }
 
 
     public Action(String name,
                   List<String> parameters,
                   String actor,
                   int cost,
-                  FluentFormula precondition,
-                  Map<String, FluentFormula> observesIf,
-                  Map<String, FluentFormula> awareIf,
-                  Set<FluentFormula> determines,
+                  BooleanFormula precondition,
+                  Map<String, BooleanFormula> observesIf,
+                  Map<String, BooleanFormula> awareIf,
+                  Set<BooleanFormula> determines,
                   Set<BeliefFormula> announces,
-                  Map<FluentLiteral, FluentFormula> effects,
+                  Set<FormulaAssignment> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -74,17 +95,15 @@ public class Action implements java.io.Serializable {
         return this.precondition;
     }
 
-    public Map<FluentLiteral, FluentFormula> getEffects() {
+    public Set<FormulaAssignment> getEffects() {
         return this.effects;
     }
 
-    public Set<FluentLiteral> getApplicableEffects(World world) {
-        Set<FluentLiteral> applicableEffects = new HashSet<>();
-            for (Map.Entry<FluentLiteral, FluentFormula> e : effects.entrySet()) {
-                FluentLiteral effect = e.getKey();
-                FluentFormula condition = e.getValue();
-                if (condition.holds(world)) {
-                    applicableEffects.add(effect);
+    public Set<FormulaAssignment> getApplicableEffects(World world) {
+        Set<FormulaAssignment> applicableEffects = new HashSet<>();
+            for (FormulaAssignment e : effects.entrySet()) {
+                if (e.getCondition().evaluate(world)) {
+                    applicableEffects.add(e);
                 }
             }
         return applicableEffects;
@@ -235,11 +254,11 @@ public class Action implements java.io.Serializable {
             World oldFromWorld = observedWorldsToOld.get(fromWorld);
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
-            Set<FluentFormula> revealedConditions = new HashSet<>();
+            Set<BooleanFormula> revealedConditions = new HashSet<>();
             if (anyObservers || anyAware) {
-                for (Map.Entry<FluentLiteral, FluentFormula> e : effects.entrySet()) {
+                for (Map.Entry<FluentLiteral, BooleanFormula> e : effects.entrySet()) {
                     FluentLiteral effect = e.getKey();
-                    FluentFormula condition = e.getValue();
+                    BooleanFormula condition = e.getValue();
                     if (!effect.holds(oldFromWorld) && !condition.alwaysHolds()) {
                         // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
                         if (condition.holds(oldFromWorld)) {
@@ -255,9 +274,9 @@ public class Action implements java.io.Serializable {
 
 
             // WHAT DO OBSERVERS SENSE
-            Set<FluentFormula> groundDetermines = new HashSet<>();
+            Set<BooleanFormula> groundDetermines = new HashSet<>();
             if (anyObservers) {
-                for (FluentFormula f : determines) {
+                for (BooleanFormula f : determines) {
                     if (f.holds(oldFromWorld)) {
                         groundDetermines.add(f);
                     }
@@ -283,10 +302,10 @@ public class Action implements java.io.Serializable {
 
                     // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION
                     // ASSUMING THAT ANNOUNCEMTNS MIGHT BE LIES
-                    Set<FluentFormula> allKnowledgeLearned = new HashSet<>();
+                    Set<BooleanFormula> allKnowledgeLearned = new HashSet<>();
                     allKnowledgeLearned.addAll(revealedConditions);
                     allKnowledgeLearned.addAll(groundDetermines);
-                    FluentFormula learnedKnowledgeFormula = new FluentFormulaAnd(allKnowledgeLearned);
+                    BooleanFormula learnedKnowledgeFormula = new BooleanFormulaAnd(allKnowledgeLearned);
 
                     // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
                     // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
@@ -505,7 +524,7 @@ public class Action implements java.io.Serializable {
         str.append(precondition);
 
         str.append("\n\tObserves\n");
-        for (Map.Entry<String, FluentFormula> o : observesIf.entrySet()) {
+        for (Map.Entry<String, BooleanFormula> o : observesIf.entrySet()) {
             str.append("\t\t");
             str.append(o.getKey());
             str.append(" if ");
@@ -514,7 +533,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tAware\n");
-        for (Map.Entry<String, FluentFormula> a : awareIf.entrySet()) {
+        for (Map.Entry<String, BooleanFormula> a : awareIf.entrySet()) {
             str.append("\t\t");
             str.append(a.getKey());
             str.append(" if ");
@@ -523,7 +542,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tDetermines\n");
-        for (FluentFormula ff : determines) {
+        for (BooleanFormula ff : determines) {
             str.append("\t\t");
             str.append(ff);
             str.append("\n");
@@ -537,7 +556,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<FluentLiteral, FluentFormula> a : effects.entrySet()) {
+        for (Map.Entry<FluentLiteral, BooleanFormula> a : effects.entrySet()) {
             str.append("\t\t");
             str.append(a.getKey());
             str.append(" if ");

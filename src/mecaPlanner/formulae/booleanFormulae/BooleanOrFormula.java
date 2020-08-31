@@ -1,4 +1,4 @@
-package mecaPlanner.formulae;
+package mecaPlanner.formulae.booleanFormulae;
 
 import mecaPlanner.state.World;
 
@@ -8,83 +8,66 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Iterator;
+
 import java.util.Set;
 import java.util.HashSet;
 
-
-public class FluentFormulaOr extends FluentFormula{
+public class BooleanOrFormula extends BooleanFormula{
 
     // SHOULD THIS BE A SET? THE ORDER SHOULDN'T MATTER WHEN CHECKING EQUALITY...
-    private List<FluentFormula> formulae;
+    private List<BooleanFormula> formulae;
 
-    private FluentFormulaOr(List<FluentFormula> formulae) {
+
+    private BooleanOrFormula(List<BooleanFormula> formulae) {
         this.formulae = formulae;
     }
 
-    public static FluentFormula make(List<FluentFormula> inputFormulae) {
-        List<FluentFormula> formulae = new ArrayLiset<>();
-        for (FluentFormula ff : inputFormulae) {
-            if (ff instanceof BooleanValue) {
-                if (((BooleanValue) simplified).get()) {
-                    return ff;
-                }
+    public static BooleanFormula make(List<BooleanFormula> inputFormulae) {
+        List<BooleanFormula> formulae = new ArrayLiset<>();
+        for (BooleanFormula bf : inputFormulae) {
+            if (isTrue()) {
+                return bf;
             }
             else {
-                formulae.add(ff);
+                formulae.add(bf);
             }
         }
         if (formulae.isEmpty()) {
             return new BooleanValue(false);
         }
-        return new FluentFormulaOr(formulae);
+        return new BooleanOrFormula(formulae);
     }
 
-    public static FluentFormula make(Set<FluentFormula> inputFormulae) {
-        return FluentFormulaOr.make(Arrays.asList(inputFormulae));
+    public static BooleanFormula make(Set<BooleanFormula> inputFormulae) {
+        return BooleanOrFormula.make(Arrays.asList(inputFormulae));
     }
 
-    public static FluentFormula make(FluentFormula ...inputFormulae) {
-        return FluentFormulaOr.make(Arrays.asList(inputFormulae));
+    public static BooleanFormula make(BooleanFormula ...inputFormulae) {
+        return BooleanOrFormula.make(Arrays.asList(inputFormulae));
     }
 
 
+    public List<BooleanFormula> getFormulae() {
+        return formulae;
+    }
 
-
-    public Boolean holds(World world) {
-        for (FluentFormula formula : formulae) {
-            if (formula.holds(world)) {
-                return true;
+    public Boolean evaluate(World world) {
+        for (BooleanFormula formula : formulae) {
+            if (!formula.evaluate(world)) {
+                return false;
             }
         }
-        return false;
+        return true;
     }
 
 
-    //public Set<FluentAtom> getAllAtoms() {
-    //    Set<FluentAtom> allAtoms = new HashSet<>();
-    //    for (FluentFormula formula : formulae) {
+    //public Set<Atom> getAllAtoms() {
+    //    Set<Atom> allAtoms = new HashSet<>();
+    //    for (BooleanFormula formula : formulae) {
     //        allAtoms.addAll(formula.getAllAtoms());
     //    }
     //    return allAtoms;
     //}
-
-
-
-
-    @Override
-    public String toString() {
-        StringBuilder str = new StringBuilder();
-        str.append("or(");
-        if (formulae.size() > 0) {
-            for (FluentFormula formula : formulae) {
-                str.append(formula);
-                str.append(",");
-            }
-            str.deleteCharAt(str.length() - 1);
-        }
-        str.append(")");
-        return str.toString();
-    }
 
 
     @Override
@@ -95,20 +78,35 @@ public class FluentFormulaOr extends FluentFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaAnd other = (FluentFormulaAnd) obj;
-        return formulae.containsAll(other.getFormulae()) && other.getFormulae().containsAll(formulae);
+        BooleanOrFormula other = (BooleanOrFormula) obj;
+        Set<BooleanFormula> asSet = new HashSet<>(formulae);
+        return asSet.equals(new HashSet<BooleanFormula>(other.getFormulae()));
     }
+
+
 
     @Override
     public int hashCode() {
         int result = 7;
-        for (FluentFormula f : formulae) {
+        for (BooleanFormula f : formulae) {
             result = (31 * result) + f.hashCode();
         }
         return result;
     }
 
-
-
+    @Override
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append("(");
+        if (formulae.size() > 0) {
+            for (BooleanFormula formula : formulae) {
+                str.append(formula);
+                str.append("|");
+            }
+            str.deleteCharAt(str.length() - 1);
+        }
+        str.append(")");
+        return str.toString();
+    }
 
 }

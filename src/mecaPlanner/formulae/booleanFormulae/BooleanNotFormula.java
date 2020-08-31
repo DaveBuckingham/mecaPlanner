@@ -18,8 +18,11 @@ public class BooleanNotFormula extends BooleanFormula{
     }
 
     publics static BooleanFormula make(BooleanFormula inputFormula) {
-        if (inputFormula instanceof BooleanAtom) {
-            return ((BooleanValue) simplified).negate();
+        if (inputFormula.isTrue()) {
+            return new BooleanAtom(false);
+        }
+        if (inputFormula.isFalse()) {
+            return new BooleanAtom(true);
         }
         if (inputFormula instanceof BooleanNotFormula) {
             return ((BooleanNotFormula) inputFormula).getFormula();
@@ -31,8 +34,8 @@ public class BooleanNotFormula extends BooleanFormula{
         return formula;
     }
 
-    public Boolean holds(World world) {
-        return !formula.holds(world);
+    public Boolean evaluate(World world) {
+        return !formula.evaluate(world);
     }
 
     //public Set<FluentAtom> getAllAtoms() {
@@ -43,7 +46,7 @@ public class BooleanNotFormula extends BooleanFormula{
 
     @Override
     public String toString() {
-        return ("not(" + formula.toString() + ")");
+        return ("~(" + formula.toString() + ")");
     }
 
     @Override
@@ -54,7 +57,7 @@ public class BooleanNotFormula extends BooleanFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaNot other = (FluentFormulaNot) obj;
+        BooleanNotFormula other = (BooleanNotFormula) obj;
         return formula.equals(other.getFormula());
     }
 

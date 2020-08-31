@@ -13,58 +13,59 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-public class FluentCompareBoolean extends FluentFormula{
+public class CompareBooleans extends BooleanFormula{
+
+    private BoleanFormula lhs;
+    private BoleanFormula rhs;
 
 
-    private FluentCompareBoolean(Inequality op, Atom lhs, Atom rhs) {
-        this.op = op;
+    private CompareBooleans(BooleanFormula lhs, BooleanFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
 
-    public static FluentFormula make(Inequality op, Atom lhs, Atom rhs) {
-        lhsFluent = lhs instnaceof Fluent;
-        rhsFluent = rhs instnaceof Fluent;
-        assert (op == Inequalty.EQ || op == Inequality.NE);
-        assert (lhsFluent || lhs instanceof BooleanValue);
-        assert (rhsFluent || rhs instanceof BooleanValue);
-        if (lhsFluent || rhsFluent) {
-            return new FluentCompareBoolean(op, lhs, rhs);
+    public static BooleanFormula make(BooleanFormula lhs, BooleanFormula rhs) {
+        if (lhs.isTrue()) {
+            if (rhs.isTrue()) {
+                return new BooleanAtom(true);
+            }
+            if (rhs.isFalse()) {
+                return new BooleanAtom(false);
+            }
         }
-        return new BooleanValue(evaluate(op, (BooleanValue) lhs, (BooleanValue rhs)));
-    }
-
-    private static Boolean evaluate(Inequality.op, BooleanValue a, BooleanValue b) {
-        if (op == Inequality.EQ) {
-            return a.equals(b);
+        else if (lhs.isFalse()) {
+            if (rhs.isTrue()) {
+                return new BooleanAtom(false);
+            }
+            if (rhs.isFalse()) {
+                return new BooleanAtom(true);
+            }
         }
-        return !a.equals(b);
+        return new CompareBooleans(lhs, rhs);
     }
 
-
-    public Boolean holds(World world) {
-        ObjectValue lhsGround = lhsFluent ? world.resolve((Fluent) lhs) : (ObjectValue) lhs;
-        ObjectValue rhsGround = rhsFluent ? world.resolve((Fluent) rhs) : (ObjectValue) rhs;
-        return FluentCompareObject.evaluate(op, lhsGround, rhsGround);
+    public BooleanFormula getLhs() {
+        return lhs;
     }
 
-    //public Set<FluentAtom> getAllAtoms() {
-    //    Set<FluentAtom> allAtoms = new HashSet<>();
-    //    for (FluentFormula formula : formulae) {
-    //        allAtoms.addAll(formula.getAllAtoms());
-    //    }
-    //    return allAtoms;
-    //}
+    public BooleanFormula getlhs() {
+        return rhs;
+    }
+
+    public Boolean evaluate(World world) {
+        return (lhs.evaluate(world) == rhs.evaluate(world));
+    }
+
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("equal(");
+        str.append("(");
         if (formulae.size() > 0) {
             for (FluentFormula formula : formulae) {
                 str.append(formula);
-                str.append(",");
+                str.append("=");
             }
             str.deleteCharAt(str.length() - 1);
         }
@@ -80,15 +81,15 @@ public class FluentCompareBoolean extends FluentFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaIntegerComparison other = (FluentFormulaIntegerComparison) obj;
-        return (op.equals(other.getOp()) && lhs.equals(other.getLhs()) && rhs.equals(other.getRhs()));
+        CompareBooleans other = (CompareBooleans) obj;
+        return (lhs.equals(other.getLhs()) && rhs.equals(other.getRhs()));
     }
 
 
 
     @Override
     public int hashCode() {
-        return (op * lhs.hashCode() * rhs.hashCode());
+        return (lhs.hashCode() * rhs.hashCode());
     }
 
 

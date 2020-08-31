@@ -15,23 +15,21 @@ import java.util.HashSet;
 public class BooleanAndFormula extends BooleanFormula{
 
     // SHOULD THIS BE A SET? THE ORDER SHOULDN'T MATTER WHEN CHECKING EQUALITY...
-    private List<FluentFormula> formulae;
+    private List<BooleanFormula> formulae;
 
 
-    private BooleanAndFormula(List<FluentFormula> formulae) {
+    private BooleanAndFormula(List<BooleanFormula> formulae) {
         this.formulae = formulae;
     }
 
-    public static FluentFormula make(List<FluentFormula> inputFormulae) {
-        List<FluentFormula> formulae = new ArrayLiset<>();
-        for (FluentFormula ff : inputFormulae) {
-            if (ff instanceof BooleanValue) {
-                if (!((BooleanValue) simplified).get()) {
-                    return ff;
-                }
+    public static BooleanFormula make(List<BooleanFormula> inputFormulae) {
+        List<BooleanFormula> formulae = new ArrayLiset<>();
+        for (BooleanFormula bf : inputFormulae) {
+            if (isFalse()) {
+                return bf;
             }
             else {
-                formulae.add(ff);
+                formulae.add(bf);
             }
         }
         if (formulae.isEmpty()) {
@@ -40,22 +38,22 @@ public class BooleanAndFormula extends BooleanFormula{
         return new BooleanAndFormula(formulae);
     }
 
-    public static FluentFormula make(Set<FluentFormula> inputFormulae) {
+    public static BooleanFormula make(Set<BooleanFormula> inputFormulae) {
         return BooleanAndFormula.make(Arrays.asList(inputFormulae));
     }
 
-    public static FluentFormula make(FluentFormula ...inputFormulae) {
+    public static BooleanFormula make(BooleanFormula ...inputFormulae) {
         return BooleanAndFormula.make(Arrays.asList(inputFormulae));
     }
 
 
-    public List<FluentFormula> getFormulae() {
+    public List<BooleanFormula> getFormulae() {
         return formulae;
     }
 
-    public Boolean holds(World world) {
-        for (FluentFormula formula : formulae) {
-            if (!formula.holds(world)) {
+    public Boolean evaluate(World world) {
+        for (BooleanFormula formula : formulae) {
+            if (!formula.evaluate(world)) {
                 return false;
             }
         }
@@ -65,7 +63,7 @@ public class BooleanAndFormula extends BooleanFormula{
 
     //public Set<Atom> getAllAtoms() {
     //    Set<Atom> allAtoms = new HashSet<>();
-    //    for (FluentFormula formula : formulae) {
+    //    for (BooleanFormula formula : formulae) {
     //        allAtoms.addAll(formula.getAllAtoms());
     //    }
     //    return allAtoms;
@@ -81,9 +79,8 @@ public class BooleanAndFormula extends BooleanFormula{
             return false;
         }
         BooleanAndFormula other = (BooleanAndFormula) obj;
-        Set<FluentFormula> asSet = new HashSet<>(formulae);
-        return asSet.equals(new HashSet<FluentFormula>(other.getFormulae()));
-        //return formulae.containsAll(other.getFormulae()) && other.getFormulae().containsAll(formulae);
+        Set<BooleanFormula> asSet = new HashSet<>(formulae);
+        return asSet.equals(new HashSet<BooleanFormula>(other.getFormulae()));
     }
 
 
@@ -91,7 +88,7 @@ public class BooleanAndFormula extends BooleanFormula{
     @Override
     public int hashCode() {
         int result = 7;
-        for (FluentFormula f : formulae) {
+        for (BooleanFormula f : formulae) {
             result = (31 * result) + f.hashCode();
         }
         return result;
@@ -100,11 +97,11 @@ public class BooleanAndFormula extends BooleanFormula{
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("and(");
+        str.append("(");
         if (formulae.size() > 0) {
-            for (FluentFormula formula : formulae) {
+            for (BooleanFormula formula : formulae) {
                 str.append(formula);
-                str.append(",");
+                str.append("&");
             }
             str.deleteCharAt(str.length() - 1);
         }

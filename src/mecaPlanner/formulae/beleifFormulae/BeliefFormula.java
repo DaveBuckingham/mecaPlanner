@@ -1,3 +1,4 @@
+package mecaPlanner.formulae;
 package mecaPlanner.formulae.belief;
 
 import mecaPlanner.state.World;
@@ -12,10 +13,10 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public abstract class BeliefFormula{
+public abstract class BeliefFormula extends Formula{
 
-    public final Boolean evaluate(EpistemicState state) {
-        return holdsAtWorld(state.getKripke(), state.getDesignatedWorld());
+    public Boolean evaluate(EpistemicState state) {
+        return evaluate(state.getKripke(), state.getDesignatedWorld());
     }
 
     public abstract Boolean evaluate(KripkeStructure kripke, World world);
