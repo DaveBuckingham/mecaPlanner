@@ -27,11 +27,21 @@ public class BooleanAtom extends BooleanFormula{
         this.isFluent = false;
     }
 
+    public Boolean isFluent() {
+        return isFluent;
+    }
+    public Boolean isValue() {
+        return !isFluent;
+    }
+
     protected Fluent getFluent() {
         return fluent;
     }
 
-    protected Boolean getValue() {
+    public Boolean getValue() {
+        if (value == null) {
+            throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
+        }
         return value;
     }
 

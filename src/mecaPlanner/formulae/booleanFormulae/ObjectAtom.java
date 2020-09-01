@@ -1,9 +1,10 @@
-package mecaPlanner.formulae;
+package mecaPlanner.formulae.booleanFormulae;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.Fluent;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.formulae.Formula;
 
 
 public class ObjectAtom extends Formula{
@@ -40,12 +41,21 @@ public class ObjectAtom extends Formula{
     }
 
 
+    public Boolean isFluent() {
+        return isFluent;
+    }
+    public Boolean isValue() {
+        return !isFluent;
+    }
 
     protected Fluent getFluent() {
         return fluent;
     }
 
-    protected String getValue() {
+    public String getValue() {
+        if (value == null) {
+            throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
+        }
         return value;
     }
 

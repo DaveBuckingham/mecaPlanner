@@ -9,7 +9,7 @@ import mecaPlanner.*;
 import mecaPlanner.formulae.integerFormulae.*;
 import mecaPlanner.formulae.booleanFormulae.*;
 import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.ObjectAtom;
+import mecaPlanner.formulae.Formula;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -399,8 +399,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
         Formula value = (Formula) visit(ctx.value());
         Set<Fluent> fluents = new HashSet<>();
-        Set<Assignments> assignments = new hashSet<>();
-        for (Fluent fluent : (Fluent) visit(ctx.expandableFluent())) {
+        Set<Assignment> assignments = new HashSet<>();
+        for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
             assignments.add(new Assignment(fluent, value));
         }
         return assignments;
@@ -434,19 +434,24 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public Void visitKripkeModel(DeplParser.KripkeModelContext ctx) {
-        Map<String, World> worlds = new HashMap<>();
+        Map<String,World> worlds = new HashMap<>();
         World designatedWorld = null;
-        Map<String, Relation> beliefRelation = new HashMap<>();
-        Map<String, Relation> knowledgeRelation = new HashMap<>();
+        Map<String, Relation> beliefRelations = new HashMap<>();
+        Map<String, Relation> knowledgeRelations = new HashMap<>();
         for (DeplParser.KripkeWorldContext worldCtx : ctx.kripkeWorld()) {
-            World world = (World) visit(statementContext);
-            worlds.put(world.getName(), world);
+            World world = (World) visit(worldCtx);
+            worlds.put(world.getName(),world);
             if (designatedWorld == null) {
                 designatedWorld = world;
             }
         }
+        assert(designatedWorld != null);
+
+
         for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
+            String relationType = relationCtx.relationType().getText();
             String agent = relationCtx.OBJECT().getText();
+
             Relation relation = new Relation();
             List<String> fromWorlds = new ArrayList<>();
             List<String> toWorlds = new ArrayList<>();
@@ -468,34 +473,52 @@ public class DeplToProblem extends DeplBaseVisitor {
             for (int i = 0; i < fromWorlds.size(); i++) {
                 relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
             }
-            String relationType = relationContext.relationType().getText();
+
             if (relationType.equals("B_")) {
-                beliefRelation.put(agent, relation);
+                beliefRelations.put(agent, relation);
             }
             else if (relationType.equals("K_")) {
-                knowledgeRelation.put(agent, relation);
+                knowledgeRelations.put(agent, relation);
             }
             else {
                 throw new RuntimeException("unknow relation specifier: " + relationType);
             }
         }
-        assert(designatedWorld != null);
-        KripkeStructure kripke = new KripkeStructure(new HashSet<World>(worlds.values()), beliefRelation, knowledgeRelation);
+
+        Set<World> worldSet = new HashSet<World>(worlds.values());
+        KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
         startStates.add(new EpistemicState(kripke, designatedWorld));
         return null;
     }
 
-
     @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
-        Map<Fluent, Value> fluentAssignments = new HashMap<>();
-        for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
-            ValueAssignment assignment = (ValueAssignment) visit(assignmentCrx);
-            for (Fluent fluent : assignment.getReferences()) {
-                fluentAssignments.put(fluent, assignment.getValue());
+        Map<Fluent, Boolean> booleanFluents = new HashMap<>();
+        Map<Fluent, Integer> integerFluents = new HashMap<>();
+        Map<Fluent, String> objectFluents = new HashMap<>();
+        for (DeplParser.ValueAssignmentContext assignCtx : ctx.valueAssignment()) {
+            Assignment assignment = (Assignment) visit(assignCtx);
+            Fluent fluent = assignment.getReference();
+            Formula value = assignment.getValue();
+            if (value instanceof BooleanAtom && !((BooleanAtom)value).isFluent()) {
+                Boolean b = ((BooleanAtom)value).getValue();
+                booleanFluents.put(fluent, b);
+            }
+            else if (value instanceof IntegerAtom && !((IntegerAtom)value).isFluent()) {
+                Integer i = ((IntegerAtom)value).getValue();
+                integerFluents.put(fluent, i);
+            }
+            else if (value instanceof ObjectAtom && !((ObjectAtom)value).isFluent()) {
+                String o = ((ObjectAtom)value).getValue();
+                objectFluents.put(fluent, o);
+            }
+            else {
+                throw new RuntimeException("invalid fluent assignment: " + assignCtx.getText());
             }
         }
-        return new World(worldName, fluentAssignments);
+
+        World world = new World(worldName, booleanFluents, integerFluents, objectFluents);
+        return world;
     }
 
 
@@ -512,10 +535,10 @@ public class DeplToProblem extends DeplBaseVisitor {
     // ACTIONS
     @Override public Void visitActionDefinition(DeplParser.ActionDefinitionContext ctx) {
         String actionName = ctx.LOWER_NAME().getText();
-        for (LinkedHashMap<String,String> variableMap : getVariableMaps(ctx.variableList())) {
-            variableStack.push(variableMap);
+        for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.variableDefList())) {
+            variableStack.push(actionVariableMap);
 
-            List<String> actionParameters = new ArrayList<String>(variableMap.values());
+            List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
 
             String owner = null;
 
@@ -530,12 +553,12 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             Set<BooleanFormula> determines = new HashSet<>();
             Set<BeliefFormula> announces = new HashSet<>();
-            Map<FluentLiteral, BooleanFormula> effects = new HashMap<FluentLiteral, BooleanFormula>();
+            Map<BooleanFormula, Assignment> effects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
                 if (fieldCtx.ownerActionField() != null) {
-                    owner = ((ObjectValue)fieldCtx.ownerActionField().groundableObject()).get();
+                    owner = (String) visit(fieldCtx.ownerActionField().groundableObject());
                     if (!domain.isNonPassiveAgent(owner)) {
                         throw new RuntimeException("action " + actionName + " owner " + owner +
                                                    " not a declared system or environment agent.");
@@ -548,22 +571,22 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
                 else if (fieldCtx.preconditionActionField() != null) {
-                    DeplParser.PreconditionActionFieldContext preCtx = visit(fieldCtx.preconditionActionField());
-                    for (Map<String,String> variableMap : getVariableMaps(preCtx().variableDefList())) {
+                    DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
+                    for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        preconditionList.add((BooleanFormula) visit(preCtx().booleanFormula()));
+                        preconditionList.add((BooleanFormula) visit(preCtx.booleanFormula()));
                         variableStack.pop();
                     }
                 }
 
                 else if (fieldCtx.observesActionField() != null) {
-                    DeplParser.ObservesActitonFieldContext obsCtx = visit(fieldCtx.observesActionField());
+                    DeplParser.ObservesActionFieldContext obsCtx = fieldCtx.observesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        String agentName = ((ObjectValue) visit(obsCtx.groundableObject())).get();
+                        String agentName = (String) visit(obsCtx.groundableObject());
                         BooleanFormula condition;
                         if (obsCtx.booleanFormula() == null) {
-                            condition = new BoleanValue(true);
+                            condition = new BooleanAtom(true);
                         }
                         else {
                             condition = (BooleanFormula) visit(obsCtx.booleanFormula());
@@ -577,13 +600,13 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
                 else if (fieldCtx.awareActionField() != null) {
-                    DeplParser.AwareActionFieldContext awaCtx = visit(fieldCtx.awareActionField());
+                    DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        String agentName = ((ObjectValue) visit(awaCtx.groundableObject())).get();
+                        String agentName = (String) visit(awaCtx.groundableObject());
                         BooleanFormula condition;
                         if (awaCtx.booleanFormula() == null) {
-                            condition = new BoleanValue(true);
+                            condition = new BooleanAtom(true);
                         }
                         else {
                             condition = (BooleanFormula) visit(awaCtx.booleanFormula());
@@ -596,7 +619,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
 
                 else if (fieldCtx.determinesActionField() != null) {
-                    DeplParser.AwareActionFieldContext detCtx = visit(fieldCtx.determinesActionField());
+                    DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         determines.add((BooleanFormula) visit(detCtx.booleanFormula()));
@@ -605,7 +628,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
 
                 else if (fieldCtx.announcesActionField() != null) {
-                    DeplParser.AwareActionFieldContext annCtx = visit(fieldCtx.announcementActionField());
+                    DeplParser.AnnouncesActionFieldContext annCtx = fieldCtx.announcesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         announces.add((BeliefFormula) visit(annCtx.beliefFormula()));
@@ -615,26 +638,26 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
                 else if (fieldCtx.causesActionField() != null) {
-                    DeplParser.CausesActionFieldContext effCtx = visit(fieldCtx.causesActionField());
+                    DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         Fluent reference = (Fluent) visit(effCtx.formulaAssignment().fluent());
                         Formula value;
                         if (effCtx.formulaAssignment().integerFormula() != null) {
-                            Formula value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
+                            value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
                         }
                         else if (effCtx.formulaAssignment().beliefFormula() != null) {
-                            Formula value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
+                            value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
                         }
                         if (effCtx.formulaAssignment().groundableObject() != null) {
-                            Formula value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
+                            value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
                         }
                         else {
                             throw new RuntimeException("effect parse error");
                         }
                         BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
                         if (!(condition.isFalse()));
-                            effects.put(new Action.FormulaAssignment(reference, value, condition));
+                            effects.put(condition, new Assignment(reference, value));
                         }
                         variableStack.pop();
                 }
@@ -646,18 +669,16 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             BooleanFormula precondition;
             if (preconditionList.isEmpty()) {
-                precondition = new BooleanFormulaTrue();
+                precondition = new BooleanAtom(true);
             }
             else if (preconditionList.size() == 1) {
                 precondition = preconditionList.get(0);
             }
             else {
-                precondition = new BooleanFormulaAnd(preconditionList);
+                precondition = BooleanAndFormula.make(preconditionList);
             }
 
-            precondition = precondition.simplify();
-
-            if (ff.isFalse()) {
+            if (precondition.isFalse()) {
                 return null;
             }
 
@@ -669,8 +690,8 @@ public class DeplToProblem extends DeplBaseVisitor {
             Map<String, BooleanFormula> observes = new HashMap<>();
             Map<String, BooleanFormula> aware = new HashMap<>();
             for (String a : domain.getAgents()) {
-                observes.put(a, (new BooleanFormulaOr(observesLists.get(a))).simplify());
-                aware.put(a, (new BooleanFormulaOr(awareLists.get(a))).simplify());
+                observes.put(a, (BooleanOrFormula.make(observesLists.get(a))));
+                observes.put(a, (BooleanOrFormula.make(awareLists.get(a))));
             }
 
             assert (actionName != null);
@@ -700,7 +721,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             actions.add(action);
             variableStack.pop();
-
         }
         return null;
     }

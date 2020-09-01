@@ -166,7 +166,7 @@ startStateDef : kripkeModel ;
 
 //initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
-kripkeModel : '{' (kripkeWorld ',')* (kripkeRelation ',')* kripkeRelation? '}' ;
+kripkeModel : '{' (kripkeWorld ',')+ (kripkeRelation ',')* kripkeRelation? '}' ;
 
 kripkeWorld : LOWER_NAME ASSIGN '{' (valueAssignment ',')* valueAssignment? '}' ;
 kripkeRelation : relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;

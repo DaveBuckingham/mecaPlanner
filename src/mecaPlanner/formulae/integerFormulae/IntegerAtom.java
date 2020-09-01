@@ -1,8 +1,8 @@
-package mecaPlanner.formulae;
+package mecaPlanner.formulae.integerFormulae;
 
-import mecaPlanner.formulae.FluentFormulaNot;
 import mecaPlanner.state.World;
 import mecaPlanner.state.Fluent;
+import mecaPlanner.formulae.integerFormulae.IntegerFormula;
 
 
 import java.util.List;
@@ -12,7 +12,7 @@ import java.util.Objects;
 
 import java.util.Set;
 
-public class InteterAtom extends IntegerFormula{
+public class IntegerAtom extends IntegerFormula{
 
     private Fluent fluent;
     private Integer value;
@@ -34,11 +34,18 @@ public class InteterAtom extends IntegerFormula{
         return fluent;
     }
 
-    public Boolean getValue() {
+    public Integer getValue() {
         if (value == null) {
             throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
         }
         return value;
+    }
+
+    public Boolean isFluent() {
+        return isFluent;
+    }
+    public Boolean isValue() {
+        return !isFluent;
     }
 
     public Integer getLiteral() {
