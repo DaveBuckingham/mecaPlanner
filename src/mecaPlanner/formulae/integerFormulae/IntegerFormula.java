@@ -1,9 +1,10 @@
-package mecaPlanner.formulae.integer;
+package mecaPlanner.formulae.integerFormulae;
 
-import mecaPlanner.formulae.belief.BeliefFormula;
+import mecaPlanner.formulae.Formula;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.EpistemicState;
 
 import mecaPlanner.*;
 

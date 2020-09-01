@@ -1,4 +1,3 @@
-package mecaPlanner.formulae;
 package mecaPlanner.formulae.booleanFormulae;
 
 import mecaPlanner.formulae.beliefFormulae.BeliefFormula;

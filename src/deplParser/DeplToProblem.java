@@ -6,15 +6,17 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import mecaPlanner.*;
-import mecaPlanner.formulae.atomic.*;
-import mecaPlanner.formulae.fluent.*;
-import mecaPlanner.formulae.belief.*;
+import mecaPlanner.formulae.integerFormulae.*;
+import mecaPlanner.formulae.booleanFormulae.*;
+import mecaPlanner.formulae.beliefFormulae.*;
+import mecaPlanner.formulae.ObjectAtom;
 import mecaPlanner.state.*;
 
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,7 +43,10 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Map<Fluent,String> fluents;              // fluents and their fluent types
     private Integer agentIndex;
     private Set<String> allObjects;          // to check for undefined objects
-    private Map<Fluent,Value> constants;
+    private Set<Assignment> constants;
+    //private Map<Fluent,Integer> integerConstants;
+    //private Map<Fluent,Boolean> booleanConstants;
+    //private Map<Fluent,String> objectConstants;
     private Map<String, TypeNode> typeDefs;  // key is object type name
     private Stack<Map<String, String>> variableStack;
 
@@ -59,17 +64,17 @@ public class DeplToProblem extends DeplBaseVisitor {
     // THE LIST GIVES THE CARTESIAN PRODUCT OF EACH POSSIBLE VARIABLE GROUNDING
 
     private List<LinkedHashMap<String, String>> getVariableMaps(DeplParser.VariableDefListContext ctx) {
-        List<Map<String, String>> maps = new ArrayList<LinkedHashMap<String,String>>();
+        List<LinkedHashMap<String, String>> maps = new ArrayList<LinkedHashMap<String,String>>();
 
         List<String> varNames = new ArrayList<String>();
         List<List<String>> varGroundings = new ArrayList<List<String>>();
-        for (DeplParser.ParameterContext variableDefCtx : ctx.variableDef()) {
+        for (DeplParser.VariableDefContext variableDefCtx : ctx.variableDef()) {
             varNames.add(variableDefCtx.VARIABLE().getText());
-            varGroundings.add(typeDefs.get(varDefCtx.OBJECT_TYPE().getText()).groundings);
+            varGroundings.add(typeDefs.get(variableDefCtx.OBJECT_TYPE().getText()).groundings);
         }
 
-        for (List<String> grounding : cartesianProduct(variableGroundings)) {
-            Map<String,String> groundingMap = new LinkedHashMap<String,String>();
+        for (List<String> grounding : cartesianProduct(varGroundings)) {
+            LinkedHashMap<String,String> groundingMap = new LinkedHashMap<String,String>();
             Iterator<String> nameIterator = varNames.iterator();
             Iterator<String> groundingIterator = grounding.iterator();
             while(nameIterator.hasNext() && groundingIterator.hasNext()) {
@@ -82,7 +87,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             maps.add(groundingMap);
         }
         if (maps.isEmpty()) {
-            maps.put(new LinkedHashMap<String,String>());
+            maps.add(new LinkedHashMap<String,String>());
         }
 
         return maps;
@@ -125,25 +130,31 @@ public class DeplToProblem extends DeplBaseVisitor {
             this.parent = parent;
             this.groundings = new ArrayList<String>();
         }
+        public String getParent() {
+            return parent;
+        }
+        public List<String> getGroundings() {
+            return groundings;
+        }
     }
 
 
-    // FOR STORING AN ASSIGNMENT TO A FLUENTS OR CONSTANTS
-    // MULTIPLE REFERENCES IN CASE ITS EXPANDABLE
-    private class ValueAssignment {
-        private Set<Fluent> references;
-        private Value value;
-        public VaueAssignment(Set<Fluent> references, Value value) {
-            this.references = references;
-            this.value = valeu;
-        }
-        public Set<Fluent> getReferences() {
-            return references;
-        }
-        public Value getValue() {
-            return value;
-        }
-    }
+//    // FOR STORING AN ASSIGNMENT TO A FLUENTS OR CONSTANTS
+//    // MULTIPLE REFERENCES IN CASE ITS EXPANDABLE
+//    private class ValueAssignment {
+//        private Set<Fluent> references;
+//        private Value value;
+//        public ValueAssignment(Set<Fluent> references, Value value) {
+//            this.references = references;
+//            this.value = valeu;
+//        }
+//        public Set<Fluent> getReferences() {
+//            return references;
+//        }
+//        public Value getValue() {
+//            return value;
+//        }
+//    }
 
 
 
@@ -173,8 +184,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.agentIndex = 0;
         this.allObjects = new HashSet<String>();
-        this.constants = new HashSet<FluentAtom>();
-        this.constraints = new HashSet<FluentAtom>();
+        this.constants = new HashSet<Assignment>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
 
@@ -194,9 +204,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.objectsSection());
         visit(ctx.agentsSection());
         if (ctx.passiveSection() != null) {visit(ctx.passiveSection());}
-        visit(ctx.atomsSection());
+        visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
-        if (ctx.constraintsSection() != null) {visit(ctx.constraintsSection());}
         visit(ctx.initiallySection());
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
@@ -214,8 +223,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitTypeDefinition(DeplParser.TypeDefinitionContext ctx) {
-        String subtype = ctx.NAME().getText();
-        String supertype = ctx.type().getText();
+        String subtype = ctx.OBJECT_TYPE(0).getText();
+        String supertype = ctx.OBJECT_TYPE(1).getText();
         this.typeDefs.put(subtype, new TypeNode(supertype));
         return null;
     }
@@ -230,8 +239,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitObjectDefinition(DeplParser.ObjectDefinitionContext ctx) {
-        String objectName = ctx.NAME().getText();
-        String objectType = ctx.type().getText();
+        String objectName = ctx.OBJECT().getText();
+        String objectType = ctx.OBJECT_TYPE().getText();
         while (!objectType.equalsIgnoreCase("object")) {
             if (!typeDefs.containsKey(objectType)) {
                 throw new RuntimeException("object type or supertype " + objectType + " not defined");
@@ -269,7 +278,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
-        String agent = ctx.NAME().getText();
+        String agent = ctx.OBJECT().getText();
         if (this.systemAgentIndex != null) {
             throw new RuntimeException("cannot define multiple system agents");
         }
@@ -280,7 +289,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitEnvironmentAgent(DeplParser.EnvironmentAgentContext ctx) {
-        String agent = ctx.NAME().getText();
+        String agent = ctx.OBJECT().getText();
 
         Model model = null;
         String modelClassName = "mecaPlanner.models." + ctx.CLASS().getText();
@@ -326,7 +335,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public Void visitPassiveDef(DeplParser.PassiveDefContext ctx) {
-        String name = ctx.NAME().getText();
+        String name = ctx.OBJECT().getText();
         domain.addPassive(name);
         return null;
     }
@@ -340,28 +349,37 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
+    @Override public List<String> visitExpandableObject(DeplParser.ExpandableObjectContext ctx) {
+        if (ctx.OBJECT() == null) {
+            return typeDefs.get(ctx.OBJECT_TYPE().getText()).getGroundings();
+        }
+        List<String> objects = new ArrayList<>();
+        objects.add(ctx.OBJECT().getText());
+        return objects;
+    }
+
     @Override public Set<Fluent> visitExpandableFluent(DeplParser.ExpandableFluentContext ctx) {
         String name = ctx.LOWER_NAME().getText();
-        if (ctx.variableList() == null) {
-            atoms.add(new FluentAtom(name));
-            return atoms;
+        Set<Fluent> expandedFluents = new HashSet<>();
+        if (ctx.expandableObject() == null) {
+            expandedFluents.add(new Fluent(name));
+            return expandedFluents;
         }
         List<List<String>> expandedParameters = new ArrayList<List<String>>();
-        for (DeplParser.ExpandableObjectContext parameterCtx : ctx.expandableObject()) {
-            expandedPareters.add(visit parameterCtx);
+        for (DeplParser.ExpandableObjectContext objCtx : ctx.expandableObject()) {
+            expandedParameters.add((List<String>) visit(objCtx));
         }
-        Set<Fluent> expandedFluents = new HashSet<>();
         for (List<String> expansion : cartesianProduct(expandedParameters)) {
-            expandedFluents.add(new Fluent(expansion));
+            expandedFluents.add(new Fluent(name, expansion));
         }
         return expandedFluents;
     }
 
     //HERE
     @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
-        String type = ctx.FLUENT_TYPE.getText();
-        for (Fluent fluent : visit(ctx.expandableFluent()) {
-            fluents.add(fluent, type);
+        String type = ctx.FLUENT_TYPE().getText();
+        for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
+            fluents.put(fluent, type);
         }
     }
 
@@ -371,22 +389,21 @@ public class DeplToProblem extends DeplBaseVisitor {
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
-        for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
-            ValueAssignment assignment = (ValueAssignment) visit(assignmentCtx);
-            for (Fluent constant : assignment.getReferences()) {
-                constants.put(constant, assignment.getValue());
-            }
+        for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
+            Set<Assignment> assignments = (Set<Assignment>) visit(assignmentCtx);
+            constants.addAll(assignments);
         }
         return null;
     }
 
-    @Override public ValueAssignment visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
-        Value value = visit(ctx.value());
-        Set<Fluent> fluents = new hashSet<>();
-        for (Fluent fluent : (Fluent) visit(ctx.expandableFluent()) {
-            fluent.add(fluent, value);
+    @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
+        Formula value = (Formula) visit(ctx.value());
+        Set<Fluent> fluents = new HashSet<>();
+        Set<Assignments> assignments = new hashSet<>();
+        for (Fluent fluent : (Fluent) visit(ctx.expandableFluent())) {
+            assignments.add(new Assignment(fluent, value));
         }
-        return new ValueAssignment(fluents, value);
+        return assignments;
     }
 
 
@@ -421,51 +438,45 @@ public class DeplToProblem extends DeplBaseVisitor {
         World designatedWorld = null;
         Map<String, Relation> beliefRelation = new HashMap<>();
         Map<String, Relation> knowledgeRelation = new HashMap<>();
-        for (DeplParser.KripkeFormulaContext statementContext : ctx.kripkeFormula()) {
-            if (statementContext instanceof DeplParser.KripkeWorldContext) {
-                World world = (World) visit(statementContext);
-                worlds.put(world.getName(), world);
-                if (designatedWorld == null) {
-                    designatedWorld = world;
-                }
+        for (DeplParser.KripkeWorldContext worldCtx : ctx.kripkeWorld()) {
+            World world = (World) visit(statementContext);
+            worlds.put(world.getName(), world);
+            if (designatedWorld == null) {
+                designatedWorld = world;
             }
-            else if (statementContext instanceof DeplParser.KripkeRelationContext) {
-                DeplParser.KripkeRelationContext relationContext = (DeplParser.KripkeRelationContext) statementContext;
-                String agent = relationContext.NAME().getText();
-                Relation relation = new Relation();
-                List<String> fromWorlds = new ArrayList<>();
-                List<String> toWorlds = new ArrayList<>();
-                for (DeplParser.FromWorldContext fromWorld : relationContext.fromWorld()) {
-                    String fromWorldName = fromWorld.getText();
-                    if (!worlds.containsKey(fromWorldName)) {
-                        throw new RuntimeException("unknown world: " + fromWorldName);
-                    }
-                    fromWorlds.add(fromWorldName);
+        }
+        for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
+            String agent = relationCtx.OBJECT().getText();
+            Relation relation = new Relation();
+            List<String> fromWorlds = new ArrayList<>();
+            List<String> toWorlds = new ArrayList<>();
+            for (DeplParser.FromWorldContext fromWorld : relationCtx.fromWorld()) {
+                String fromWorldName = fromWorld.getText();
+                if (!worlds.containsKey(fromWorldName)) {
+                    throw new RuntimeException("unknown world: " + fromWorldName);
                 }
-                for (DeplParser.ToWorldContext toWorld : relationContext.toWorld()) {
-                    String toWorldName = toWorld.getText();
-                    if (!worlds.containsKey(toWorldName)) {
-                        throw new RuntimeException("unknown world: " + toWorldName);
-                    }
-                    toWorlds.add(toWorldName);
+                fromWorlds.add(fromWorldName);
+            }
+            for (DeplParser.ToWorldContext toWorld : relationCtx.toWorld()) {
+                String toWorldName = toWorld.getText();
+                if (!worlds.containsKey(toWorldName)) {
+                    throw new RuntimeException("unknown world: " + toWorldName);
                 }
-                assert(fromWorlds.size() == toWorlds.size());
-                for (int i = 0; i < fromWorlds.size(); i++) {
-                    relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
-                }
-                String relationType = relationContext.relationType().getText();
-                if (relationType.equals("B_")) {
-                    beliefRelation.put(agent, relation);
-                }
-                else if (relationType.equals("K_")) {
-                    knowledgeRelation.put(agent, relation);
-                }
-                else {
-                    throw new RuntimeException("unknow relation specifier: " + relationType);
-                }
+                toWorlds.add(toWorldName);
+            }
+            assert(fromWorlds.size() == toWorlds.size());
+            for (int i = 0; i < fromWorlds.size(); i++) {
+                relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
+            }
+            String relationType = relationContext.relationType().getText();
+            if (relationType.equals("B_")) {
+                beliefRelation.put(agent, relation);
+            }
+            else if (relationType.equals("K_")) {
+                knowledgeRelation.put(agent, relation);
             }
             else {
-                throw new RuntimeException("unknow KripkeFormulaContext");
+                throw new RuntimeException("unknow relation specifier: " + relationType);
             }
         }
         assert(designatedWorld != null);
@@ -608,19 +619,29 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         Fluent reference = (Fluent) visit(effCtx.formulaAssignment().fluent());
-                        Formula value = (Formula) visit(effCtx.formulaAssignment().formula());
+                        Formula value;
+                        if (effCtx.formulaAssignment().integerFormula() != null) {
+                            Formula value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
+                        }
+                        else if (effCtx.formulaAssignment().beliefFormula() != null) {
+                            Formula value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
+                        }
+                        if (effCtx.formulaAssignment().groundableObject() != null) {
+                            Formula value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
+                        }
+                        else {
+                            throw new RuntimeException("effect parse error");
+                        }
                         BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
                         if (!(condition.isFalse()));
                             effects.put(new Action.FormulaAssignment(reference, value, condition));
                         }
                         variableStack.pop();
-                    }
                 }
 
                 else {
                     throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
                 }
-
             }
 
             BooleanFormula precondition;
@@ -691,21 +712,21 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     //  ATOMIC
 
-    @Override public Boolean visitValueFalse(DeplParser.ValueFalseContext ctx) {
-        return false;
+    @Override public BooleanFormula visitValueFalse(DeplParser.ValueFalseContext ctx) {
+        return new BooleanAtom(false);
     }
-    @Override public Boolean visitValueTrue(DeplParser.ValueTrueContext ctx) {
-        return true;
+    @Override public BooleanFormula visitValueTrue(DeplParser.ValueTrueContext ctx) {
+        return new BooleanAtom(true);
     }
-    @Override public Integer visitValueInteger(DeplParser.ValueIntegerContext ctx) {
-        return Integer.parseInt(ctx.INTEGER().getText());
+    @Override public IntegerFormula visitValueInteger(DeplParser.ValueIntegerContext ctx) {
+        return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
     }
-    @Override public String visitValueObject(DeplParser.ValueObjectContext ctx) {
-        return ctx.OBJECT.getText();
+    @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
+        return new ObjectAtom(ctx.OBJECT.getText());
     }
 
 
-    @Override public ObjectValue visitGroundable(DeplParser.GroundableContext ctx) {
+    @Override public String visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
         if (ctx.OBJECT() != null) {
             String name = ctx.OBJECT().getText();
             if (!allObjects.contains(name)) {
@@ -752,7 +773,12 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public IntegerFormula visitIntegerFluent(DeplParser.IntegerFluentContext ctx) {
-        return new IntegerAtom((Fluent) visit(ctx.fluent()));
+        Fluent integerFluent = (Fluent) visit(ctx.fluent());
+        // IS THERE A BETTER WAY THAN DUPLICATING THE STRING HERE AND IN G4?
+        if (fluents.get(integerFluent) != "Integer") {
+            throw new RuntimeException("Fluent type is " + fluents.get(integerFluent) + ", expected Integer");
+        }
+        return new IntegerAtom(integerFluent);
     }
 
     @Override public IntegerFormula visitIntegerLiteral(DeplParser.IntegerLiteralContext ctx) {
@@ -777,7 +803,12 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public BooleanFormula visitBooleanFluent(DeplParser.BooleanFluentContext ctx) {
-        return new BooleanAtom((Fluent) visit(ctx.fluent());
+        Fluent booleanFluent = (Fluent) visit(ctx.fluent());
+        // IS THERE A BETTER WAY THAN DUPLICATING THE STRING HERE AND IN G4?
+        if (fluents.get(booleanFluent) != "Boolean") {
+            throw new RuntimeException("Fluent type is " + fluents.get(integerFluent) + ", expected Boolean");
+        }
+        return new BooleanAtom(booleanFluent);
     }
 
     @Override public BooleanFormula visitBooleanLiteralTrue(DeplParser.BooleanLiteralTrueContext ctx) {
@@ -798,52 +829,37 @@ public class DeplToProblem extends DeplBaseVisitor {
         return CompareIntegers.make(ctx.COMPARE.getText(), lhs, rhs);
     }
 
-    @Override public BooleanFormula visitBooleanEquals(DeplParser.BooleanEqualsContext ctx) {
-        DeplParser.EquatableContext lhsCtx = visit(ctx.equatable(0));
-        DeplParser.EquatableContext rhsCtx = visit(ctx.equatable(1));
-        if (lhsCtx.integerFormula() != null && rhsCtx.integerFormula() != null) {
-            DeplParser.IntegerFormulaContext lhsIntCtx = visit(lhsCtx.integerFormula());
-            DeplParser.IntegerFormulaContext rhsIntCtx = visit(rhsCtx.integerFormula());
-            return CompareIntegers.make(CompareIntegers.Inequality.EQ, visit(lhsIntCtx), visit(rhsIntCtx));
+    @Override public BooleanFormula visitBooleanEqualIntegers(DeplParser.BooleanEqualIntegersContext ctx) {
+        DeplParser.IntegerFormulaContext lhsIntCtx = visit(ctx.integerFormula(0));
+        DeplParser.IntegerFormulaContext rhsIntCtx = visit(ctx.integerFormula(1));
+        if (ctx.OP_EQ() == null) {
+            return BooleanNotFormula.make(CompareIntegers.make(visit(lhsObjCtx, visit(rhsObjCtx))));
         }
-        else if (lhsCtx.booleanFormula() != null && rhsCtx.booleanFormula() != null) {
-            DeplParser.BooleanFormulaContext lhsBoolCtx = visit(lhsCtx.booleanFormula());
-            DeplParser.BooleanFormulaContext rhsBoolCtx = visit(rhsCtx.booleanFormula());
-            return CompareBooleans.make(visit(lhsIntCtx), visit(rhsIntCtx));
+        return CompareIntegers.make(CompareIntegers.Inequality.EQ, visit(lhsIntCtx), visit(rhsIntCtx));
+    }
+    @Override public BooleanFormula visitBooleanEqualBooleans(DeplParser.BooleanEqualBooleansContext ctx) {
+        DeplParser.BooleanFormulaContext lhsBoolCtx = visit(ctx.booleanFormula(0));
+        DeplParser.BooleanFormulaContext rhsBoolCtx = visit(ctx.booleanFormula(1));
+        if (ctx.OP_EQ() == null) {
+            return BooleanNotFormula.make(CompareBooleans.make(visit(lhsObjCtx, visit(rhsObjCtx))));
         }
-        else if (lhsCtx.groundableObject() != null && rhsCtx.groundableObject() != null) {
-            DeplParser.ObjectAtomContext lhsObjCtx = visit(lhsCtx.groundableObject());
-            DeplParser.ObjectAtomContext rhsObjCtx = visit(rhsCtx.groundableObject());
-            return CompareObjects.make(visit(lhsObjCtx), visit(rhsObjCtx));
+        return CompareBooleans.make(visit(lhsIntCtx), visit(rhsIntCtx));
+    }
+    @Override public BooleanFormula visitBooleanEqualObjects(DeplParser.BooleanEqualObjectsContext ctx) {
+        DeplParser.ObjectAtomContext lhsObjCtx = visit(ctx.groundableObject(0));
+        DeplParser.ObjectAtomContext rhsObjCtx = visit(ctx.groundableObject(1));
+        if (ctx.OP_EQ() == null) {
+            return BooleanNotFormula.make(CompareObjects.make(visit(lhsObjCtx, visit(rhsObjCtx))));
         }
-        throw new RuntimeException("invalad parameters to equals");
+        return CompareObjects.make(visit(lhsObjCtx), visit(rhsObjCtx));
     }
 
-    @Override public BooleanFormula visitBooleanUnquals(DeplParser.BooleanUnequalsContext ctx) {
-        DeplParser.EquatableContext lhsCtx = visit(ctx.equatable(0));
-        DeplParser.EquatableContext rhsCtx = visit(ctx.equatable(1));
-        if (lhsCtx.integerFormula() != null && rhsCtx.integerFormula() != null) {
-            DeplParser.IntegerFormulaContext lhsIntCtx = visit(lhsCtx.integerFormula());
-            DeplParser.IntegerFormulaContext rhsIntCtx = visit(rhsCtx.integerFormula());
-            return CompareIntegers.make(CompareIntegers.Inequality.NE, visit(lhsIntCtx), visit(rhsIntCtx));
-        }
-        else if (lhsCtx.booleanFormula() != null && rhsCtx.booleanFormula() != null) {
-            DeplParser.BooleanFormulaContext lhsBoolCtx = visit(lhsCtx.booleanFormula());
-            DeplParser.BooleanFormulaContext rhsBoolCtx = visit(rhsCtx.booleanFormula());
-            return BooleanNotFormula.make(CompareBooleans.make(visit(lhsIntCtx), visit(rhsIntCtx)));
-        }
-        else if (lhsCtx.groundableObject() != null && rhsCtx.groundableObject() != null) {
-            DeplParser.ObjectAtomContext lhsObjCtx = visit(lhsCtx.groundableObject());
-            DeplParser.ObjectAtomContext rhsObjCtx = visit(rhsCtx.groundableObject());
-            return BooleanNotFormula.make(CompareObjects.make(visit(lhsObjCtx), visit(rhsObjCtx)));
-        }
-        throw new RuntimeException("invalad parameters to equals");
-    }
+
 
 
     @Override public BooleanFormula visitBooleanNot(DeplParser.BooleanNotContext ctx) {
         BooleanFormula inner = (BooleanFormula) visit(ctx.booleanFormula());
-        return (BooleanFormulaNot.make(inner));
+        return (BooleanNotFormula.make(inner));
     }
 
     @Override public BooleanFormula visitBooleanAnd(DeplParser.BooleanAndContext ctx) {
@@ -867,12 +883,22 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // BELIEF FORMULAE
 
-    @Override public BeliefFormula visitBeliefFluent(DeplParser.BeliefFluentContext ctx) {
+    @Override public BeliefFormula visitBeliefBooleanFormula(DeplParser.BeliefBooleanFormulaContext ctx) {
         return (BooleanFormula) visit(ctx.booleanFormula());
     }
 
     @Override public BeliefFormula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
         return (BeliefFormula) visit(ctx.beliefFormula());
+    }
+
+    @Override public BeliefFormula visitBeliefEquals(DeplParser.BeliefNotContext ctx) {
+        throw new RuntimeException("beliefEquals not implemented");
+        return null;
+    }
+
+    @Override public BeliefFormula visitBeliefUnequals(DeplParser.BeliefNotContext ctx) {
+        throw new RuntimeException("beliefUnequals not implemented");
+        return null;
     }
 
     @Override public BeliefFormula visitBeliefNot(DeplParser.BeliefNotContext ctx) {

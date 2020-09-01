@@ -1,7 +1,5 @@
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.FluentFormula;
-import mecaPlanner.formulae.FluentAtom;
 import mecaPlanner.Log;
 
 import java.util.List;

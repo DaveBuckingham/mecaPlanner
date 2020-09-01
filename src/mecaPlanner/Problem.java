@@ -1,9 +1,8 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.atomic.*;
-import mecaPlanner.formulae.fluent.*;
-import mecaPlanner.formulae.belief.*;
+import mecaPlanner.formulae.booleanFormulae.*;
+import mecaPlanner.formulae.beliefFormulae.*;
 import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;
@@ -19,14 +18,14 @@ public class Problem implements java.io.Serializable {
     private int systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
-    private Set<GeneralFormula> goals;
+    private Set<BeliefFormula> goals;
 
 
     public Problem(Domain domain,
                    int systemAgentIndex,
                    Set<EpistemicState> startStates,
                    Map<String,Model> startingModels,
-                   Set<GeneralFormula> goals
+                   Set<BeliefFormula> goals
                   ) {
         this.domain = domain;
         this.systemAgentIndex = systemAgentIndex;
@@ -51,15 +50,15 @@ public class Problem implements java.io.Serializable {
         return systemAgentIndex;
     }
 
-    public Set<GeneralFormula> getGoals() {
+    public Set<BeliefFormula> getGoals() {
         return goals;
     }
 
-    public GeneralFormula getGoal() {
+    public BeliefFormula getGoal() {
         if (goals.size() == 1) {
             return goals.iterator().next();
         }
-        return new GeneralFormulaAnd(goals);
+        return new BeliefFormulaAnd.make(goals);
     }
 
     public Map<String, Model> getStartingModels() {
@@ -84,7 +83,7 @@ public class Problem implements java.io.Serializable {
         str.append("\n");
 
         str.append("GOALS:\n");
-        for (GeneralFormula g : goals) {
+        for (BeliefFormula g : goals) {
             str.append(g.toString());
             str.append("\n");
         }

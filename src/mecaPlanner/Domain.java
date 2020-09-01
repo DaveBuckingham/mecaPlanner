@@ -1,8 +1,8 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.atomic.Fluent;
-import mecaPlanner.formulae.belief.BeliefFormula;
+import mecaPlanner.state.Fluent;
+import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
 import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;
@@ -36,9 +36,9 @@ public class Domain implements java.io.Serializable {
 
     }
 
-    public Set<FluentAtom> getAllAtoms() {
-        return allFluents;
-    }
+    //public Set<Fluent> getAllFluents() {
+    //    return allFluents;
+    //}
 
     //public Set<FluentAtom> getConstants() {
     //    return constants;
@@ -112,13 +112,13 @@ public class Domain implements java.io.Serializable {
         return allAgents;
     }
 
-    public void addFluent(Fluent f) {
-        allFluents.add(f);
-    }
+    //public void addFluent(Fluent f) {
+    //    allFluents.add(f);
+    //}
 
-    public void addFluents(Set<Fluent> f) {
-        allFluents.addAll(f);
-    }
+    //public void addFluents(Set<Fluent> f) {
+    //    allFluents.addAll(f);
+    //}
 
     //public void addConstant(FluentAtom f) {
     //    constants.add(f);

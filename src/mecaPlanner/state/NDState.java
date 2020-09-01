@@ -1,6 +1,6 @@
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.belief.BeliefFormula;
+import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
 
 import java.util.List;
 import java.util.ArrayList;

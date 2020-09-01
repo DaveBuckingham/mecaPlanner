@@ -1,7 +1,5 @@
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.FluentAtom;
-import mecaPlanner.formulae.FluentLiteral;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -55,6 +53,16 @@ public class World implements java.io.Serializable {
 
     protected Map<Fluent,String> getObjectFluents() {
         return objectFluents;
+    }
+
+    public World update(Set<Assignment> assignments) {
+        World world = new World(this);
+        for (Assignment assignment : assignments) {
+            if (booleanFluents.containsKey(assignment.getReference())) {
+                booleanFluents.put(assignment.getReference(), assignment.getValue());
+            }
+            
+        }
     }
 
     public int getId() {

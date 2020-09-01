@@ -1,6 +1,7 @@
 package mecaPlanner;
 
-import mecaPlanner.formulae.*;
+import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.booleanFormulae.BooleanFormula;
 import mecaPlanner.state.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
@@ -29,28 +30,9 @@ public class Action implements java.io.Serializable {
     protected Map<String, BooleanFormula> awareIf;
     protected Set<BooleanFormula> determines;
     protected Set<BeliefFormula> announces;
-    protected Set<FormulaAssignment> effects;
+    protected Map<BooleanFormula, Assignment> effects;
 
 
-    private class FormulaAssignment {
-        private Fluent reference;
-        private Formula value;
-        private BooleanFormula condition;
-        public FormulaAssignment(Fluent reference, Formula value, BooleanFormula condition) {
-            this.references = references;
-            this.value = value;
-            this.condition = condition;
-        }
-        public Fluent getReference() {
-            return references;
-        }
-        public Formula getValue() {
-            return value;
-        }
-        public BooleanFormula getCondition() {
-            return condition;
-        }
-    }
 
 
     public Action(String name,
@@ -62,7 +44,7 @@ public class Action implements java.io.Serializable {
                   Map<String, BooleanFormula> awareIf,
                   Set<BooleanFormula> determines,
                   Set<BeliefFormula> announces,
-                  Set<FormulaAssignment> effects,
+                  Map<BooleanFormula, Assignment> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -95,15 +77,17 @@ public class Action implements java.io.Serializable {
         return this.precondition;
     }
 
-    public Set<FormulaAssignment> getEffects() {
+    public Map<BooleanFormula, Assignment> getEffects() {
         return this.effects;
     }
 
-    public Set<FormulaAssignment> getApplicableEffects(World world) {
-        Set<FormulaAssignment> applicableEffects = new HashSet<>();
-            for (FormulaAssignment e : effects.entrySet()) {
-                if (e.getCondition().evaluate(world)) {
-                    applicableEffects.add(e);
+    // DO THIS HERE INSTEAD OF IN WORLD IN CASE WE WANT TO SWITCH
+    // TO BELIEF FORMULA EFFECT CONDITIONS
+    public Set<Assignment> getApplicableEffects(World world) {
+        Set<Assignment> applicableEffects = new HashSet<>();
+            for (BooleanFormula condition : effects.keySet()) {
+                if (condition.evaluate(world)) {
+                    applicableEffects.add(effects.get(condition));
                 }
             }
         return applicableEffects;

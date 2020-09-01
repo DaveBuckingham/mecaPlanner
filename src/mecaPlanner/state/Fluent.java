@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.atomic;
+package mecaPlanner.state;
 
 import mecaPlanner.state.World;
 
@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-public class Fluent extends Atom{
+public class Fluent{
 
 
     private String name;
