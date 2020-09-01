@@ -312,6 +312,7 @@ public class Action implements java.io.Serializable {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                                 if (learnedBeliefFormula.holdsAtWorld(oldKripke, oldToWorld)) {
+                                //if (learnedKnowledgeFormula.holdsAtWorld(oldKripke, oldToWorld)) {
                                     newBeliefs.get(agent).connect(fromWorld, toWorld);
                                 }
                             }
