@@ -1,0 +1,10 @@
+BUILD:
+$ make
+$ make demo
+
+RUN:
+$ ./demo
+
+FILES TO LOOK AT:
+.../problems/kr/*
+.../src/toos/Demo.java
