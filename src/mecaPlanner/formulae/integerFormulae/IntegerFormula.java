@@ -20,26 +20,34 @@ public abstract class IntegerFormula extends Formula{
 //        MODULO
 //    }
 
-    private IntegerFormula lhs;
-    private IntegerFormula rhs;
+    protected IntegerFormula lhs;
+    protected IntegerFormula rhs;
 
-    public Integer getLhs() {
+    public IntegerFormula getLhs() {
         return lhs;
     }
 
-    public Integer getRhs() {
+    public IntegerFormula getRhs() {
         return rhs;
     }
 
-    public String evaluate(EpistemicState state) {
+    public Integer evaluate(EpistemicState state) {
         return evaluate(state.getDesignatedWorld());
     }
-
-    public String evaluate(KripkeStructure kripke, World world) {
+ 
+    public Integer evaluate(KripkeStructure kripke, World world) {
         return evaluate(world);
     }
 
     public abstract Integer evaluate(World world);
+
+    public Integer getLiteral() {
+        return null;
+    }
+
+    public Boolean isLiteral() {
+        return false;
+    }
 
     @Override
     public boolean equals(Object obj) {

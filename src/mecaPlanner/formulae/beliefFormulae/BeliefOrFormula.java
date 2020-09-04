@@ -1,5 +1,6 @@
 package mecaPlanner.formulae.beliefFormulae;
 
+import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -22,30 +23,28 @@ public class BeliefOrFormula extends BeliefFormula{
     }
 
     public static BeliefFormula make(List<BeliefFormula> inputFormulae) {
-        List<BeliefFormula> formulae = new ArrayLiset<>();
+        List<BeliefFormula> formulae = new ArrayList<>();
         for (BeliefFormula ff : inputFormulae) {
-            if (ff instanceof BooleanValue) {
-                if (((BooleanValue) simplified).get()) {
-                    return ff;
-                }
+            if (ff.isTrue()) {
+                return ff;
             }
             else {
                 formulae.add(ff);
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanValue(false);
+            return new BooleanAtom(false);
         }
-        return new BeliefFormulaOr(formulae);
+        return new BeliefOrFormula(formulae);
     }
 
     public static BeliefFormula make(Set<BeliefFormula> inputFormulae) {
-        return BeliefOrFormula.make(Arrays.asList(inputFormulae));
+        return BeliefOrFormula.make(new ArrayList(inputFormulae));
     }
 
-    public static BeliefFormula make(BeliefFormula ...inputFormulae) {
-        return BeliefOrFormula.make(Arrays.asList(inputFormulae));
-    }
+    //public static BeliefFormula make(BeliefFormula ...inputFormulae) {
+    //    return BeliefOrFormula.make(new ArrayList(inputFormulae));
+    //}
 
 
 

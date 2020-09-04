@@ -1,7 +1,9 @@
 package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.Fluent;
+import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
 import mecaPlanner.state.World;
+import mecaPlanner.state.KripkeStructure;
 
 
 import java.util.List;
@@ -49,12 +51,12 @@ public class CompareBeliefs extends BeliefFormula{
         return lhs;
     }
 
-    public BeliefFormula getlhs() {
+    public BeliefFormula getRhs() {
         return rhs;
     }
 
-    public Boolean evaluate(World world) {
-        return (lhs.evaluate(world) == rhs.evaluate(world));
+    public Boolean evaluate(KripkeStructure kripke, World world) {
+        return (lhs.evaluate(kripke, world) == rhs.evaluate(kripke, world));
     }
 
 
@@ -62,13 +64,9 @@ public class CompareBeliefs extends BeliefFormula{
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("(");
-        if (formulae.size() > 0) {
-            for (BeliefFormula formula : formulae) {
-                str.append(formula);
-                str.append("=");
-            }
-            str.deleteCharAt(str.length() - 1);
-        }
+        str.append(lhs);
+        str.append("==");
+        str.append(rhs);
         str.append(")");
         return str.toString();
     }
@@ -81,7 +79,7 @@ public class CompareBeliefs extends BeliefFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        CompareBeliefs other = (CompareBelief) obj;
+        CompareBeliefs other = (CompareBeliefs) obj;
         return (lhs.equals(other.getLhs()) && rhs.equals(other.getRhs()));
     }
 

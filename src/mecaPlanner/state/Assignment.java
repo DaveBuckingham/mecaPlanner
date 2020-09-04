@@ -19,6 +19,6 @@ public class Assignment {
     }
 
     public String toString()  {
-        return (reference.toString() + "<=" + value.toString());
+        return (reference.toString() + "<-" + value.toString());
     }
 }

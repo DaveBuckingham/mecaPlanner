@@ -17,7 +17,7 @@ public class IntegerSubtract extends IntegerFormula{
     }
 
     public Integer evaluate(World world) {
-        return (lhs.evaluate(world) + rhs.evaluate(world));
+        return (lhs.evaluate(world) - rhs.evaluate(world));
     }
 
     @Override

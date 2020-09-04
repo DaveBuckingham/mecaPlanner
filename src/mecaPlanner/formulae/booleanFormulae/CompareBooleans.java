@@ -49,7 +49,7 @@ public class CompareBooleans extends BooleanFormula{
         return lhs;
     }
 
-    public BooleanFormula getlhs() {
+    public BooleanFormula getRhs() {
         return rhs;
     }
 
@@ -61,14 +61,11 @@ public class CompareBooleans extends BooleanFormula{
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
+        str.append(")");
         str.append("(");
-        if (formulae.size() > 0) {
-            for (BooleanFormula formula : formulae) {
-                str.append(formula);
-                str.append("=");
-            }
-            str.deleteCharAt(str.length() - 1);
-        }
+        str.append(lhs);
+        str.append("==");
+        str.append(rhs);
         str.append(")");
         return str.toString();
     }

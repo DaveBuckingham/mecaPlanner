@@ -23,7 +23,7 @@ public class BooleanAndFormula extends BooleanFormula{
     }
 
     public static BooleanFormula make(List<BooleanFormula> inputFormulae) {
-        List<BooleanFormula> formulae = new ArrayLiset<>();
+        List<BooleanFormula> formulae = new ArrayList<>();
         for (BooleanFormula bf : inputFormulae) {
             if (bf.isFalse()) {
                 return bf;
@@ -33,13 +33,13 @@ public class BooleanAndFormula extends BooleanFormula{
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanValue(true);
+            return new BooleanAtom(true);
         }
         return new BooleanAndFormula(formulae);
     }
 
     public static BooleanFormula make(Set<BooleanFormula> inputFormulae) {
-        return BooleanAndFormula.make(Arrays.asList(inputFormulae));
+        return BooleanAndFormula.make(new ArrayList(inputFormulae));
     }
 
     public static BooleanFormula make(BooleanFormula ...inputFormulae) {

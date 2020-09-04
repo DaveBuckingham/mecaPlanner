@@ -26,30 +26,19 @@ public class CompareObjects extends BooleanFormula{
 
 
     public static BooleanFormula make(ObjectAtom lhs, ObjectAtom rhs) {
-        if (lhs.isTrue()) {
-            if (rhs.isTrue()) {
-                return new BooleanAtom(true);
-            }
-            if (rhs.isFalse()) {
-                return new BooleanAtom(false);
-            }
+        if (lhs.isFluent() || rhs.isFluent()) {
+            return new CompareObjects(lhs, rhs);
         }
-        else if (lhs.isFalse()) {
-            if (rhs.isTrue()) {
-                return new BooleanAtom(false);
-            }
-            if (rhs.isFalse()) {
-                return new BooleanAtom(true);
-            }
-        }
-        return new CompareBooleans(lhs, rhs);
+        String lhsString = lhs.getObjectValue();
+        String rhsString = rhs.getObjectValue();
+        return new BooleanAtom(lhsString.equals(rhsString));
     }
 
     public ObjectAtom getLhs() {
         return lhs;
     }
 
-    public ObjectAtom getlhs() {
+    public ObjectAtom getRhs() {
         return rhs;
     }
 
@@ -62,13 +51,9 @@ public class CompareObjects extends BooleanFormula{
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("(");
-        if (formulae.size() > 0) {
-            for (FluentFormula formula : formulae) {
-                str.append(formula);
-                str.append("=");
-            }
-            str.deleteCharAt(str.length() - 1);
-        }
+        str.append(lhs.toString());
+        str.append("==");
+        str.append(rhs.toString());
         str.append(")");
         return str.toString();
     }

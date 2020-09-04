@@ -506,15 +506,15 @@ public class DeplToProblem extends DeplBaseVisitor {
             Fluent fluent = assignment.getReference();
             Formula value = assignment.getValue();
             if (value instanceof BooleanAtom && !((BooleanAtom)value).isFluent()) {
-                Boolean b = ((BooleanAtom)value).getValue();
+                Boolean b = value.getBooleanValue();
                 booleanFluents.put(fluent, b);
             }
             else if (value instanceof IntegerAtom && !((IntegerAtom)value).isFluent()) {
-                Integer i = ((IntegerAtom)value).getValue();
+                Integer i = value.getIntegerValue();
                 integerFluents.put(fluent, i);
             }
             else if (value instanceof ObjectAtom && !((ObjectAtom)value).isFluent()) {
-                String o = ((ObjectAtom)value).getValue();
+                String o = value.getObjectValue();
                 objectFluents.put(fluent, o);
             }
             else {
@@ -564,7 +564,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
                 if (fieldCtx.ownerActionField() != null) {
                     ObjectAtom ownerObject = (ObjectAtom) visit(fieldCtx.ownerActionField().groundableObject());
-                    owner = ownerObject.getValue();
+                    owner = ownerObject.getObjectValue();
                     if (!domain.isNonPassiveAgent(owner)) {
                         throw new RuntimeException("action " + actionName + " owner " + owner +
                                                    " not a declared system or environment agent.");
@@ -590,7 +590,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         ObjectAtom agentObject = (ObjectAtom) visit(obsCtx.groundableObject());
-                        String agentName = agentObject.getValue();
+                        String agentName = agentObject.getObjectValue();
 
                         BooleanFormula condition;
                         if (obsCtx.booleanFormula() == null) {
@@ -612,7 +612,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         ObjectAtom agentObject = (ObjectAtom) visit(awaCtx.groundableObject());
-                        String agentName = agentObject.getValue();
+                        String agentName = agentObject.getObjectValue();
                         BooleanFormula condition;
                         if (awaCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -959,7 +959,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
         ObjectAtom agentObject = (ObjectAtom) visit(ctx.groundableObject());
-        String agentName = agentObject.getValue();
+        String agentName = agentObject.getObjectValue();
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }

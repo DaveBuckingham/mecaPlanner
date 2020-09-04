@@ -23,9 +23,9 @@ public class BooleanOrFormula extends BooleanFormula{
     }
 
     public static BooleanFormula make(List<BooleanFormula> inputFormulae) {
-        List<BooleanFormula> formulae = new ArrayLiset<>();
+        List<BooleanFormula> formulae = new ArrayList<>();
         for (BooleanFormula bf : inputFormulae) {
-            if (isTrue()) {
+            if (bf.isTrue()) {
                 return bf;
             }
             else {
@@ -33,18 +33,18 @@ public class BooleanOrFormula extends BooleanFormula{
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanValue(false);
+            return new BooleanAtom(false);
         }
         return new BooleanOrFormula(formulae);
     }
 
     public static BooleanFormula make(Set<BooleanFormula> inputFormulae) {
-        return BooleanOrFormula.make(Arrays.asList(inputFormulae));
+        return BooleanOrFormula.make(new ArrayList(inputFormulae));
     }
 
-    public static BooleanFormula make(BooleanFormula ...inputFormulae) {
-        return BooleanOrFormula.make(Arrays.asList(inputFormulae));
-    }
+    //public static BooleanFormula make(BooleanFormula ...inputFormulae) {
+    //    return BooleanOrFormula.make(new ArrayList(inputFormulae));
+    //}
 
 
     public List<BooleanFormula> getFormulae() {

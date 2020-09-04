@@ -16,7 +16,7 @@ public class IntegerAtom extends IntegerFormula{
 
     private Fluent fluent;
     private Integer value;
-    private Integer isFluent;
+    private Boolean isFluent;
 
     public IntegerAtom(Fluent fluent) {
         this.fluent = fluent;
@@ -44,12 +44,13 @@ public class IntegerAtom extends IntegerFormula{
     public Boolean isFluent() {
         return isFluent;
     }
-    public Boolean isValue() {
-        return !isFluent;
-    }
 
     public Integer getLiteral() {
         return value;
+    }
+
+    public Boolean isLiteral() {
+        return !isFluent;
     }
 
     public Integer evaluate(World world) {
@@ -59,13 +60,6 @@ public class IntegerAtom extends IntegerFormula{
         return value;
     }
 
-    public Boolean isFalse() {
-        return (!isFluent && !value);
-    }
-
-    public Boolean isTrue() {
-        return (!isFluent && value);
-    }
 
     //public Set<FluentAtom> getAllAtoms() {
     //    return formula.getAllAtoms();
@@ -86,8 +80,8 @@ public class IntegerAtom extends IntegerFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaAtom other = (FluentFormulaAtom) obj;
-        return (value == other.getIntegerValue() && fluent == other.getFluent);
+        IntegerAtom other = (IntegerAtom) obj;
+        return (value == other.getIntegerValue() && fluent == other.getFluent());
     }
 
 

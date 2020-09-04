@@ -71,7 +71,7 @@ public class BooleanAtom extends BooleanFormula{
     }
 
     public BooleanFormula negate() {
-        return isFluent ? BooleanNotFormula.make(fluent) : new BooleanAtom(!value);
+        return isFluent ? BooleanNotFormula.make(this) : new BooleanAtom(!value);
     }
 
     public Boolean isFalse() {
@@ -105,8 +105,8 @@ public class BooleanAtom extends BooleanFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        FluentFormulaAtom other = (FluentFormulaAtom) obj;
-        return (value == other.getBooleanValue() && fluent == other.getFluent);
+        BooleanAtom other = (BooleanAtom) obj;
+        return (value == other.getBooleanValue() && fluent == other.getFluent());
     }
 
 

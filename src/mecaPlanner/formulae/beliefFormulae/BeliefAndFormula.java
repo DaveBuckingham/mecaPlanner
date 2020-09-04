@@ -50,9 +50,9 @@ public class BeliefAndFormula extends BeliefFormula{
         return BeliefAndFormula.make(new ArrayList(inputFormulae));
     }
 
-    public static BeliefFormula make(BeliefFormula ...inputFormulae) {
-        return BeliefAndFormula.make(Arrays.asList(inputFormulae));
-    }
+    //public static BeliefFormula make(BeliefFormula ...inputFormulae) {
+    //    return BeliefAndFormula.make(new ArrayList(inputFormulae));
+    //}
 
 
 

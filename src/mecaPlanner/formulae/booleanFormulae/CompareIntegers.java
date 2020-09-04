@@ -25,8 +25,8 @@ public class CompareIntegers extends BooleanFormula{
         GTE            // greater than or equal
     }
 
-    private BooleanFormula lhs;
-    private BooleanFormula rhs;
+    private IntegerFormula lhs;
+    private IntegerFormula rhs;
     private Inequality operator;
 
     private CompareIntegers(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
@@ -58,12 +58,10 @@ public class CompareIntegers extends BooleanFormula{
     }
 
     public static BooleanFormula make(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
-        Integer lhsLiteral = lhs.getLiteral();
-        if (lhsLiteral != null) {
+        if (lhs.isLiteral() && rhs.isLiteral()) {
+            Integer lhsLiteral = lhs.getLiteral();
             Integer rhsLiteral = rhs.getLiteral();
-            if (rhsLiteral != null) {
-                return new BooleanAtom(compare(op, lhsLiteral, rhsLiteral));
-            }
+            return new BooleanAtom(compare(op, lhsLiteral, rhsLiteral));
         }
         return new CompareIntegers(op, lhs, rhs);
     }
@@ -72,7 +70,7 @@ public class CompareIntegers extends BooleanFormula{
         return lhs;
     }
     public IntegerFormula getRhs() {
-        return Lhs;
+        return rhs;
     }
     public Inequality getOperator() {
         return operator;
@@ -81,18 +79,19 @@ public class CompareIntegers extends BooleanFormula{
 
     private static Boolean compare(Inequality op, Integer a, Integer b) {
         switch (op) {
-            case Inequality.EQ:  return (a == b);
-            case Inequality.NE:  return (a != b);
-            case Inequality.LT:  return (a <  b);
-            case Inequality.LTE: return (a <= b);
-            case Inequality.GT:  return (a >  b);
-            case Inequality.GTE: return (a >= b);
+            case EQ:  return (a == b);
+            case NE:  return (a != b);
+            case LT:  return (a <  b);
+            case LTE: return (a <= b);
+            case GT:  return (a >  b);
+            case GTE: return (a >= b);
+            default: throw new RuntimeException("invalid operator");
         }
     }
 
 
     public Boolean evaluate(World world) {
-        return compare(compare(this.operator, lhs.evaluate(world), rhs.evaluate(world)));
+        return compare(this.operator, lhs.evaluate(world), rhs.evaluate(world));
     }
 
 
@@ -100,16 +99,16 @@ public class CompareIntegers extends BooleanFormula{
     public String toString() {
         StringBuilder str = new StringBuilder();
         str.append("(");
-        str.append(lhs.toString);
+        str.append(lhs.toString());
         switch (operator) {
-            case Inequality.EQ:  str.append("==");
-            case Inequality.NE:  str.append("!=");
-            case Inequality.LT:  str.append("< ");
-            case Inequality.LTE: str.append("<=");
-            case Inequality.GT:  str.append("> ");
-            case Inequality.GTE: str.append(">=");
+            case EQ:  str.append("==");
+            case NE:  str.append("!=");
+            case LT:  str.append("< ");
+            case LTE: str.append("<=");
+            case GT:  str.append("> ");
+            case GTE: str.append(">=");
         }
-        str.append(rhs.toString);
+        str.append(rhs.toString());
         str.append(")");
         return str.toString();
     }
