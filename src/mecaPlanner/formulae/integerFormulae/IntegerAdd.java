@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class IntegerAdd extends IntegerFormula{
 
-    public IntegerAdd(IntegerFormula lhs, IntegerFormula, rhs) {
+    public IntegerAdd(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class IntegerDivide extends IntegerFormula{
 
-    public IntegerDivide(IntegerFormula lhs, IntegerFormula, rhs) {
+    public IntegerDivide(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }

@@ -17,7 +17,7 @@ public class BooleanNotFormula extends BooleanFormula{
         this.formula = formula;
     }
 
-    publics static BooleanFormula make(BooleanFormula inputFormula) {
+    public static BooleanFormula make(BooleanFormula inputFormula) {
         if (inputFormula.isTrue()) {
             return new BooleanAtom(false);
         }
@@ -27,10 +27,10 @@ public class BooleanNotFormula extends BooleanFormula{
         if (inputFormula instanceof BooleanNotFormula) {
             return ((BooleanNotFormula) inputFormula).getFormula();
         }
-        return new FluentFormulaNot(newFormula);
+        return new BooleanNotFormula(newFormula);
     }
 
-    public FluentFormula getFormula() {
+    public BooleanFormula getFormula() {
         return formula;
     }
 

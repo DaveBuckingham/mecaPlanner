@@ -99,11 +99,11 @@ public class Action implements java.io.Serializable {
     }
 
     public boolean executable(EpistemicState state) {
-        return precondition.holds(state.getDesignatedWorld());
+        return precondition.evaluate(state.getDesignatedWorld());
     }
 
     protected boolean executable(World world) {
-        return precondition.holds(world);
+        return precondition.evaluate(world);
     }
 
     public Boolean necessarilyExecutable(NDState state) {
@@ -118,11 +118,11 @@ public class Action implements java.io.Serializable {
 
 
     public Boolean isObservant(String agent, World world) {
-        return (observesIf.containsKey(agent) && observesIf.get(agent).holds(world));
+        return (observesIf.containsKey(agent) && observesIf.get(agent).evaluate(world));
     }
 
     public Boolean isAware(String agent, World world) {
-        return (awareIf.containsKey(agent) && awareIf.get(agent).holds(world));
+        return (awareIf.containsKey(agent) && awareIf.get(agent).evaluate(world));
     }
 
 
@@ -175,7 +175,7 @@ public class Action implements java.io.Serializable {
 
         // FOR EACH OLD WORLD, IF PRECONDITIONS HOLD, MUTATE INTO NEW, USING CONDITIONAL EFFECTS
         for (World oldWorld : oldWorlds) {
-            if (precondition.holds(oldWorld)) {
+            if (precondition.evaluate(oldWorld)) {
                 World observedWorld = oldWorld.update(getApplicableEffects(oldWorld));
                 observedWorlds.add(observedWorld);
                 observedWorldsToOld.put(observedWorld, oldWorld);
@@ -214,7 +214,7 @@ public class Action implements java.io.Serializable {
         // IF THERE ARE ANY OBLIVOUS AGENTS, SET UP OBLIVIOUS WORLDS
         if (anyOblivious) {
             for (World w : oldWorlds) {
-                World obliviousWorld = new World(w.getName() + "_", w);
+                World obliviousWorld = new World(w);
                 obliviousWorlds.add(obliviousWorld);
                 oldWorldsToOblivious.put(w, obliviousWorld);
             }
@@ -240,12 +240,13 @@ public class Action implements java.io.Serializable {
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Set<BooleanFormula> revealedConditions = new HashSet<>();
             if (anyObservers || anyAware) {
-                for (Map.Entry<FluentLiteral, BooleanFormula> e : effects.entrySet()) {
-                    FluentLiteral effect = e.getKey();
-                    BooleanFormula condition = e.getValue();
-                    if (!effect.holds(oldFromWorld) && !condition.alwaysHolds()) {
+                for (Map.Entry<BooleaFormula, Assignment> e : effects.entrySet()) {
+                    BooleanFormula condition = e.getKey();
+                    Assignment assignment = e.getValue();
+                    if (assignment.getFluent(). && !condition.isTrue()) {
+                    if (!effect.evaluate(oldFromWorld) && !condition.isTrue()) {
                         // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
-                        if (condition.holds(oldFromWorld)) {
+                        if (condition.evaluate(oldFromWorld)) {
                             revealedConditions.add(condition);
                         }
                         else {
@@ -261,7 +262,7 @@ public class Action implements java.io.Serializable {
             Set<BooleanFormula> groundDetermines = new HashSet<>();
             if (anyObservers) {
                 for (BooleanFormula f : determines) {
-                    if (f.holds(oldFromWorld)) {
+                    if (f.evaluate(oldFromWorld)) {
                         groundDetermines.add(f);
                     }
                     else {
@@ -279,7 +280,7 @@ public class Action implements java.io.Serializable {
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
                     for (BeliefFormula announcement : announces) {
                         BeliefFormula knowsNotAnnouncement = new BeliefFormulaKnows(agent, announcement.negate());
-                        if (!knowsNotAnnouncement.holds(beforeState)) {
+                        if (!knowsNotAnnouncement.evaluate(beforeState)) {
                             acceptedAnnouncements.add(announcement);
                         }
                     }
@@ -302,7 +303,7 @@ public class Action implements java.io.Serializable {
                     for (World toWorld: observedWorlds) {
                         World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedBeliefFormula.holdsAtWorld(oldKripke, oldToWorld)) {
+                            if (learnedBeliefFormula.evaluate(oldKripke, oldToWorld)) {
                                 newBeliefs.get(agent).connect(fromWorld, toWorld);
                             }
                         }
@@ -314,7 +315,7 @@ public class Action implements java.io.Serializable {
                         for (World toWorld: observedWorlds) {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                                if (learnedBeliefFormula.holdsAtWorld(oldKripke, oldToWorld)) {
+                                if (learnedBeliefFormula.evaluate(oldKripke, oldToWorld)) {
                                     newBeliefs.get(agent).connect(fromWorld, toWorld);
                                 }
                             }
@@ -325,7 +326,7 @@ public class Action implements java.io.Serializable {
                     for (World toWorld: observedWorlds) {
                         World oldToWorld = observedWorldsToOld.get(toWorld);
                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedKnowledgeFormula.holds(oldToWorld)) {
+                            if (learnedKnowledgeFormula.evaluate(oldToWorld)) {
                                 newKnowledges.get(agent).connect(fromWorld, toWorld);
                             }
                         }

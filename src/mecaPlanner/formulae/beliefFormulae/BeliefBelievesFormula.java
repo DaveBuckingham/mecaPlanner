@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.belief;
+package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public class BeliefFormulaBelieves extends BeliefFormula {
+public class BeliefBelievesFormula extends BeliefFormula {
 
     private String agent;
     private BeliefFormula formula;
 
-    public BeliefFormulaBelieves(String agent, BeliefFormula formula) {
+    public BeliefBelievesFormula(String agent, BeliefFormula formula) {
         this.agent = agent;
         this.formula = formula;
     }
@@ -39,9 +39,9 @@ public class BeliefFormulaBelieves extends BeliefFormula {
 
 
 
-    public Set<FluentAtom> getAllAtoms() {
-        return formula.getAllAtoms();
-    }
+    //public Set<FluentAtom> getAllAtoms() {
+    //    return formula.getAllAtoms();
+    //}
 
     @Override
     public boolean equals(Object obj) {
@@ -51,7 +51,7 @@ public class BeliefFormulaBelieves extends BeliefFormula {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefFormulaBelieves otherFormula = (BeliefFormulaBelieves) obj;
+        BeliefBelievesFormula otherFormula = (BeliefBelievesFormula) obj;
         return (this.agent.equals(otherFormula.getAgent()) && this.formula.equals(otherFormula.getFormula()));
     }
 

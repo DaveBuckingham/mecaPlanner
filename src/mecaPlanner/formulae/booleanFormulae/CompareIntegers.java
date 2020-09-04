@@ -1,7 +1,8 @@
-package mecaPlanner.formulae;
+package mecaPlanner.formulae.booleanFormulae;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.Fluent;
+import mecaPlanner.formulae.integerFormulae.IntegerFormula;
 
 
 import java.util.List;
@@ -24,8 +25,8 @@ public class CompareIntegers extends BooleanFormula{
         GTE            // greater than or equal
     }
 
-    private BoleanFormula lhs;
-    private BoleanFormula rhs;
+    private BooleanFormula lhs;
+    private BooleanFormula rhs;
     private Inequality operator;
 
     private CompareIntegers(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
@@ -35,22 +36,22 @@ public class CompareIntegers extends BooleanFormula{
     }
 
     public static BooleanFormula make(String op, IntegerFormula lhs, IntegerFormula rhs) {
-        if (op.matches("[eE][qQ]|=|==") {
+        if (op.matches("[eE][qQ]|=|==")) {
             return make(Inequality.EQ, lhs, rhs);
         }
-        if (op.matches("[nN][eE]|!=|~=") {
+        if (op.matches("[nN][eE]|!=|~=")) {
             return make(Inequality.NE, lhs, rhs);
         }
-        if (op.matches("[lL][tT]|<") {
+        if (op.matches("[lL][tT]|<")) {
             return make(Inequality.LT, lhs, rhs);
         }
-        if (op.matches("[lL][tT][eE]|<=") {
+        if (op.matches("[lL][tT][eE]|<=")) {
             return make(Inequality.LTE, lhs, rhs);
         }
-        if (op.matches("[gG][tT]|>") {
+        if (op.matches("[gG][tT]|>")) {
             return make(Inequality.GT, lhs, rhs);
         }
-        if (op.matches("[gG][tT][eE]|>=") {
+        if (op.matches("[gG][tT][eE]|>=")) {
             return make(Inequality.GTE, lhs, rhs);
         }
         throw new RuntimeException("invalid integer inequality: " + op);
@@ -78,7 +79,7 @@ public class CompareIntegers extends BooleanFormula{
     }
 
 
-    private static Boolean compare(Inequality.op, Integer a, Integer b) {
+    private static Boolean compare(Inequality op, Integer a, Integer b) {
         switch (op) {
             case Inequality.EQ:  return (a == b);
             case Inequality.NE:  return (a != b);
@@ -132,7 +133,7 @@ public class CompareIntegers extends BooleanFormula{
 
     @Override
     public int hashCode() {
-        return (operator.hashCode() * lhs.hashCode() * * rhs.hashCode());
+        return (operator.hashCode() * lhs.hashCode() * rhs.hashCode());
     }
 
 

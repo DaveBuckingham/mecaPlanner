@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class IntegerSubtract extends IntegerFormula{
 
-    public IntegerSubtract(IntegerFormula lhs, IntegerFormula, rhs) {
+    public IntegerSubtract(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }

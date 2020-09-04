@@ -370,7 +370,11 @@ public class DeplToProblem extends DeplBaseVisitor {
             expandedParameters.add((List<String>) visit(objCtx));
         }
         for (List<String> expansion : cartesianProduct(expandedParameters)) {
-            expandedFluents.add(new Fluent(name, expansion));
+            List<ObjectAtom> atomizedExpansion = new ArrayList<>();
+            for (String s :expansion) {
+                atomizedExpansion.add(new ObjectAtom(s));
+            }
+            expandedFluents.add(new Fluent(name, atomizedExpansion));
         }
         return expandedFluents;
     }
@@ -381,6 +385,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
             fluents.put(fluent, type);
         }
+        return null;
     }
 
 
@@ -558,7 +563,8 @@ public class DeplToProblem extends DeplBaseVisitor {
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
                 if (fieldCtx.ownerActionField() != null) {
-                    owner = (String) visit(fieldCtx.ownerActionField().groundableObject());
+                    ObjectAtom ownerObject = (ObjectAtom) visit(fieldCtx.ownerActionField().groundableObject());
+                    owner = ownerObject.getValue();
                     if (!domain.isNonPassiveAgent(owner)) {
                         throw new RuntimeException("action " + actionName + " owner " + owner +
                                                    " not a declared system or environment agent.");
@@ -583,7 +589,9 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.ObservesActionFieldContext obsCtx = fieldCtx.observesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        String agentName = (String) visit(obsCtx.groundableObject());
+                        ObjectAtom agentObject = (ObjectAtom) visit(obsCtx.groundableObject());
+                        String agentName = agentObject.getValue();
+
                         BooleanFormula condition;
                         if (obsCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -603,7 +611,8 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        String agentName = (String) visit(awaCtx.groundableObject());
+                        ObjectAtom agentObject = (ObjectAtom) visit(awaCtx.groundableObject());
+                        String agentName = agentObject.getValue();
                         BooleanFormula condition;
                         if (awaCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -719,7 +728,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                                         domain
                                        );
 
-            actions.add(action);
+            domain.addAction(action);
             variableStack.pop();
         }
         return null;
@@ -742,17 +751,17 @@ public class DeplToProblem extends DeplBaseVisitor {
         return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
     }
     @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
-        return new ObjectAtom(ctx.OBJECT.getText());
+        return new ObjectAtom(ctx.OBJECT().getText());
     }
 
 
-    @Override public String visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
+    @Override public ObjectAtom visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
         if (ctx.OBJECT() != null) {
             String name = ctx.OBJECT().getText();
             if (!allObjects.contains(name)) {
                 throw new RuntimeException("undefined object: " + name);
             }
-            return new ObjectValue(name);
+            return new ObjectAtom(name);
         }
 
         String variable = ctx.VARIABLE().getText();
@@ -776,18 +785,16 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("undefined variable: " + variable);
         }
         else {
-            return new ObjectValue(grounding);
+            return new ObjectAtom(grounding);
         }
     }
 
 
     @Override public Fluent visitFluent(DeplParser.FluentContext ctx) {
-        String fluentName = ctx.NAME().getText();
-        List<String> parameters = new ArrayList<String>();
-        if (ctx.parameterList() != null) {
-            for (DeplParser.ParameterContext parameterCtx : ctx.parameterList().parameter()) {
-                parameters.add(resolveVariable(parameterCtx));
-            }
+        String fluentName = ctx.LOWER_NAME().getText();
+        List<ObjectAtom> parameters = new ArrayList<>();
+        for (DeplParser.GroundableObjectContext objCtx : ctx.groundableObject()) {
+            parameters.add((ObjectAtom) visit(objCtx));
         }
         return new Fluent(fluentName, parameters);
     }
@@ -806,13 +813,13 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public IntegerFormula visitIntegerParens(DeplParser.IntegerParensContext ctx) {
-        return visit(ctx.integerFormula());
+        return (IntegerFormula) visit(ctx.integerFormula());
     }
 
     @Override public IntegerFormula visitIntegerAdd(DeplParser.IntegerAddContext ctx) {
         DeplParser.IntegerFormulaContext lhs = ctx.integerFormula(0);
         DeplParser.IntegerFormulaContext rhs = ctx.integerFormula(1);
-        return IntegerAdd.make(visit(lhs), visit(rhs));
+        return new IntegerAdd((IntegerFormula) visit(lhs), (IntegerFormula) visit(rhs));
     }
 
 
@@ -826,7 +833,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         Fluent booleanFluent = (Fluent) visit(ctx.fluent());
         // IS THERE A BETTER WAY THAN DUPLICATING THE STRING HERE AND IN G4?
         if (fluents.get(booleanFluent) != "Boolean") {
-            throw new RuntimeException("Fluent type is " + fluents.get(integerFluent) + ", expected Boolean");
+            throw new RuntimeException("Fluent type is " + fluents.get(booleanFluent) + ", expected Boolean");
         }
         return new BooleanAtom(booleanFluent);
     }
@@ -844,34 +851,35 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public BooleanFormula visitBooleanCompareIntegers(DeplParser.BooleanCompareIntegersContext ctx) {
-        IntegerFormula lhs = visit(ctx.integerFormula(0));
-        IntegerFormula rhs = visit(ctx.integerFormula(1));
-        return CompareIntegers.make(ctx.COMPARE.getText(), lhs, rhs);
+        IntegerFormula lhs = (IntegerFormula) visit(ctx.integerFormula(0));
+        IntegerFormula rhs = (IntegerFormula) visit(ctx.integerFormula(1));
+        return CompareIntegers.make(ctx.COMPARE().getText(), lhs, rhs);
     }
 
     @Override public BooleanFormula visitBooleanEqualIntegers(DeplParser.BooleanEqualIntegersContext ctx) {
-        DeplParser.IntegerFormulaContext lhsIntCtx = visit(ctx.integerFormula(0));
-        DeplParser.IntegerFormulaContext rhsIntCtx = visit(ctx.integerFormula(1));
+        IntegerFormula lhs = (IntegerFormula) visit(ctx.integerFormula(0));
+        IntegerFormula rhs = (IntegerFormula) visit(ctx.integerFormula(1));
         if (ctx.OP_EQ() == null) {
-            return BooleanNotFormula.make(CompareIntegers.make(visit(lhsObjCtx, visit(rhsObjCtx))));
+            return CompareIntegers.make(CompareIntegers.Inequality.NE, lhs, rhs);
         }
-        return CompareIntegers.make(CompareIntegers.Inequality.EQ, visit(lhsIntCtx), visit(rhsIntCtx));
+        return CompareIntegers.make(CompareIntegers.Inequality.EQ, lhs, rhs);
     }
+
     @Override public BooleanFormula visitBooleanEqualBooleans(DeplParser.BooleanEqualBooleansContext ctx) {
-        DeplParser.BooleanFormulaContext lhsBoolCtx = visit(ctx.booleanFormula(0));
-        DeplParser.BooleanFormulaContext rhsBoolCtx = visit(ctx.booleanFormula(1));
+        BooleanFormula lhs = (BooleanFormula) visit(ctx.booleanFormula(0));
+        BooleanFormula rhs = (BooleanFormula) visit(ctx.booleanFormula(1));
         if (ctx.OP_EQ() == null) {
-            return BooleanNotFormula.make(CompareBooleans.make(visit(lhsObjCtx, visit(rhsObjCtx))));
+            return BooleanNotFormula.make(CompareBooleans.make(lhs, rhs));
         }
-        return CompareBooleans.make(visit(lhsIntCtx), visit(rhsIntCtx));
+        return CompareBooleans.make(lhs, rhs);
     }
     @Override public BooleanFormula visitBooleanEqualObjects(DeplParser.BooleanEqualObjectsContext ctx) {
-        DeplParser.ObjectAtomContext lhsObjCtx = visit(ctx.groundableObject(0));
-        DeplParser.ObjectAtomContext rhsObjCtx = visit(ctx.groundableObject(1));
+        ObjectAtom lhs = (ObjectAtom) visit(ctx.groundableObject(0));
+        ObjectAtom rhs = (ObjectAtom) visit(ctx.groundableObject(1));
         if (ctx.OP_EQ() == null) {
-            return BooleanNotFormula.make(CompareObjects.make(visit(lhsObjCtx, visit(rhsObjCtx))));
+            return BooleanNotFormula.make(CompareObjects.make(lhs, rhs));
         }
-        return CompareObjects.make(visit(lhsObjCtx), visit(rhsObjCtx));
+        return CompareObjects.make(lhs, rhs);
     }
 
 
@@ -887,7 +895,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.BooleanFormulaContext subFormula : ctx.booleanFormula()) {
             subFormulae.add((BooleanFormula) visit(subFormula));
         }
-        return (BooleanFormulaAnd.make(subFormulae));
+        return (BooleanAndFormula.make(subFormulae));
     }
 
     @Override public BooleanFormula visitBooleanOr(DeplParser.BooleanOrContext ctx) {
@@ -895,7 +903,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.BooleanFormulaContext subFormula : ctx.booleanFormula()) {
             subFormulae.add((BooleanFormula) visit(subFormula));
         }
-        return (BooleanFormulaOr.make(subFormulae));
+        return (BooleanOrFormula.make(subFormulae));
     }
 
 
@@ -911,27 +919,28 @@ public class DeplToProblem extends DeplBaseVisitor {
         return (BeliefFormula) visit(ctx.beliefFormula());
     }
 
-    @Override public BeliefFormula visitBeliefEquals(DeplParser.BeliefNotContext ctx) {
-        throw new RuntimeException("beliefEquals not implemented");
-        return null;
-    }
-
-    @Override public BeliefFormula visitBeliefUnequals(DeplParser.BeliefNotContext ctx) {
-        throw new RuntimeException("beliefUnequals not implemented");
-        return null;
-    }
-
     @Override public BeliefFormula visitBeliefNot(DeplParser.BeliefNotContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        return (new BeliefFormulaNot(inner));
+        return (BeliefNotFormula.make(inner));
     }
+
+    @Override public BeliefFormula visitBeliefEqualBeliefs(DeplParser.BeliefEqualBeliefsContext ctx) {
+        BeliefFormula lhs = (BeliefFormula) visit(ctx.beliefFormula(0));
+        BeliefFormula rhs = (BeliefFormula) visit(ctx.beliefFormula(1));
+        if (ctx.OP_EQ() == null) {
+            return BeliefNotFormula.make(CompareBeliefs.make(lhs, rhs));
+        }
+        return CompareBeliefs.make(lhs, rhs);
+
+    }
+
 
     @Override public BeliefFormula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
         List<BeliefFormula> subFormulae = new ArrayList<>();
         for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
             subFormulae.add((BeliefFormula) visit(subFormula));
         }
-        return (new BeliefFormulaAnd(subFormulae));
+        return (new BeliefAndFormula(subFormulae));
     }
 
     @Override public BeliefFormula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
@@ -939,21 +948,22 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
             subFormulae.add((BeliefFormula) visit(subFormula));
         }
-        return (new BeliefFormulaOr(subFormulae));
+        return (BeliefOrFormula.make(subFormulae));
     }
 
     @Override public BeliefFormula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        return new BeliefFormulaCommon(inner);
+        return new BeliefCommonFormula(inner);
     }
 
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        String agentName = resolveVariable(ctx.parameter());
+        ObjectAtom agentObject = (ObjectAtom) visit(ctx.groundableObject());
+        String agentName = agentObject.getValue();
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return new BeliefFormulaBelieves(agentName, inner);
+        return new BeliefBelievesFormula(agentName, inner);
     }
 
 

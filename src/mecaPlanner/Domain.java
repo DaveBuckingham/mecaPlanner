@@ -25,7 +25,7 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
-        allFluents = new HashSet<>();
+        //allFluents = new HashSet<>();
         //constants = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
@@ -139,7 +139,8 @@ public class Domain implements java.io.Serializable {
         allAgents.add(agent);
     }
 
-    public void addAction(String agent, Action newAction) {
+    public void addAction(Action newAction) {
+        String agent = newAction.getActor();
         assert(actions.containsKey(agent));
         actions.get(agent).add(newAction);
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);

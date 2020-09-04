@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class IntegerMultiply extends IntegerFormula{
 
-    public IntegerMultiply(IntegerFormula lhs, IntegerFormula, rhs) {
+    public IntegerMultiply(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }

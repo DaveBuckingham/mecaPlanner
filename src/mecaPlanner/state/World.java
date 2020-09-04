@@ -61,8 +61,18 @@ public class World implements java.io.Serializable {
             if (booleanFluents.containsKey(assignment.getReference())) {
                 booleanFluents.put(assignment.getReference(), assignment.getValue());
             }
+            else if (integerFluents.containsKey(assignment.getReference())) {
+                integerFluents.put(assignment.getReference(), assignment.getValue());
+            }
+            else if (objectFluents.containsKey(assignment.getReference())) {
+                objectFluents.put(assignment.getReference(), assignment.getValue());
+            }
             
         }
+    }
+
+    public Boolean alsterdByAssignment(Assignment assignment) {
+    ...
     }
 
     public int getId() {

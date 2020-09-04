@@ -148,8 +148,7 @@ beliefFormula
     : booleanFormula                                             # beliefBooleanFormula
     | '(' beliefFormula ')'                                      # beliefParens
     | ('~'|'!') beliefFormula                                    # beliefNot
-    | beliefFormula ('='|'==') beliefFormula                     # beliefEquals
-    | beliefFormula ('!='|'~=') beliefFormula                    # beliefUnequals
+    | beliefFormula (OP_EQ|OP_NE) beliefFormula                  # beliefEqualBeliefs
     | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon

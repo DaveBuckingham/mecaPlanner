@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.belief;
+package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -9,12 +9,12 @@ import java.util.HashSet;
 
 
 
-public class BeliefFormulaCommon extends BeliefFormula {
+public class BeliefCommonFormula extends BeliefFormula {
 
     private Set<String> commonAgents;
     private BeliefFormula formula;
 
-    public BeliefFormulaCommon(Set<String> commonAgents, BeliefFormula formula) {
+    public BeliefCommonFormula(Set<String> commonAgents, BeliefFormula formula) {
         this.commonAgents = commonAgents;
         this.formula = formula;
     }
@@ -22,7 +22,7 @@ public class BeliefFormulaCommon extends BeliefFormula {
     // COMMON AGENTS NOT SPECIFIED, WE'LL ASSUME ITS ALL AGENTS
     // WHICH WE WILL PULL DYNAMICALLY FROM THE STATE AT EVALUATION,
     // SEE evaluate() BELOW.
-    public BeliefFormulaCommon(BeliefFormula formula) {
+    public BeliefCommonFormula(BeliefFormula formula) {
         this.commonAgents = new HashSet<String>();
         this.formula = formula;
     }
@@ -47,9 +47,9 @@ public class BeliefFormulaCommon extends BeliefFormula {
         return true;
     }
 
-    public Set<FluentAtom> getAllAtoms() {
-        return formula.getAllAtoms();
-    }
+    //public Set<FluentAtom> getAllAtoms() {
+    //    return formula.getAllAtoms();
+    //}
 
     @Override
     public boolean equals(Object obj) {
@@ -59,7 +59,7 @@ public class BeliefFormulaCommon extends BeliefFormula {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefFormulaCommon otherFormula = (BeliefFormulaCommon) obj;
+        BeliefCommonFormula otherFormula = (BeliefCommonFormula) obj;
         return (this.commonAgents.equals(otherFormula.getAgents()) && this.formula.equals(otherFormula.getFormula()));
     }
 

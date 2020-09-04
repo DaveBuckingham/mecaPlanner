@@ -8,11 +8,11 @@ public class Assignment {
     private Fluent reference;
     private Formula value;
     public Assignment(Fluent reference, Formula value) {
-        this.references = references;
+        this.reference = reference;
         this.value = value;
     }
     public Fluent getReference() {
-        return references;
+        return reference;
     }
     public Formula getValue() {
         return value;

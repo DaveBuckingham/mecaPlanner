@@ -60,6 +60,20 @@ public class EpistemicState extends NDState {
         return designatedWorld.toString();
     }
 
+    public Boolean resolveBoolean(Fluent f) {
+        return designatedWorld.resolveBoolean(f);
+    }
+
+    public Integer resolveInteger(Fluent f) {
+        return designatedWorld.resolveInteger(f);
+    }
+
+    public String resolveObject(Fluent f) {
+        return designatedWorld.resolveObject(f);
+    }
+
+
+
 
 
     @Override

@@ -87,7 +87,7 @@ public class NDState implements java.io.Serializable {
 
     public Boolean possibly(BeliefFormula formula) {
         for (World w : designatedWorlds) {
-            if (formula.holdsAtWorld(this.kripkeStructure, w)) {
+            if (formula.evaluate(this.kripkeStructure, w)) {
                 return true;
             }
         }
@@ -96,12 +96,67 @@ public class NDState implements java.io.Serializable {
 
     public Boolean necessarily(BeliefFormula formula) {
         for (World w : designatedWorlds) {
-            if (!formula.holdsAtWorld(this.kripkeStructure, w)) {
+            if (!formula.evaluate(this.kripkeStructure, w)) {
                 return false;
             }
         }
         return true;
     }
+
+
+    public Set<Boolean> resolveBoolean(Fluent f) {
+        Set<Boolean> valsInWorlds = new HashSet<>();
+        for (World w : designatedWorlds) {
+            valsInWorlds.add(w.resolveBoolean(f));
+        }
+        return valsInWorlds;
+    }
+    public Boolean resolveBooleanNecessarily(Fluent f) {
+        Set<Boolean> valsInWorlds = this.resolveBoolean(f);
+        if (valsInWorlds.size() > 1) {
+            return null;
+        }
+        return valsInWorlds.iterator().next();
+    }
+
+    public Set<Integer> resolveInteger(Fluent f) {
+        Set<Integer> valsInWorlds = new HashSet<>();
+        for (World w : designatedWorlds) {
+            valsInWorlds.add(w.resolveInteger(f));
+        }
+        return valsInWorlds;
+    }
+    public Integer resolveIntegerNecessarily(Fluent f) {
+        Set<Integer> valsInWorlds = this.resolveInteger(f);
+        if (valsInWorlds.size() > 1) {
+            return null;
+        }
+        return valsInWorlds.iterator().next();
+    }
+
+    public Set<String> resolveObject(Fluent f) {
+        Set<String> valsInWorlds = new HashSet<>();
+        for (World w : designatedWorlds) {
+            valsInWorlds.add(w.resolveObject(f));
+        }
+        return valsInWorlds;
+    }
+    public String resolveObjectNecessarily(Fluent f) {
+        Set<String> valsInWorlds = this.resolveObject(f);
+        if (valsInWorlds.size() > 1) {
+            return null;
+        }
+        return valsInWorlds.iterator().next();
+    }
+
+
+
+
+
+
+
+
+
 
     @Override
     public boolean equals(Object obj) {

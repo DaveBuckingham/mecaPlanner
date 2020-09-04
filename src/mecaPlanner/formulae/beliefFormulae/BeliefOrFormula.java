@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.belief;
+package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -12,18 +12,18 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.HashSet;
 
-public class BeliefFormulaOr extends BeliefFormula{
+public class BeliefOrFormula extends BeliefFormula{
 
     private List<BeliefFormula> formulae;
 
 
-    private BeleifFormulaOr(List<BeleifFormula> formulae) {
+    private BeliefOrFormula(List<BeliefFormula> formulae) {
         this.formulae = formulae;
     }
 
-    public static BeleifFormula make(List<BeleifFormula> inputFormulae) {
-        List<BeleifFormula> formulae = new ArrayLiset<>();
-        for (BeleifFormula ff : inputFormulae) {
+    public static BeliefFormula make(List<BeliefFormula> inputFormulae) {
+        List<BeliefFormula> formulae = new ArrayLiset<>();
+        for (BeliefFormula ff : inputFormulae) {
             if (ff instanceof BooleanValue) {
                 if (((BooleanValue) simplified).get()) {
                     return ff;
@@ -36,15 +36,15 @@ public class BeliefFormulaOr extends BeliefFormula{
         if (formulae.isEmpty()) {
             return new BooleanValue(false);
         }
-        return new BeleifFormulaOr(formulae);
+        return new BeliefFormulaOr(formulae);
     }
 
-    public static BeleifFormula make(Set<BeleifFormula> inputFormulae) {
-        return BeleifFormulaOr.make(Arrays.asList(inputFormulae));
+    public static BeliefFormula make(Set<BeliefFormula> inputFormulae) {
+        return BeliefOrFormula.make(Arrays.asList(inputFormulae));
     }
 
-    public static BeleifFormula make(BeleifFormula ...inputFormulae) {
-        return BeleifFormulaOr.make(Arrays.asList(inputFormulae));
+    public static BeliefFormula make(BeliefFormula ...inputFormulae) {
+        return BeliefOrFormula.make(Arrays.asList(inputFormulae));
     }
 
 
@@ -84,7 +84,7 @@ public class BeliefFormulaOr extends BeliefFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefFormulaOr other = (BeliefFormulaOr) obj;
+        BeliefOrFormula other = (BeliefOrFormula) obj;
         Set<BeliefFormula> asSet = new HashSet<>(formulae);
         return asSet.equals(new HashSet<BeliefFormula>(other.getFormulae()));
     }

@@ -11,7 +11,7 @@ import java.util.Objects;
 
 public class IntegerModulo extends IntegerFormula{
 
-    public IntegerModulo(IntegerFormula lhs, IntegerFormula, rhs) {
+    public IntegerModulo(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }

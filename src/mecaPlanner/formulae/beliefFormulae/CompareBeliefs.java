@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.booleanFormulae;
+package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.Fluent;
 import mecaPlanner.state.World;
@@ -13,19 +13,19 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-public class CompareBooleans extends BooleanFormula{
+public class CompareBeliefs extends BeliefFormula{
 
-    private BooleanFormula lhs;
-    private BooleanFormula rhs;
+    private BeliefFormula lhs;
+    private BeliefFormula rhs;
 
 
-    private CompareBooleans(BooleanFormula lhs, BooleanFormula rhs) {
+    private CompareBeliefs(BeliefFormula lhs, BeliefFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
 
-    public static BooleanFormula make(BooleanFormula lhs, BooleanFormula rhs) {
+    public static BeliefFormula make(BeliefFormula lhs, BeliefFormula rhs) {
         if (lhs.isTrue()) {
             if (rhs.isTrue()) {
                 return new BooleanAtom(true);
@@ -42,14 +42,14 @@ public class CompareBooleans extends BooleanFormula{
                 return new BooleanAtom(true);
             }
         }
-        return new CompareBooleans(lhs, rhs);
+        return new CompareBeliefs(lhs, rhs);
     }
 
-    public BooleanFormula getLhs() {
+    public BeliefFormula getLhs() {
         return lhs;
     }
 
-    public BooleanFormula getlhs() {
+    public BeliefFormula getlhs() {
         return rhs;
     }
 
@@ -63,7 +63,7 @@ public class CompareBooleans extends BooleanFormula{
         StringBuilder str = new StringBuilder();
         str.append("(");
         if (formulae.size() > 0) {
-            for (BooleanFormula formula : formulae) {
+            for (BeliefFormula formula : formulae) {
                 str.append(formula);
                 str.append("=");
             }
@@ -81,7 +81,7 @@ public class CompareBooleans extends BooleanFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        CompareBooleans other = (CompareBooleans) obj;
+        CompareBeliefs other = (CompareBelief) obj;
         return (lhs.equals(other.getLhs()) && rhs.equals(other.getRhs()));
     }
 

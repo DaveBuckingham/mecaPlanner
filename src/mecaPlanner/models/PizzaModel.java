@@ -1,8 +1,6 @@
 package mecaPlanner.models;
 
-import mecaPlanner.formulae.FluentAtom;
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.*;
 import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
@@ -33,13 +31,13 @@ public class PizzaModel extends Model {
             }
         }
 
-        if (!ndState.necessarily(new FluentAtom("door_open"))) {
+        if (!ndState.necessarily(new Fluent("door_open"))) {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
-        else if (ndState.necessarily(new FluentAtom("at", agent, "room1"))) {
+        else if (ndState.necessarily(new Fluent("at", agent, "room1"))) {
             prediction.add(getSafeActionBySignature("move(room1,room2)", ndState));
         }
-        else if (ndState.necessarily(new FluentAtom("at", agent, "room2"))) {
+        else if (ndState.necessarily(new Fluent("at", agent, "room2"))) {
             prediction.add(getSafeActionBySignature("move(room2,room1)", ndState));
         }
         else {

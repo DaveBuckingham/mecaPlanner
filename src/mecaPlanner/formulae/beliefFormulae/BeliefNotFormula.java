@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.belief;
+package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -11,23 +11,23 @@ import java.util.Objects;
 
 import java.util.Set;
 
-public class BeliefFormulaNot extends BeliefFormula{
+public class BeliefNotFormula extends BeliefFormula{
 
     private BeliefFormula formula;
 
 
-    private BeliefFormulaNot(BeliefFormula formula) {
+    private BeliefNotFormula(BeliefFormula formula) {
         this.formula = formula;
     }
 
-    publics static BeliefFormula make(BeliefFormula inputFormula) {
+    public static BeliefFormula make(BeliefFormula inputFormula) {
         if (inputFormula instanceof BooleanValue) {
             return ((BooleanValue) simplified).negate();
         }
-        if (inputFormula instanceof BeliefFormulaNot) {
-            return ((BeliefFormulaNot) inputFormula).getFormula();
+        if (inputFormula instanceof BeliefNotFormula) {
+            return ((BeliefNotFormula) inputFormula).getFormula();
         }
-        return new BeliefFormulaNot(newFormula);
+        return new BeliefNotFormula(newFormula);
     }
 
 
@@ -56,7 +56,7 @@ public class BeliefFormulaNot extends BeliefFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefFormulaNot other = (BeliefFormulaNot) obj;
+        BeliefNotFormula other = (BeliefNotFormula) obj;
         return formula.equals(other.getFormula());
     }
 
