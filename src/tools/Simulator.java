@@ -39,7 +39,7 @@ public class Simulator {
         DeplToProblem visitor = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
-        final GeneralFormula goal = problem.getGoal();
+        final BeliefFormula goal = problem.getGoal();
 
         // VARIABLES TO TRACK THE SYSTEM STATE
         EpistemicState currentState = problem.getStartState();
@@ -179,14 +179,15 @@ public class Simulator {
     // PRINT OUT THE CURRENT STATE
     private static void displayState(Domain domain, NDState humanPerspective) {
         System.out.println("STATE:");
-        for (FluentAtom atom : domain.getAllAtoms()) {
-            if (humanPerspective.necessarily(atom)) {
-                System.out.println("\t" + atom);
-            }
-            else if (humanPerspective.possibly(atom)) {
-                System.out.println("\tpossibly " + atom);
-            }
-        }
+        System.out.println(humanPerspective);
+        //for (FluentAtom atom : domain.getAllAtoms()) {
+        //    if (humanPerspective.necessarily(atom)) {
+        //        System.out.println("\t" + atom);
+        //    }
+        //    else if (humanPerspective.possibly(atom)) {
+        //        System.out.println("\tpossibly " + atom);
+        //    }
+        //}
     }
 
 

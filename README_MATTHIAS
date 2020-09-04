@@ -1,0 +1,49 @@
+BUILD:
+$ make
+$ make demo
+
+
+RUN:
+$ ./demo
+
+
+FILES TO LOOK AT:
+.../problems/kr/*
+.../src/toos/Demo.java
+
+
+INTERPRETING STATE OUTPUT:
+
+Here is an example state (the start state for the sensing example).
+This corresponds to figure 3 in the paper.
+
+*w1{key(),tails()}
+  B(bob) = w3, w4,
+  K(bob) = w1, w2, w3, w4,
+  B(alice) = w2,
+  K(alice) = w1, w2,
+w2{key()}
+  B(bob) = w3, w4,
+  K(bob) = w1, w2, w3, w4,
+  B(alice) = w2,
+  K(alice) = w1, w2,
+w3{tails()}
+  B(bob) = w3, w4,
+  K(bob) = w1, w2, w3, w4,
+  B(alice) = w4,
+  K(alice) = w3, w4,
+w4{}
+  B(bob) = w3, w4,
+  K(bob) = w1, w2, w3, w4,
+  B(alice) = w4,
+  K(alice) = w3, w4,
+
+
+There are four worlds. World "w1" gets a star because it is the designated
+world.  Following each world name is the list of fluents that
+are true in that world.  Below each world name is a list of relation
+edges: two lists for each agent, one for knowledge and one for
+belief. For example, on line 21 of this file, we see that there should be dotted
+(belief) edges labeled "Bob" ("B" in the figure) leaving the designated world
+(upper left corener in figure) and going to worlds 3 (bottom left) and 4 (lower
+right).
