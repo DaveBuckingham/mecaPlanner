@@ -17,8 +17,6 @@ OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
 OP_NOT                  : '~'|'!' ;
 
-LOWER_NAME              : LOWER ANYCHAR*;
-UPPER_NAME              : UPPER ANYCHAR*;
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-';
 
@@ -29,11 +27,13 @@ KEYWORD_BOOLEAN         : 'Boolean' ;
 KEYWORD_INTEGER         : 'Integer' ;
 //KEYWORD_OBJECT          : 'Object' ;
 
+OBJECT_TYPE             : UPPER ANYCHAR*;
 FLUENT_TYPE             : KEYWORD_BOOLEAN | KEYWORD_INTEGER | OBJECT_TYPE ;
-OBJECT_TYPE             : UPPER_NAME ;
 OBJECT                  : LOWER_NAME ;
 VARIABLE                : '?' LOWER_NAME;
 CLASS                   : (ANYCHAR*'.')* UPPER LETTER*;
+
+LOWER_NAME              : LOWER ANYCHAR*;
 
  
 LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;

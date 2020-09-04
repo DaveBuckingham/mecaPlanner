@@ -6,7 +6,7 @@ import mecaPlanner.models.Model;
 import mecaPlanner.Action;
 import mecaPlanner.search.Perspective;
 import mecaPlanner.search.Search;
-import mecaPlanner.formulae.*;
+import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
@@ -61,7 +61,7 @@ public class Simulator {
 
 
         // MAIN LOOP, CONTINUE UNTIL THE GOAL IS ACHIEVED
-        while(!goal.holds(currentState, depth)) {
+        while(!goal.evaluate(currentState)) {
 
             String currentAgent = domain.agentAtDepth(depth);
 

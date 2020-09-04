@@ -1,19 +1,19 @@
 types{
-    robot-actor,
-    human-actor,
-    actor-locatable,
-    food-locatable,
-    locatable-object,
-    location-object
+    Robot-Actor,
+    Human-Actor,
+    Actor-Locatable,
+    Food-Locatable,
+    Locatable-Object,
+    Location-Object
 }
 
 objects{
-    robot1-robot,
-    human1-human,
-    pizza-food,
-    hotdog-food,
-    room1 - location,
-    room2 - location,
+    robot1-Robot,
+    human1-Human,
+    pizza-Food,
+    hotdog-Food,
+    room1 - Location,
+    room2 - Location,
 }
 
 agents{
@@ -24,27 +24,26 @@ agents{
 passive{}
 
 fluents{
-    at[?a - locatable, ?b - location](?a,?b),
+    at(Locatable, Locatable),
     human_hungry(),
     door_open(),
     robot_charged(),
 }
 
 constants{
-    same[?a - location, ?b - location](?a,?b),
-}
-
-constraints {
-    same(room1, room1),
-    same(room2, room2),
 }
 
 initially{
-    at(human1, room1),
-    at(robot1, room1),
-    at(pizza,room1),
-    at(hotdog,room2),
-    human_hungry(),
+    w1 <-
+    {
+        at(human1, room1),
+        at(robot1, room1),
+        at(pizza,room1),
+        at(hotdog,room2),
+        human_hungry()
+    }
+    B_human1 <- {(w1,w1)},
+    B_robot1 <- {(w1,w1)},
 }
 
 goals{
