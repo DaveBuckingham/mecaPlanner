@@ -17,13 +17,8 @@ public abstract class BooleanFormula extends BeliefFormula {
 
     public abstract Boolean evaluate(World world);
 
-
-    // THESE ARE OVERRIDEN IN BooleanAtom
-    public Boolean isTrue() {
-        return False;
-    }
-    public Boolean isFalse() {
-        return False;
+    public BooleanFormula negate() {
+        return BooleanNotFormula.make(this);
     }
 
 

@@ -27,7 +27,7 @@ public class BooleanNotFormula extends BooleanFormula{
         if (inputFormula instanceof BooleanNotFormula) {
             return ((BooleanNotFormula) inputFormula).getFormula();
         }
-        return new BooleanNotFormula(newFormula);
+        return new BooleanNotFormula(inputFormula);
     }
 
     public BooleanFormula getFormula() {
@@ -36,6 +36,10 @@ public class BooleanNotFormula extends BooleanFormula{
 
     public Boolean evaluate(World world) {
         return !formula.evaluate(world);
+    }
+
+    public BooleanFormula negate() {
+        return formula;
     }
 
     //public Set<FluentAtom> getAllAtoms() {

@@ -52,7 +52,7 @@ public class ObjectAtom extends Formula{
         return fluent;
     }
 
-    public String getValue() {
+    public String getObjectValue() {
         if (value == null) {
             throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
         }
@@ -75,7 +75,7 @@ public class ObjectAtom extends Formula{
             return false;
         }
         ObjectAtom other = (ObjectAtom) obj;
-        return (value == other.getValue() && fluent == other.getFluent());
+        return (value == other.getObjectValue() && fluent == other.getFluent());
     }
 
 

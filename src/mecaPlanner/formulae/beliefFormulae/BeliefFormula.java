@@ -22,5 +22,18 @@ public abstract class BeliefFormula extends Formula{
 
     public abstract Boolean evaluate(KripkeStructure kripke, World world);
 
+    public BeliefFormula negate() {
+        return BeliefNotFormula.make(this);
+    }
+
+    // THESE ARE OVERRIDEN IN BooleanAtom
+    public Boolean isTrue() {
+        return false;
+    }
+    public Boolean isFalse() {
+        return false;
+    }
+
+
 
 }

@@ -27,6 +27,24 @@ public class BooleanAtom extends BooleanFormula{
         this.isFluent = false;
     }
 
+    public BooleanAtom(String name, String ...strParams) {
+        if (name.equalsIgnoreCase("true")) {
+            this.fluent = null;
+            this.value = true;
+            this.isFluent = false;
+        }
+        else if (name.equalsIgnoreCase("false")) {
+            this.fluent = null;
+            this.value = false;
+            this.isFluent = false;
+        }
+        else {
+            this.fluent = new Fluent(name, strParams);
+            this.value = null;
+            this.isFluent = true;
+        }
+    }
+
     public Boolean isFluent() {
         return isFluent;
     }
@@ -38,7 +56,7 @@ public class BooleanAtom extends BooleanFormula{
         return fluent;
     }
 
-    public Boolean getValue() {
+    public Boolean getBooleanValue() {
         if (value == null) {
             throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
         }
@@ -50,6 +68,10 @@ public class BooleanAtom extends BooleanFormula{
             return world.resolveBoolean(fluent);
         }
         return value;
+    }
+
+    public BooleanFormula negate() {
+        return isFluent ? BooleanNotFormula.make(fluent) : new BooleanAtom(!value);
     }
 
     public Boolean isFalse() {
@@ -84,7 +106,7 @@ public class BooleanAtom extends BooleanFormula{
             return false;
         }
         FluentFormulaAtom other = (FluentFormulaAtom) obj;
-        return (value == other.getValue() && fluent == other.getFluent);
+        return (value == other.getBooleanValue() && fluent == other.getFluent);
     }
 
 

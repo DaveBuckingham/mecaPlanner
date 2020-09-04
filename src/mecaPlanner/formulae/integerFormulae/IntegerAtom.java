@@ -34,7 +34,7 @@ public class IntegerAtom extends IntegerFormula{
         return fluent;
     }
 
-    public Integer getValue() {
+    public Integer getIntegerValue() {
         if (value == null) {
             throw new RuntimeException("can't get value of fluent atom: " + fluent.toString());
         }
@@ -87,7 +87,7 @@ public class IntegerAtom extends IntegerFormula{
             return false;
         }
         FluentFormulaAtom other = (FluentFormulaAtom) obj;
-        return (value == other.getValue() && fluent == other.getFluent);
+        return (value == other.getIntegerValue() && fluent == other.getFluent);
     }
 
 

@@ -17,4 +17,8 @@ public class Assignment {
     public Formula getValue() {
         return value;
     }
+
+    public String toString()  {
+        return (reference.toString() + "<=" + value.toString());
+    }
 }

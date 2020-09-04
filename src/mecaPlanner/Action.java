@@ -1,7 +1,7 @@
 package mecaPlanner;
 
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
-import mecaPlanner.formulae.booleanFormulae.BooleanFormula;
+import mecaPlanner.formulae.beliefFormulae.*;
+import mecaPlanner.formulae.booleanFormulae.*;
 import mecaPlanner.state.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
@@ -240,11 +240,11 @@ public class Action implements java.io.Serializable {
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Set<BooleanFormula> revealedConditions = new HashSet<>();
             if (anyObservers || anyAware) {
-                for (Map.Entry<BooleaFormula, Assignment> e : effects.entrySet()) {
+                for (Map.Entry<BooleanFormula, Assignment> e : effects.entrySet()) {
                     BooleanFormula condition = e.getKey();
                     Assignment assignment = e.getValue();
-                    if (assignment.getFluent(). && !condition.isTrue()) {
-                    if (!effect.evaluate(oldFromWorld) && !condition.isTrue()) {
+                    assert(!condition.isFalse());
+                    if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
                         // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
                         if (condition.evaluate(oldFromWorld)) {
                             revealedConditions.add(condition);
@@ -279,7 +279,7 @@ public class Action implements java.io.Serializable {
                     // WHAT DOES THE AGENT HEAR ANNOUNCED AND NOT REJECT
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
                     for (BeliefFormula announcement : announces) {
-                        BeliefFormula knowsNotAnnouncement = new BeliefFormulaKnows(agent, announcement.negate());
+                        BeliefFormula knowsNotAnnouncement = new BeliefKnowsFormula(agent, announcement.negate());
                         if (!knowsNotAnnouncement.evaluate(beforeState)) {
                             acceptedAnnouncements.add(announcement);
                         }
@@ -290,14 +290,14 @@ public class Action implements java.io.Serializable {
                     Set<BooleanFormula> allKnowledgeLearned = new HashSet<>();
                     allKnowledgeLearned.addAll(revealedConditions);
                     allKnowledgeLearned.addAll(groundDetermines);
-                    BooleanFormula learnedKnowledgeFormula = new BooleanFormulaAnd(allKnowledgeLearned);
+                    BooleanFormula learnedKnowledgeFormula = BooleanAndFormula.make(allKnowledgeLearned);
 
                     // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
                     // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
                     Set<BeliefFormula> allBeliefLearned = new HashSet<>();
                     allBeliefLearned.addAll(allKnowledgeLearned);
                     allBeliefLearned.addAll(acceptedAnnouncements);
-                    BeliefFormula learnedBeliefFormula = new BeliefFormulaAnd(allBeliefLearned);
+                    BeliefFormula learnedBeliefFormula = new BeliefAndFormula(allBeliefLearned);
 
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
                     for (World toWorld: observedWorlds) {
@@ -541,11 +541,11 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<FluentLiteral, BooleanFormula> a : effects.entrySet()) {
+        for (Map.Entry<BooleanFormula, Assignment> a : effects.entrySet()) {
             str.append("\t\t");
-            str.append(a.getKey());
-            str.append(" if ");
             str.append(a.getValue());
+            str.append(" if ");
+            str.append(a.getKey());
             str.append("\n");
         }
  

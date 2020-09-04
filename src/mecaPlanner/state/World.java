@@ -26,9 +26,10 @@ public class World implements java.io.Serializable {
 
     private String name;
 
-    public World(String name, Map<Fluent, Boolean> booleanFluents,
-                              Map<Fluent, Integer> integerFluents,
-                              Map<Fluent, String> objectFluents) {
+    public World(String name,
+                 Map<Fluent, Boolean> booleanFluents,
+                 Map<Fluent, Integer> integerFluents,
+                 Map<Fluent, String> objectFluents) {
         this.id = World.idCounter++;
         this.name = name;
         this.booleanFluents = booleanFluents;
@@ -37,6 +38,7 @@ public class World implements java.io.Serializable {
     }
 
     public World(World toCopy) {
+        this.id = World.idCounter++;
         this.name = toCopy.getName() + "'";
         this.booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
         this.integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
@@ -57,22 +59,42 @@ public class World implements java.io.Serializable {
 
     public World update(Set<Assignment> assignments) {
         World world = new World(this);
+        Map<Fluent, Boolean> newBooleanFluents = new HashMap<>(booleanFluents);;
+        Map<Fluent, Integer> newIntegerFluents = new HashMap<>(integerFluents);;
+        Map<Fluent, String> newObjectFluents = new HashMap<>(objectFluents);;
         for (Assignment assignment : assignments) {
-            if (booleanFluents.containsKey(assignment.getReference())) {
-                booleanFluents.put(assignment.getReference(), assignment.getValue());
+            Fluent reference = assignment.getReference();
+            if (newBooleanFluents.containsKey(assignment.getReference())) {
+                newBooleanFluents.put(reference, assignment.getValue().getBooleanValue());
             }
-            else if (integerFluents.containsKey(assignment.getReference())) {
-                integerFluents.put(assignment.getReference(), assignment.getValue());
+            else if (newIntegerFluents.containsKey(assignment.getReference())) {
+                newIntegerFluents.put(reference, assignment.getValue().getIntegerValue());
             }
-            else if (objectFluents.containsKey(assignment.getReference())) {
-                objectFluents.put(assignment.getReference(), assignment.getValue());
+            else if (newObjectFluents.containsKey(assignment.getReference())) {
+                newObjectFluents.put(reference, assignment.getValue().getObjectValue());
+            }
+            else {
+                throw new RuntimeException("invalid assignment ref: " + reference);
             }
             
         }
+        return new World(this.name + "'", newBooleanFluents, newIntegerFluents, newObjectFluents);
     }
 
-    public Boolean alsterdByAssignment(Assignment assignment) {
-    ...
+    public Boolean alteredByAssignment(Assignment assignment) {
+            Fluent reference = assignment.getReference();
+            if (booleanFluents.containsKey(assignment.getReference())) {
+                return booleanFluents.get(reference).equals(assignment.getValue());
+            }
+            else if (integerFluents.containsKey(assignment.getReference())) {
+                return integerFluents.get(reference).equals(assignment.getValue());
+            }
+            else if (objectFluents.containsKey(assignment.getReference())) {
+                return objectFluents.get(reference).equals(assignment.getValue());
+            }
+            else {
+                throw new RuntimeException("invalid assignment ref: " + reference);
+            }
     }
 
     public int getId() {
@@ -102,9 +124,9 @@ public class World implements java.io.Serializable {
 
 
     public boolean equivalent(World otherWorld) {
-        return booleanFluents.equals(otherWorld.getBooleanFluents());
-        return integerFluents.equals(otherWorld.getIntegerFluents());
-        return objectFluents.equals(otherWorld.getobjectFluents());
+        return (booleanFluents.equals(otherWorld.getBooleanFluents()) &&
+                integerFluents.equals(otherWorld.getIntegerFluents()) &&
+                objectFluents.equals(otherWorld.getObjectFluents()) );
     }
 
     public String getName() {

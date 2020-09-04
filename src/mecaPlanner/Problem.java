@@ -58,7 +58,7 @@ public class Problem implements java.io.Serializable {
         if (goals.size() == 1) {
             return goals.iterator().next();
         }
-        return new BeliefAndFormula.make(goals);
+        return BeliefAndFormula.make(goals);
     }
 
     public Map<String, Model> getStartingModels() {

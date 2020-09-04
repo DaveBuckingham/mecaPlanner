@@ -104,45 +104,45 @@ public class NDState implements java.io.Serializable {
     }
 
 
-    public Set<Boolean> resolveBoolean(Fluent f) {
+    public Set<Boolean> resolveBooleanPosibilities(Fluent f) {
         Set<Boolean> valsInWorlds = new HashSet<>();
         for (World w : designatedWorlds) {
             valsInWorlds.add(w.resolveBoolean(f));
         }
         return valsInWorlds;
     }
-    public Boolean resolveBooleanNecessarily(Fluent f) {
-        Set<Boolean> valsInWorlds = this.resolveBoolean(f);
+    public Boolean resolveBoolean(Fluent f) {
+        Set<Boolean> valsInWorlds = this.resolveBooleanPosibilities(f);
         if (valsInWorlds.size() > 1) {
             return null;
         }
         return valsInWorlds.iterator().next();
     }
 
-    public Set<Integer> resolveInteger(Fluent f) {
+    public Set<Integer> resolveIntegerPosibilities(Fluent f) {
         Set<Integer> valsInWorlds = new HashSet<>();
         for (World w : designatedWorlds) {
             valsInWorlds.add(w.resolveInteger(f));
         }
         return valsInWorlds;
     }
-    public Integer resolveIntegerNecessarily(Fluent f) {
-        Set<Integer> valsInWorlds = this.resolveInteger(f);
+    public Integer resolveInteger(Fluent f) {
+        Set<Integer> valsInWorlds = this.resolveIntegerPosibilities(f);
         if (valsInWorlds.size() > 1) {
             return null;
         }
         return valsInWorlds.iterator().next();
     }
 
-    public Set<String> resolveObject(Fluent f) {
+    public Set<String> resolveObjectPosibilities(Fluent f) {
         Set<String> valsInWorlds = new HashSet<>();
         for (World w : designatedWorlds) {
             valsInWorlds.add(w.resolveObject(f));
         }
         return valsInWorlds;
     }
-    public String resolveObjectNecessarily(Fluent f) {
-        Set<String> valsInWorlds = this.resolveObject(f);
+    public String resolveObject(Fluent f) {
+        Set<String> valsInWorlds = this.resolveObjectPosibilities(f);
         if (valsInWorlds.size() > 1) {
             return null;
         }

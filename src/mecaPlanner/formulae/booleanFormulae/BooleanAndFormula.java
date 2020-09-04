@@ -25,7 +25,7 @@ public class BooleanAndFormula extends BooleanFormula{
     public static BooleanFormula make(List<BooleanFormula> inputFormulae) {
         List<BooleanFormula> formulae = new ArrayLiset<>();
         for (BooleanFormula bf : inputFormulae) {
-            if (isFalse()) {
+            if (bf.isFalse()) {
                 return bf;
             }
             else {
@@ -45,6 +45,7 @@ public class BooleanAndFormula extends BooleanFormula{
     public static BooleanFormula make(BooleanFormula ...inputFormulae) {
         return BooleanAndFormula.make(Arrays.asList(inputFormulae));
     }
+
 
 
     public List<BooleanFormula> getFormulae() {

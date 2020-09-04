@@ -76,7 +76,7 @@ public abstract class GNode  {
     }
 
     public boolean isGoal() {
-        return goal.holds(estate, time);
+        return goal.evaluate(estate);
     }
 
     public int getAgentIndex() {

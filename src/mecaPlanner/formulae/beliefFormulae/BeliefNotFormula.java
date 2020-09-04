@@ -1,5 +1,7 @@
 package mecaPlanner.formulae.beliefFormulae;
 
+import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
+
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -21,17 +23,21 @@ public class BeliefNotFormula extends BeliefFormula{
     }
 
     public static BeliefFormula make(BeliefFormula inputFormula) {
-        if (inputFormula instanceof BooleanValue) {
-            return ((BooleanValue) simplified).negate();
+        if (inputFormula.isTrue()) {
+            return new BooleanAtom(false);
+        }
+        if (inputFormula.isFalse()) {
+            return new BooleanAtom(true);
         }
         if (inputFormula instanceof BeliefNotFormula) {
             return ((BeliefNotFormula) inputFormula).getFormula();
         }
-        return new BeliefNotFormula(newFormula);
+        return new BeliefNotFormula(inputFormula);
     }
 
-
-
+    public BeliefFormula getFormula() {
+        return formula;
+    }
 
 
     public Boolean evaluate(KripkeStructure kripke, World world) {

@@ -39,7 +39,7 @@ public class BeliefCommonFormula extends BeliefFormula {
     public Boolean evaluate(KripkeStructure kripke, World world) {
         //System.out.println("WARNING: incorrectly computing 'evaluate' for Common belief");
         for (String agent : commonAgents) {
-            BeliefFormulaBelieves believes = new BeliefFormulaBelieves(agent, formula);
+            BeliefBelievesFormula believes = new BeliefBelievesFormula(agent, formula);
             if (!believes.evaluate(kripke, world)) {
                 return false;
             }

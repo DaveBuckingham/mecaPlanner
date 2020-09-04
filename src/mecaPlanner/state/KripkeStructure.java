@@ -133,7 +133,7 @@ public class KripkeStructure implements java.io.Serializable {
                 assert(!part.isEmpty());
                 World sample = part.iterator().next();
                 if (sample.equivalent(w)) {
-                    part.put(w);
+                    part.add(w);
                     foundPart = true;
                     break;
                 }
