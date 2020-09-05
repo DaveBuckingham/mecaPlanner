@@ -21,26 +21,23 @@ agents{
     human1{PizzaModel},
 }
 
-passive{}
 
 fluents{
-    at(Locatable, Locatable),
-    human_hungry(),
-    door_open(),
-    robot_charged(),
+    at(Locatable, Locatable) - Boolean,
+    human_hungry()- Boolean,
+    door_open() - Boolean,
+    robot_charged() - Boolean,
 }
 
-constants{
-}
 
 initially{
     w1 <-
     {
-        at(human1, room1),
-        at(robot1, room1),
-        at(pizza,room1),
-        at(hotdog,room2),
-        human_hungry()
+        at(human1, room1) <- true,
+        at(robot1, room1) <- true,
+        at(pizza,room1) <- true,
+        at(hotdog,room2) <- true,
+        human_hungry() <- true
     }
     B_human1 <- {(w1,w1)},
     B_robot1 <- {(w1,w1)},
@@ -51,50 +48,50 @@ goals{
 }
 
 actions{
-    move[?f-location,?t-location,?a-actor](?f,?t){
+    move(?a-actor,?f-location,?t-location){
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{door_open()},
         precondition{~same(?f,?t)},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
     }
 
-    open_door[](){
+    open_door(){
         owner{human1},
         precondition{~door_open()},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
         causes{door_open()},
     }
 
-    charge[](){
+    charge(){
         owner{robot1},
         precondition{at(robot1,room2)},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
         causes{robot_charged()},
     }
 
 
-    eat[?f-food,?l-location,?r-robot](?f,?l){
+    eat(?f-food,?l-location,?r-robot){
         owner{?r},
         precondition{at(?r, ?l)},
         precondition{at(?f, ?l)},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
         causes{~(at(?f, ?l))},
     }
 
-    eat[?f-food,?l-location,?h-human](?f,?l){
+    eat(?f-food,?l-location,?h-human){
         owner{?h},
         precondition{at(?h, ?l)},
         precondition{at(?f, ?l)},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
         causes{~(at(?f, ?l))},
         causes{~(human_hungry())},
     }
 
-    wait[?a - actor]() {
+    wait(?a - actor) {
         owner{?a},
-        observes[?o-actor]{?o},
+        observes(?o-actor){?o},
     }
 }

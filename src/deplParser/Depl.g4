@@ -17,29 +17,26 @@ OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
 OP_NOT                  : '~'|'!' ;
 
-INTEGER                 : DIGIT+;
-ASSIGN                  : '<-';
-
-// KEYWORD_TIME           : 'time' | 'timestep' ;
 KEYWORD_TRUE            : 'true' ;
 KEYWORD_FALSE           : 'false' ;
 KEYWORD_BOOLEAN         : 'Boolean' ;
 KEYWORD_INTEGER         : 'Integer' ;
-//KEYWORD_OBJECT          : 'Object' ;
 
-OBJECT_TYPE             : UPPER ANYCHAR*;
-FLUENT_TYPE             : KEYWORD_BOOLEAN | KEYWORD_INTEGER | OBJECT_TYPE ;
-OBJECT                  : LOWER_NAME ;
+INTEGER                 : DIGIT+;
+ASSIGN                  : '<-';
+
 VARIABLE                : '?' LOWER_NAME;
-CLASS                   : (ANYCHAR*'.')* UPPER LETTER*;
 
 LOWER_NAME              : LOWER ANYCHAR*;
+UPPER_NAME              : UPPER ANYCHAR*;
 
  
 LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;
 COMMENT                 : '/*' .*? '*/' -> skip;
 WS                      : [ \n\t\r]+ -> skip;
 
+objectName              : LOWER_NAME ;
+objectType              : UPPER_NAME ;
 
 
 init :
@@ -59,14 +56,14 @@ init :
 
 typesSection : 'types' '{' (typeDefinition ',')* typeDefinition? '}' ;
 
-typeDefinition : OBJECT_TYPE '-' OBJECT_TYPE ;
+typeDefinition : objectType '-' objectType ;
 
 
-// OBJECT DEFINITIONS
+// objectName DEFINITIONS
 
 objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
 
-objectDefinition : OBJECT '-' OBJECT_TYPE ;
+objectDefinition : objectName '-' objectType ;
 
 
 
@@ -74,30 +71,28 @@ objectDefinition : OBJECT '-' OBJECT_TYPE ;
 
 agentsSection : 'agents' '{' (agentDef ',')* agentDef? '}' ;
 
-agentDef : systemAgent | environmentAgent ;
+agentDef : objectName ('{' UPPER_NAME '}')? ;
 
-systemAgent : OBJECT ;
-
-environmentAgent : OBJECT '{' CLASS '}' ;
 
 
 // PASSIVE AGENT DEFINITIONS
 
 passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
 
-passiveDef : OBJECT ;
+passiveDef : objectName ;
 
 
 
 
 // FLUENTS DEFINITIONS
 
-groundableObject : OBJECT | VARIABLE ;
-expandableObject : OBJECT | OBJECT_TYPE;
+groundableObject : objectName | VARIABLE ;
+expandableObject : objectName | objectType;
 
-expandableFluent : LOWER_NAME '[' (expandableObject ',')* expandableObject? ']' ;
-fluentDef : expandableFluent '-' FLUENT_TYPE ;
-fluentsSection : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
+expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
+fluentType       : KEYWORD_BOOLEAN | KEYWORD_INTEGER | objectType ;
+fluentDef        :  expandableFluent '-' fluentType ;
+fluentsSection   : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 
 
@@ -109,14 +104,14 @@ constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 
 // FORMULAE
 
-fluent : LOWER_NAME '[' (groundableObject ',')* groundableObject? ']' ;
+fluent : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')' ;
 fluentFormula : integerFormula | booleanFormula | groundableObject ;
 
 value 
     : KEYWORD_FALSE           # valueFalse
     | KEYWORD_TRUE            # valueTrue
     | INTEGER                 # valueInteger
-    | OBJECT                  # valueObject
+    | objectName                  # valueObject
     ;
 
 integerFormula  // EVALUATE TO INTEGER
@@ -161,14 +156,14 @@ beliefFormula
 initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
 
 //startStateDef : initiallyDef | kripkeModel ;
-startStateDef : kripkeModel ;
+startStateDef : '{' kripkeModel '}' ;
 
 //initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
-kripkeModel : '{' (kripkeWorld ',')+ (kripkeRelation ',')* kripkeRelation? '}' ;
+kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
 kripkeWorld : LOWER_NAME ASSIGN '{' (valueAssignment ',')* valueAssignment? '}' ;
-kripkeRelation : relationType OBJECT ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;
+kripkeRelation : relationType objectName ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;
 
 relationType : 'B_' | 'K_' ;
 fromWorld : LOWER_NAME;
@@ -189,7 +184,7 @@ actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
 actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : '(' (variableDef ',')* variableDef? ')' ;
-variableDef : VARIABLE '-' OBJECT_TYPE ;
+variableDef : VARIABLE '-' objectType ;
 
 formulaAssignment : fluent ASSIGN integerFormula | beliefFormula | groundableObject ;
 

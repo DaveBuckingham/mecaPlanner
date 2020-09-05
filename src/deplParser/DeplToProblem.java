@@ -70,7 +70,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         List<List<String>> varGroundings = new ArrayList<List<String>>();
         for (DeplParser.VariableDefContext variableDefCtx : ctx.variableDef()) {
             varNames.add(variableDefCtx.VARIABLE().getText());
-            varGroundings.add(typeDefs.get(variableDefCtx.OBJECT_TYPE().getText()).groundings);
+            varGroundings.add(typeDefs.get(variableDefCtx.objectType().getText()).groundings);
         }
 
         for (List<String> grounding : cartesianProduct(varGroundings)) {
@@ -223,8 +223,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitTypeDefinition(DeplParser.TypeDefinitionContext ctx) {
-        String subtype = ctx.OBJECT_TYPE(0).getText();
-        String supertype = ctx.OBJECT_TYPE(1).getText();
+        String subtype = ctx.objectType(0).getText();
+        String supertype = ctx.objectType(1).getText();
         this.typeDefs.put(subtype, new TypeNode(supertype));
         return null;
     }
@@ -239,8 +239,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitObjectDefinition(DeplParser.ObjectDefinitionContext ctx) {
-        String objectName = ctx.OBJECT().getText();
-        String objectType = ctx.OBJECT_TYPE().getText();
+        String objectName = ctx.objectName().getText();
+        String objectType = ctx.objectType().getText();
         while (!objectType.equalsIgnoreCase("object")) {
             if (!typeDefs.containsKey(objectType)) {
                 throw new RuntimeException("object type or supertype " + objectType + " not defined");
@@ -274,58 +274,50 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitAgentDef(DeplParser.AgentDefContext ctx) {
         visitChildren(ctx);
-        return null;
-    }
+        String agent = ctx.objectName().getText();
 
-    @Override public Void visitSystemAgent(DeplParser.SystemAgentContext ctx) {
-        String agent = ctx.OBJECT().getText();
-        if (this.systemAgentIndex != null) {
-            throw new RuntimeException("cannot define multiple system agents");
+
+        if (ctx.UPPER_NAME() == null) {
+            if (this.systemAgentIndex != null) {
+                throw new RuntimeException("cannot define multiple system agents");
+            }
+            this.systemAgentIndex = this.agentIndex;
+        }
+        else {
+            String modelClassName = "mecaPlanner.models." + ctx.UPPER_NAME().getText();
+            try {
+                Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
+                Model model = (Model) constructor.newInstance(agent, domain);
+                startingModels.put(agent, model);
+            }
+            catch(ClassNotFoundException ex) {
+                System.out.println(ex.toString());
+                System.exit(1);
+            }
+            catch(NoSuchMethodException ex) {
+                System.out.println(ex.toString());
+                System.exit(1);
+            }
+            catch(InstantiationException ex) {
+                System.out.println(ex.toString());
+                System.exit(1);
+            }
+            catch(IllegalAccessException ex) {
+                System.out.println(ex.toString());
+                System.exit(1);
+            }
+            catch(InvocationTargetException ex) {
+                System.out.println(ex.toString());
+                System.out.println("Exception while instantiating " + modelClassName);
+                System.out.println("The cause was: " + ex.getCause());
+                System.exit(1);
+            }
         }
         domain.addAgent(agent);
-        this.systemAgentIndex = this.agentIndex;
         this.agentIndex += 1;
         return null;
     }
 
-    @Override public Void visitEnvironmentAgent(DeplParser.EnvironmentAgentContext ctx) {
-        String agent = ctx.OBJECT().getText();
-
-        Model model = null;
-        String modelClassName = "mecaPlanner.models." + ctx.CLASS().getText();
-        try {
-            Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
-            model = (Model) constructor.newInstance(agent, domain);
-        }
-        catch(ClassNotFoundException ex) {
-            System.out.println(ex.toString());
-            System.exit(1);
-        }
-        catch(NoSuchMethodException ex) {
-            System.out.println(ex.toString());
-            System.exit(1);
-        }
-        catch(InstantiationException ex) {
-            System.out.println(ex.toString());
-            System.exit(1);
-        }
-        catch(IllegalAccessException ex) {
-            System.out.println(ex.toString());
-            System.exit(1);
-        }
-        catch(InvocationTargetException ex) {
-            System.out.println(ex.toString());
-            System.out.println("Exception while instantiating " + modelClassName);
-            System.out.println("The cause was: " + ex.getCause());
-            System.exit(1);
-        }
-
-        startingModels.put(agent, model);
-        domain.addAgent(agent);
-        this.agentIndex += 1;
-
-        return null;
-    }
 
     @Override public Void visitPassiveSection(DeplParser.PassiveSectionContext ctx) {
         visitChildren(ctx);
@@ -335,7 +327,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public Void visitPassiveDef(DeplParser.PassiveDefContext ctx) {
-        String name = ctx.OBJECT().getText();
+        String name = ctx.objectName().getText();
         domain.addPassive(name);
         return null;
     }
@@ -350,11 +342,11 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public List<String> visitExpandableObject(DeplParser.ExpandableObjectContext ctx) {
-        if (ctx.OBJECT() == null) {
-            return typeDefs.get(ctx.OBJECT_TYPE().getText()).getGroundings();
+        if (ctx.objectName() == null) {
+            return typeDefs.get(ctx.objectType().getText()).getGroundings();
         }
         List<String> objects = new ArrayList<>();
-        objects.add(ctx.OBJECT().getText());
+        objects.add(ctx.objectName().getText());
         return objects;
     }
 
@@ -381,7 +373,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     //HERE
     @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
-        String type = ctx.FLUENT_TYPE().getText();
+        String type = ctx.fluentType().getText();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
             fluents.put(fluent, type);
         }
@@ -455,7 +447,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
             String relationType = relationCtx.relationType().getText();
-            String agent = relationCtx.OBJECT().getText();
+            String agent = relationCtx.objectName().getText();
 
             Relation relation = new Relation();
             List<String> fromWorlds = new ArrayList<>();
@@ -751,13 +743,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
     }
     @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
-        return new ObjectAtom(ctx.OBJECT().getText());
+        return new ObjectAtom(ctx.objectName().getText());
     }
 
 
     @Override public ObjectAtom visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
-        if (ctx.OBJECT() != null) {
-            String name = ctx.OBJECT().getText();
+        if (ctx.objectName() != null) {
+            String name = ctx.objectName().getText();
             if (!allObjects.contains(name)) {
                 throw new RuntimeException("undefined object: " + name);
             }
