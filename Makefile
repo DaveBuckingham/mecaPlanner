@@ -2,7 +2,7 @@
 
 antlr   := java -jar $(PWD)/lib/antlr-4.7.1-complete.jar
 visitor := -no-listener -visitor
-java    = javac -Xmaxerrs 4 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
+java    = javac -g -Xmaxerrs 4 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
 jarname := mecaPlanner-`cat VERSION`.jar
 
 builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)
@@ -41,6 +41,9 @@ simulator: mecaPlanner.jar
 	echo '#!/bin/bash' > ./sim
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./sim
 	chmod +x ./sim
+	echo '#!/bin/bash' > ./debug
+	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./debug
+	chmod +x ./debug
 
 demo: mecaPlanner.jar
 	$(java) src/tools/Demo.java -d build/

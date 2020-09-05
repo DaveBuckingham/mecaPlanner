@@ -111,7 +111,7 @@ value
     : KEYWORD_FALSE           # valueFalse
     | KEYWORD_TRUE            # valueTrue
     | INTEGER                 # valueInteger
-    | objectName                  # valueObject
+    | objectName              # valueObject
     ;
 
 integerFormula  // EVALUATE TO INTEGER
@@ -147,7 +147,7 @@ beliefFormula
     | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B_' groundableObject '(' beliefFormula ')'                # beliefBelieves
+    | 'B' '[' groundableObject ']' '(' beliefFormula ')'                # beliefBelieves
     ;
 
 
@@ -163,9 +163,11 @@ startStateDef : '{' kripkeModel '}' ;
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
 kripkeWorld : LOWER_NAME ASSIGN '{' (valueAssignment ',')* valueAssignment? '}' ;
-kripkeRelation : relationType objectName ASSIGN '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;
 
-relationType : 'B_' | 'K_' ;
+kripkeRelation : relationType '[' objectName ']' ASSIGN
+                 '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;
+
+relationType : 'B' | 'K' ;
 fromWorld : LOWER_NAME;
 toWorld : LOWER_NAME;
 
@@ -183,7 +185,7 @@ goal : beliefFormula ;
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
 
 actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
-variableDefList : '(' (variableDef ',')* variableDef? ')' ;
+variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
 formulaAssignment : fluent ASSIGN integerFormula | beliefFormula | groundableObject ;

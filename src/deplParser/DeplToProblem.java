@@ -40,7 +40,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Set<BeliefFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
-    private Map<Fluent,String> fluents;              // fluents and their fluent types
+    private Set<Fluent> allBooleanFluents;
+    private Set<Fluent> allIntegerFluents;
+    private Set<Fluent> allObjectFluents;
     private Integer agentIndex;
     private Set<String> allObjects;          // to check for undefined objects
     private Set<Assignment> constants;
@@ -184,6 +186,10 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.agentIndex = 0;
         this.allObjects = new HashSet<String>();
+
+        allBooleanFluents = new HashSet<>();
+        allIntegerFluents = new HashSet<>();
+        allObjectFluents = new HashSet<>();
         this.constants = new HashSet<Assignment>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
@@ -375,7 +381,22 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
         String type = ctx.fluentType().getText();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
-            fluents.put(fluent, type);
+            if (allObjects.contains(fluent.getName())) {
+                throw new RuntimeException("Fluent name already used for object: " + fluent.getName());
+            }
+            switch (type) {
+                case "Boolean":
+                    allBooleanFluents.add(fluent);
+                    break;
+                case "Integer":
+                    allIntegerFluents.add(fluent);
+                    break;
+                //XXX
+                case "Object":
+                    allObjectFluents.add(fluent);
+                    break;
+                default : throw new RuntimeException("invalid fluent type: " + type);
+            }
         }
         return null;
     }
@@ -395,7 +416,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
         Formula value = (Formula) visit(ctx.value());
-        Set<Fluent> fluents = new HashSet<>();
         Set<Assignment> assignments = new HashSet<>();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
             assignments.add(new Assignment(fluent, value));
@@ -471,10 +491,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                 relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
             }
 
-            if (relationType.equals("B_")) {
+            if (relationType.equals("B")) {
                 beliefRelations.put(agent, relation);
             }
-            else if (relationType.equals("K_")) {
+            else if (relationType.equals("K")) {
                 knowledgeRelations.put(agent, relation);
             }
             else {
@@ -490,27 +510,46 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
-        Map<Fluent, Boolean> booleanFluents = new HashMap<>();
-        Map<Fluent, Integer> integerFluents = new HashMap<>();
-        Map<Fluent, String> objectFluents = new HashMap<>();
+        Map<Fluent, Boolean> booleanFluentAssignments = new HashMap<>();
+        Map<Fluent, Integer> integerFluentAssignments = new HashMap<>();
+        Map<Fluent, String> objectFluentAssignments = new HashMap<>();
         for (DeplParser.ValueAssignmentContext assignCtx : ctx.valueAssignment()) {
-            Assignment assignment = (Assignment) visit(assignCtx);
-            Fluent fluent = assignment.getReference();
-            Formula value = assignment.getValue();
-            if (value instanceof BooleanAtom && !((BooleanAtom)value).isFluent()) {
-                Boolean b = value.getBooleanValue();
-                booleanFluents.put(fluent, b);
+            Set<Assignment> assignments = (Set<Assignment>) visit(assignCtx);
+            for (Assignment assignment : assignments) {
+                Fluent fluent = assignment.getReference();
+                Formula value = assignment.getValue();
+                if (value instanceof BooleanAtom && !((BooleanAtom)value).isFluent()) {
+                    Boolean b = value.getBooleanValue();
+                    booleanFluentAssignments.put(fluent, b);
+                }
+                else if (value instanceof IntegerAtom && !((IntegerAtom)value).isFluent()) {
+                    Integer i = value.getIntegerValue();
+                    integerFluentAssignments.put(fluent, i);
+                }
+                else if (value instanceof ObjectAtom && !((ObjectAtom)value).isFluent()) {
+                    String o = value.getObjectValue();
+                    objectFluentAssignments.put(fluent, o);
+                }
+                else {
+                    throw new RuntimeException("invalid fluent assignment: " + assignCtx.getText());
+                }
             }
-            else if (value instanceof IntegerAtom && !((IntegerAtom)value).isFluent()) {
-                Integer i = value.getIntegerValue();
-                integerFluents.put(fluent, i);
+        }
+        for (Fluent booleanFluent : allBooleanFluents.keySet()) {
+            if (!booleanFluentAssignments.contains(booleanFluent)) {
+                Log.info("boolean fluent " + booleanFluent + " not set, assuming false.");
+                booleanFluentAssignments.put(booleanFluent, false);
             }
-            else if (value instanceof ObjectAtom && !((ObjectAtom)value).isFluent()) {
-                String o = value.getObjectValue();
-                objectFluents.put(fluent, o);
+        }
+        for (Fluent integerFluent : allIntegerFluents.keySet()) {
+            if (!integerFluentAssignments.contains(integerFluent)) {
+                throw new RuntimeException("integer fluent " + integerFluent + " must be set.");
             }
-            else {
-                throw new RuntimeException("invalid fluent assignment: " + assignCtx.getText());
+        }
+
+        for (Fluent objectFluent : allObjectFluents.keySet()) {
+            if (!objectFluentAssignments.contains(objectFluent)) {
+                throw new RuntimeException("object fluent " + objectFluent + " must be set.");
             }
         }
 
@@ -793,9 +832,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public IntegerFormula visitIntegerFluent(DeplParser.IntegerFluentContext ctx) {
         Fluent integerFluent = (Fluent) visit(ctx.fluent());
-        // IS THERE A BETTER WAY THAN DUPLICATING THE STRING HERE AND IN G4?
-        if (fluents.get(integerFluent) != "Integer") {
-            throw new RuntimeException("Fluent type is " + fluents.get(integerFluent) + ", expected Integer");
+        if (!allIntegerFluents.contains(integerFluent)) {
+            throw new RuntimeException("unknown integer fluent: " + integerFluent);
         }
         return new IntegerAtom(integerFluent);
     }
@@ -823,9 +861,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public BooleanFormula visitBooleanFluent(DeplParser.BooleanFluentContext ctx) {
         Fluent booleanFluent = (Fluent) visit(ctx.fluent());
-        // IS THERE A BETTER WAY THAN DUPLICATING THE STRING HERE AND IN G4?
-        if (fluents.get(booleanFluent) != "Boolean") {
-            throw new RuntimeException("Fluent type is " + fluents.get(booleanFluent) + ", expected Boolean");
+        if (!allBooleanFluents.contains(booleanFluent)) {
+            throw new RuntimeException("unknown boolean fluent: " + booleanFluent);
         }
         return new BooleanAtom(booleanFluent);
     }

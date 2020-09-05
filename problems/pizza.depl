@@ -39,8 +39,10 @@ initially{
         at(hotdog,room2) <- true,
         human_hungry() <- true
     }
-    B_human1 <- {(w1,w1)},
-    B_robot1 <- {(w1,w1)},
+    B[human1] <- {(w1,w1)},
+    K[human1] <- {(w1,w1)},
+    B[robot1] <- {(w1,w1)},
+    K[robot1] <- {(w1,w1)},
 }
 
 goals{
@@ -48,12 +50,12 @@ goals{
 }
 
 actions{
-    move(?a-actor,?f-location,?t-location){
+    move(?a-Actor,?f-Location,?t-Location){
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{door_open()},
         precondition{~same(?f,?t)},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
     }
@@ -61,37 +63,37 @@ actions{
     open_door(){
         owner{human1},
         precondition{~door_open()},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
         causes{door_open()},
     }
 
     charge(){
         owner{robot1},
         precondition{at(robot1,room2)},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
         causes{robot_charged()},
     }
 
 
-    eat(?f-food,?l-location,?r-robot){
+    eat(?f-Food,?l-Location,?r-Robot){
         owner{?r},
         precondition{at(?r, ?l)},
         precondition{at(?f, ?l)},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
         causes{~(at(?f, ?l))},
     }
 
-    eat(?f-food,?l-location,?h-human){
+    eat(?f-Food,?l-Location,?h-Human){
         owner{?h},
         precondition{at(?h, ?l)},
         precondition{at(?f, ?l)},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
         causes{~(at(?f, ?l))},
         causes{~(human_hungry())},
     }
 
-    wait(?a - actor) {
+    wait(?a - Actor) {
         owner{?a},
-        observes(?o-actor){?o},
+        observes(?o-Actor){?o},
     }
 }
