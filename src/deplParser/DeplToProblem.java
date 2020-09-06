@@ -45,10 +45,12 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Map<Fluent,String> allObjectFluents;
     private Integer agentIndex;
     private Map<String, String> allObjects;     // from object name to object type
-    private Map<Assignment, String> constants;  // Strings are types
-    //private Map<Fluent,Integer> integerConstants;
-    //private Map<Fluent,Boolean> booleanConstants;
-    //private Map<Fluent,String> objectConstants;
+
+    //private Map<Assignment, String> constants;  // Strings are types
+    private Map<Fluent,Integer> integerConstants;
+    private Map<Fluent,Boolean> booleanConstants;
+    private Map<Fluent,String> objectConstants;
+
     private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
 
@@ -190,7 +192,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         allBooleanFluents = new HashSet<>();
         allIntegerFluents = new HashSet<>();
         allObjectFluents = new HashMap<>();
-        this.constants = new HashMap<>();
+        //this.constants = new HashMap<>();
+        this.booleanConstants = new HashMap<>();
+        this.integerConstants = new HashMap<>();
+        this.objectConstants = new HashMap<>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
 
@@ -377,7 +382,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return expandedFluents;
     }
 
-    //HERE
     @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
         String type = ctx.fluentType().getText();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
@@ -407,20 +411,20 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignmentCtx);
             for (Assignment a : assignments) {
-                String type;
-                if (assignment.getValue() instanceof BooleanAtom) {
-                    type = "Boolean";
+                Fluent reference = assignment.getReference();
+                Formula value = assignment.getValue();
+                if (value instanceof BooleanAtom) {
+                    booleanConstants.put(reference, value.getBooleanValue());
                 }
                 else if (assignment.getValue() instanceof IntegerAtom) {
-                    type = "Integer";
+                    integerConstants.put(reference, value.getIntegerValue());
                 }
                 else if (assignment.getValue() instanceof ObjectAtom) {
-                    type = allObjects.get(assignment.getValue().getObjectValue());
+                    objectConstants.put(reference, value.getObjectValue());
                 }
                 else {
                     throw new RuntimeException("bad assignment");
                 }
-                constants.put(assignment, type);
             }
         }
         return null;
@@ -844,11 +848,16 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public IntegerFormula visitIntegerFluent(DeplParser.IntegerFluentContext ctx) {
         Fluent integerFluent = (Fluent) visit(ctx.fluent());
+        if (integerConstants.containsKey(integerFluent)) {
+            return integerConstants.get(integerFluent);
+        }
         if (!allIntegerFluents.contains(integerFluent)) {
             throw new RuntimeException("unknown integer fluent: " + integerFluent);
         }
         return new IntegerAtom(integerFluent);
     }
+
+    // WHERE IS visitObjectFluent!!!!!!!!!!!
 
     @Override public IntegerFormula visitIntegerLiteral(DeplParser.IntegerLiteralContext ctx) {
         return new IntegerAtom((Integer) visit(ctx.INTEGER()));
@@ -873,6 +882,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public BooleanFormula visitBooleanFluent(DeplParser.BooleanFluentContext ctx) {
         Fluent booleanFluent = (Fluent) visit(ctx.fluent());
+        if (booleanConstants.containsKey(booleanFluent)) {
+            return booleanConstants.get(booleanFluent);
+        }
         if (!allBooleanFluents.contains(booleanFluent)) {
             throw new RuntimeException("unknown boolean fluent: " + booleanFluent);
         }
