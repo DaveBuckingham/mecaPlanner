@@ -86,7 +86,7 @@ passiveDef : objectName ;
 
 // FLUENTS DEFINITIONS
 
-groundableObject : objectName | VARIABLE ;
+groundableObject : objectName | fluent | VARIABLE ;
 expandableObject : objectName | objectType;
 
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;

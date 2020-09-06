@@ -47,9 +47,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Map<String, String> allObjects;     // from object name to object type
 
     //private Map<Assignment, String> constants;  // Strings are types
-    private Map<Fluent,Integer> integerConstants;
-    private Map<Fluent,Boolean> booleanConstants;
-    private Map<Fluent,String> objectConstants;
+    private Map<Fluent,IntegerAtom> integerConstants;
+    private Map<Fluent,BooleanAtom> booleanConstants;
+    private Map<Fluent,ObjectAtom> objectConstants;
 
     private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
@@ -410,17 +410,17 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
         for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignmentCtx);
-            for (Assignment a : assignments) {
+            for (Assignment assignment : assignments) {
                 Fluent reference = assignment.getReference();
                 Formula value = assignment.getValue();
                 if (value instanceof BooleanAtom) {
-                    booleanConstants.put(reference, value.getBooleanValue());
+                    booleanConstants.put(reference, (BooleanAtom) value);
                 }
                 else if (assignment.getValue() instanceof IntegerAtom) {
-                    integerConstants.put(reference, value.getIntegerValue());
+                    integerConstants.put(reference, (IntegerAtom) value);
                 }
                 else if (assignment.getValue() instanceof ObjectAtom) {
-                    objectConstants.put(reference, value.getObjectValue());
+                    objectConstants.put(reference, (ObjectAtom) value);
                 }
                 else {
                     throw new RuntimeException("bad assignment");
@@ -564,12 +564,15 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         for (Fluent objectFluent : allObjectFluents.keySet()) {
-            if (!objectFluentAssignments.contains(objectFluent)) {
+            if (!objectFluentAssignments.containsKey(objectFluent)) {
                 throw new RuntimeException("object fluent " + objectFluent + " must be set.");
             }
         }
 
-        World world = new World(worldName, booleanFluents, integerFluents, objectFluents);
+        World world = new World(worldName,
+                                booleanFluentAssignments,
+                                integerFluentAssignments,
+                                objectFluentAssignments);
         return world;
     }
 
@@ -811,6 +814,18 @@ public class DeplToProblem extends DeplBaseVisitor {
             return new ObjectAtom(name);
         }
 
+        if (ctx.fluent() != null) {
+
+            Fluent objectFluent = (Fluent) visit(ctx.fluent());
+            if (objectConstants.containsKey(objectFluent)) {
+                return objectConstants.get(objectFluent);
+            }
+            if (!allObjectFluents.containsKey(objectFluent)) {
+                throw new RuntimeException("unknown object fluent: " + objectFluent);
+            }
+            return new ObjectAtom(objectFluent);
+        }
+
         String variable = ctx.VARIABLE().getText();
         String grounding = null;
         Stack<Map<String, String>> tempStack = new Stack<Map<String, String>>();
@@ -857,7 +872,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return new IntegerAtom(integerFluent);
     }
 
-    // WHERE IS visitObjectFluent!!!!!!!!!!!
 
     @Override public IntegerFormula visitIntegerLiteral(DeplParser.IntegerLiteralContext ctx) {
         return new IntegerAtom((Integer) visit(ctx.INTEGER()));
