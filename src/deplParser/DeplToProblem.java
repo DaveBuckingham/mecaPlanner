@@ -42,14 +42,14 @@ public class DeplToProblem extends DeplBaseVisitor {
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
     private Set<Fluent> allBooleanFluents;
     private Set<Fluent> allIntegerFluents;
-    private Set<Fluent> allObjectFluents;
+    private Map<Fluent,String> allObjectFluents;
     private Integer agentIndex;
-    private Set<String> allObjects;          // to check for undefined objects
-    private Set<Assignment> constants;
+    private Map<String, String> allObjects;     // from object name to object type
+    private Map<Assignment, String> constants;  // Strings are types
     //private Map<Fluent,Integer> integerConstants;
     //private Map<Fluent,Boolean> booleanConstants;
     //private Map<Fluent,String> objectConstants;
-    private Map<String, TypeNode> typeDefs;  // key is object type name
+    private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
 
 
@@ -185,12 +185,12 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.goals = new HashSet<>();
 
         this.agentIndex = 0;
-        this.allObjects = new HashSet<String>();
+        this.allObjects = new HashMap<>();
 
         allBooleanFluents = new HashSet<>();
         allIntegerFluents = new HashSet<>();
-        allObjectFluents = new HashSet<>();
-        this.constants = new HashSet<Assignment>();
+        allObjectFluents = new HashMap<>();
+        this.constants = new HashMap<>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
 
@@ -254,7 +254,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             typeDefs.get(objectType).groundings.add(objectName);
             objectType = typeDefs.get(objectType).parent;
         }
-        allObjects.add(objectName);
+        allObjects.put(objectName, objectType);
         return null;
     }
 
@@ -381,21 +381,18 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
         String type = ctx.fluentType().getText();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
-            if (allObjects.contains(fluent.getName())) {
+            if (allObjects.containsKey(fluent.getName())) {
                 throw new RuntimeException("Fluent name already used for object: " + fluent.getName());
             }
-            switch (type) {
-                case "Boolean":
-                    allBooleanFluents.add(fluent);
-                    break;
-                case "Integer":
-                    allIntegerFluents.add(fluent);
-                    break;
-                //XXX
-                case "Object":
-                    allObjectFluents.add(fluent);
-                    break;
-                default : throw new RuntimeException("invalid fluent type: " + type);
+            if (type.equals("Boolean")) {
+                allBooleanFluents.add(fluent);
+            }
+            else if (type.equals("Integer")) {
+                allIntegerFluents.add(fluent);
+            }
+            else {
+                // WE SHOULDN'T HAVE TO DO ANY SYNTAX CHECKS HERE, THEY SHOULD BE HANDLED BY THE GRAMMAR
+                allObjectFluents.put(fluent, type);
             }
         }
         return null;
@@ -409,7 +406,22 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
         for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignmentCtx);
-            constants.addAll(assignments);
+            for (Assignment a : assignments) {
+                String type;
+                if (assignment.getValue() instanceof BooleanAtom) {
+                    type = "Boolean";
+                }
+                else if (assignment.getValue() instanceof IntegerAtom) {
+                    type = "Integer";
+                }
+                else if (assignment.getValue() instanceof ObjectAtom) {
+                    type = allObjects.get(assignment.getValue().getObjectValue());
+                }
+                else {
+                    throw new RuntimeException("bad assignment");
+                }
+                constants.put(assignment, type);
+            }
         }
         return null;
     }
@@ -535,14 +547,14 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
             }
         }
-        for (Fluent booleanFluent : allBooleanFluents.keySet()) {
-            if (!booleanFluentAssignments.contains(booleanFluent)) {
+        for (Fluent booleanFluent : allBooleanFluents) {
+            if (!booleanFluentAssignments.containsKey(booleanFluent)) {
                 Log.info("boolean fluent " + booleanFluent + " not set, assuming false.");
                 booleanFluentAssignments.put(booleanFluent, false);
             }
         }
-        for (Fluent integerFluent : allIntegerFluents.keySet()) {
-            if (!integerFluentAssignments.contains(integerFluent)) {
+        for (Fluent integerFluent : allIntegerFluents) {
+            if (!integerFluentAssignments.containsKey(integerFluent)) {
                 throw new RuntimeException("integer fluent " + integerFluent + " must be set.");
             }
         }
@@ -789,7 +801,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public ObjectAtom visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
         if (ctx.objectName() != null) {
             String name = ctx.objectName().getText();
-            if (!allObjects.contains(name)) {
+            if (!allObjects.containsKey(name)) {
                 throw new RuntimeException("undefined object: " + name);
             }
             return new ObjectAtom(name);
