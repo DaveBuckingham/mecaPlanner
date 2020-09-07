@@ -128,8 +128,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     // GROUNDINGS ARE ALL OBJECTS OF THE TYPE
     // THE TYPE NAME ITSELF IS THE KEY TO THIS OBJECT IN A MAP
     private class TypeNode {
-        public String parent;
-        public List<String> groundings;
+        private String parent;
+        private List<String> groundings;
         public TypeNode(String parent) {
             this.parent = parent;
             this.groundings = new ArrayList<String>();
@@ -143,23 +143,21 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-    // NB AFTER FINISHING THIS, REPLACE visitObjectDefinition WITH A CALL
-    // TO THIS, AND USE THIS TO FINISH PARSING FORMMULA- AND VALUE- ASSIGNMENTS
-
     // INPUT subtype COULD BE A TYPE OR AN OBJECT, supertype IS A TYPE
     private boolean isa(String subtype, String supertype) {
-        String objectName = ctx.objectName().getText();
-        String objectType = ctx.objectType().getText();
-        while (!objectType.equalsIgnoreCase("Object")) {
-            if (!typeDefs.containsKey(objectType)) {
-                throw new RuntimeException("object type or supertype " + objectType + " not defined");
-            }
-            typeDefs.get(objectType).groundings.add(objectName);
-            objectType = typeDefs.get(objectType).parent;
+        if (allObjects.hasKey(subtype)) {
+            subtype = allObjects.get(subType);
         }
-        allObjects.put(objectName, objectType);
-        return null;
- 
+        while (!subtype.equals(supertype)) {
+            if (supertype.equalsIgnoreCase("Object")) {
+                return false;
+            }
+            if (!typeDefs.containsKey(subtype)) {
+                throw new RuntimeException("undefined object type: " + objectType);
+            }
+            subtype = typeDefs.get(subtype).getParent();
+        }
+        return true;
     }
 
 
