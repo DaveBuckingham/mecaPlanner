@@ -459,11 +459,14 @@ public class DeplToProblem extends DeplBaseVisitor {
                     throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
                 }
                 String referenceType = allObjectFluents.get(reference);
-                String valueType = allObjectFluents.get((ObjectAtom) value.getValue());
-                if 
+                String valueLiteral = (ObjectAtom) value.getValue();
+                if (!isa(valueLiteral, referenceType)) {
+                    throw new RuntimeException("cannot assign " + valueLiteral + " to fluent of type " + referenceType);
+                }
+                assignments.add(new Assignment(fluent, value));
             }
             else {
-                throw new RuntimeException("illegal assignment: " + ctx.getText());
+                throw new RuntimeException("unknown value assigned: " + ctx.getText());
             }
         }
         return assignments;
