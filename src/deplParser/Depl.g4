@@ -134,7 +134,7 @@ booleanFormula  // EVALUATE TO BOOLEAN
     | integerFormula (OP_EQ|OP_NE) integerFormula                       # booleanEqualIntegers
     | booleanFormula (OP_EQ|OP_NE) booleanFormula                       # booleanEqualBooleans
     | groundableObject (OP_EQ|OP_NE) groundableObject                   # booleanEqualObjects
-    | ('~'|'!') booleanFormula                                          # booleanNot
+    | OP_NOT booleanFormula                                          # booleanNot
     | booleanFormula OP_AND booleanFormula (OP_AND booleanFormula)*     # booleanAnd
     | booleanFormula OP_OR  booleanFormula (OP_OR booleanFormula)*      # booleanOr
     ;
@@ -142,7 +142,7 @@ booleanFormula  // EVALUATE TO BOOLEAN
 beliefFormula 
     : booleanFormula                                             # beliefBooleanFormula
     | '(' beliefFormula ')'                                      # beliefParens
-    | ('~'|'!') beliefFormula                                    # beliefNot
+    | OP_NOT beliefFormula                                    # beliefNot
     | beliefFormula (OP_EQ|OP_NE) beliefFormula                  # beliefEqualBeliefs
     | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
@@ -188,7 +188,12 @@ actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
-formulaAssignment : fluent ASSIGN integerFormula | beliefFormula | groundableObject ;
+formulaAssignment 
+    : fluent ASSIGN (integerFormula | beliefFormula | groundableObject)
+    | fluent
+    | OP_NOT fluent
+    ;
+
 
 actionField
     : ownerActionField

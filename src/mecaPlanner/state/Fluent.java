@@ -50,6 +50,31 @@ public class Fluent{
         return parameters.get(i);
     }
 
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        Fluent other = (Fluent) obj;
+        return (name.equals(other.getName()) && parameters.equals(other.getParameters()));
+    }
+
+
+    @Override
+    public int hashCode() {
+        int result = name.hashCode() * 7;
+        for (ObjectAtom p : parameters) {
+            result = (31 * result) + p.hashCode();
+        }
+        return result;
+    }
+
+
+
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();

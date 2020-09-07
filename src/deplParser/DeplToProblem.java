@@ -143,24 +143,24 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-//    // FOR STORING AN ASSIGNMENT TO A FLUENTS OR CONSTANTS
-//    // MULTIPLE REFERENCES IN CASE ITS EXPANDABLE
-//    private class ValueAssignment {
-//        private Set<Fluent> references;
-//        private Value value;
-//        public ValueAssignment(Set<Fluent> references, Value value) {
-//            this.references = references;
-//            this.value = valeu;
-//        }
-//        public Set<Fluent> getReferences() {
-//            return references;
-//        }
-//        public Value getValue() {
-//            return value;
-//        }
-//    }
+    // NB AFTER FINISHING THIS, REPLACE visitObjectDefinition WITH A CALL
+    // TO THIS, AND USE THIS TO FINISH PARSING FORMMULA- AND VALUE- ASSIGNMENTS
 
-
+    // INPUT subtype COULD BE A TYPE OR AN OBJECT, supertype IS A TYPE
+    private boolean isa(String subtype, String supertype) {
+        String objectName = ctx.objectName().getText();
+        String objectType = ctx.objectType().getText();
+        while (!objectType.equalsIgnoreCase("Object")) {
+            if (!typeDefs.containsKey(objectType)) {
+                throw new RuntimeException("object type or supertype " + objectType + " not defined");
+            }
+            typeDefs.get(objectType).groundings.add(objectName);
+            objectType = typeDefs.get(objectType).parent;
+        }
+        allObjects.put(objectName, objectType);
+        return null;
+ 
+    }
 
 
 
@@ -252,7 +252,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitObjectDefinition(DeplParser.ObjectDefinitionContext ctx) {
         String objectName = ctx.objectName().getText();
         String objectType = ctx.objectType().getText();
-        while (!objectType.equalsIgnoreCase("object")) {
+        while (!objectType.equalsIgnoreCase("Object")) {
             if (!typeDefs.containsKey(objectType)) {
                 throw new RuntimeException("object type or supertype " + objectType + " not defined");
             }
@@ -430,14 +430,77 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
+    // WE WON'T ALLOW A FLUENT TO HOLD A FLUENT...
     @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
         Formula value = (Formula) visit(ctx.value());
         Set<Assignment> assignments = new HashSet<>();
-        for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
-            assignments.add(new Assignment(fluent, value));
+        for (Fluent reference : (Set<Fluent>) visit(ctx.expandableFluent())) {
+            if (value instanceof BooleanAtom) {
+                if (!allBooleanFluents.contains(reference)) {
+                    throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
+                }
+                if (((BooleanAtom) value).isFluent()) {
+                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+                }
+                assignments.add(new Assignment(fluent, value));
+            }
+            else if (value instanceof IntegerAtom {
+                if (!allIntegerFluents.contains(reference)) {
+                    throw new RuntimeException("can't assign integer to non-integer fluent: " + ctx.getText());
+                }
+                if (((IntegerAtom) value).isFluent()) {
+                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+                }
+                assignments.add(new Assignment(fluent, value));
+            }
+            else if (value instanceof ObjectAtom) {
+                if (!allObjectFluents.contains(reference)) {
+                    throw new RuntimeException("can't assign object to non-object fluent: " + ctx.getText());
+                }
+                if (((ObjectAtom) value).isFluent()) {
+                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+                }
+                String referenceType = allObjectFluents.get(reference);
+                String valueType = allObjectFluents.get((ObjectAtom) value.getValue());
+                if 
+            }
+            else {
+                throw new RuntimeException("illegal assignment: " + ctx.getText());
+            }
         }
         return assignments;
     }
+
+    @Override public Assignment visitFormulaAssignment(DeplParser.FormulaAssignmentContext ctx) {
+        Fluent reference = (Fluent) visit(effCtx.fluent());
+
+                        Formula value;
+                        if (effCtx.formulaAssignment().integerFormula() != null) {
+                            value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
+                        }
+                        else if (effCtx.formulaAssignment().beliefFormula() != null) {
+                            value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
+                        }
+                        else if (effCtx.formulaAssignment().groundableObject() != null) {
+                            value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
+                        }
+                        else {
+                            throw new RuntimeException("effect parse error");
+                        }
+                        BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
+                        if (!(condition.isFalse()));
+                            effects.put(condition, new Assignment(reference, value));
+                        }
+                        variableStack.pop();
+                }
+
+
+
+
+
+
+    }
+
 
 
 
@@ -700,27 +763,14 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        Fluent reference = (Fluent) visit(effCtx.formulaAssignment().fluent());
-                        Formula value;
-                        if (effCtx.formulaAssignment().integerFormula() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
-                        }
-                        else if (effCtx.formulaAssignment().beliefFormula() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
-                        }
-                        if (effCtx.formulaAssignment().groundableObject() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
-                        }
-                        else {
-                            throw new RuntimeException("effect parse error");
-                        }
                         BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
-                        if (!(condition.isFalse()));
-                            effects.put(condition, new Assignment(reference, value));
+                        if (!(condition.isFalse())){
+                            Assignment assignment = (Assignment) visit(effCtx.formulaAssignment());
+                            effects.put(condition, assignment);
                         }
                         variableStack.pop();
+                    }
                 }
-
                 else {
                     throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
                 }

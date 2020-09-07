@@ -23,7 +23,7 @@ agents{
 
 
 fluents{
-    at(Locatable, Locatable) - Boolean,
+    at(Locatable, Location) - Boolean,
     human_hungry()- Boolean,
     door_open() - Boolean,
     robot_charged() - Boolean,
@@ -54,7 +54,7 @@ actions{
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{door_open()},
-        precondition{~same(?f,?t)},
+        precondition{?f != ?t},
         observes(?o-Actor){?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
