@@ -702,7 +702,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             Set<BooleanFormula> determines = new HashSet<>();
             Set<BeliefFormula> announces = new HashSet<>();
-            Map<BooleanFormula, Assignment> effects = new HashMap<>();
+            Map<Assignment, BooleanFormula> effects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -802,7 +802,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                         }
                         if (!(condition.isFalse())){
                             Assignment assignment = (Assignment) visit(effCtx.formulaAssignment());
-                            effects.put(condition, assignment);
+                            effects.put(assignment, condition);
                         }
                         variableStack.pop();
                     }

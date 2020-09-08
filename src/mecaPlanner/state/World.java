@@ -17,7 +17,6 @@ import java.util.Comparator;
 public class World implements java.io.Serializable {
 
     private static int idCounter = 0;
-    private static Set<String> allWorldNames = new HashSet<>();
 
     private final int id;
 
@@ -32,10 +31,6 @@ public class World implements java.io.Serializable {
                  Map<Fluent, Integer> integerFluents,
                  Map<Fluent, String> objectFluents) {
         this.id = World.idCounter++;
-        while (allWorldNames.contains(name)) {
-            name = name + "'";
-        }
-        World.allWorldNames.add(name);
         this.name = name;
         this.booleanFluents = booleanFluents;
         this.integerFluents = integerFluents;
@@ -44,11 +39,7 @@ public class World implements java.io.Serializable {
 
     public World(World toCopy) {
         id = World.idCounter++;
-        name = toCopy.getName() + "+";
-        while (allWorldNames.contains(name)) {
-            name = name + "'";
-        }
-        World.allWorldNames.add(name);
+        name = toCopy.getName() + "'";
         booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
         integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
         objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
@@ -138,14 +129,27 @@ public class World implements java.io.Serializable {
                 objectFluents.equals(otherWorld.getObjectFluents()) );
     }
 
+    public String getFullName() {
+        StringBuilder str = new StringBuilder();
+        if (name != null) {
+            str.append(name);
+            str.append(":");
+        }
+        str.append(id);
+        return str.toString();
+    }
+
     public String getName() {
-        return name == null ? Integer.toString(id) : name;
+        if (name == null) {
+            throw new RuntimeException("can't get name of anonymous world: " + id);
+        }
+        return name;
     }
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append(name == null ? id : name);
+        str.append(getFullName());
         str.append("{");
         for (Map.Entry<Fluent, Boolean> entry : booleanFluents.entrySet()) {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());

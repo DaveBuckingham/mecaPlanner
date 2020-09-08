@@ -30,7 +30,7 @@ public class Action implements java.io.Serializable {
     protected Map<String, BooleanFormula> awareIf;
     protected Set<BooleanFormula> determines;
     protected Set<BeliefFormula> announces;
-    protected Map<BooleanFormula, Assignment> effects;
+    protected Map<Assignment, BooleanFormula> effects;
 
 
 
@@ -44,7 +44,7 @@ public class Action implements java.io.Serializable {
                   Map<String, BooleanFormula> awareIf,
                   Set<BooleanFormula> determines,
                   Set<BeliefFormula> announces,
-                  Map<BooleanFormula, Assignment> effects,
+                  Map<Assignment, BooleanFormula> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -77,7 +77,7 @@ public class Action implements java.io.Serializable {
         return this.precondition;
     }
 
-    public Map<BooleanFormula, Assignment> getEffects() {
+    public Map<Assignment, BooleanFormula> getEffects() {
         return this.effects;
     }
 
@@ -85,9 +85,11 @@ public class Action implements java.io.Serializable {
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {
         Set<Assignment> applicableEffects = new HashSet<>();
-            for (BooleanFormula condition : effects.keySet()) {
+            for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+                Assignment assignment = e.getKey();
+                BooleanFormula condition = e.getValue();
                 if (condition.evaluate(world)) {
-                    applicableEffects.add(effects.get(condition));
+                    applicableEffects.add(assignment);
                 }
             }
         return applicableEffects;
@@ -241,9 +243,9 @@ public class Action implements java.io.Serializable {
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Set<BooleanFormula> revealedConditions = new HashSet<>();
             if (anyObservers || anyAware) {
-                for (Map.Entry<BooleanFormula, Assignment> e : effects.entrySet()) {
-                    BooleanFormula condition = e.getKey();
-                    Assignment assignment = e.getValue();
+                for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+                    Assignment assignment = e.getKey();
+                    BooleanFormula condition = e.getValue();
                     assert(!condition.isFalse());
                     if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
                         // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
@@ -543,11 +545,13 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<BooleanFormula, Assignment> a : effects.entrySet()) {
+        for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+            Assignment assignment = e.getKey();
+            BooleanFormula condition = e.getValue();
             str.append("\t\t");
-            str.append(a.getValue());
+            str.append(assignment);
             str.append(" if ");
-            str.append(a.getKey());
+            str.append(condition);
             str.append("\n");
         }
  
