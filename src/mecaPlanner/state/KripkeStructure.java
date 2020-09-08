@@ -320,7 +320,7 @@ public class KripkeStructure implements java.io.Serializable {
                 List<World> known = getKnownWorlds(agent, w).stream().collect(Collectors.toList());
                 known.sort(Comparator.comparingInt(World::getId));
                 for (World to : known) {
-                    str.append(to.getFullName());
+                    str.append(to.getName());
                         str.append(", ");
                 }
                 str.deleteCharAt(str.length() - 1);

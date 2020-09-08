@@ -607,6 +607,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         Map<Fluent, Boolean> booleanFluentAssignments = new HashMap<>();
         Map<Fluent, Integer> integerFluentAssignments = new HashMap<>();
         Map<Fluent, String> objectFluentAssignments = new HashMap<>();
+        for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
+            Fluent reference = (Fluent) visit(fluentCtx);
+            if (!allBooleanFluents.contains(reference)) {
+                throw new RuntimeException("implicit definition requires boolean fluent: " + fluentCtx.getText());
+            }
+            booleanFluentAssignments.put(reference, true);
+        }
         for (DeplParser.ValueAssignmentContext assignCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignCtx);
             for (Assignment assignment : assignments) {
@@ -647,7 +654,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
         for (Fluent booleanFluent : allBooleanFluents) {
             if (!booleanFluentAssignments.containsKey(booleanFluent)) {
-                Log.info("boolean fluent " + booleanFluent + " not set, assuming false.");
+                Log.debug("boolean fluent " + booleanFluent + " not set, assuming false.");
                 booleanFluentAssignments.put(booleanFluent, false);
             }
         }

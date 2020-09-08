@@ -162,7 +162,7 @@ startStateDef : '{' kripkeModel '}' ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
-kripkeWorld : LOWER_NAME ASSIGN '{' (valueAssignment ',')* valueAssignment? '}' ;
+kripkeWorld : LOWER_NAME ASSIGN '{' ((valueAssignment|fluent) ',')* (valueAssignment|fluent)? '}' ;
 
 kripkeRelation : relationType '[' objectName ']' ASSIGN
                  '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;

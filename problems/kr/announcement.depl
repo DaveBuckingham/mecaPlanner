@@ -1,11 +1,11 @@
 types{
-    actor-object,
+    Actor-Object,
 }
 
 objects{
-    alice - actor,
-    bob - actor,
-    carol - actor
+    alice-Actor,
+    bob  -Actor,
+    carol-Actor
 }
 
 agents{alice}
@@ -16,20 +16,18 @@ passive{
 }
 
 fluents{
-    r,
+    r()-Boolean,
 }
 
-constants{}
-
 initially{
-    w1={},
-    w2={r},
-    B_alice={(w1,w1),(w2,w2)},
-    B_bob=  {(w1,w1),(w2,w2)},
-    B_carol={(w1,w1),(w2,w2)},
-    K_alice={(w1,w1),(w2,w2)},
-    K_bob=  {(w1,w1),(w2,w2)},
-    K_carol={(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
+    w1<-{},
+    w2<-{r()},
+    B[alice]<-{(w1,w1),(w2,w2)},
+    B[bob]<-  {(w1,w1),(w2,w2)},
+    B[carol]<-{(w1,w1),(w2,w2)},
+    K[alice]<-{(w1,w1),(w2,w2)},
+    K[bob]<-  {(w1,w1),(w2,w2)},
+    K[carol]<-{(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
 }
 
 goals{}
@@ -38,9 +36,9 @@ actions{
 
     tellRaining() {
         owner{alice},
-        precondition{T},
-        observes[?o - actor]{?o},
-        announces{r}
+        precondition{true},
+        observes(?o - Actor){?o},
+        announces{r()}
     }
 
 }

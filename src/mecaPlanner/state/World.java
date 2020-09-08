@@ -39,7 +39,7 @@ public class World implements java.io.Serializable {
 
     public World(World toCopy) {
         id = World.idCounter++;
-        name = toCopy.getName() + "'";
+        name = toCopy.getName();
         booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
         integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
         objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
@@ -78,7 +78,7 @@ public class World implements java.io.Serializable {
             }
             
         }
-        return new World(this.name, newBooleanFluents, newIntegerFluents, newObjectFluents);
+        return new World(null, newBooleanFluents, newIntegerFluents, newObjectFluents);
     }
 
     public Boolean alteredByAssignment(Assignment assignment) {
@@ -129,27 +129,14 @@ public class World implements java.io.Serializable {
                 objectFluents.equals(otherWorld.getObjectFluents()) );
     }
 
-    public String getFullName() {
-        StringBuilder str = new StringBuilder();
-        if (name != null) {
-            str.append(name);
-            str.append(":");
-        }
-        str.append(id);
-        return str.toString();
-    }
-
     public String getName() {
-        if (name == null) {
-            throw new RuntimeException("can't get name of anonymous world: " + id);
-        }
-        return name;
+        return name == null ? Integer.toString(id) : name;
     }
 
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append(getFullName());
+        str.append(getName());
         str.append("{");
         for (Map.Entry<Fluent, Boolean> entry : booleanFluents.entrySet()) {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
@@ -163,7 +150,7 @@ public class World implements java.io.Serializable {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
             str.append(", ");
         }
-        str.deleteCharAt(str.length() - 2);
+        str.delete(str.length()-2, str.length());
         str.append("}");
         return str.toString();
     }

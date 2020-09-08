@@ -1,10 +1,10 @@
 types{
-    actor-object,
+    Actor-Object,
 }
 
 objects{
-    alice - actor,
-    bob - actor,
+    alice-Actor,
+    bob  -Actor,
 }
 
 agents{ alice }
@@ -12,22 +12,19 @@ agents{ alice }
 passive{bob}
 
 fluents{
-    key,
-    tails,
-}
-
-constants{
+    key()-Boolean,
+    tails()-Boolean,
 }
 
 initially{
-    w1={tails,key},
-    w2={key},
-    w3={tails},
-    w4={},
-    B_alice={(w1,w2),(w2,w2),(w3,w4),(w4,w4)},
-    K_alice={(w1,w1),(w1,w2),(w2,w1),(w2,w2),(w3,w3),(w3,w4),(w4,w3),(w4,w4)},
-    B_bob={(w1,w3),(w1,w4),(w2,w3),(w2,w4),(w3,w3),(w3,w4),(w4,w3),(w4,w4)},
-    K_bob={(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+    w1<-{tails(),key()},
+    w2<-{key()},
+    w3<-{tails()},
+    w4<-{},
+    B[alice]<-{(w1,w2),(w2,w2),(w3,w4),(w4,w4)},
+    K[alice]<-{(w1,w1),(w1,w2),(w2,w1),(w2,w2),(w3,w3),(w3,w4),(w4,w3),(w4,w4)},
+    B[bob]<-{(w1,w3),(w1,w4),(w2,w3),(w2,w4),(w3,w3),(w3,w4),(w4,w3),(w4,w4)},
+    K[bob]<-{(w1,w1),(w1,w2),(w1,w3),(w1,w4),
            (w2,w1),(w2,w2),(w2,w3),(w2,w4),
            (w3,w1),(w3,w2),(w3,w3),(w3,w4),
            (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
@@ -39,12 +36,12 @@ goals{
 
 actions{
 
-    lookBox[]() {
+    lookBox() {
         owner{alice},
-        precondition{key},
-        observes[]{alice},
-        aware[]{bob},
-        determines{tails},
+        precondition{key()},
+        observes{alice},
+        aware{bob},
+        determines{tails()},
     }
 
 }

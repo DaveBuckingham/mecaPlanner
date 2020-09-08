@@ -1,8 +1,11 @@
 package tools;
 
-import mecaPlanner.*;
-import mecaPlanner.state.*;
-import mecaPlanner.formulae.*;
+import mecaPlanner.Action;
+import mecaPlanner.Domain;
+import mecaPlanner.Problem;
+import mecaPlanner.state.NDState;
+import mecaPlanner.state.EpistemicState;
+import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
 import depl.*;
 
 
@@ -62,13 +65,13 @@ public class Demo {
         System.out.println(bobsPerspective);
 
         System.out.println("Bob believes necessarly tails?: " + 
-            bobsPerspective.necessarily(new FluentAtom("tails")));
+            bobsPerspective.necessarily(new BooleanAtom("tails")));
 
         System.out.println("Bob believes possibly tails?: " + 
-            bobsPerspective.possibly(new FluentAtom("tails")));
+            bobsPerspective.possibly(new BooleanAtom("tails")));
 
         System.out.println("Bob believes necessarily key?: " + 
-            bobsPerspective.necessarily(new FluentAtom("key")));
+            bobsPerspective.necessarily(new BooleanAtom("key")));
 
         pause();
 
