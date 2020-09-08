@@ -48,8 +48,12 @@ public class ObjectAtom extends Formula{
         return !isFluent;
     }
 
-    protected Fluent getFluent() {
+    public Fluent getFluent() {
         return fluent;
+    }
+
+    public String getValue() {
+        return value;
     }
 
     public String getObjectValue() {
@@ -75,7 +79,10 @@ public class ObjectAtom extends Formula{
             return false;
         }
         ObjectAtom other = (ObjectAtom) obj;
-        return (value == other.getObjectValue() && fluent == other.getFluent());
+        if (isFluent) {
+            return (other.isFluent() && fluent.equals(other.getFluent()));
+        }
+        return ((!other.isFluent()) && value.equals(other.getValue()));
     }
 
 

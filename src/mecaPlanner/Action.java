@@ -118,7 +118,8 @@ public class Action implements java.io.Serializable {
 
 
     public Boolean isObservant(String agent, World world) {
-        return (observesIf.containsKey(agent) && observesIf.get(agent).evaluate(world));
+        boolean observant = observesIf.containsKey(agent) && observesIf.get(agent).evaluate(world);
+        return observant;
     }
 
     public Boolean isAware(String agent, World world) {

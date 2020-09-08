@@ -36,10 +36,10 @@ public class PizzaModel extends Model {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
         else if (ndState.necessarily(new BooleanAtom("at", agent, "room1"))) {
-            prediction.add(getSafeActionBySignature("move(room1,room2)", ndState));
+            prediction.add(getSafeActionBySignature("move(human1,room1,room2)", ndState));
         }
         else if (ndState.necessarily(new BooleanAtom("at", agent, "room2"))) {
-            prediction.add(getSafeActionBySignature("move(room2,room1)", ndState));
+            prediction.add(getSafeActionBySignature("move(human1,room2,room1)", ndState));
         }
         else {
             throw new RuntimeException("Pizza Model failed to determine state");

@@ -145,15 +145,15 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // INPUT subtype COULD BE A TYPE OR AN OBJECT, supertype IS A TYPE
     private boolean isa(String subtype, String supertype) {
-        if (allObjects.hasKey(subtype)) {
-            subtype = allObjects.get(subType);
+        if (allObjects.containsKey(subtype)) {
+            subtype = allObjects.get(subtype);
         }
         while (!subtype.equals(supertype)) {
             if (supertype.equalsIgnoreCase("Object")) {
                 return false;
             }
             if (!typeDefs.containsKey(subtype)) {
-                throw new RuntimeException("undefined object type: " + objectType);
+                throw new RuntimeException("undefined object type: " + subtype);
             }
             subtype = typeDefs.get(subtype).getParent();
         }
@@ -429,41 +429,30 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     // WE WON'T ALLOW A FLUENT TO HOLD A FLUENT...
+    // DOES NOT ASSUME THE FLUENT HAS BEEN DEFINED
+    // (SINCE THIS IS USED IN CONSTANT DEFINITIONS)
+    // WE WILL CHECK THAT THE FLUENT HAS BEEN DEFINED WHEN CALLING THIS FOR KRIPKE WORLD CONSTRUCTION
     @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
         Formula value = (Formula) visit(ctx.value());
         Set<Assignment> assignments = new HashSet<>();
         for (Fluent reference : (Set<Fluent>) visit(ctx.expandableFluent())) {
             if (value instanceof BooleanAtom) {
-                if (!allBooleanFluents.contains(reference)) {
-                    throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
-                }
                 if (((BooleanAtom) value).isFluent()) {
                     throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
                 }
-                assignments.add(new Assignment(fluent, value));
+                assignments.add(new Assignment(reference, value));
             }
-            else if (value instanceof IntegerAtom {
-                if (!allIntegerFluents.contains(reference)) {
-                    throw new RuntimeException("can't assign integer to non-integer fluent: " + ctx.getText());
-                }
+            else if (value instanceof IntegerAtom) {
                 if (((IntegerAtom) value).isFluent()) {
                     throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
                 }
-                assignments.add(new Assignment(fluent, value));
+                assignments.add(new Assignment(reference, value));
             }
             else if (value instanceof ObjectAtom) {
-                if (!allObjectFluents.contains(reference)) {
-                    throw new RuntimeException("can't assign object to non-object fluent: " + ctx.getText());
-                }
                 if (((ObjectAtom) value).isFluent()) {
                     throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
                 }
-                String referenceType = allObjectFluents.get(reference);
-                String valueLiteral = (ObjectAtom) value.getValue();
-                if (!isa(valueLiteral, referenceType)) {
-                    throw new RuntimeException("cannot assign " + valueLiteral + " to fluent of type " + referenceType);
-                }
-                assignments.add(new Assignment(fluent, value));
+                assignments.add(new Assignment(reference, value));
             }
             else {
                 throw new RuntimeException("unknown value assigned: " + ctx.getText());
@@ -472,34 +461,58 @@ public class DeplToProblem extends DeplBaseVisitor {
         return assignments;
     }
 
+    // ASSUMES THE FLUENT HAS BEEN DEFINED, 
+    // ONLY USED IN ACTIN EFFECTS
+    // UNLIKE WITH VALUE ASSIGNMENT, HERE WE WILL ALLOW THE ASSIGNMENT VALUE TO BE A FLUENT THAT REFERENCES AN OBJECT
     @Override public Assignment visitFormulaAssignment(DeplParser.FormulaAssignmentContext ctx) {
-        Fluent reference = (Fluent) visit(effCtx.fluent());
+        Fluent reference = (Fluent) visit(ctx.fluent());
 
-                        Formula value;
-                        if (effCtx.formulaAssignment().integerFormula() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().integerFormula());
-                        }
-                        else if (effCtx.formulaAssignment().beliefFormula() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().beliefFormula());
-                        }
-                        else if (effCtx.formulaAssignment().groundableObject() != null) {
-                            value = (Formula) visit(effCtx.formulaAssignment().groundableObject());
-                        }
-                        else {
-                            throw new RuntimeException("effect parse error");
-                        }
-                        BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
-                        if (!(condition.isFalse()));
-                            effects.put(condition, new Assignment(reference, value));
-                        }
-                        variableStack.pop();
-                }
+        Formula value;
+        if (ctx.beliefFormula() != null) {
+            if (!allBooleanFluents.contains(reference)) {
+                throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
+            }
+            value = (Formula) visit(ctx.beliefFormula());
+        }
+        else if (ctx.integerFormula() != null) {
+            if (!allIntegerFluents.contains(reference)) {
+                throw new RuntimeException("can't assign integer to non-integer fluent: " + ctx.getText());
+            }
+            value = (Formula) visit(ctx.integerFormula());
+        }
+        else if (ctx.groundableObject() != null) {
+            if (!allObjectFluents.containsKey(reference)) {
+                throw new RuntimeException("can't assign object to non-object fluent: " + ctx.getText());
+            }
 
+            String referenceType = allObjectFluents.get(reference);
+            ObjectAtom rhs = (ObjectAtom) visit(ctx.groundableObject());
+            String rhsType;
 
+            if (rhs.isFluent()) {           // ASSIGNMENT OF A FLUENT TO A FLUENT
+                rhsType = allObjectFluents.get(rhs.getFluent());
+            }
+            else {                          // ASSIGNMENT OF A LITERAL OBJECT TO A FLUENT
+                rhsType = allObjects.get(rhs.getValue());
+            }
+            if (!isa(rhsType, referenceType)) {
+                throw new RuntimeException("assigned invalid type: " + ctx.getText());
+            }
 
-
-
-
+            value = rhs;
+        }
+        else {                              // JUST A (POSSIBLY-NEGATED) BOOLEAN FLUENT INSTEAD OF AN ASSIGNMENT
+            if (!allBooleanFluents.contains(reference)) {
+                throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
+            }
+            if (ctx.OP_NOT() == null) {
+                value = new BooleanAtom(true);
+            }
+            else {
+                value = new BooleanAtom(false);
+            }
+        }
+        return new Assignment(reference, value);
     }
 
 
@@ -588,6 +601,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
+
     @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
         Map<Fluent, Boolean> booleanFluentAssignments = new HashMap<>();
@@ -596,19 +610,35 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.ValueAssignmentContext assignCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignCtx);
             for (Assignment assignment : assignments) {
-                Fluent fluent = assignment.getReference();
+                Fluent reference = assignment.getReference();
                 Formula value = assignment.getValue();
-                if (value instanceof BooleanAtom && !((BooleanAtom)value).isFluent()) {
+                if (value instanceof BooleanAtom) {
+                    assert (!((BooleanAtom)value).isFluent());
+                    if (!allBooleanFluents.contains(reference)) {
+                        throw new RuntimeException("can't assign boolean to non-boolean fluent: " + assignCtx.getText());
+                    }
                     Boolean b = value.getBooleanValue();
-                    booleanFluentAssignments.put(fluent, b);
+                    booleanFluentAssignments.put(reference, b);
                 }
-                else if (value instanceof IntegerAtom && !((IntegerAtom)value).isFluent()) {
+                else if (value instanceof IntegerAtom) {
+                    assert (!((IntegerAtom)value).isFluent());
+                    if (!allIntegerFluents.contains(reference)) {
+                        throw new RuntimeException("can't assign integer to non-integer fluent: " + assignCtx.getText());
+                    }
                     Integer i = value.getIntegerValue();
-                    integerFluentAssignments.put(fluent, i);
+                    integerFluentAssignments.put(reference, i);
                 }
-                else if (value instanceof ObjectAtom && !((ObjectAtom)value).isFluent()) {
-                    String o = value.getObjectValue();
-                    objectFluentAssignments.put(fluent, o);
+                else if (value instanceof ObjectAtom) {
+                    assert (!((ObjectAtom)value).isFluent());
+                    if (!allObjectFluents.containsKey(reference)) {
+                        throw new RuntimeException("can't assign object to non-object fluent: " + assignCtx.getText());
+                    }
+                    String referenceType = allObjectFluents.get(reference);
+                    String valueLiteral = ((ObjectAtom) value).getObjectValue();
+                    if (!isa(valueLiteral, referenceType)) {
+                        throw new RuntimeException("assigned invalid type: " + assignCtx.getText());
+                    }
+                    objectFluentAssignments.put(reference, valueLiteral);
                 }
                 else {
                     throw new RuntimeException("invalid fluent assignment: " + assignCtx.getText());
@@ -705,7 +735,6 @@ public class DeplToProblem extends DeplBaseVisitor {
                         variableStack.push(variableMap);
                         ObjectAtom agentObject = (ObjectAtom) visit(obsCtx.groundableObject());
                         String agentName = agentObject.getObjectValue();
-
                         BooleanFormula condition;
                         if (obsCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -764,7 +793,13 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        BooleanFormula condition = (BooleanFormula) visit(effCtx.booleanFormula());
+                        BooleanFormula condition;
+                        if (effCtx.booleanFormula() == null)  {
+                            condition = new BooleanAtom(true);
+                        }
+                        else {
+                            condition = (BooleanFormula) visit(effCtx.booleanFormula());
+                        }
                         if (!(condition.isFalse())){
                             Assignment assignment = (Assignment) visit(effCtx.formulaAssignment());
                             effects.put(condition, assignment);
@@ -788,20 +823,16 @@ public class DeplToProblem extends DeplBaseVisitor {
                 precondition = BooleanAndFormula.make(preconditionList);
             }
 
-            if (precondition.isFalse()) {
-                return null;
-            }
-
-
             if (owner == null) {
                 throw new RuntimeException("illegal action definition, no owner: " + actionName);
             }
+
 
             Map<String, BooleanFormula> observes = new HashMap<>();
             Map<String, BooleanFormula> aware = new HashMap<>();
             for (String a : domain.getAgents()) {
                 observes.put(a, (BooleanOrFormula.make(observesLists.get(a))));
-                observes.put(a, (BooleanOrFormula.make(awareLists.get(a))));
+                aware.put(a, (BooleanOrFormula.make(awareLists.get(a))));
             }
 
             assert (actionName != null);
@@ -816,20 +847,24 @@ public class DeplToProblem extends DeplBaseVisitor {
             assert (domain != null);
 
 
-            Action action =  new Action(actionName,
-                                        actionParameters,
-                                        owner,
-                                        cost,
-                                        precondition,
-                                        observes,
-                                        aware,
-                                        determines,
-                                        announces,
-                                        effects,
-                                        domain
-                                       );
+            if (!precondition.isFalse()) {
 
-            domain.addAction(action);
+                Action action =  new Action(actionName,
+                                            actionParameters,
+                                            owner,
+                                            cost,
+                                            precondition,
+                                            observes,
+                                            aware,
+                                            determines,
+                                            announces,
+                                            effects,
+                                            domain
+                                           );
+
+                domain.addAction(action);
+            }
+
             variableStack.pop();
         }
         return null;

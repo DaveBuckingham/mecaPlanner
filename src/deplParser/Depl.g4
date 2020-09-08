@@ -189,9 +189,9 @@ variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
 formulaAssignment 
-    : fluent ASSIGN (integerFormula | beliefFormula | groundableObject)
+    : fluent ASSIGN (beliefFormula | integerFormula | groundableObject)
     | fluent
-    | OP_NOT fluent
+    | OP_NOT ( '('fluent')' | fluent )
     ;
 
 

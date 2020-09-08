@@ -17,6 +17,7 @@ import java.util.Comparator;
 public class World implements java.io.Serializable {
 
     private static int idCounter = 0;
+    private static Set<String> allWorldNames = new HashSet<>();
 
     private final int id;
 
@@ -31,6 +32,10 @@ public class World implements java.io.Serializable {
                  Map<Fluent, Integer> integerFluents,
                  Map<Fluent, String> objectFluents) {
         this.id = World.idCounter++;
+        while (allWorldNames.contains(name)) {
+            name = name + "'";
+        }
+        World.allWorldNames.add(name);
         this.name = name;
         this.booleanFluents = booleanFluents;
         this.integerFluents = integerFluents;
@@ -38,11 +43,15 @@ public class World implements java.io.Serializable {
     }
 
     public World(World toCopy) {
-        this.id = World.idCounter++;
-        this.name = toCopy.getName() + "'";
-        this.booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
-        this.integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
-        this.objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
+        id = World.idCounter++;
+        name = toCopy.getName() + "+";
+        while (allWorldNames.contains(name)) {
+            name = name + "'";
+        }
+        World.allWorldNames.add(name);
+        booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
+        integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
+        objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
     }
 
     protected Map<Fluent,Boolean> getBooleanFluents() {
@@ -78,7 +87,7 @@ public class World implements java.io.Serializable {
             }
             
         }
-        return new World(this.name + "'", newBooleanFluents, newIntegerFluents, newObjectFluents);
+        return new World(this.name, newBooleanFluents, newIntegerFluents, newObjectFluents);
     }
 
     public Boolean alteredByAssignment(Assignment assignment) {
