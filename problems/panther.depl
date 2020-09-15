@@ -1,20 +1,17 @@
 types{}
 
-objects{thief-object}
+objects{thief-Object}
 
 agents{thief}
 
 passive{}
 
-fluents{v,l,r,d}
-
-constants{}
+fluents{v(),l(),r(),d()}
 
 initially{
     {C(~B_thief(r) & ~B_thief(~r))},
     {r, C(~B_thief(r) & ~B_thief(~r))},
 }
-//initially{r}
 
 goals{d}
 

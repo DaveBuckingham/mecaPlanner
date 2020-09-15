@@ -7,7 +7,7 @@ jarname := mecaPlanner-`cat VERSION`.jar
 
 builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)
 
-.PHONY: clean planner simulator demo efp2depl debug
+.PHONY: clean planner simulator demo example efp2depl debug
 
 
 planner: meca
@@ -41,15 +41,21 @@ simulator: mecaPlanner.jar
 	echo '#!/bin/bash' > ./sim
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./sim
 	chmod +x ./sim
-	echo '#!/bin/bash' > ./debug
-	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./debug
-	chmod +x ./debug
 
 demo: mecaPlanner.jar
 	$(java) src/tools/Demo.java -d build/
 	echo '#!/bin/bash' > ./demo
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Demo "$$@"' >> ./demo
 	chmod +x ./demo
+
+example: mecaPlanner.jar
+	$(java) src/tools/Example.java -d build/
+	echo '#!/bin/bash' > ./example
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Example "$$@"' >> ./example
+	chmod +x ./example
+	echo '#!/bin/bash' > ./debug
+	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Example "$$@"' >> ./debug
+	chmod +x ./debug
 
 efp2depl: build/efp2depl/
 
