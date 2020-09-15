@@ -318,12 +318,27 @@ public class Action implements java.io.Serializable {
                         for (World toWorld: observedWorlds) {
                             World oldToWorld = observedWorldsToOld.get(toWorld);
                             if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                                if (learnedBeliefFormula.evaluate(oldKripke, oldToWorld)) {
+                                    newBeliefs.get(agent).connect(fromWorld, toWorld);
+                                }
+                            }
+                        }
+                    }
+                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                        Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+                        for (World toWorld: observedWorlds) {
+                            World oldToWorld = observedWorldsToOld.get(toWorld);
+                            if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
                                 if (learnedKnowledgeFormula.evaluate(oldKripke, oldToWorld)) {
                                     newBeliefs.get(agent).connect(fromWorld, toWorld);
                                 }
                             }
                         }
                     }
+
+
+
+
 
                     // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION UNLESS TO-WORLD CONTRADICTS LEARNED KNOWLEDGE
                     for (World toWorld: observedWorlds) {
