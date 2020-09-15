@@ -35,7 +35,8 @@ public class Example {
             System.out.println(startState);
         }
         else {
-            System.out.println("bad start state");
+            System.out.println("BAD START STATE:");
+            System.out.println(startState);
             return;
         }
 

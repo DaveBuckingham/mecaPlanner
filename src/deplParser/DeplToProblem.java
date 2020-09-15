@@ -384,7 +384,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         String type = ctx.fluentType().getText();
         for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
             if (allObjects.containsKey(fluent.getName())) {
-                throw new RuntimeException("Fluent name already used for object: " + fluent.getName());
+                Log.warning("Fluent name already used for object: " + fluent.getName());
             }
             if (type.equals("Boolean")) {
                 allBooleanFluents.add(fluent);
@@ -465,6 +465,12 @@ public class DeplToProblem extends DeplBaseVisitor {
     // ONLY USED IN ACTIN EFFECTS
     // UNLIKE WITH VALUE ASSIGNMENT, HERE WE WILL ALLOW THE ASSIGNMENT VALUE TO BE A FLUENT THAT REFERENCES AN OBJECT
     @Override public Assignment visitFormulaAssignment(DeplParser.FormulaAssignmentContext ctx) {
+
+        if (ctx.fluent() == null) {
+            throw new RuntimeException("no syntactically-valid fluent in assignment: " + ctx.getText());
+        }
+
+
         Fluent reference = (Fluent) visit(ctx.fluent());
 
         Formula value;
