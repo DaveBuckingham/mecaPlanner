@@ -30,6 +30,17 @@ initially{
     K[carol]<-{(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
 }
 
+post{
+    w1<-{},
+    w2<-{r()},
+    B[alice]<-{(w1,w1),(w2,w2)},
+    B[bob]<-  {(w1,w1),(w2,w2)},
+    B[carol]<-{(w1,w2),(w2,w2)},
+    K[alice]<-{(w1,w1),(w2,w2)},
+    K[bob]<-  {(w1,w1),(w2,w2)},
+    K[carol]<-{(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
+}
+
 goals{}
 
 actions{

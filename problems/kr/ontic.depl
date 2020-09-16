@@ -32,6 +32,18 @@ initially{
     K[carol]<-{(w1,w1),(w2,w2)},
 }
 
+post{
+    w1<-{looking(alice),looking(bob)},
+    w2<-{closed(),looking(alice),looking(bob)},
+    w3<-{closed(),locked(),looking(alice),looking(bob)},
+    B[alice]<-{(w1,w1),(w2,w2),(w3,w3)},
+    B[bob]<-  {(w1,w1),(w2,w3),(w3,w3)},
+    B[carol]<-{(w1,w2),(w2,w2),(w3,w3)},
+    K[alice]<-{(w1,w1),(w2,w2),(w3,w3)},
+    K[bob]<-  {(w1,w1),(w2,w2),(w3,w3),(w2,w3),(w3,w2)},
+    K[carol]<-{(w1,w1),(w2,w2),(w3,w3),(w1,w2),(w2,w1)},
+}
+
 goals{
 }
 

@@ -30,6 +30,16 @@ initially{
            (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
 }
 
+
+post{
+    w1<-{tails(),key()},
+    w2<-{key()},
+    B[alice]<-{(w1,w1),(w2,w2)},
+    B[bob]<-  {(w1,w1),(w2,w2),(w1,w2),(w2,w1)},
+    K[alice]<-{(w1,w1),(w2,w2)},
+    K[bob]<-  {(w1,w1),(w2,w2),(w1,w2),(w2,w1)},
+}
+
 goals{
     
 }

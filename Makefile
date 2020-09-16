@@ -7,7 +7,7 @@ jarname := mecaPlanner-`cat VERSION`.jar
 
 builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)
 
-.PHONY: clean planner simulator demo example efp2depl debug
+.PHONY: clean planner simulator demo example test efp2depl debug
 
 
 planner: meca
@@ -47,6 +47,12 @@ demo: mecaPlanner.jar
 	echo '#!/bin/bash' > ./demo
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Demo "$$@"' >> ./demo
 	chmod +x ./demo
+
+test: mecaPlanner.jar
+	$(java) src/tools/Test.java -d build/
+	echo '#!/bin/bash' > ./test
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Test "$$@"' >> ./test
+	chmod +x ./test
 
 example: mecaPlanner.jar
 	$(java) src/tools/Example.java -d build/

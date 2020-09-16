@@ -47,6 +47,7 @@ init :
     constantsSection?
     fluentsSection
     initiallySection
+    postSection?
     goalsSection
     actionsSection
 ;
@@ -171,6 +172,9 @@ relationType : 'B' | 'K' ;
 fromWorld : LOWER_NAME;
 toWorld : LOWER_NAME;
 
+
+// OPTIONAL POST STATE
+postSection : 'post' startStateDef ;
 
 
 // GOALS DEFINITION

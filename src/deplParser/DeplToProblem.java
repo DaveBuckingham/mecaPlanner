@@ -216,6 +216,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
         visit(ctx.initiallySection());
+        if (ctx.postSection() != null) {visit(ctx.postSection());}
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
 
@@ -528,7 +529,16 @@ public class DeplToProblem extends DeplBaseVisitor {
     // INITIALLY
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
-        visitChildren(ctx);
+        for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
+            EpistemicState e = (EpistemicState) visit(stateCtx.kripkeModel());
+            startStates.add(e);
+        }
+        return null;
+    }
+
+    @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
+        EpistemicState e = (EpistemicState) visit(ctx.startStateDef().kripkeModel());
+        domain.setPostState(e);
         return null;
     }
 
@@ -549,7 +559,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     // }
 
 
-    @Override public Void visitKripkeModel(DeplParser.KripkeModelContext ctx) {
+    @Override public EpistemicState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
         World designatedWorld = null;
         Map<String, Relation> beliefRelations = new HashMap<>();
@@ -603,8 +613,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
         KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        startStates.add(new EpistemicState(kripke, designatedWorld));
-        return null;
+        return new EpistemicState(kripke, designatedWorld);
+        //startStates.add(new EpistemicState(kripke, designatedWorld));
+        //return null;
     }
 
 
