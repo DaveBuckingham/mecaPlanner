@@ -1,3 +1,9 @@
+FIX NDState.equivalent!
+implement initialize
+
+
+
+
 OPTIMIZATIONS
     fast check for agent type at depth
 

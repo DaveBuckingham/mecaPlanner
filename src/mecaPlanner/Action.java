@@ -283,9 +283,9 @@ public class Action implements java.io.Serializable {
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
                     for (BeliefFormula announcement : announces) {
                         BeliefFormula knowsNotAnnouncement = new BeliefKnowsFormula(agent, announcement.negate());
-                        if (!knowsNotAnnouncement.evaluate(beforeState)) {
+                        //if (!knowsNotAnnouncement.evaluate(beforeState)) {
                             acceptedAnnouncements.add(announcement);
-                        }
+                        //}
                     }
 
                     // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION

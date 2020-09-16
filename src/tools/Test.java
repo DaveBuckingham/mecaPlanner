@@ -23,7 +23,8 @@ public class Test {
         String[] depls = new String[] {
             "problems/kr/ontic.depl",
             "problems/kr/sensing.depl",
-            "problems/kr/announcement.depl"
+            "problems/kr/announcement.depl",
+            "problems/kr/box.depl"
         };
 
         for (String deplFile : depls) {
@@ -52,6 +53,8 @@ public class Test {
 
             EpistemicState endState = action.transition(startState);
 
+            assert(endState.getKripke().checkRelations());
+
             EpistemicState postState = domain.getPostState();
 
             if (postState == null) {
@@ -59,7 +62,16 @@ public class Test {
                 return;
             }
 
+            // THIS IS IMPORTANT, equivalent() CAN GIVE FALSE POSITIVES OTHERWISE
+            if (!postState.getKripke().checkRelations()) {
+                System.out.println("bad post state:");
+                System.out.println(postState);
+                return;
+            }
+
             Boolean equivalent = endState.equivalent(postState);
+
+            assert (equivalent == postState.equivalent(endState));
 
             System.out.print(equivalent ? "PASS\n" : "FAIL\n");
         }
