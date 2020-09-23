@@ -177,7 +177,6 @@ public class KripkeStructure implements java.io.Serializable {
 
         Set<Set<World>> oldPartition;
 
-
         do {
             oldPartition = new HashSet<Set<World>>(partition);
             for (Set<World> block : oldPartition) {

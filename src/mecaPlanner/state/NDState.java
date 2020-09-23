@@ -167,6 +167,8 @@ public class NDState implements java.io.Serializable {
             return false;
         }
         NDState other = (NDState) obj;
+
+        assert (this.kripkeStructure != other.getKripke());
         // IF THE KRIPKES ARE THE SAME OBJECT BUT THE DESIGNATED WORLDS DIFFER,
         // WE'LL PROCEDE TO equivalent(other), THAT'S OK, BECUASE KripkeStructure.union()
         // WILL DUPLICATE THE KRIPKE STRUCTURE.
