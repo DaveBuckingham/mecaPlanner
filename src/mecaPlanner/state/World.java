@@ -59,9 +59,9 @@ public class World implements java.io.Serializable {
 
     public World update(Set<Assignment> assignments) {
         World world = new World(this);
-        Map<Fluent, Boolean> newBooleanFluents = new HashMap<>(booleanFluents);;
-        Map<Fluent, Integer> newIntegerFluents = new HashMap<>(integerFluents);;
-        Map<Fluent, String> newObjectFluents = new HashMap<>(objectFluents);;
+        Map<Fluent, Boolean> newBooleanFluents = new HashMap<>(booleanFluents);
+        Map<Fluent, Integer> newIntegerFluents = new HashMap<>(integerFluents);
+        Map<Fluent, String> newObjectFluents = new HashMap<>(objectFluents);
         for (Assignment assignment : assignments) {
             Fluent reference = assignment.getReference();
             if (newBooleanFluents.containsKey(assignment.getReference())) {
