@@ -1,7 +1,6 @@
-package mecaPlanner.state.fluents;
+package mecaPlanner.state;
 
 import mecaPlanner.state.World;
-import mecaPlanner.formulae.booleanFormulae.ObjectAtom;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -27,7 +26,7 @@ public class Fluent{
     }
 
     public Fluent(String name) {
-        this(name, new ArrayList<ObjectAtom>());
+        this(name, new ArrayList<String>());
     }
 
     public String getName() {
@@ -66,7 +65,7 @@ public class Fluent{
     @Override
     public int hashCode() {
         int result = name.hashCode() * 7;
-        for (ObjectAtom p : parameters) {
+        for (String p : parameters) {
             result = (31 * result) + p.hashCode();
         }
         return result;

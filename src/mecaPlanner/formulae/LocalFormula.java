@@ -12,9 +12,9 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public abstract class LocalFormula{
+public interface LocalFormula{
 
-    public <?> evaluate(World);
+    Object evaluate(World w);
 
 
 }

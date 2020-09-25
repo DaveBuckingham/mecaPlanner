@@ -8,8 +8,9 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.integerFormulae.*;
 import mecaPlanner.formulae.booleanFormulae.*;
+import mecaPlanner.formulae.objectFormulae.*;
 import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.LocalFormula;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -372,11 +373,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             expandedParameters.add((List<String>) visit(objCtx));
         }
         for (List<String> expansion : cartesianProduct(expandedParameters)) {
-            List<ObjectAtom> atomizedExpansion = new ArrayList<>();
-            for (String s :expansion) {
-                atomizedExpansion.add(new ObjectAtom(s));
-            }
-            expandedFluents.add(new Fluent(name, atomizedExpansion));
+            expandedFluents.add(new Fluent(name, expansion));
         }
         return expandedFluents;
     }
@@ -409,29 +406,28 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
         for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
             Set<Fluent> references = (Set<Fluent>) visit(assignmentCtx.expandableFluent()); 
-                if (assignmentCtx.KEYWORD_FALSE() != null) {
-                    for (Fluent fluent : references) {
-                        booleanConstants.put(fluent, false);
-                    }
+            if (assignmentCtx.KEYWORD_FALSE() != null) {
+                for (Fluent fluent : references) {
+                    booleanConstants.put(fluent, false);
                 }
-                else if (assignmentCtx.KEYWORD_TRUE() != null) {
-                    for (Fluent fluent : references) {
-                        booleanConstants.put(fluent, true);
-                    }
+            }
+            else if (assignmentCtx.KEYWORD_TRUE() != null) {
+                for (Fluent fluent : references) {
+                    booleanConstants.put(fluent, true);
                 }
-                else if (assignmentCtx.INTEGER() != null) {
-                    for (Fluent fluent : references) {
-                        integerConstants.put(fluent, Integer.parseInt(assignmentCtx.INTEGER().getText()));
-                    }
+            }
+            else if (assignmentCtx.INTEGER() != null) {
+                for (Fluent fluent : references) {
+                    integerConstants.put(fluent, Integer.parseInt(assignmentCtx.INTEGER().getText()));
                 }
-                else if (assignmentCtx.objectName() != null) {
-                    for (Fluent fluent : references) {
-                        objectConstants.put(fluent, assignmentCtx.objectName().getText());
-                    }
+            }
+            else if (assignmentCtx.objectName() != null) {
+                for (Fluent fluent : references) {
+                    objectConstants.put(fluent, assignmentCtx.objectName().getText());
                 }
-                else {
-                    throw new RuntimeException("bad assignment");
-                }
+            }
+            else {
+                throw new RuntimeException("bad assignment");
             }
         }
         return null;
@@ -494,41 +490,23 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             value = (IntegerFormula) visit(ctx.integerFormula());
         }
-        else if (ctx.groundableObject() != null) {
+        else if (ctx.objectFormula() != null) {
             if (!allObjectFluents.containsKey(reference)) {
                 throw new RuntimeException("can't assign object to non-object fluent: " + ctx.getText());
             }
 
             String referenceType = allObjectFluents.get(reference);
-            ObjectAtom rhs = (ObjectAtom) visit(ctx.groundableObject());
-
-
-// XOR
-
-
-            String rhsType;
-
-            if (rhs.isFluent()) {           // ASSIGNMENT OF A FLUENT TO A FLUENT
-                rhsType = allObjectFluents.get(rhs.getFluent());
-            }
-            else {                          // ASSIGNMENT OF A LITERAL OBJECT TO A FLUENT
-                rhsType = allObjects.get(rhs.getValue());
-            }
-            if (!isa(rhsType, referenceType)) {
-                throw new RuntimeException("assigned invalid type: " + ctx.getText());
-            }
-
-            value = rhs;
+            value = (ObjectFormula) visit(ctx.objectFormula());
         }
         else {                              // JUST A (POSSIBLY-NEGATED) BOOLEAN FLUENT INSTEAD OF AN ASSIGNMENT
             if (!allBooleanFluents.contains(reference)) {
                 throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
             }
             if (ctx.OP_NOT() == null) {
-                value = new BooleanAtom(true);
+                value = new BooleanValue(true);
             }
             else {
-                value = new BooleanAtom(false);
+                value = new BooleanValue(false);
             }
         }
         return new Assignment(reference, value);
@@ -643,11 +621,12 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             booleanFluentAssignments.put(reference, true);
         }
+        // XOR
         for (DeplParser.ValueAssignmentContext assignCtx : ctx.valueAssignment()) {
             Set<Assignment> assignments = (Set<Assignment>) visit(assignCtx);
             for (Assignment assignment : assignments) {
                 Fluent reference = assignment.getReference();
-                Formula value = assignment.getValue();
+                LocalFormula value = assignment.getValue();
                 if (value instanceof BooleanAtom) {
                     assert (!((BooleanAtom)value).isFluent());
                     if (!allBooleanFluents.contains(reference)) {
@@ -743,8 +722,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
                 if (fieldCtx.ownerActionField() != null) {
-                    ObjectAtom ownerObject = (ObjectAtom) visit(fieldCtx.ownerActionField().groundableObject());
-                    owner = ownerObject.getObjectValue();
+                    owner = (String) visit(fieldCtx.ownerActionField().groundableObject());
                     if (!domain.isNonPassiveAgent(owner)) {
                         throw new RuntimeException("action " + actionName + " owner " + owner +
                                                    " not a declared system or environment agent.");
@@ -769,8 +747,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.ObservesActionFieldContext obsCtx = fieldCtx.observesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        ObjectAtom agentObject = (ObjectAtom) visit(obsCtx.groundableObject());
-                        String agentName = agentObject.getObjectValue();
+                        String agentName = (String) visit(obsCtx.groundableObject());
                         BooleanFormula condition;
                         if (obsCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -790,8 +767,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        ObjectAtom agentObject = (ObjectAtom) visit(awaCtx.groundableObject());
-                        String agentName = agentObject.getObjectValue();
+                        String agentName = (String) visit(awaCtx.groundableObject());
                         BooleanFormula condition;
                         if (awaCtx.booleanFormula() == null) {
                             condition = new BooleanAtom(true);
@@ -927,26 +903,26 @@ public class DeplToProblem extends DeplBaseVisitor {
 //    }
 
 
-    @Override public ObjectAtom visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
+    @Override public String visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
         if (ctx.objectName() != null) {
             String name = ctx.objectName().getText();
             if (!allObjects.containsKey(name)) {
                 throw new RuntimeException("undefined object: " + name);
             }
-            return new ObjectAtom(name);
+            return name;
         }
 
-        if (ctx.fluent() != null) {
-
-            Fluent objectFluent = (Fluent) visit(ctx.fluent());
-            if (objectConstants.containsKey(objectFluent)) {
-                return objectConstants.get(objectFluent);
-            }
-            if (!allObjectFluents.containsKey(objectFluent)) {
-                throw new RuntimeException("unknown object fluent: " + objectFluent);
-            }
-            return new ObjectAtom(objectFluent);
-        }
+//        if (ctx.fluent() != null) {
+//
+//            Fluent objectFluent = (Fluent) visit(ctx.fluent());
+//            if (objectConstants.containsKey(objectFluent)) {
+//                return objectConstants.get(objectFluent);
+//            }
+//            if (!allObjectFluents.containsKey(objectFluent)) {
+//                throw new RuntimeException("unknown object fluent: " + objectFluent);
+//            }
+//            return new ObjectAtom(objectFluent);
+//        }
 
         String variable = ctx.VARIABLE().getText();
         String grounding = null;
@@ -969,7 +945,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("undefined variable: " + variable);
         }
         else {
-            return new ObjectAtom(grounding);
+            return grounding;
         }
     }
 
@@ -1063,8 +1039,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         return CompareBooleans.make(lhs, rhs);
     }
     @Override public BooleanFormula visitBooleanEqualObjects(DeplParser.BooleanEqualObjectsContext ctx) {
-        ObjectAtom lhs = (ObjectFormula) visit(ctx.groundableObject(0));
-        ObjectAtom rhs = (ObjectFormula) visit(ctx.groundableObject(1));
+        ObjectAtom lhs = (ObjectFormula) visit(ctx.objectFormula(0));
+        ObjectAtom rhs = (ObjectFormula) visit(ctx.objectFormula(1));
         if (ctx.OP_EQ() == null) {
             return BooleanNotFormula.make(CompareObjects.make(lhs, rhs));
         }
@@ -1147,8 +1123,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        ObjectAtom agentObject = (ObjectAtom) visit(ctx.groundableObject());
-        String agentName = agentObject.getObjectValue();
+        String agentName = (String) visit(ctx.groundableObject());
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }

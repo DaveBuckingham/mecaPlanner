@@ -1,7 +1,7 @@
 
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.LocalFormula;
 
 
 public class Assignment {
@@ -14,7 +14,7 @@ public class Assignment {
     public Fluent getReference() {
         return reference;
     }
-    public Formula getValue() {
+    public LocalFormula getValue() {
         return value;
     }
 

@@ -87,7 +87,7 @@ passiveDef : objectName ;
 
 // FLUENTS DEFINITIONS
 
-groundableObject : objectName | fluent | VARIABLE ;
+groundableObject : objectName | VARIABLE ;
 expandableObject : objectName | objectType;
 
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
@@ -106,7 +106,7 @@ constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 // FORMULAE
 
 fluent : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')' ;
-fluentFormula : integerFormula | booleanFormula | groundableObject ;
+//fluentFormula : integerFormula | booleanFormula | groundableObject ;
 
 //value 
 //    : KEYWORD_FALSE           # valueFalse
@@ -114,6 +114,11 @@ fluentFormula : integerFormula | booleanFormula | groundableObject ;
 //    | INTEGER                 # valueInteger
 //    | objectName              # valueObject
 //    ;
+
+objectFormula
+    : fluent                                     # objectFluent
+    | groundableObject                           # objectLiteral
+    ;
 
 integerFormula  // EVALUATE TO INTEGER
     : fluent                                                     # integerFluent
@@ -134,7 +139,7 @@ booleanFormula  // EVALUATE TO BOOLEAN
     | integerFormula COMPARE integerFormula                             # booleanCompareIntegers
     | integerFormula (OP_EQ|OP_NE) integerFormula                       # booleanEqualIntegers
     | booleanFormula (OP_EQ|OP_NE) booleanFormula                       # booleanEqualBooleans
-    | groundableObject (OP_EQ|OP_NE) groundableObject                   # booleanEqualObjects
+    | objectFormula (OP_EQ|OP_NE) objectFormula                         # booleanEqualObjects
     | OP_NOT booleanFormula                                          # booleanNot
     | booleanFormula OP_AND booleanFormula (OP_AND booleanFormula)*     # booleanAnd
     | booleanFormula OP_OR  booleanFormula (OP_OR booleanFormula)*      # booleanOr
@@ -143,12 +148,12 @@ booleanFormula  // EVALUATE TO BOOLEAN
 beliefFormula 
     : booleanFormula                                             # beliefBooleanFormula
     | '(' beliefFormula ')'                                      # beliefParens
-    | OP_NOT beliefFormula                                    # beliefNot
+    | OP_NOT beliefFormula                                       # beliefNot
     | beliefFormula (OP_EQ|OP_NE) beliefFormula                  # beliefEqualBeliefs
     | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B' '[' groundableObject ']' '(' beliefFormula ')'                # beliefBelieves
+    | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
     ;
 
 
@@ -193,7 +198,7 @@ variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
 formulaAssignment 
-    : fluent ASSIGN (booleanFormula | integerFormula | groundableObject)
+    : fluent ASSIGN (booleanFormula | integerFormula | objectFormula)
     | fluent
     | OP_NOT ( '('fluent')' | fluent )
     ;

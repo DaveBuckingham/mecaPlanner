@@ -1,6 +1,7 @@
 package mecaPlanner.formulae.booleanFormulae;
 
 import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.LocalFormula;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.KripkeStructure;
