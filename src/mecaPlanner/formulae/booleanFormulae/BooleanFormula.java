@@ -9,7 +9,7 @@ import mecaPlanner.*;
 
 
 
-public abstract class BooleanFormula extends BeliefFormula {
+public abstract class BooleanFormula extends BeliefFormula implements LocalFormula {
 
     public Boolean evaluate(KripkeStructure kripke, World world) {
         return this.evaluate(world);

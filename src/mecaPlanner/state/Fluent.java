@@ -1,4 +1,4 @@
-package mecaPlanner.state;
+package mecaPlanner.state.fluents;
 
 import mecaPlanner.state.World;
 import mecaPlanner.formulae.booleanFormulae.ObjectAtom;
@@ -15,20 +15,15 @@ public class Fluent{
 
 
     private String name;
-    private List<ObjectAtom> parameters;
+    private List<String> parameters;
 
-    public Fluent(String name, List<ObjectAtom> parameters) {
+    public Fluent(String name, List<String> parameters) {
         this.name = name;
         this.parameters = parameters;
     }
 
     public Fluent(String name, String ...strParams) {
-        List<ObjectAtom> atomParams = new ArrayList<>();
-        for (String s : strParams) {
-            atomParams.add(new ObjectAtom(s));
-        }
-        this.name = name;
-        this.parameters = atomParams;
+        this(name, strParams);
     }
 
     public Fluent(String name) {
@@ -39,16 +34,20 @@ public class Fluent{
         return this.name;
     }
 
-    public List<ObjectAtom> getParameters() {
+    public List<String> getParameters() {
         return this.parameters;
     }
 
-    public ObjectAtom getParameter(int i) {
+    public String getParameter(int i) {
         if (i < 0 || i >= parameters.size()) {
             throw new RuntimeException("atom parameter index out of bounds");
         }
         return parameters.get(i);
     }
+
+    //public Class<?> getType() {
+    //    return this.type;
+    //}
 
 
     @Override
@@ -82,7 +81,7 @@ public class Fluent{
 
         str.append("(");
         if (parameters.size() > 0) {
-            for (ObjectAtom p : parameters) {
+            for (String p : parameters) {
                 str.append(p);
                 str.append(",");
             }

@@ -10,7 +10,7 @@ import mecaPlanner.*;
 
 
 
-public abstract class IntegerFormula extends Formula{
+public abstract class IntegerFormula implements LocalFormula{
 
 //    public enum Operation {
 //        ADD,

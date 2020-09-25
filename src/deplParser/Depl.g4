@@ -99,7 +99,7 @@ fluentsSection   : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
 
 // CONSTANTS
 
-valueAssignment : expandableFluent ASSIGN value;
+valueAssignment : expandableFluent ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | objectName) ;
 constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 
 
@@ -108,12 +108,12 @@ constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
 fluent : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')' ;
 fluentFormula : integerFormula | booleanFormula | groundableObject ;
 
-value 
-    : KEYWORD_FALSE           # valueFalse
-    | KEYWORD_TRUE            # valueTrue
-    | INTEGER                 # valueInteger
-    | objectName              # valueObject
-    ;
+//value 
+//    : KEYWORD_FALSE           # valueFalse
+//    | KEYWORD_TRUE            # valueTrue
+//    | INTEGER                 # valueInteger
+//    | objectName              # valueObject
+//    ;
 
 integerFormula  // EVALUATE TO INTEGER
     : fluent                                                     # integerFluent
@@ -193,7 +193,7 @@ variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
 formulaAssignment 
-    : fluent ASSIGN (beliefFormula | integerFormula | groundableObject)
+    : fluent ASSIGN (booleanFormula | integerFormula | groundableObject)
     | fluent
     | OP_NOT ( '('fluent')' | fluent )
     ;

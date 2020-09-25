@@ -1,7 +1,22 @@
+
+FLUENTS
+    declared with built-in and user-defined types
+    in formulae
+        goals
+        initially?
+        actions
+    assigned formulae (ontic effects)
+    assigned values (initially)
+    assigned values in worlds
+
+
+
+
+
+
+
 FIX NDState.equivalent!
 implement initialize
-
-
 
 
 OPTIMIZATIONS

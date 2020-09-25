@@ -20,113 +20,61 @@ public class World implements java.io.Serializable {
 
     private final int id;
 
-    private final Map<Fluent, Boolean> booleanFluents;
-    private final Map<Fluent, Integer> integerFluents;
-    private final Map<Fluent, String> objectFluents;
+    private final Map<Fluent, Object> fluents;
 
     private String name;
 
-    public World(String name,
-                 Map<Fluent, Boolean> booleanFluents,
-                 Map<Fluent, Integer> integerFluents,
-                 Map<Fluent, String> objectFluents) {
+    public World(String name, Map<Fluent, Object> fluents) {
         this.id = World.idCounter++;
         this.name = name;
-        this.booleanFluents = booleanFluents;
-        this.integerFluents = integerFluents;
-        this.objectFluents = objectFluents;
+        this.fluents = fluents;
     }
 
     public World(World toCopy) {
         id = World.idCounter++;
         name = toCopy.getName();
-        booleanFluents = new HashMap<Fluent, Boolean>(toCopy.getBooleanFluents());
-        integerFluents = new HashMap<Fluent, Integer>(toCopy.getIntegerFluents());
-        objectFluents = new HashMap<Fluent, String>(toCopy.getObjectFluents());
+        fluents = new HashMap<Fluent, Object>(toCopy.getFluents());
     }
 
-    protected Map<Fluent,Boolean> getBooleanFluents() {
+    protected Map<Fluent, Object> getFluents() {
         return booleanFluents;
-    }
-
-    protected Map<Fluent,Integer> getIntegerFluents() {
-        return integerFluents;
-    }
-
-    protected Map<Fluent,String> getObjectFluents() {
-        return objectFluents;
     }
 
     public World update(Set<Assignment> assignments) {
         World world = new World(this);
-        Map<Fluent, Boolean> newBooleanFluents = new HashMap<>(booleanFluents);
-        Map<Fluent, Integer> newIntegerFluents = new HashMap<>(integerFluents);
-        Map<Fluent, String> newObjectFluents = new HashMap<>(objectFluents);
+        Map<Fluent, Object> newFluents = new HashMap<>(fluents);
         for (Assignment assignment : assignments) {
             Fluent reference = assignment.getReference();
-            if (newBooleanFluents.containsKey(assignment.getReference())) {
-                newBooleanFluents.put(reference, assignment.getValue().getBooleanValue());
-            }
-            else if (newIntegerFluents.containsKey(assignment.getReference())) {
-                newIntegerFluents.put(reference, assignment.getValue().getIntegerValue());
-            }
-            else if (newObjectFluents.containsKey(assignment.getReference())) {
-                newObjectFluents.put(reference, assignment.getValue().getObjectValue());
-            }
-            else {
+            if (!newFluents.containsKey(assignment.getReference())) {
                 throw new RuntimeException("invalid assignment ref: " + reference);
             }
-            
+            newFluents.put(reference, assignment.getValue().evaluate(this));
         }
-        return new World(null, newBooleanFluents, newIntegerFluents, newObjectFluents);
+        return new World(null, newFluents);
     }
 
     public Boolean alteredByAssignment(Assignment assignment) {
-            Fluent reference = assignment.getReference();
-            if (booleanFluents.containsKey(assignment.getReference())) {
-                return booleanFluents.get(reference).equals(assignment.getValue());
-            }
-            else if (integerFluents.containsKey(assignment.getReference())) {
-                return integerFluents.get(reference).equals(assignment.getValue());
-            }
-            else if (objectFluents.containsKey(assignment.getReference())) {
-                return objectFluents.get(reference).equals(assignment.getValue());
-            }
-            else {
-                throw new RuntimeException("invalid assignment ref: " + reference);
-            }
+        Fluent reference = assignment.getReference();
+        if (!newFluents.containsKey(assignment.getReference())) {
+            throw new RuntimeException("invalid assignment ref: " + reference);
+        }
+        return fluents.get(reference).equals(assignment.getValue().evaluate(this));
     }
 
     public int getId() {
         return this.id;
     }
 
-    public Boolean resolveBoolean(Fluent f) {
-        if (!booleanFluents.containsKey(f)) {
+    public Object ground(Fluent f) {
+        if (!fluents.containsKey(f)) {
             throw new RuntimeException("unknown fluent: " + f);
         }
-        return booleanFluents.get(f);
-    }
-
-    public Integer resolveInteger(Fluent f) {
-        if (!integerFluents.containsKey(f)) {
-            throw new RuntimeException("unknown fluent: " + f);
-        }
-        return integerFluents.get(f);
-    }
-
-    public String resolveObject(Fluent f) {
-        if (!objectFluents.containsKey(f)) {
-            throw new RuntimeException("unknown fluent: " + f);
-        }
-        return objectFluents.get(f);
+        return fluents.get(f);
     }
 
 
     public boolean equivalent(World otherWorld) {
-        return (booleanFluents.equals(otherWorld.getBooleanFluents()) &&
-                integerFluents.equals(otherWorld.getIntegerFluents()) &&
-                objectFluents.equals(otherWorld.getObjectFluents()) );
+        return fluents.equals(otherWorld.getFluents());
     }
 
     public String getName() {
@@ -138,15 +86,7 @@ public class World implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(getName());
         str.append("{");
-        for (Map.Entry<Fluent, Boolean> entry : booleanFluents.entrySet()) {
-            str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
-            str.append(", ");
-        }
-        for (Map.Entry<Fluent, Integer> entry : integerFluents.entrySet()) {
-            str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
-            str.append(", ");
-        }
-        for (Map.Entry<Fluent, String> entry : objectFluents.entrySet()) {
+        for (Map.Entry<Fluent, String> entry : fluents.entrySet()) {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
             str.append(", ");
         }

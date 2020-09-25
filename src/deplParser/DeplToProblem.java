@@ -47,9 +47,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Map<String, String> allObjects;     // from object name to object type
 
     //private Map<Assignment, String> constants;  // Strings are types
-    private Map<Fluent,IntegerAtom> integerConstants;
-    private Map<Fluent,BooleanAtom> booleanConstants;
-    private Map<Fluent,ObjectAtom> objectConstants;
+    private Map<Fluent,Integer> integerConstants;
+    private Map<Fluent,Boolean> booleanConstants;
+    private Map<Fluent,String> objectConstants;
 
     private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
@@ -408,18 +408,26 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
         for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
-            Set<Assignment> assignments = (Set<Assignment>) visit(assignmentCtx);
-            for (Assignment assignment : assignments) {
-                Fluent reference = assignment.getReference();
-                Formula value = assignment.getValue();
-                if (value instanceof BooleanAtom) {
-                    booleanConstants.put(reference, (BooleanAtom) value);
+            Set<Fluent> references = (Set<Fluent>) visit(assignmentCtx.expandableFluent()); 
+                if (assignmentCtx.KEYWORD_FALSE() != null) {
+                    for (Fluent fluent : references) {
+                        booleanConstants.put(fluent, false);
+                    }
                 }
-                else if (assignment.getValue() instanceof IntegerAtom) {
-                    integerConstants.put(reference, (IntegerAtom) value);
+                else if (assignmentCtx.KEYWORD_TRUE() != null) {
+                    for (Fluent fluent : references) {
+                        booleanConstants.put(fluent, true);
+                    }
                 }
-                else if (assignment.getValue() instanceof ObjectAtom) {
-                    objectConstants.put(reference, (ObjectAtom) value);
+                else if (assignmentCtx.INTEGER() != null) {
+                    for (Fluent fluent : references) {
+                        integerConstants.put(fluent, Integer.parseInt(assignmentCtx.INTEGER().getText()));
+                    }
+                }
+                else if (assignmentCtx.objectName() != null) {
+                    for (Fluent fluent : references) {
+                        objectConstants.put(fluent, assignmentCtx.objectName().getText());
+                    }
                 }
                 else {
                     throw new RuntimeException("bad assignment");
@@ -429,38 +437,38 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    // WE WON'T ALLOW A FLUENT TO HOLD A FLUENT...
-    // DOES NOT ASSUME THE FLUENT HAS BEEN DEFINED
-    // (SINCE THIS IS USED IN CONSTANT DEFINITIONS)
-    // WE WILL CHECK THAT THE FLUENT HAS BEEN DEFINED WHEN CALLING THIS FOR KRIPKE WORLD CONSTRUCTION
-    @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
-        Formula value = (Formula) visit(ctx.value());
-        Set<Assignment> assignments = new HashSet<>();
-        for (Fluent reference : (Set<Fluent>) visit(ctx.expandableFluent())) {
-            if (value instanceof BooleanAtom) {
-                if (((BooleanAtom) value).isFluent()) {
-                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-                }
-                assignments.add(new Assignment(reference, value));
-            }
-            else if (value instanceof IntegerAtom) {
-                if (((IntegerAtom) value).isFluent()) {
-                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-                }
-                assignments.add(new Assignment(reference, value));
-            }
-            else if (value instanceof ObjectAtom) {
-                if (((ObjectAtom) value).isFluent()) {
-                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-                }
-                assignments.add(new Assignment(reference, value));
-            }
-            else {
-                throw new RuntimeException("unknown value assigned: " + ctx.getText());
-            }
-        }
-        return assignments;
-    }
+//    // WE WON'T ALLOW A FLUENT TO HOLD A FLUENT...
+//    // DOES NOT ASSUME THE FLUENT HAS BEEN DEFINED
+//    // (SINCE THIS IS USED IN CONSTANT DEFINITIONS)
+//    // WE WILL CHECK THAT THE FLUENT HAS BEEN DEFINED WHEN CALLING THIS FOR KRIPKE WORLD CONSTRUCTION
+//    @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
+//        Formula value = (Formula) visit(ctx.value());
+//        Set<Assignment> assignments = new HashSet<>();
+//        for (Fluent reference : (Set<Fluent>) visit(ctx.expandableFluent())) {
+//            if (value instanceof BooleanAtom) {
+//                if (((BooleanAtom) value).isFluent()) {
+//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+//                }
+//                assignments.add(new Assignment(reference, value));
+//            }
+//            else if (value instanceof IntegerAtom) {
+//                if (((IntegerAtom) value).isFluent()) {
+//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+//                }
+//                assignments.add(new Assignment(reference, value));
+//            }
+//            else if (value instanceof ObjectAtom) {
+//                if (((ObjectAtom) value).isFluent()) {
+//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
+//                }
+//                assignments.add(new Assignment(reference, value));
+//            }
+//            else {
+//                throw new RuntimeException("unknown value assigned: " + ctx.getText());
+//            }
+//        }
+//        return assignments;
+//    }
 
     // ASSUMES THE FLUENT HAS BEEN DEFINED, 
     // ONLY USED IN ACTIN EFFECTS
@@ -471,21 +479,20 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("no syntactically-valid fluent in assignment: " + ctx.getText());
         }
 
-
         Fluent reference = (Fluent) visit(ctx.fluent());
 
-        Formula value;
-        if (ctx.beliefFormula() != null) {
+        LocalFormula value;
+        if (ctx.booleanFormula() != null) {
             if (!allBooleanFluents.contains(reference)) {
                 throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
             }
-            value = (Formula) visit(ctx.beliefFormula());
+            value = (BooleanFormula) visit(ctx.booleanFormula());
         }
         else if (ctx.integerFormula() != null) {
             if (!allIntegerFluents.contains(reference)) {
                 throw new RuntimeException("can't assign integer to non-integer fluent: " + ctx.getText());
             }
-            value = (Formula) visit(ctx.integerFormula());
+            value = (IntegerFormula) visit(ctx.integerFormula());
         }
         else if (ctx.groundableObject() != null) {
             if (!allObjectFluents.containsKey(reference)) {
@@ -494,6 +501,11 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             String referenceType = allObjectFluents.get(reference);
             ObjectAtom rhs = (ObjectAtom) visit(ctx.groundableObject());
+
+
+// XOR
+
+
             String rhsType;
 
             if (rhs.isFluent()) {           // ASSIGNMENT OF A FLUENT TO A FLUENT
@@ -901,18 +913,18 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     //  ATOMIC
 
-    @Override public BooleanFormula visitValueFalse(DeplParser.ValueFalseContext ctx) {
-        return new BooleanAtom(false);
-    }
-    @Override public BooleanFormula visitValueTrue(DeplParser.ValueTrueContext ctx) {
-        return new BooleanAtom(true);
-    }
-    @Override public IntegerFormula visitValueInteger(DeplParser.ValueIntegerContext ctx) {
-        return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
-    }
-    @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
-        return new ObjectAtom(ctx.objectName().getText());
-    }
+//    @Override public BooleanFormula visitValueFalse(DeplParser.ValueFalseContext ctx) {
+//        return new BooleanAtom(false);
+//    }
+//    @Override public BooleanFormula visitValueTrue(DeplParser.ValueTrueContext ctx) {
+//        return new BooleanAtom(true);
+//    }
+//    @Override public IntegerFormula visitValueInteger(DeplParser.ValueIntegerContext ctx) {
+//        return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
+//    }
+//    @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
+//        return new ObjectAtom(ctx.objectName().getText());
+//    }
 
 
     @Override public ObjectAtom visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
@@ -1051,8 +1063,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         return CompareBooleans.make(lhs, rhs);
     }
     @Override public BooleanFormula visitBooleanEqualObjects(DeplParser.BooleanEqualObjectsContext ctx) {
-        ObjectAtom lhs = (ObjectAtom) visit(ctx.groundableObject(0));
-        ObjectAtom rhs = (ObjectAtom) visit(ctx.groundableObject(1));
+        ObjectAtom lhs = (ObjectFormula) visit(ctx.groundableObject(0));
+        ObjectAtom rhs = (ObjectFormula) visit(ctx.groundableObject(1));
         if (ctx.OP_EQ() == null) {
             return BooleanNotFormula.make(CompareObjects.make(lhs, rhs));
         }
