@@ -1,5 +1,6 @@
 package mecaPlanner.formulae.objectFormulae;
 
+import mecaPlanner.state.World;
 
 public class ObjectValue extends ObjectFormula{
 

@@ -58,10 +58,10 @@ public class CompareIntegers extends BooleanFormula{
     }
 
     public static BooleanFormula make(Inequality op, IntegerFormula lhs, IntegerFormula rhs) {
-        if (lhs.isLiteral() && rhs.isLiteral()) {
-            Integer lhsLiteral = lhs.getLiteral();
-            Integer rhsLiteral = rhs.getLiteral();
-            return new BooleanAtom(compare(op, lhsLiteral, rhsLiteral));
+        if (lhs instanceof IntegerValue && rhs instanceof IntegerValue) {
+            Integer lhsInt = ((IntegerInt)lhs).resolve();
+            Integer rhsInt = ((IntegerInt)rhs).resolve();
+            return new BooleanValue(compare(op, lhsInt, rhsInt));
         }
         return new CompareIntegers(op, lhs, rhs);
     }

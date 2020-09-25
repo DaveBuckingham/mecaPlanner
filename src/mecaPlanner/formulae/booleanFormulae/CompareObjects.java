@@ -1,4 +1,5 @@
 package mecaPlanner.formulae.booleanFormulae;
+package mecaPlanner.formulae.objectFormulae;
 
 import mecaPlanner.state.Fluent;
 import mecaPlanner.state.World;
@@ -15,35 +16,33 @@ import java.util.HashSet;
 
 public class CompareObjects extends BooleanFormula{
 
-    private ObjectAtom lhs;
-    private ObjectAtom rhs;
+    private ObjectFormula lhs;
+    private ObjectFormula rhs;
 
 
-    private CompareObjects(ObjectAtom lhs, ObjectAtom rhs) {
+    private CompareObjects(ObjectFormula lhs, ObjectFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;
     }
 
 
-    public static BooleanFormula make(ObjectAtom lhs, ObjectAtom rhs) {
-        if (lhs.isFluent() || rhs.isFluent()) {
-            return new CompareObjects(lhs, rhs);
+    public static BooleanFormula make(ObjectFormula lhs, ObjectFormula rhs) {
+        if (lhs instanceof ObjectValue && rhs instanceof ObjectValue) {
+            return new BooleanValue(lhs.equals(rhs));
         }
-        String lhsString = lhs.getObjectValue();
-        String rhsString = rhs.getObjectValue();
-        return new BooleanAtom(lhsString.equals(rhsString));
+        return new CompareObjects(lhs, rhs);
     }
 
-    public ObjectAtom getLhs() {
+    public ObjectFormula getLhs() {
         return lhs;
     }
 
-    public ObjectAtom getRhs() {
+    public ObjectFormula getRhs() {
         return rhs;
     }
 
     public Boolean evaluate(World world) {
-        return (lhs.evaluate(world) == rhs.evaluate(world));
+        return (lhs.evaluate(world).equals(rhs.evaluate(world)));
     }
 
 
