@@ -26,7 +26,7 @@ public class BooleanValue extends BooleanFormula{
     }
 
     public BooleanFormula negate() {
-        return BooleanValue(!value);
+        return new BooleanValue(!value);
     }
 
     public Boolean isFalse() {

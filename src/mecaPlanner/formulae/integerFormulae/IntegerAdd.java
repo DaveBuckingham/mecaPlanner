@@ -9,8 +9,8 @@ import java.util.Arrays;
 import java.util.Objects;
 
 
-public class IntegerAdd extends IntegerFormula{
-
+public class IntegerAdd extends IntegerBinaryFormula{
+  
     public IntegerAdd(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
         this.rhs = rhs;

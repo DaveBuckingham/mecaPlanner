@@ -37,7 +37,7 @@ public class World implements java.io.Serializable {
     }
 
     protected Map<Fluent, Object> getFluents() {
-        return booleanFluents;
+        return fluents;
     }
 
     public World update(Set<Assignment> assignments) {
@@ -55,7 +55,7 @@ public class World implements java.io.Serializable {
 
     public Boolean alteredByAssignment(Assignment assignment) {
         Fluent reference = assignment.getReference();
-        if (!newFluents.containsKey(assignment.getReference())) {
+        if (!fluents.containsKey(assignment.getReference())) {
             throw new RuntimeException("invalid assignment ref: " + reference);
         }
         return fluents.get(reference).equals(assignment.getValue().evaluate(this));
@@ -86,7 +86,7 @@ public class World implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(getName());
         str.append("{");
-        for (Map.Entry<Fluent, String> entry : fluents.entrySet()) {
+        for (Map.Entry<Fluent, Object> entry : fluents.entrySet()) {
             str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
             str.append(", ");
         }

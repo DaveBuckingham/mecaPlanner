@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 
-public class IntegerDivide extends IntegerFormula{
+public class IntegerDivide extends IntegerBinaryFormula{
 
     public IntegerDivide(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;

@@ -21,8 +21,12 @@ public class Fluent{
         this.parameters = parameters;
     }
 
-    public Fluent(String name, String ...strParams) {
-        this(name, strParams);
+    public Fluent(String ...strParams) {
+        if (strParams.length < 1) {
+            throw new RuntimeException("fluent needs a name");
+        }
+        this.name = strParams[0];
+        this.parameters = Arrays.asList(Arrays.copyOfRange(strParams, 1, strParams.length));
     }
 
     public Fluent(String name) {

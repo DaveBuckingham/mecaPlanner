@@ -39,7 +39,7 @@ public class IntegerFluent extends IntegerFormula{
             return false;
         }
         IntegerFluent other = (IntegerFluent) obj;
-        return (value.equals(other.resolve()));
+        return (fluent.equals(other.resolve()));
     }
 
 

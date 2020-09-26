@@ -24,52 +24,21 @@ public class Initialize {
 
 
     static class Type1 {
-        private Fluent fluent;
+        public Fluent fluent;
+        public List<Object> values;
 
         public Fluent getFluent(){
             return fluent;
         }
+        public List<Object> getValues(){
+            return values;
+        }
 
-        public Type1 (Fluent fluent) {
+        public Type1 (Fluent fluent, List<Object> values) {
             this.fluent = fluent;
-        }
-    }
-
-    static class Type1Boolean extends Type1 {
-        private List<Boolean> values;
-        public List<Boolean> getValues() {
-            return values;
-        }
-        public Type1 (Fluent fluent, List<Boolean> values) {
-            super(fluent);
             this.values = values;
         }
     }
-
-    static class Type1Integer extends Type1 {
-        private List<Integer> values;
-        public List<Integer> getValues() {
-            return values;
-        }
-        public Type1 (Fluent fluent, List<Integer> values) {
-            super(fluent);
-            this.values = values;
-        }
-    }
-
-
-    static class Type1Object extends Type1 {
-        private List<String> values;
-        public List<String> getValues() {
-            return values;
-        }
-        public Type1 (Fluent fluent, List<String> values) {
-            super(fluent);
-            this.values = values;
-        }
-    }
-
-
 
     static class Type2 {
         String agent;
@@ -93,31 +62,27 @@ public class Initialize {
 
     private static Set<World> productWorlds(List<Type1> ndAssignments) {
         Set<World> worlds = new HashSet<World>();
-        int[] indeces = new int[ndAssignments.length()]; // TRUSTING THIS TO INITIALIZE AS ZEROS
+        int[] indeces = new int[ndAssignments.size()]; // TRUSTING THIS TO INITIALIZE AS ZEROS
         boolean done = false;
         while (!done) {
-            Map<Fluent, Boolean> booleanFluents = new HashMap<>();
-            Map<Fluent, Integer> integerFluents = new HashMap<>();
-            Map<Fluent, String> objectFluents = new HashMap<>();
+            Map<Fluent, Object> fluents = new HashMap<>();
             for (int fluentIndex = 0; fluentIndex < ndAssignments.size(); fluentIndex+=1) {
                 Type1 assignment = ndAssignments.get(fluentIndex);
-                if (assignment instanceof Type1Boolean) {
-                    List<Boolean> values = ((Type1Boolean)assignment).getValues();
-                    booleanFluents.put(assignment.getFluent(), values.get(indeces[fluentIndex]));
-                }
+                List<Object> values = assignment.getValues();
+                fluents.put(assignment.getFluent(), values.get(indeces[fluentIndex]));
             }
 
             int fluentIndex = 0;
             do {
                 indeces[fluentIndex] += 1;
-                if (indeces[fluentIndex] == ndAssignments.get(fluentIndex).getValuues().size()) {
+                if (indeces[fluentIndex] == ndAssignments.get(fluentIndex).getValues().size()) {
                     indeces[fluentIndex] = 0;
                     fluentIndex += 1;
                     if (fluentIndex == ndAssignments.size()) {
                         done = true;
                     }
                 }
-            } while (indeces[fluentIndex] == 0 && fluentIndex < ndAssignments.length());
+            } while (indeces[fluentIndex] == 0 && fluentIndex < ndAssignments.size());
 
         }
     }
@@ -141,14 +106,15 @@ public class Initialize {
                 beliefRow.put(columnIndex, beliefs);
                 frameRow.put(columnIndex, frame);
             }
-            frameMatrix.put(rowIndex, row);
+            beliefMatrix.put(rowIndex, beliefRow);
+            frameMatrix.put(rowIndex, frameRow);
         }
 
         for (BeliefFormula statement : initialStatements) {
-            if (statement instanceof BeliefFormulaBelieves) {
+            if (statement instanceof BeliefBelievesFormula) {
                 BeliefBelievesFormula outer = (BeliefBelievesFormula) statement;
                 String outerAgent = outer.getAgent();
-                if (outer.getFormula() instanceof BeliefFormulaBelieves) {
+                if (outer.getFormula() instanceof BeliefBelievesFormula) {
                     BeliefBelievesFormula inner = (BeliefBelievesFormula) outer.getFormula();
                     String innerAgent = inner.getAgent();
                     Type1 assignment = parseAssignment(inner.getFormula());
@@ -180,6 +146,24 @@ public class Initialize {
 
 
     }
+
+    public static Type1 parseAssignment(BelieFormula formula) {
+        Fluent fluent;
+        List<Object> values;
+
+        if (formula instanceof CompareBooleans) {
+        }
+        else if (formula instanceof CompareIntegers) {
+        }
+        else if (formula instanceof CompareObjects) {
+        }
+        else if (formula instanceof CompareObjects) {
+        }
+        else if (formula instanceof BooleanAndFormula) {
+        }
+        return new Type1(fluent, values);
+    }
+
 
 
 //    // this function copied from Andrew Mao:

@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 
-public class IntegerModulo extends IntegerFormula{
+public class IntegerModulo extends IntegerBinaryFormula{
 
     public IntegerModulo(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;

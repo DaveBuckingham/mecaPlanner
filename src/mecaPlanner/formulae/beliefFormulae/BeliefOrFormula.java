@@ -1,6 +1,6 @@
 package mecaPlanner.formulae.beliefFormulae;
 
-import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
+import mecaPlanner.formulae.booleanFormulae.BooleanValue;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -33,7 +33,7 @@ public class BeliefOrFormula extends BeliefFormula{
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanAtom(false);
+            return new BooleanValue(false);
         }
         return new BeliefOrFormula(formulae);
     }

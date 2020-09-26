@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 
-public class IntegerSubtract extends IntegerFormula{
+public class IntegerSubtract extends IntegerBinaryFormula{
 
     public IntegerSubtract(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;

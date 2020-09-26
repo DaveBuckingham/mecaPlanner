@@ -33,7 +33,7 @@ public class BooleanAndFormula extends BooleanFormula{
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanAtom(true);
+            return new BooleanValue(true);
         }
         return new BooleanAndFormula(formulae);
     }

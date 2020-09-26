@@ -34,7 +34,7 @@ public class ObjectValue extends ObjectFormula{
             return false;
         }
         ObjectValue other = (ObjectValue) obj;
-        return (value.equals(other.getIntegerValue()));
+        return (value.equals(other.resolve()));
     }
 
 

@@ -17,6 +17,20 @@ public class BooleanFluent extends BooleanFormula{
         this.fluent = fluent;
     }
 
+    public BooleanFluent(String name, List<String> parameters) {
+        this(new Fluent(name, parameters));
+    }
+
+    public BooleanFluent(String ...strParams) {
+        this(new Fluent(strParams));
+    }
+
+    public BooleanFluent(String name) {
+        this(new Fluent(name));
+    }
+
+
+
     public Fluent resolve() {
         return fluent;
     }
@@ -26,7 +40,7 @@ public class BooleanFluent extends BooleanFormula{
     }
 
     public BooleanFormula negate() {
-        return new BooleanNotFormula(new BooleanFluent(fluent));
+        return BooleanNotFormula.make(new BooleanFluent(fluent));
     }
 
     public Boolean isFalse() {

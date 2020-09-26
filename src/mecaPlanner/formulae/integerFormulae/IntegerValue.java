@@ -44,7 +44,7 @@ public class IntegerValue extends IntegerFormula{
             return false;
         }
         IntegerValue other = (IntegerValue) obj;
-        return (value.equals(other.getIntegerValue()));
+        return (value.equals(other.resolve()));
     }
 
 

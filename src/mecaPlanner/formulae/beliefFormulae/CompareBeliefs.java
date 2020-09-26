@@ -1,7 +1,7 @@
 package mecaPlanner.formulae.beliefFormulae;
 
 import mecaPlanner.state.Fluent;
-import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
+import mecaPlanner.formulae.booleanFormulae.BooleanValue;
 import mecaPlanner.state.World;
 import mecaPlanner.state.KripkeStructure;
 
@@ -30,18 +30,18 @@ public class CompareBeliefs extends BeliefFormula{
     public static BeliefFormula make(BeliefFormula lhs, BeliefFormula rhs) {
         if (lhs.isTrue()) {
             if (rhs.isTrue()) {
-                return new BooleanAtom(true);
+                return new BooleanValue(true);
             }
             if (rhs.isFalse()) {
-                return new BooleanAtom(false);
+                return new BooleanValue(false);
             }
         }
         else if (lhs.isFalse()) {
             if (rhs.isTrue()) {
-                return new BooleanAtom(false);
+                return new BooleanValue(false);
             }
             if (rhs.isFalse()) {
-                return new BooleanAtom(true);
+                return new BooleanValue(true);
             }
         }
         return new CompareBeliefs(lhs, rhs);

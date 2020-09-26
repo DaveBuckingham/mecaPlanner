@@ -1,8 +1,9 @@
 package mecaPlanner.formulae.booleanFormulae;
-package mecaPlanner.formulae.objectFormulae;
 
 import mecaPlanner.state.Fluent;
 import mecaPlanner.state.World;
+
+import mecaPlanner.formulae.objectFormulae.*;
 
 
 import java.util.List;

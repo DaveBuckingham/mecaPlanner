@@ -9,7 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 
 
-public class IntegerMultiply extends IntegerFormula{
+public class IntegerMultiply extends IntegerBinaryFormula{
 
     public IntegerMultiply(IntegerFormula lhs, IntegerFormula rhs) {
         this.lhs = lhs;
