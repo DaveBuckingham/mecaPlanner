@@ -22,6 +22,13 @@ import depl.*;
 
 public class Initialize {
 
+    // 1. f=v
+    // 2. ~(f!=v) & ~(f!=v')...
+    // 3. B[i](f=v)
+    // 4. ~B[i](f!=v) & ~B[i](f!=v')... 
+    // 5. B[i]B[j](f=v)
+    // 6. B[i]( ~B[j](f!=v) & ~B[j](f!=v')... )
+
 
     static class Type1 {
         public Fluent fluent;
