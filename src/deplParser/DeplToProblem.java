@@ -38,19 +38,14 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
-    private Set<BeliefFormula> goals;
+    private Set<TimeFormula> goals;
 
     // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
-    private Set<Fluent> allBooleanFluents;
-    private Set<Fluent> allIntegerFluents;
-    private Map<Fluent,String> allObjectFluents;
+    private Set<Fluent> allFluents;
     private Integer agentIndex;
     private Map<String, String> allObjects;     // from object name to object type
 
-    //private Map<Assignment, String> constants;  // Strings are types
-    private Map<Fluent,IntegerValue> integerConstants;
-    private Map<Fluent,BooleanValue> booleanConstants;
-    private Map<Fluent,ObjectValue> objectConstants;
+    private Set<Fluent> constants;
 
     private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
@@ -191,10 +186,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         allBooleanFluents = new HashSet<>();
         allIntegerFluents = new HashSet<>();
         allObjectFluents = new HashMap<>();
-        //this.constants = new HashMap<>();
-        this.booleanConstants = new HashMap<>();
-        this.integerConstants = new HashMap<>();
-        this.objectConstants = new HashMap<>();
+        this.constants = new HashSet<>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
 
@@ -348,7 +340,14 @@ public class DeplToProblem extends DeplBaseVisitor {
     // FLUENTS
 
     @Override public Void visitFluentsSection(DeplParser.FluentsSectionContext ctx) {
-        visitChildren(ctx);
+        for (DeplParser.ExpandableFluentContext fluentsCtx : ctx.expandableFluent()) {
+            for (Fluent fluent : (Set<Fluent>) visit(fluentsCtx)) {
+                if (allObjects.containsKey(fluent.getName())) {
+                    Log.warning("Fluent name already used for object: " + fluent.getName());
+                }
+                allFluents.add(fluent);
+            }
+        }
         return null;
     }
 
@@ -378,142 +377,19 @@ public class DeplToProblem extends DeplBaseVisitor {
         return expandedFluents;
     }
 
-    @Override public Void visitFluentDef(DeplParser.FluentDefContext ctx) {
-        String type = ctx.fluentType().getText();
-        for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
-            if (allObjects.containsKey(fluent.getName())) {
-                Log.warning("Fluent name already used for object: " + fluent.getName());
-            }
-            if (type.equals("Boolean")) {
-                allBooleanFluents.add(fluent);
-            }
-            else if (type.equals("Integer")) {
-                allIntegerFluents.add(fluent);
-            }
-            else {
-                // WE SHOULDN'T HAVE TO DO ANY SYNTAX CHECKS HERE, THEY SHOULD BE HANDLED BY THE GRAMMAR
-                allObjectFluents.put(fluent, type);
-            }
-        }
-        return null;
-    }
-
 
 
 
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
-        for (DeplParser.ValueAssignmentContext assignmentCtx : ctx.valueAssignment()) {
-            Set<Fluent> references = (Set<Fluent>) visit(assignmentCtx.expandableFluent()); 
-            if (assignmentCtx.KEYWORD_FALSE() != null) {
-                for (Fluent fluent : references) {
-                    booleanConstants.put(fluent, new BooleanValue(false));
-                }
-            }
-            else if (assignmentCtx.KEYWORD_TRUE() != null) {
-                for (Fluent fluent : references) {
-                    booleanConstants.put(fluent, new BooleanValue(true));
-                }
-            }
-            else if (assignmentCtx.INTEGER() != null) {
-                for (Fluent fluent : references) {
-                    IntegerValue value = new IntegerValue(Integer.parseInt(assignmentCtx.INTEGER().getText()));
-                    integerConstants.put(fluent, value);
-                }
-            }
-            else if (assignmentCtx.objectName() != null) {
-                for (Fluent fluent : references) {
-                    ObjectValue value = new ObjectValue(assignmentCtx.objectName().getText());
-                    objectConstants.put(fluent, value);
-                }
-            }
-            else {
-                throw new RuntimeException("bad assignment");
+        for (DeplParser.ExpandableFluentContext fluentsCtx : ctx.expandableFluent()) {
+            for (Fluent fluent : (Set<Fluent>) visit(fluentsCtx)) {
+                constants.put(fluent);
             }
         }
         return null;
     }
-
-//    // WE WON'T ALLOW A FLUENT TO HOLD A FLUENT...
-//    // DOES NOT ASSUME THE FLUENT HAS BEEN DEFINED
-//    // (SINCE THIS IS USED IN CONSTANT DEFINITIONS)
-//    // WE WILL CHECK THAT THE FLUENT HAS BEEN DEFINED WHEN CALLING THIS FOR KRIPKE WORLD CONSTRUCTION
-//    @Override public Set<Assignment> visitValueAssignment(DeplParser.ValueAssignmentContext ctx) {
-//        Formula value = (Formula) visit(ctx.value());
-//        Set<Assignment> assignments = new HashSet<>();
-//        for (Fluent reference : (Set<Fluent>) visit(ctx.expandableFluent())) {
-//            if (value instanceof BooleanAtom) {
-//                if (((BooleanAtom) value).isFluent()) {
-//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-//                }
-//                assignments.add(new Assignment(reference, value));
-//            }
-//            else if (value instanceof IntegerAtom) {
-//                if (((IntegerAtom) value).isFluent()) {
-//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-//                }
-//                assignments.add(new Assignment(reference, value));
-//            }
-//            else if (value instanceof ObjectAtom) {
-//                if (((ObjectAtom) value).isFluent()) {
-//                    throw new RuntimeException("illegal assignment, expected value, not fluent: " + ctx.getText());
-//                }
-//                assignments.add(new Assignment(reference, value));
-//            }
-//            else {
-//                throw new RuntimeException("unknown value assigned: " + ctx.getText());
-//            }
-//        }
-//        return assignments;
-//    }
-
-    // ASSUMES THE FLUENT HAS BEEN DEFINED, 
-    // ONLY USED IN ACTIN EFFECTS
-    // UNLIKE WITH VALUE ASSIGNMENT, HERE WE WILL ALLOW THE ASSIGNMENT VALUE TO BE A FLUENT THAT REFERENCES AN OBJECT
-    @Override public Assignment visitFormulaAssignment(DeplParser.FormulaAssignmentContext ctx) {
-
-        if (ctx.fluent() == null) {
-            throw new RuntimeException("no syntactically-valid fluent in assignment: " + ctx.getText());
-        }
-
-        Fluent reference = (Fluent) visit(ctx.fluent());
-
-        LocalFormula value;
-        if (ctx.booleanFormula() != null) {
-            if (!allBooleanFluents.contains(reference)) {
-                throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
-            }
-            value = (BooleanFormula) visit(ctx.booleanFormula());
-        }
-        else if (ctx.integerFormula() != null) {
-            if (!allIntegerFluents.contains(reference)) {
-                throw new RuntimeException("can't assign integer to non-integer fluent: " + ctx.getText());
-            }
-            value = (IntegerFormula) visit(ctx.integerFormula());
-        }
-        else if (ctx.objectFormula() != null) {
-            if (!allObjectFluents.containsKey(reference)) {
-                throw new RuntimeException("can't assign object to non-object fluent: " + ctx.getText());
-            }
-
-            String referenceType = allObjectFluents.get(reference);
-            value = (ObjectFormula) visit(ctx.objectFormula());
-        }
-        else {                              // JUST A (POSSIBLY-NEGATED) BOOLEAN FLUENT INSTEAD OF AN ASSIGNMENT
-            if (!allBooleanFluents.contains(reference)) {
-                throw new RuntimeException("can't assign boolean to non-boolean fluent: " + ctx.getText());
-            }
-            if (ctx.OP_NOT() == null) {
-                value = new BooleanValue(true);
-            }
-            else {
-                value = new BooleanValue(false);
-            }
-        }
-        return new Assignment(reference, value);
-    }
-
 
 
 
@@ -700,7 +576,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        BeliefFormula goal = (BeliefFormula) visit(ctx.beliefFormula());
+        TimeFormula goal = (TimeFormula) visit(ctx.timeFormula());
         goals.add(goal);
         return null;
     }
@@ -727,7 +603,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             Set<BooleanFormula> determines = new HashSet<>();
             Set<BeliefFormula> announces = new HashSet<>();
-            Map<Assignment, BooleanFormula> effects = new HashMap<>();
+            Map<Fluent, LocalFormula> addEffects = new HashMap<>();
+            Map<Fluent, LocalFormula> delEffects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -815,20 +692,42 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        BooleanFormula condition;
-                        if (effCtx.booleanFormula() == null)  {
-                            condition = new BooleanValue(true);
+                        LocalFormula condition;
+                        if (effCtx.localFormula() == null)  {
+                            condition = new LocalValue(true);
                         }
                         else {
-                            condition = (BooleanFormula) visit(effCtx.booleanFormula());
+                            condition = (LocalFormula) visit(effCtx.localFormula());
                         }
                         if (!(condition.isFalse())){
-                            Assignment assignment = (Assignment) visit(effCtx.formulaAssignment());
-                            effects.put(assignment, condition);
+                            Fluent fluent = (Fluent) visit(effCtx.fluent());
+                            addEffects.put(fluent, condition);
                         }
                         variableStack.pop();
                     }
                 }
+
+                else if (fieldCtx.causesNotActionField() != null) {
+                    DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
+                    for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
+                        variableStack.push(variableMap);
+                        LocalFormula condition;
+                        if (effCtx.localFormula() == null)  {
+                            condition = new LocalValue(true);
+                        }
+                        else {
+                            condition = (LocalFormula) visit(effCtx.localFormula());
+                        }
+                        if (!(condition.isFalse())){
+                            Fluent fluent = (Fluent) visit(effCtx.fluent());
+                            delEffects.put(fluent, condition);
+                        }
+                        variableStack.pop();
+                    }
+                }
+
+
+
                 else {
                     throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
                 }
@@ -865,7 +764,8 @@ public class DeplToProblem extends DeplBaseVisitor {
             assert (aware != null);
             assert (determines != null);
             assert (announces != null);
-            assert (effects != null);
+            assert (addEffects != null);
+            assert (delEffects != null);
             assert (domain != null);
 
 
@@ -880,7 +780,8 @@ public class DeplToProblem extends DeplBaseVisitor {
                                             aware,
                                             determines,
                                             announces,
-                                            effects,
+                                            addEffects,
+                                            delEffects,
                                             domain
                                            );
 
@@ -1086,8 +987,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // BELIEF FORMULAE
 
-    @Override public BeliefFormula visitBeliefBooleanFormula(DeplParser.BeliefBooleanFormulaContext ctx) {
-        return (BooleanFormula) visit(ctx.booleanFormula());
+    @Override public BeliefFormula visitBeliefLocalFormula(DeplParser.BeliefLocalFormulaContext ctx) {
+        return (LocalFormula) visit(ctx.localFormula());
     }
 
     @Override public BeliefFormula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
@@ -1108,7 +1009,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return CompareBeliefs.make(lhs, rhs);
 
     }
-
 
     @Override public BeliefFormula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
         List<BeliefFormula> subFormulae = new ArrayList<>();
@@ -1139,6 +1039,72 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
         return new BeliefBelievesFormula(agentName, inner);
     }
+
+
+
+    // TIME FORMULAE
+
+    @Override public TimeFormula visitTimeBelief(DeplParser.TimeBeliefContext ctx) {
+        return (BeliefFormula) visit(ctx.beliefFormula());
+    }
+
+    @Override public TimeFormula visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
+        return (TimeFormula) visit(ctx.timeConstraint());
+    }
+
+    @Override public TimeFormula visitTimeNot(DeplParser.TimeNotContext ctx) {
+        TimeFormula inner = (TimeFormula) visit(ctx.generalFormula());
+        return (new TimeFormulaNot(inner));
+    }
+
+    @Override public TimeFormula visitTimeAnd(DeplParser.TimeAndContext ctx) {
+        List<TimeFormula> subFormulae = new ArrayList<>();
+        for (DeplParser.TimeFormulaContext subFormula : ctx.generalFormula()) {
+            subFormulae.add((TimeFormula) visit(subFormula));
+        }
+        return (new TimeFormulaAnd(subFormulae));
+    }
+
+    @Override public TimeFormula visitTimeOr(DeplParser.TimeOrContext ctx) {
+        List<TimeFormula> subFormulae = new ArrayList<>();
+        for (DeplParser.TimeFormulaContext subFormula : ctx.generalFormula()) {
+            subFormulae.add((TimeFormula) visit(subFormula));
+        }
+        return (new TimeFormulaOr(subFormulae));
+    }
+
+
+
+    @Override public TimeConstraint visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
+        return new TimeConstraint((TimeFormula.Inequality) visit(ctx.inequality()),
+                                Integer.parseInt(ctx.INTEGER().getText()));
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
+        return TimeConstraint.Inequality.EQ;
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
+        return TimeConstraint.Inequality.NE;
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
+        return TimeConstraint.Inequality.LT;
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
+        return TimeConstraint.Inequality.LTE;
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
+        return TimeConstraint.Inequality.GT;
+    }
+
+    @Override public TimeConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
+        return TimeConstraint.Inequality.GTE;
+    }
+
+
 
 
 

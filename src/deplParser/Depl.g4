@@ -19,8 +19,7 @@ OP_NOT                  : '~'|'!' ;
 
 KEYWORD_TRUE            : 'true' ;
 KEYWORD_FALSE           : 'false' ;
-KEYWORD_BOOLEAN         : 'Boolean' ;
-KEYWORD_INTEGER         : 'Integer' ;
+KEYWORD_TIME            : 'Timestep' ;
 
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-';
@@ -91,70 +90,60 @@ groundableObject : objectName | VARIABLE ;
 expandableObject : objectName | objectType;
 
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
-fluentType       : KEYWORD_BOOLEAN | KEYWORD_INTEGER | objectType ;
-fluentDef        :  expandableFluent '-' fluentType ;
-fluentsSection   : 'fluents' '{' (fluentDef ',')* fluentDef? '}' ;
+fluentsSection   : 'fluents' '{' (expandalbeFluent ',')* expandalbeFluent? '}' ;
 
 
 
 // CONSTANTS
 
-valueAssignment : expandableFluent ASSIGN (KEYWORD_FALSE | KEYWORD_TRUE | INTEGER | objectName) ;
-constantsSection : 'constants' '{' (valueAssignment ',')* valueAssignment? '}' ;
+constantsSection : 'constants' '{' (expandableFluent ',')* expandableFluent? '}' ;
 
 
 // FORMULAE
 
 fluent : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')' ;
-//fluentFormula : integerFormula | booleanFormula | groundableObject ;
 
-//value 
-//    : KEYWORD_FALSE           # valueFalse
-//    | KEYWORD_TRUE            # valueTrue
-//    | INTEGER                 # valueInteger
-//    | objectName              # valueObject
-//    ;
-
-objectFormula
-    : fluent                                     # objectFluent
-    | groundableObject                           # objectLiteral
-    ;
-
-integerFormula  // EVALUATE TO INTEGER
-    : fluent                                                     # integerFluent
-    | INTEGER                                                    # integerLiteral
-    | '(' integerFormula ')'                                     # integerParens
-    | integerFormula '+' integerFormula                          # integerAdd
-    | integerFormula '-' integerFormula                          # integerSubtract
-    | integerFormula '*' integerFormula                          # integerMultiply
-    | integerFormula '/' integerFormula                          # integerDivide
-    | integerFormula '%' integerFormula                          # integerModulo
-    ;
-
-booleanFormula  // EVALUATE TO BOOLEAN
-    : fluent                                                            # booleanFluent
-    | KEYWORD_TRUE                                                      # booleanLiteralTrue
-    | KEYWORD_FALSE                                                     # booleanLiteralFalse
-    | '(' booleanFormula ')'                                            # booleanParens
-    | integerFormula COMPARE integerFormula                             # booleanCompareIntegers
-    | integerFormula (OP_EQ|OP_NE) integerFormula                       # booleanEqualIntegers
-    | booleanFormula (OP_EQ|OP_NE) booleanFormula                       # booleanEqualBooleans
-    | objectFormula (OP_EQ|OP_NE) objectFormula                         # booleanEqualObjects
-    | OP_NOT booleanFormula                                          # booleanNot
-    | booleanFormula OP_AND booleanFormula (OP_AND booleanFormula)*     # booleanAnd
-    | booleanFormula OP_OR  booleanFormula (OP_OR booleanFormula)*      # booleanOr
+localFormula  // EVALUATE TO BOOLEAN
+    : fluent                                                            # localFluent
+    | KEYWORD_TRUE                                                      # localLiteralTrue
+    | KEYWORD_FALSE                                                     # localLiteralFalse
+    | '(' localFormula ')'                                              # localParens
+    | OP_NOT localFormula                                               # localNot
+    | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
+    | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
     ;
 
 beliefFormula 
-    : booleanFormula                                             # beliefBooleanFormula
+    : localFormula                                               # beliefLocalFormula
     | '(' beliefFormula ')'                                      # beliefParens
     | OP_NOT beliefFormula                                       # beliefNot
-    | beliefFormula (OP_EQ|OP_NE) beliefFormula                  # beliefEqualBeliefs
     | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
     | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
     ;
+
+
+inequality
+    : '=='                # inequalityEq
+    | '!='                # inequalityNe
+    | '<'                 # inequalityLt
+    | '<='                # inequalityLte
+    | '>'                 # inequalityGt
+    | '>='                # inequalityGte
+    ;
+
+timeConstraint : KEYWORD_TIME  inequality INTEGER;
+
+timeFormula
+    : beliefFormula                                              # timeBelief
+    | timeConstraint                                             # timeConstraint
+    | '~' timeFormula                                            # timeNot
+    | timeFormula '&' timeFormula ('&' timeFormula)*             # timeAnd
+    | timeFormula '|' timeFormula ('|' timeFormula)*             # timeOr
+    ;
+
+
 
 
 // INITIAL STATE DEFINITION
@@ -185,7 +174,7 @@ postSection : 'post' startStateDef ;
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
-goal : beliefFormula ;
+goal : timeFormula ;
 
 
 
@@ -197,12 +186,6 @@ actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
 
-formulaAssignment 
-    : fluent ASSIGN (booleanFormula | integerFormula | objectFormula)
-    | fluent
-    | OP_NOT ( '('fluent')' | fluent )
-    ;
-
 
 actionField
     : ownerActionField
@@ -211,16 +194,18 @@ actionField
     | observesActionField
     | awareActionField
     | causesActionField
+    | causesNotActionField
     | determinesActionField
     | announcesActionField
     ;
 
 ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableDefList '{' booleanFormula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' booleanFormula)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' booleanFormula)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' booleanFormula '}' ;
+preconditionActionField : 'precondition' variableDefList '{' localFormula '}' ;
+observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' localFormula)? '}' ;
+awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' localFormula)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' localFormula '}' ;
 announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
-causesActionField       : 'causes'       variableDefList '{' formulaAssignment ('if' booleanFormula)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' fluent ('if' localFormula)? '}' ;
+causesNotActionField    : 'causes'       variableDefList '{' OP_NOT fluent ('if' localFormula)? '}' ;
 

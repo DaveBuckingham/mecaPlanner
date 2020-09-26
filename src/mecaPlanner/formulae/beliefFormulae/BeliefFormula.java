@@ -4,6 +4,7 @@ package mecaPlanner.formulae.beliefFormulae;
 import mecaPlanner.state.World;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.formulae.timeFormulae.TimeFormula;
 
 import mecaPlanner.*;
 
@@ -13,7 +14,7 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public abstract class BeliefFormula {
+public abstract class BeliefFormula extends TimeFormula{
 
     public Boolean evaluate(EpistemicState state) {
         return evaluate(state.getKripke(), state.getDesignatedWorld());
