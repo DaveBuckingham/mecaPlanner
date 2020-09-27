@@ -20,11 +20,11 @@ public class World implements java.io.Serializable {
 
     private final int id;
 
-    private final Map<Fluent, Object> fluents;
+    private final Set<Fluent> fluents;
 
     private String name;
 
-    public World(String name, Map<Fluent, Object> fluents) {
+    public World(String name, Set<Fluent> fluents) {
         this.id = World.idCounter++;
         this.name = name;
         this.fluents = fluents;
@@ -33,43 +33,37 @@ public class World implements java.io.Serializable {
     public World(World toCopy) {
         id = World.idCounter++;
         name = toCopy.getName();
-        fluents = new HashMap<Fluent, Object>(toCopy.getFluents());
+        fluents = new HashSet<Fluent>(toCopy.getFluents());
     }
 
-    protected Map<Fluent, Object> getFluents() {
+    protected Set<Fluent> getFluents() {
         return fluents;
     }
 
     public World update(Set<Assignment> assignments) {
         World world = new World(this);
-        Map<Fluent, Object> newFluents = new HashMap<>(fluents);
+        Set<Fluent> newFluents = new HashSet<Fluent>(fluents);
         for (Assignment assignment : assignments) {
-            Fluent reference = assignment.getReference();
-            if (!newFluents.containsKey(assignment.getReference())) {
-                throw new RuntimeException("invalid assignment ref: " + reference);
+            if (assignment.getValue()) {
+                newFluents.add(assignment.getFluent());
             }
-            newFluents.put(reference, assignment.getValue().evaluate(this));
+            else {
+                newFluents.remove(assignment.getFluent());
+            }
         }
         return new World(null, newFluents);
     }
 
     public Boolean alteredByAssignment(Assignment assignment) {
-        Fluent reference = assignment.getReference();
-        if (!fluents.containsKey(assignment.getReference())) {
-            throw new RuntimeException("invalid assignment ref: " + reference);
-        }
-        return fluents.get(reference).equals(assignment.getValue().evaluate(this));
+        return (fluents.contains(assignment.getFluent()) ^ assignment.getValue());
     }
 
     public int getId() {
         return this.id;
     }
 
-    public Object ground(Fluent f) {
-        if (!fluents.containsKey(f)) {
-            throw new RuntimeException("unknown fluent: " + f);
-        }
-        return fluents.get(f);
+    public Boolean ground(Fluent f) {
+        return fluents.contains(f);
     }
 
 
@@ -86,8 +80,8 @@ public class World implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
         str.append(getName());
         str.append("{");
-        for (Map.Entry<Fluent, Object> entry : fluents.entrySet()) {
-            str.append(entry.getKey().toString() + "==" + entry.getValue().toString());
+        for (Fluent f : fluents) {
+            str.append(f);
             str.append(", ");
         }
         str.delete(str.length()-2, str.length());

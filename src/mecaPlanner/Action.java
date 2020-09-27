@@ -30,8 +30,7 @@ public class Action implements java.io.Serializable {
     protected Map<String, BooleanFormula> awareIf;
     protected Set<BooleanFormula> determines;
     protected Set<BeliefFormula> announces;
-    protected Map<Fluent, BooleanFormula> addEffects;
-    protected Map<Fluent, BooleanFormula> delEffects;
+    protected Map<Assignment, BooleanFormula> effects;
 
 
 
@@ -45,8 +44,7 @@ public class Action implements java.io.Serializable {
                   Map<String, BooleanFormula> awareIf,
                   Set<BooleanFormula> determines,
                   Set<BeliefFormula> announces,
-                  Map<Fluent, BooleanFormula> addEffects,
-                  Map<Fluent, BooleanFormula> delEffects,
+                  Map<Assignment, BooleanFormula> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -59,8 +57,7 @@ public class Action implements java.io.Serializable {
         this.awareIf = awareIf;
         this.determines = determines;
         this.announces = announces;
-        this.addEffects = addEffects;
-        this.delEffects = delEffects;
+        this.effects = effects;
         this.domain = domain;
     }
 

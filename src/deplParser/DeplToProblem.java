@@ -10,7 +10,7 @@ import mecaPlanner.formulae.integerFormulae.*;
 import mecaPlanner.formulae.booleanFormulae.*;
 import mecaPlanner.formulae.objectFormulae.*;
 import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.LocalFormula;
+import mecaPlanner.formulae.localFormulae.*;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -489,85 +489,17 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
-        //Map<Fluent, Boolean> booleanFluentAssignments = new HashMap<>();
-        //Map<Fluent, Integer> integerFluentAssignments = new HashMap<>();
-        //Map<Fluent, String> objectFluentAssignments = new HashMap<>();
-        Map<Fluent, Object> fluentAssignments = new HashMap<>();
-
-
-        for (DeplParser.ValueAssignmentContext assignCtx: ctx.valueAssignment()) {
-            Set<Fluent> references = (Set<Fluent>) visit(assignCtx.expandableFluent()); 
-            if (assignCtx.KEYWORD_FALSE() != null) {
-                for (Fluent fluent : references) {
-                    if (!allBooleanFluents.contains(fluent)) {
-                        throw new RuntimeException("can't assign boolean to non-boolean fluent: " + assignCtx.getText());
-                    }
-                    fluentAssignments.put(fluent, false);
-                }
-            }
-            else if (assignCtx.KEYWORD_TRUE() != null) {
-                for (Fluent fluent : references) {
-                    if (!allBooleanFluents.contains(fluent)) {
-                        throw new RuntimeException("can't assign boolean to non-boolean fluent: " + assignCtx.getText());
-                    }
-                    fluentAssignments.put(fluent, true);
-                }
-            }
-            else if (assignCtx.INTEGER() != null) {
-                for (Fluent fluent : references) {
-                    if (!allIntegerFluents.contains(fluent)) {
-                        throw new RuntimeException("can't assign integer to non-integer fluent: " + assignCtx.getText());
-                    }
-                    Integer value = Integer.parseInt(assignCtx.INTEGER().getText());
-                    fluentAssignments.put(fluent, value);
-                }
-            }
-            else if (assignCtx.objectName() != null) {
-                for (Fluent fluent : references) {
-                    if (!allObjectFluents.containsKey(fluent)) {
-                        throw new RuntimeException("can't assign object to non-object fluent: " + assignCtx.getText());
-                    }
-
-                    String referenceType = allObjectFluents.get(fluent);
-                    String value = assignCtx.objectName().getText();
-                    if (!isa(value, referenceType)) {
-                        throw new RuntimeException("assigned invalid type: " + assignCtx.getText());
-                    }
-                    fluentAssignments.put(fluent, value);
-                }
-            }
-            else {
-                throw new RuntimeException("bad assignment");
-            }
-        }
+        Set<Fluent> fluents = new HashSet<>();
 
         for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
             Fluent fluent = (Fluent) visit(fluentCtx);
             if (!allBooleanFluents.contains(fluent)) {
-                throw new RuntimeException("implicit definition requires boolean fluent: " + fluentCtx.getText());
+                throw new RuntimeException("unknown fluent: " + fluentCtx.getText());
             }
-            fluentAssignments.put(fluent, true);
+            fluents.add(fluent);
         }
  
-        for (Fluent fluent : allBooleanFluents) {
-            if (!fluentAssignments.containsKey(fluent)) {
-                Log.debug("boolean fluent " + fluent + " not set, assuming false.");
-                fluentAssignments.put(fluent, false);
-            }
-        }
-        for (Fluent integerFluent : allIntegerFluents) {
-            if (!fluentAssignments.containsKey(integerFluent)) {
-                throw new RuntimeException("integer fluent " + integerFluent + " must be set.");
-            }
-        }
-
-        for (Fluent objectFluent : allObjectFluents.keySet()) {
-            if (!fluentAssignments.containsKey(objectFluent)) {
-                throw new RuntimeException("object fluent " + objectFluent + " must be set.");
-            }
-        }
-
-        World world = new World(worldName, fluentAssignments);
+        World world = new World(worldName, fluents);
         return world;
     }
 
@@ -1049,7 +981,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public TimeFormula visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
-        return (TimeFormula) visit(ctx.timeConstraint());
+        return (TimeFormula) visit(ctx.temporalConstraint());
     }
 
     @Override public TimeFormula visitTimeNot(DeplParser.TimeNotContext ctx) {
@@ -1075,33 +1007,33 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    @Override public TimeConstraint visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
-        return new TimeConstraint((TimeFormula.Inequality) visit(ctx.inequality()),
-                                Integer.parseInt(ctx.INTEGER().getText()));
+    @Override public TimeFormulaConstraint visitTemporalConstraint(DeplParser.TemporalConstraintContext ctx) {
+        return new TimeFormulaConstraint((TimeFormulaConstraint.Inequality) visit(ctx.inequality()),
+                                  Integer.parseInt(ctx.INTEGER().getText()));
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
-        return TimeConstraint.Inequality.EQ;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
+        return TimeFormulaConstraint.Inequality.EQ;
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
-        return TimeConstraint.Inequality.NE;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
+        return TimeFormulaConstraint.Inequality.NE;
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
-        return TimeConstraint.Inequality.LT;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
+        return TimeFormulaConstraint.Inequality.LT;
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
-        return TimeConstraint.Inequality.LTE;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
+        return TimeFormulaConstraint.Inequality.LTE;
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
-        return TimeConstraint.Inequality.GT;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
+        return TimeFormulaConstraint.Inequality.GT;
     }
 
-    @Override public TimeConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
-        return TimeConstraint.Inequality.GTE;
+    @Override public TimeFormulaConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
+        return TimeFormulaConstraint.Inequality.GTE;
     }
 
 

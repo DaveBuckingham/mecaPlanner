@@ -90,7 +90,7 @@ groundableObject : objectName | VARIABLE ;
 expandableObject : objectName | objectType;
 
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
-fluentsSection   : 'fluents' '{' (expandalbeFluent ',')* expandalbeFluent? '}' ;
+fluentsSection   : 'fluents' '{' (expandableFluent ',')* expandableFluent? '}' ;
 
 
 
@@ -133,11 +133,11 @@ inequality
     | '>='                # inequalityGte
     ;
 
-timeConstraint : KEYWORD_TIME  inequality INTEGER;
+temporalConstraint : KEYWORD_TIME inequality INTEGER;
 
 timeFormula
     : beliefFormula                                              # timeBelief
-    | timeConstraint                                             # timeConstraint
+    | temporalConstraint                                         # timeConstraint
     | '~' timeFormula                                            # timeNot
     | timeFormula '&' timeFormula ('&' timeFormula)*             # timeAnd
     | timeFormula '|' timeFormula ('|' timeFormula)*             # timeOr
@@ -157,7 +157,7 @@ startStateDef : '{' kripkeModel '}' ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
-kripkeWorld : LOWER_NAME ASSIGN '{' ((valueAssignment|fluent) ',')* (valueAssignment|fluent)? '}' ;
+kripkeWorld : LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
 kripkeRelation : relationType '[' objectName ']' ASSIGN
                  '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;

@@ -5,20 +5,20 @@ import mecaPlanner.formulae.LocalFormula;
 
 
 public class Assignment {
-    private Fluent reference;
-    private LocalFormula value;
-    public Assignment(Fluent reference, LocalFormula value) {
-        this.reference = reference;
+    private Fluent fluent;
+    private Boolean value;
+    public Assignment(Fluent fluent, Boolean value) {
+        this.fluent = fluent;
         this.value = value;
     }
-    public Fluent getReference() {
-        return reference;
+    public Fluent getFluent() {
+        return fluent;
     }
-    public LocalFormula getValue() {
+    public Boolean getValue() {
         return value;
     }
 
     public String toString()  {
-        return (reference.toString() + "<-" + value.toString());
+        return (fluent.toString() + "<-" + value.toString());
     }
 }
