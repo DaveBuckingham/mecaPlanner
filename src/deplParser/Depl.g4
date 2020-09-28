@@ -194,7 +194,6 @@ actionField
     | observesActionField
     | awareActionField
     | causesActionField
-    | causesNotActionField
     | determinesActionField
     | announcesActionField
     ;
@@ -206,6 +205,5 @@ observesActionField     : 'observes'     variableDefList '{' groundableObject ('
 awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' localFormula)? '}' ;
 determinesActionField   : 'determines'   variableDefList '{' localFormula '}' ;
 announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
-causesActionField       : 'causes'       variableDefList '{' fluent ('if' localFormula)? '}' ;
-causesNotActionField    : 'causes'       variableDefList '{' OP_NOT fluent ('if' localFormula)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' localFormula)? '}' ;
 

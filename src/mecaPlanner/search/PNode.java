@@ -14,8 +14,8 @@ public class PNode  {
     private Perspective perspective;
     private Set<OrNode> grounds;
     private Set<PNode> successors;
-    private int time;
-    private int depth;
+    private int time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
+    private int depth;      // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
     private Domain domain;
 
 

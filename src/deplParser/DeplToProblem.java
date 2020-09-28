@@ -6,9 +6,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import mecaPlanner.*;
-import mecaPlanner.formulae.integerFormulae.*;
-import mecaPlanner.formulae.booleanFormulae.*;
-import mecaPlanner.formulae.objectFormulae.*;
+import mecaPlanner.formulae.timeFormulae.*;
 import mecaPlanner.formulae.beliefFormulae.*;
 import mecaPlanner.formulae.localFormulae.*;
 import mecaPlanner.state.*;
@@ -183,9 +181,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.agentIndex = 0;
         this.allObjects = new HashMap<>();
 
-        allBooleanFluents = new HashSet<>();
-        allIntegerFluents = new HashSet<>();
-        allObjectFluents = new HashMap<>();
+        allFluents = new HashSet<>();
         this.constants = new HashSet<>();
         this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
@@ -385,7 +381,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
         for (DeplParser.ExpandableFluentContext fluentsCtx : ctx.expandableFluent()) {
             for (Fluent fluent : (Set<Fluent>) visit(fluentsCtx)) {
-                constants.put(fluent);
+                constants.add(fluent);
             }
         }
         return null;
@@ -493,7 +489,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
             Fluent fluent = (Fluent) visit(fluentCtx);
-            if (!allBooleanFluents.contains(fluent)) {
+            if (!allFluents.contains(fluent)) {
                 throw new RuntimeException("unknown fluent: " + fluentCtx.getText());
             }
             fluents.add(fluent);
@@ -525,18 +521,17 @@ public class DeplToProblem extends DeplBaseVisitor {
             String owner = null;
 
             int cost = 1;
-            List<BooleanFormula> preconditionList = new ArrayList<BooleanFormula>();
-            Map<String, List<BooleanFormula>> observesLists = new HashMap<>();
-            Map<String, List<BooleanFormula>> awareLists = new HashMap<>();
+            List<LocalFormula> preconditionList = new ArrayList<>();
+            Map<String, List<LocalFormula>> observesLists = new HashMap<>();
+            Map<String, List<LocalFormula>> awareLists = new HashMap<>();
             for (String a : domain.getAgents()) {
-                observesLists.put(a, new ArrayList<BooleanFormula>());
-                awareLists.put(a, new ArrayList<BooleanFormula>());
+                observesLists.put(a, new ArrayList<LocalFormula>());
+                awareLists.put(a, new ArrayList<LocalFormula>());
             }
 
-            Set<BooleanFormula> determines = new HashSet<>();
+            Set<LocalFormula> determines = new HashSet<>();
             Set<BeliefFormula> announces = new HashSet<>();
-            Map<Fluent, LocalFormula> addEffects = new HashMap<>();
-            Map<Fluent, LocalFormula> delEffects = new HashMap<>();
+            Map<Assignment, LocalFormula> effects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -557,7 +552,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
                     for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        preconditionList.add((BooleanFormula) visit(preCtx.booleanFormula()));
+                        preconditionList.add((LocalFormula) visit(preCtx.localFormula()));
                         variableStack.pop();
                     }
                 }
@@ -567,12 +562,12 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(obsCtx.groundableObject());
-                        BooleanFormula condition;
-                        if (obsCtx.booleanFormula() == null) {
-                            condition = new BooleanValue(true);
+                        LocalFormula condition;
+                        if (obsCtx.localFormula() == null) {
+                            condition = new Literal(true);
                         }
                         else {
-                            condition = (BooleanFormula) visit(obsCtx.booleanFormula());
+                            condition = (LocalFormula) visit(obsCtx.localFormula());
                         }
                         if (!condition.isFalse()) {
                             observesLists.get(agentName).add(condition);
@@ -587,12 +582,12 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(awaCtx.groundableObject());
-                        BooleanFormula condition;
-                        if (awaCtx.booleanFormula() == null) {
-                            condition = new BooleanValue(true);
+                        LocalFormula condition;
+                        if (awaCtx.localFormula() == null) {
+                            condition = new Literal(true);
                         }
                         else {
-                            condition = (BooleanFormula) visit(awaCtx.booleanFormula());
+                            condition = (LocalFormula) visit(awaCtx.localFormula());
                         }
                         if (!condition.isFalse()) {
                             awareLists.get(agentName).add(condition);
@@ -605,7 +600,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        determines.add((BooleanFormula) visit(detCtx.booleanFormula()));
+                        determines.add((LocalFormula) visit(detCtx.localFormula()));
                         variableStack.pop();
                     }
                 }
@@ -626,38 +621,19 @@ public class DeplToProblem extends DeplBaseVisitor {
                         variableStack.push(variableMap);
                         LocalFormula condition;
                         if (effCtx.localFormula() == null)  {
-                            condition = new LocalValue(true);
+                            condition = new Literal(true);
                         }
                         else {
                             condition = (LocalFormula) visit(effCtx.localFormula());
                         }
                         if (!(condition.isFalse())){
                             Fluent fluent = (Fluent) visit(effCtx.fluent());
-                            addEffects.put(fluent, condition);
+                            boolean isAddEffect = (effCtx.OP_NOT() == null);
+                            effects.put(new Assignment(fluent, isAddEffect), condition);
                         }
                         variableStack.pop();
                     }
                 }
-
-                else if (fieldCtx.causesNotActionField() != null) {
-                    DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        LocalFormula condition;
-                        if (effCtx.localFormula() == null)  {
-                            condition = new LocalValue(true);
-                        }
-                        else {
-                            condition = (LocalFormula) visit(effCtx.localFormula());
-                        }
-                        if (!(condition.isFalse())){
-                            Fluent fluent = (Fluent) visit(effCtx.fluent());
-                            delEffects.put(fluent, condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
 
 
                 else {
@@ -665,27 +641,18 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
             }
 
-            BooleanFormula precondition;
-            if (preconditionList.isEmpty()) {
-                precondition = new BooleanValue(true);
-            }
-            else if (preconditionList.size() == 1) {
-                precondition = preconditionList.get(0);
-            }
-            else {
-                precondition = BooleanAndFormula.make(preconditionList);
-            }
+            LocalFormula precondition = LocalAndFormula.make(preconditionList);
 
             if (owner == null) {
                 throw new RuntimeException("illegal action definition, no owner: " + actionName);
             }
 
 
-            Map<String, BooleanFormula> observes = new HashMap<>();
-            Map<String, BooleanFormula> aware = new HashMap<>();
+            Map<String, LocalFormula> observes = new HashMap<>();
+            Map<String, LocalFormula> aware = new HashMap<>();
             for (String a : domain.getAgents()) {
-                observes.put(a, (BooleanOrFormula.make(observesLists.get(a))));
-                aware.put(a, (BooleanOrFormula.make(awareLists.get(a))));
+                observes.put(a, (LocalOrFormula.make(observesLists.get(a))));
+                aware.put(a, (LocalOrFormula.make(awareLists.get(a))));
             }
 
             assert (actionName != null);
@@ -696,8 +663,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             assert (aware != null);
             assert (determines != null);
             assert (announces != null);
-            assert (addEffects != null);
-            assert (delEffects != null);
+            assert (effects != null);
             assert (domain != null);
 
 
@@ -712,8 +678,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                                             aware,
                                             determines,
                                             announces,
-                                            addEffects,
-                                            delEffects,
+                                            effects,
                                             domain
                                            );
 
@@ -802,116 +767,46 @@ public class DeplToProblem extends DeplBaseVisitor {
         return new Fluent(fluentName, parameters);
     }
 
-    @Override public IntegerFormula visitIntegerFluent(DeplParser.IntegerFluentContext ctx) {
+
+    @Override public LocalFormula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
-        if (integerConstants.containsKey(fluent)) {
-            return integerConstants.get(fluent);
+        if (!allFluents.contains(fluent)) {
+            throw new RuntimeException("unknown fluent: " + fluent);
         }
-        if (!allIntegerFluents.contains(fluent)) {
-            throw new RuntimeException("unknown integer fluent: " + fluent);
+        return fluent;
+    }
+
+    @Override public LocalFormula visitLocalLiteralTrue(DeplParser.LocalLiteralTrueContext ctx) {
+        return new Literal(true);
+    }
+
+    @Override public LocalFormula visitLocalLiteralFalse(DeplParser.LocalLiteralFalseContext ctx) {
+        return new Literal(false);
+    }
+
+    @Override public LocalFormula visitLocalParens(DeplParser.LocalParensContext ctx) {
+        return (LocalFormula) visit(ctx.localFormula());
+    }
+
+    @Override public LocalFormula visitLocalNot(DeplParser.LocalNotContext ctx) {
+        LocalFormula inner = (LocalFormula) visit(ctx.localFormula());
+        return (LocalNotFormula.make(inner));
+    }
+
+    @Override public LocalFormula visitLocalAnd(DeplParser.LocalAndContext ctx) {
+        List<LocalFormula> subFormulae = new ArrayList<>();
+        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+            subFormulae.add((LocalFormula) visit(subFormula));
         }
-        return new IntegerFluent(fluent);
+        return (LocalAndFormula.make(subFormulae));
     }
 
-
-    @Override public IntegerFormula visitIntegerLiteral(DeplParser.IntegerLiteralContext ctx) {
-        return new IntegerValue((Integer) visit(ctx.INTEGER()));
-    }
-
-    @Override public IntegerFormula visitIntegerParens(DeplParser.IntegerParensContext ctx) {
-        return (IntegerFormula) visit(ctx.integerFormula());
-    }
-
-    @Override public IntegerFormula visitIntegerAdd(DeplParser.IntegerAddContext ctx) {
-        DeplParser.IntegerFormulaContext lhs = ctx.integerFormula(0);
-        DeplParser.IntegerFormulaContext rhs = ctx.integerFormula(1);
-        return new IntegerAdd((IntegerFormula) visit(lhs), (IntegerFormula) visit(rhs));
-    }
-
-
-    // SUBTRACT, ETC...
-
-
-
-
-
-    @Override public BooleanFormula visitBooleanFluent(DeplParser.BooleanFluentContext ctx) {
-        Fluent fluent = (Fluent) visit(ctx.fluent());
-        if (booleanConstants.containsKey(fluent)) {
-            return booleanConstants.get(fluent);
+    @Override public LocalFormula visitLocalOr(DeplParser.LocalOrContext ctx) {
+        List<LocalFormula> subFormulae = new ArrayList<>();
+        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+            subFormulae.add((LocalFormula) visit(subFormula));
         }
-        if (!allBooleanFluents.contains(fluent)) {
-            throw new RuntimeException("unknown boolean fluent: " + fluent);
-        }
-        return new BooleanFluent(fluent);
-    }
-
-    @Override public BooleanFormula visitBooleanLiteralTrue(DeplParser.BooleanLiteralTrueContext ctx) {
-        return new BooleanValue(true);
-    }
-
-    @Override public BooleanFormula visitBooleanLiteralFalse(DeplParser.BooleanLiteralFalseContext ctx) {
-        return new BooleanValue(false);
-    }
-
-    @Override public BooleanFormula visitBooleanParens(DeplParser.BooleanParensContext ctx) {
-        return (BooleanFormula) visit(ctx.booleanFormula());
-    }
-
-    @Override public BooleanFormula visitBooleanCompareIntegers(DeplParser.BooleanCompareIntegersContext ctx) {
-        IntegerFormula lhs = (IntegerFormula) visit(ctx.integerFormula(0));
-        IntegerFormula rhs = (IntegerFormula) visit(ctx.integerFormula(1));
-        return CompareIntegers.make(ctx.COMPARE().getText(), lhs, rhs);
-    }
-
-    @Override public BooleanFormula visitBooleanEqualIntegers(DeplParser.BooleanEqualIntegersContext ctx) {
-        IntegerFormula lhs = (IntegerFormula) visit(ctx.integerFormula(0));
-        IntegerFormula rhs = (IntegerFormula) visit(ctx.integerFormula(1));
-        if (ctx.OP_EQ() == null) {
-            return CompareIntegers.make(CompareIntegers.Inequality.NE, lhs, rhs);
-        }
-        return CompareIntegers.make(CompareIntegers.Inequality.EQ, lhs, rhs);
-    }
-
-    @Override public BooleanFormula visitBooleanEqualBooleans(DeplParser.BooleanEqualBooleansContext ctx) {
-        BooleanFormula lhs = (BooleanFormula) visit(ctx.booleanFormula(0));
-        BooleanFormula rhs = (BooleanFormula) visit(ctx.booleanFormula(1));
-        if (ctx.OP_EQ() == null) {
-            return BooleanNotFormula.make(CompareBooleans.make(lhs, rhs));
-        }
-        return CompareBooleans.make(lhs, rhs);
-    }
-    @Override public BooleanFormula visitBooleanEqualObjects(DeplParser.BooleanEqualObjectsContext ctx) {
-        ObjectFormula lhs = (ObjectFormula) visit(ctx.objectFormula(0));
-        ObjectFormula rhs = (ObjectFormula) visit(ctx.objectFormula(1));
-        if (ctx.OP_EQ() == null) {
-            return BooleanNotFormula.make(CompareObjects.make(lhs, rhs));
-        }
-        return CompareObjects.make(lhs, rhs);
-    }
-
-
-
-
-    @Override public BooleanFormula visitBooleanNot(DeplParser.BooleanNotContext ctx) {
-        BooleanFormula inner = (BooleanFormula) visit(ctx.booleanFormula());
-        return (BooleanNotFormula.make(inner));
-    }
-
-    @Override public BooleanFormula visitBooleanAnd(DeplParser.BooleanAndContext ctx) {
-        List<BooleanFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.BooleanFormulaContext subFormula : ctx.booleanFormula()) {
-            subFormulae.add((BooleanFormula) visit(subFormula));
-        }
-        return (BooleanAndFormula.make(subFormulae));
-    }
-
-    @Override public BooleanFormula visitBooleanOr(DeplParser.BooleanOrContext ctx) {
-        List<BooleanFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.BooleanFormulaContext subFormula : ctx.booleanFormula()) {
-            subFormulae.add((BooleanFormula) visit(subFormula));
-        }
-        return (BooleanOrFormula.make(subFormulae));
+        return (LocalOrFormula.make(subFormulae));
     }
 
 
@@ -932,22 +827,12 @@ public class DeplToProblem extends DeplBaseVisitor {
         return (BeliefNotFormula.make(inner));
     }
 
-    @Override public BeliefFormula visitBeliefEqualBeliefs(DeplParser.BeliefEqualBeliefsContext ctx) {
-        BeliefFormula lhs = (BeliefFormula) visit(ctx.beliefFormula(0));
-        BeliefFormula rhs = (BeliefFormula) visit(ctx.beliefFormula(1));
-        if (ctx.OP_EQ() == null) {
-            return BeliefNotFormula.make(CompareBeliefs.make(lhs, rhs));
-        }
-        return CompareBeliefs.make(lhs, rhs);
-
-    }
-
     @Override public BeliefFormula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
         List<BeliefFormula> subFormulae = new ArrayList<>();
         for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
             subFormulae.add((BeliefFormula) visit(subFormula));
         }
-        return (new BeliefAndFormula(subFormulae));
+        return (BeliefAndFormula.make(subFormulae));
     }
 
     @Override public BeliefFormula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
@@ -985,24 +870,24 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public TimeFormula visitTimeNot(DeplParser.TimeNotContext ctx) {
-        TimeFormula inner = (TimeFormula) visit(ctx.generalFormula());
-        return (new TimeFormulaNot(inner));
+        TimeFormula inner = (TimeFormula) visit(ctx.timeFormula());
+        return (new TimeNotFormula(inner));
     }
 
     @Override public TimeFormula visitTimeAnd(DeplParser.TimeAndContext ctx) {
         List<TimeFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.TimeFormulaContext subFormula : ctx.generalFormula()) {
+        for (DeplParser.TimeFormulaContext subFormula : ctx.timeFormula()) {
             subFormulae.add((TimeFormula) visit(subFormula));
         }
-        return (new TimeFormulaAnd(subFormulae));
+        return (TimeAndFormula.make(subFormulae));
     }
 
     @Override public TimeFormula visitTimeOr(DeplParser.TimeOrContext ctx) {
         List<TimeFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.TimeFormulaContext subFormula : ctx.generalFormula()) {
+        for (DeplParser.TimeFormulaContext subFormula : ctx.timeFormula()) {
             subFormulae.add((TimeFormula) visit(subFormula));
         }
-        return (new TimeFormulaOr(subFormulae));
+        return (TimeOrFormula.make(subFormulae));
     }
 
 

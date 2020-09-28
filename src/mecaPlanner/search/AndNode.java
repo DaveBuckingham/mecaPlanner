@@ -5,7 +5,7 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.Log;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.timeFormulae.TimeFormula;
 import mecaPlanner.Domain;
 
 import java.util.Set;
@@ -15,7 +15,7 @@ import java.util.Map;
 public class AndNode extends GNode {
 
     public AndNode(EpistemicState estate,
-                 BeliefFormula goal,
+                 TimeFormula goal,
                  int time,
                  GNode parent,
                  Map<String, Model> models,

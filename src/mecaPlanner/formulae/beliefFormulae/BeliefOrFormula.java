@@ -1,6 +1,6 @@
 package mecaPlanner.formulae.beliefFormulae;
 
-import mecaPlanner.formulae.booleanFormulae.BooleanValue;
+import mecaPlanner.formulae.localFormulae.Literal;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -24,16 +24,16 @@ public class BeliefOrFormula extends BeliefFormula{
 
     public static BeliefFormula make(List<BeliefFormula> inputFormulae) {
         List<BeliefFormula> formulae = new ArrayList<>();
-        for (BeliefFormula ff : inputFormulae) {
-            if (ff.isTrue()) {
-                return ff;
+        for (BeliefFormula f : inputFormulae) {
+            if (f.isTrue()) {
+                return f;
             }
-            else {
-                formulae.add(ff);
+            else if (!f.isFalse()) {
+                formulae.add(f);
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanValue(false);
+            return new Literal(false);
         }
         return new BeliefOrFormula(formulae);
     }
@@ -45,13 +45,6 @@ public class BeliefOrFormula extends BeliefFormula{
     //public static BeliefFormula make(BeliefFormula ...inputFormulae) {
     //    return BeliefOrFormula.make(new ArrayList(inputFormulae));
     //}
-
-
-
-
-
-
-
 
 
     public List<BeliefFormula> getFormulae() {

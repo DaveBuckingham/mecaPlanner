@@ -1,6 +1,5 @@
 package mecaPlanner.models;
 
-import mecaPlanner.state.Fluent;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.beliefFormulae.BeliefFormula;

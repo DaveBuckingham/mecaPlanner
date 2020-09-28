@@ -1,7 +1,7 @@
 
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.LocalFormula;
+import mecaPlanner.formulae.localFormulae.*;
 
 
 public class Assignment {

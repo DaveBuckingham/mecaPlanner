@@ -1,7 +1,7 @@
 package mecaPlanner.models;
 
 import mecaPlanner.state.*;
-import mecaPlanner.formulae.booleanFormulae.BooleanFluent;
+import mecaPlanner.formulae.localFormulae.Fluent;
 import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
@@ -32,13 +32,13 @@ public class PizzaModel extends Model {
             }
         }
 
-        if (!ndState.necessarily(new BooleanFluent("door_open"))) {
+        if (!ndState.necessarily(new Fluent("door_open"))) {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
-        else if (ndState.necessarily(new BooleanFluent("at", agent, "room1"))) {
+        else if (ndState.necessarily(new Fluent("at", agent, "room1"))) {
             prediction.add(getSafeActionBySignature("move(human1,room1,room2)", ndState));
         }
-        else if (ndState.necessarily(new BooleanFluent("at", agent, "room2"))) {
+        else if (ndState.necessarily(new Fluent("at", agent, "room2"))) {
             prediction.add(getSafeActionBySignature("move(human1,room2,room1)", ndState));
         }
         else {

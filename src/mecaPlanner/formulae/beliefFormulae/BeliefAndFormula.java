@@ -1,7 +1,7 @@
 package mecaPlanner.formulae.beliefFormulae;
 
 
-import mecaPlanner.formulae.booleanFormulae.BooleanValue;
+import mecaPlanner.formulae.localFormulae.Literal;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -17,31 +17,22 @@ public class BeliefAndFormula extends BeliefFormula{
 
     private List<BeliefFormula> formulae;
 
-    public BeliefAndFormula(List<BeliefFormula> formulae) {
+    private BeliefAndFormula(List<BeliefFormula> formulae) {
         this.formulae = formulae;
     }
 
-    public BeliefAndFormula(BeliefFormula ...formula) {
-        this(new ArrayList<BeliefFormula>(Arrays.asList(formula)));
-    }
-
-    public BeliefAndFormula(Set<BeliefFormula> formulae) {
-        this(new ArrayList<BeliefFormula>(formulae));
-    }
-
-
     public static BeliefFormula make(List<BeliefFormula> inputFormulae) {
         List<BeliefFormula> formulae = new ArrayList<>();
-        for (BeliefFormula ff : inputFormulae) {
-            if (ff.isFalse()) {
-                return ff;
+        for (BeliefFormula f : inputFormulae) {
+            if (f.isFalse()) {
+                return new Literal(false);
             }
-            else {
-                formulae.add(ff);
+            else if (!f.isTrue()) {
+                formulae.add(f);
             }
         }
         if (formulae.isEmpty()) {
-            return new BooleanValue(true);
+            return new Literal(true);
         }
         return new BeliefAndFormula(formulae);
     }

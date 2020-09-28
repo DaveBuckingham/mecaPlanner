@@ -9,9 +9,8 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 import java.util.Objects;
-import java.util.BitSet;
-import java.util.Comparator;
 
+import mecaPlanner.formulae.localFormulae.Fluent;
 
 
 public class World implements java.io.Serializable {

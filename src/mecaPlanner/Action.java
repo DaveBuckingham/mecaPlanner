@@ -1,7 +1,7 @@
 package mecaPlanner;
 
 import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.booleanFormulae.*;
+import mecaPlanner.formulae.localFormulae.*;
 import mecaPlanner.state.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
@@ -25,12 +25,12 @@ public class Action implements java.io.Serializable {
     protected List<String> parameters;
     protected int cost;
     protected String actor;
-    protected BooleanFormula precondition;
-    protected Map<String, BooleanFormula> observesIf;
-    protected Map<String, BooleanFormula> awareIf;
-    protected Set<BooleanFormula> determines;
+    protected LocalFormula precondition;
+    protected Map<String, LocalFormula> observesIf;
+    protected Map<String, LocalFormula> awareIf;
+    protected Set<LocalFormula> determines;
     protected Set<BeliefFormula> announces;
-    protected Map<Assignment, BooleanFormula> effects;
+    protected Map<Assignment, LocalFormula> effects;
 
 
 
@@ -39,12 +39,12 @@ public class Action implements java.io.Serializable {
                   List<String> parameters,
                   String actor,
                   int cost,
-                  BooleanFormula precondition,
-                  Map<String, BooleanFormula> observesIf,
-                  Map<String, BooleanFormula> awareIf,
-                  Set<BooleanFormula> determines,
+                  LocalFormula precondition,
+                  Map<String, LocalFormula> observesIf,
+                  Map<String, LocalFormula> awareIf,
+                  Set<LocalFormula> determines,
                   Set<BeliefFormula> announces,
-                  Map<Assignment, BooleanFormula> effects,
+                  Map<Assignment, LocalFormula> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -77,7 +77,7 @@ public class Action implements java.io.Serializable {
         return this.precondition;
     }
 
-    public Map<Assignment, BooleanFormula> getEffects() {
+    public Map<Assignment, LocalFormula> getEffects() {
         return this.effects;
     }
 
@@ -85,9 +85,9 @@ public class Action implements java.io.Serializable {
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {
         Set<Assignment> applicableEffects = new HashSet<>();
-            for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
                 Assignment assignment = e.getKey();
-                BooleanFormula condition = e.getValue();
+                LocalFormula condition = e.getValue();
                 if (condition.evaluate(world)) {
                     applicableEffects.add(assignment);
                 }
@@ -241,11 +241,11 @@ public class Action implements java.io.Serializable {
             World oldFromWorld = observedWorldsToOld.get(fromWorld);
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
-            Set<BooleanFormula> revealedConditions = new HashSet<>();
+            Set<LocalFormula> revealedConditions = new HashSet<>();
             if (anyObservers || anyAware) {
-                for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+                for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
                     Assignment assignment = e.getKey();
-                    BooleanFormula condition = e.getValue();
+                    LocalFormula condition = e.getValue();
                     assert(!condition.isFalse());
                     if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
                         // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
@@ -262,9 +262,9 @@ public class Action implements java.io.Serializable {
 
 
             // WHAT DO OBSERVERS SENSE
-            Set<BooleanFormula> groundDetermines = new HashSet<>();
+            Set<LocalFormula> groundDetermines = new HashSet<>();
             if (anyObservers) {
-                for (BooleanFormula f : determines) {
+                for (LocalFormula f : determines) {
                     if (f.evaluate(oldFromWorld)) {
                         groundDetermines.add(f);
                     }
@@ -290,17 +290,17 @@ public class Action implements java.io.Serializable {
 
                     // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION
                     // ASSUMING THAT ANNOUNCEMTNS MIGHT BE LIES
-                    Set<BooleanFormula> allKnowledgeLearned = new HashSet<>();
+                    Set<LocalFormula> allKnowledgeLearned = new HashSet<>();
                     allKnowledgeLearned.addAll(revealedConditions);
                     allKnowledgeLearned.addAll(groundDetermines);
-                    BooleanFormula learnedKnowledgeFormula = BooleanAndFormula.make(allKnowledgeLearned);
+                    LocalFormula learnedKnowledgeFormula = LocalAndFormula.make(allKnowledgeLearned);
 
                     // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
                     // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
                     Set<BeliefFormula> allBeliefLearned = new HashSet<>();
                     allBeliefLearned.addAll(allKnowledgeLearned);
                     allBeliefLearned.addAll(acceptedAnnouncements);
-                    BeliefFormula learnedBeliefFormula = new BeliefAndFormula(allBeliefLearned);
+                    BeliefFormula learnedBeliefFormula = BeliefAndFormula.make(allBeliefLearned);
 
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
                     for (World toWorld: observedWorlds) {
@@ -527,7 +527,7 @@ public class Action implements java.io.Serializable {
         str.append(precondition);
 
         str.append("\n\tObserves\n");
-        for (Map.Entry<String, BooleanFormula> o : observesIf.entrySet()) {
+        for (Map.Entry<String, LocalFormula> o : observesIf.entrySet()) {
             str.append("\t\t");
             str.append(o.getKey());
             str.append(" if ");
@@ -536,7 +536,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tAware\n");
-        for (Map.Entry<String, BooleanFormula> a : awareIf.entrySet()) {
+        for (Map.Entry<String, LocalFormula> a : awareIf.entrySet()) {
             str.append("\t\t");
             str.append(a.getKey());
             str.append(" if ");
@@ -545,7 +545,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tDetermines\n");
-        for (BooleanFormula ff : determines) {
+        for (LocalFormula ff : determines) {
             str.append("\t\t");
             str.append(ff);
             str.append("\n");
@@ -559,9 +559,9 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<Assignment, BooleanFormula> e : effects.entrySet()) {
+        for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
             Assignment assignment = e.getKey();
-            BooleanFormula condition = e.getValue();
+            LocalFormula condition = e.getValue();
             str.append("\t\t");
             str.append(assignment);
             str.append(" if ");

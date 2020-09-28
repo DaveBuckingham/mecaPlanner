@@ -5,7 +5,7 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.timeFormulae.TimeFormula;
 import mecaPlanner.Solution;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
@@ -60,7 +60,7 @@ public class Search {
 
         int numAgents = domain.getNonPassiveAgents().size();
 
-        BeliefFormula goal = problem.getGoal();
+        TimeFormula goal = problem.getGoal();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();

@@ -1,10 +1,9 @@
 package mecaPlanner.search;
 
-import mecaPlanner.search.GNode;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.timeFormulae.TimeFormula;
 import mecaPlanner.Domain;
 
 import java.util.Set;
@@ -14,7 +13,7 @@ import java.util.Map;
 public class OrNode extends GNode {
 
     public OrNode(EpistemicState estate,
-                 BeliefFormula goal,
+                 TimeFormula goal,
                  int time,
                  GNode parent,
                  Map<String, Model> models,

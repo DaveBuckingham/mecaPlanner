@@ -1,7 +1,7 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.state.Fluent;
+import mecaPlanner.formulae.localFormulae.Fluent;
 import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
 import mecaPlanner.state.EpistemicState;
 

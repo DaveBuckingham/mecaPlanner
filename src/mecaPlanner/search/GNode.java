@@ -4,7 +4,7 @@ package mecaPlanner.search;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.timeFormulae.TimeFormula;
 
 import mecaPlanner.Domain;
 
@@ -15,7 +15,7 @@ import java.util.Map;
 
 public abstract class GNode  {
     protected EpistemicState estate;
-    protected BeliefFormula goal;
+    protected TimeFormula goal;
     protected int time;
     protected GNode parent;
     protected Set<GNode> successors;
@@ -32,7 +32,7 @@ public abstract class GNode  {
     private int systemAgentIndex;
 
     public GNode(EpistemicState estate,
-                 BeliefFormula goal,
+                 TimeFormula goal,
                  int time,
                  GNode parent,
                  Map<String, Model> models,
@@ -76,7 +76,7 @@ public abstract class GNode  {
     }
 
     public boolean isGoal() {
-        return goal.evaluate(estate);
+        return goal.evaluate(estate, time);
     }
 
     public int getAgentIndex() {
