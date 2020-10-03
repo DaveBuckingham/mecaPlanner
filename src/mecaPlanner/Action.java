@@ -156,6 +156,7 @@ public class Action implements java.io.Serializable {
     // SHOULD TRIM UNREACHABLE WORLDS AT THE END OF TRANSITION
     // THESE CAN COME ABOUT IF EFFEC PRECONDITIONS CAUSE AGENTS TO BELIEVE
     // WORLDS NOT POSSIBLE EVEN THOUGH THEY WERE CREATED
+    // (NOT SURE ABOUT THIS...)
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
 
