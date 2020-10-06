@@ -23,21 +23,21 @@ agents{
 
 
 fluents{
-    at(Locatable, Location) - Boolean,
-    human_hungry()- Boolean,
-    door_open() - Boolean,
-    robot_charged() - Boolean,
+    at(Locatable, Location),
+    human_hungry(),
+    door_open(),
+    robot_charged(),
 }
 
 
 initially{
     w1 <-
     {
-        at(human1, room1) <- true,
-        at(robot1, room1) <- true,
-        at(pizza,room1) <- true,
-        at(hotdog,room2) <- true,
-        human_hungry() <- true
+        at(human1, room1),
+        at(robot1, room1),
+        at(pizza,room1),
+        at(hotdog,room2),
+        human_hungry(),
     }
     B[human1] <- {(w1,w1)},
     K[human1] <- {(w1,w1)},
@@ -53,8 +53,8 @@ actions{
     move(?a-Actor,?f-Location,?t-Location){
         owner{?a},
         precondition{at(?a, ?f)},
+        precondition{~(at(?a, ?t))},
         precondition{door_open()},
-        precondition{?f != ?t},
         observes(?o-Actor){?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},

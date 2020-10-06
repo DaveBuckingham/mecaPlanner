@@ -759,6 +759,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     @Override public Fluent visitFluent(DeplParser.FluentContext ctx) {
+        if (ctx.fluent() != null) {
+            return (Fluent) visit(ctx.fluent());
+        }
         String fluentName = ctx.LOWER_NAME().getText();
         List<String> parameters = new ArrayList<>();
         for (DeplParser.GroundableObjectContext objCtx : ctx.groundableObject()) {

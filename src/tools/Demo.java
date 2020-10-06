@@ -8,12 +8,8 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
 import depl.*;
 
+// RUN THE THREE EXAMPLES FORM THE KR2020 PAPER
 
-// MATTHIAS:
-//
-// SEE STATE DESCRIPTIONS AT THE BOTTOM OF THIS FILE
-// FOR MORE DETAILS, SEE THE KR2020 PAPER, ESPECIALLY THE FIGURES ARE HELPFUL
-// I ADDED SOME EXTRA PERSPECTIVE STUFF TO THE SENSING EXAMPLE
 
 public class Demo {
 

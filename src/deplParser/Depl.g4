@@ -12,10 +12,9 @@ fragment OP_GE          : '>';
 fragment OP_GTE         : '>=';
 COMPARE                 : OP_LT | OP_LTE | OP_GE | OP_GTE;
 OP_EQ                   : '==';
-OP_NE                   : '~='|'!=';
 OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
-OP_NOT                  : '~'|'!' ;
+OP_NOT                  : '!'|'~' ;
 
 KEYWORD_TRUE            : 'true' ;
 KEYWORD_FALSE           : 'false' ;
@@ -101,14 +100,18 @@ constantsSection : 'constants' '{' (expandableFluent ',')* expandableFluent? '}'
 
 // FORMULAE
 
-fluent : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')' ;
+fluent 
+    : LOWER_NAME '(' (groundableObject ',')* groundableObject? ')'
+    | '(' fluent ')'
+    ;
+
 
 localFormula  // EVALUATE TO BOOLEAN
     : fluent                                                            # localFluent
     | KEYWORD_TRUE                                                      # localLiteralTrue
     | KEYWORD_FALSE                                                     # localLiteralFalse
-    | '(' localFormula ')'                                              # localParens
     | OP_NOT localFormula                                               # localNot
+    | '(' localFormula ')'                                              # localParens
     | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
     | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
     ;
@@ -138,7 +141,7 @@ temporalConstraint : KEYWORD_TIME inequality INTEGER;
 timeFormula
     : beliefFormula                                              # timeBelief
     | temporalConstraint                                         # timeConstraint
-    | '~' timeFormula                                            # timeNot
+    | OP_NOT timeFormula                                         # timeNot
     | timeFormula '&' timeFormula ('&' timeFormula)*             # timeAnd
     | timeFormula '|' timeFormula ('|' timeFormula)*             # timeOr
     ;

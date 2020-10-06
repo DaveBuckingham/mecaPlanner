@@ -8,9 +8,13 @@ import mecaPlanner.Domain;
 import mecaPlanner.Problem;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
 import depl.*;
 
+
+// READ A DEPL WITH A SINGLE ACTION,
+// PRINT THE START STATE,
+// EXECUTE THE ACTION
+// AND PRINT THE RESULT
 
 
 public class Example {
@@ -41,19 +45,16 @@ public class Example {
         }
 
 
+        //Set<Action> allActions = domain.getAllActions();
+        //if (allActions.size() != 1) {
+        //    System.out.println("depl must contain a single action");
+        //    return;
+        //}
+        //Action action = allActions.iterator().next();
 
+        //System.out.println(action);
 
-
-        Set<Action> allActions = domain.getAllActions();
-        if (allActions.size() != 1) {
-            System.out.println("depl must contain a single action");
-            return;
-        }
-        Action action = allActions.iterator().next();
-
-        System.out.println(action);
-
-        EpistemicState endState = action.transition(startState);
-        System.out.println(endState);
+        //EpistemicState endState = action.transition(startState);
+        //System.out.println(endState);
     }
 }
