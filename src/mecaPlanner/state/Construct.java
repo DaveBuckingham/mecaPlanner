@@ -292,8 +292,11 @@ public class Construct {
         }
 
 
+        Map<String, Map<String, Set<Set<World>>>> frames = new HashMap<>();;
         for (String i : domain.getAllAgents()) {
+            frames.put(i, new HashMap<>());
             for (String j : domain.getAllAgents()) {
+                frames.get(i).put(j, new HashSet<>());
             }
         }
 
