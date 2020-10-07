@@ -348,6 +348,9 @@ public class Construct {
                 else {
                     Set<Set<Fluent>> inner = new HashSet<>();
                     inner.add(types.get(i).get(j).get(7));
+                    for (Fluent f : types.get(i).get(j).get(8)) {
+                        addPossibly(inner, f);
+                    }
                     frames.get(i).get(j).add(inner);
                 }
             }
