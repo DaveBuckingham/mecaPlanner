@@ -209,7 +209,9 @@ public class Construct {
         return new AgentsFluent(agenti, sub.agent, sub.fluent);
     }
 
+
     private static AgentsFluent type9to12(int i, BeliefFormula formula) {
+        //Log.warning(formula.toString());
         if (!(formula instanceof BeliefAndFormula)) {
             return null;
         }
@@ -236,6 +238,9 @@ public class Construct {
         AgentsFluent leftSub = pij(1,left);
         AgentsFluent middleSub = pij(2,middle);
         AgentsFluent rightSub = pij(3,right);
+        if (leftSub == null || middleSub == null || rightSub == null) {
+            return null;
+        }
         if (!(leftSub.agenti.equals(middleSub.agenti) &&
               leftSub.agenti.equals(rightSub.agenti) &&
               leftSub.agentj.equals(middleSub.agentj) &&
@@ -248,7 +253,6 @@ public class Construct {
     }
 
     public static EpistemicState constructState(Set<BeliefFormula> statements, Domain domain) {
-        //Log.setThreshold("debug");
         Map<String, Map<String, Map<Integer, Set<Fluent>>>> types = new HashMap<>();
         types.put("", new HashMap<>());
         types.get("").put("", new HashMap<>());
@@ -266,7 +270,6 @@ public class Construct {
 
         // NEED TO CHECK FOR DUPLICATES AND MISSING STATEMENTS
         for (BeliefFormula formula : statements) {
-            Log.debug(formula.toString());
             if (type1(formula) != null) {
                 types.get("").get("").get(1).add(type1(formula));
                 Log.debug("1");
@@ -372,17 +375,28 @@ public class Construct {
                         }
                         frames.get(i).get(j).addAll(temp);
                     }
-                    for (Fluent f : types.get(i).get(j).get(10)) {
+                    for (Fluent f : types.get(i).get(j).get(11)) {
                         Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
                         for (Set<Set<Fluent>> t : frames.get(i).get(j)) {
+                            add(t, f);
+                        }
+                        for (Set<Set<Fluent>> t : temp) {
+                            addPossibly(t, f);
+                        }
+                        frames.get(i).get(j).addAll(temp);
+                    }
+                    for (Fluent f : types.get(i).get(j).get(12)) {
+                        Set<Set<Set<Fluent>>> temp1 = new HashSet<>(frames.get(i).get(j));
+                        Set<Set<Set<Fluent>>> temp2 = new HashSet<>(frames.get(i).get(j));
+                        for (Set<Set<Fluent>> t : temp1) {
                             add(t, f);
                         }
                         for (Set<Set<Fluent>> t : temp2) {
                             addPossibly(t, f);
                         }
-                        frames.get(i).get(j).addAll(temp);
+                        frames.get(i).get(j).addAll(temp1);
+                        frames.get(i).get(j).addAll(temp2);
                     }
-
                 }
             }
         }

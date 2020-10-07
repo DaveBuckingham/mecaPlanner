@@ -174,6 +174,19 @@ public class DeplToProblem extends DeplBaseVisitor {
         DeplLexer lexer          = new DeplLexer(inputStream);
         CommonTokenStream tokens = new CommonTokenStream(lexer);
         DeplParser parser        = new DeplParser(tokens);
+
+
+        parser.removeErrorListeners ();
+        parser.addErrorListener (new BaseErrorListener ()
+        {
+            @Override
+            public void syntaxError (final Recognizer <?,?> recognizer, Object sym, int line, int pos, String msg, RecognitionException e)
+            {
+                throw new AssertionError ("depl syntax error. Line:" + line + ", position:" + pos + ". " + msg);
+            }
+        });
+
+
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
@@ -838,11 +851,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public BeliefFormula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
-        List<BeliefFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
-            subFormulae.add((BeliefFormula) visit(subFormula));
-        }
-        return (BeliefAndFormula.make(subFormulae));
+        BeliefFormula left = (BeliefFormula) visit(ctx.beliefFormula().get(0));
+        BeliefFormula right = (BeliefFormula) visit(ctx.beliefFormula().get(1));
+        return (BeliefAndFormula.make(left, right));
     }
 
     @Override public BeliefFormula visitBeliefOr(DeplParser.BeliefOrContext ctx) {

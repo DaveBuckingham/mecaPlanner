@@ -2,6 +2,7 @@ package mecaPlanner.formulae.beliefFormulae;
 
 
 import mecaPlanner.formulae.localFormulae.Literal;
+import mecaPlanner.formulae.localFormulae.LocalAndFormula;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -27,12 +28,21 @@ public class BeliefAndFormula extends BeliefFormula{
             if (f.isFalse()) {
                 return new Literal(false);
             }
+            else if (f instanceof BeliefAndFormula) {
+                formulae.addAll(((BeliefAndFormula) f).getFormulae());
+            }
+            else if (f instanceof LocalAndFormula) {
+                formulae.addAll(((LocalAndFormula) f).getFormulae());
+            }
             else if (!f.isTrue()) {
                 formulae.add(f);
             }
         }
         if (formulae.isEmpty()) {
             return new Literal(true);
+        }
+        if (formulae.size() == 1) {
+            return formulae.get(0);
         }
         return new BeliefAndFormula(formulae);
     }
@@ -41,9 +51,9 @@ public class BeliefAndFormula extends BeliefFormula{
         return BeliefAndFormula.make(new ArrayList(inputFormulae));
     }
 
-    //public static BeliefFormula make(BeliefFormula ...inputFormulae) {
-    //    return BeliefAndFormula.make(new ArrayList(inputFormulae));
-    //}
+    public static BeliefFormula make(BeliefFormula ...inputFormulae) {
+        return BeliefAndFormula.make(Arrays.asList(inputFormulae));
+    }
 
 
 

@@ -20,7 +20,7 @@ import depl.*;
 public class Example {
 
     public static void main(String args[]) {
-        Log.setThreshold("debug");
+        //Log.setThreshold("debug");
 
         if (args.length < 1) {
             System.out.println("requires a depl file");

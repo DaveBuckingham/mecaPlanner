@@ -120,7 +120,7 @@ beliefFormula
     : localFormula                                               # beliefLocalFormula
     | '(' beliefFormula ')'                                      # beliefParens
     | OP_NOT beliefFormula                                       # beliefNot
-    | beliefFormula OP_AND beliefFormula (OP_AND beliefFormula)* # beliefAnd
+    | beliefFormula OP_AND beliefFormula                         # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
     | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves

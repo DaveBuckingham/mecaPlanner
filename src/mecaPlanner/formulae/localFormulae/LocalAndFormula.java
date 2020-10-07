@@ -28,12 +28,18 @@ public class LocalAndFormula extends LocalFormula{
             if (f.isFalse()) {
                 return f;
             }
+            else if (f instanceof LocalAndFormula) {
+                formulae.addAll(((LocalAndFormula) f).getFormulae());
+            }
             else if (!f.isTrue()) {
                 formulae.add(f);
             }
         }
         if (formulae.isEmpty()) {
             return new Literal(true);
+        }
+        if (formulae.size() == 1) {
+            return formulae.get(0);
         }
         return new LocalAndFormula(formulae);
     }
