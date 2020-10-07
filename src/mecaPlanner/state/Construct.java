@@ -133,14 +133,8 @@ public class Construct {
             return null;
         }
 
-        System.out.println("B");
-        System.out.println(left);
-        System.out.println(right);
         Fluent leftFluent = type2(((BeliefBelievesFormula) left).getFormula());
-        Fluent rightFluent = type1(((BeliefBelievesFormula) left).getFormula());
-        System.out.println(leftFluent);
-        System.out.println(rightFluent);
-        System.exit(1);
+        Fluent rightFluent = type1(((BeliefBelievesFormula) right).getFormula());
 
         if (leftFluent == null || rightFluent == null || !leftFluent.equals(rightFluent)) {
             return null;
