@@ -67,8 +67,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         List<String> varNames = new ArrayList<String>();
         List<List<String>> varGroundings = new ArrayList<List<String>>();
         for (DeplParser.VariableDefContext variableDefCtx : ctx.variableDef()) {
-            varNames.add(variableDefCtx.VARIABLE().getText());
-            varGroundings.add(typeDefs.get(variableDefCtx.objectType().getText()).groundings);
+            String varName = variableDefCtx.VARIABLE().getText();
+            varNames.add(varName);
+            String varType = variableDefCtx.objectType().getText();
+            if (!(typeDefs.containsKey(varType))) {
+                throw new RuntimeException("Cannot ground variable " + varName + ", unknown type: " + varType);
+            }
+            varGroundings.add(typeDefs.get(varType).groundings);
         }
 
         for (List<String> grounding : cartesianProduct(varGroundings)) {
@@ -142,14 +147,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (allObjects.containsKey(subtype)) {
             subtype = allObjects.get(subtype);
         }
+        assert typeDefs.containsKey(subtype);
         while (!subtype.equals(supertype)) {
-            if (supertype.equalsIgnoreCase("Object")) {
+            subtype = typeDefs.get(subtype).getParent();
+            if (subtype == null) {
                 return false;
             }
-            if (!typeDefs.containsKey(subtype)) {
-                throw new RuntimeException("undefined object type: " + subtype);
-            }
-            subtype = typeDefs.get(subtype).getParent();
+            assert typeDefs.containsKey(subtype);
         }
         return true;
     }
@@ -183,8 +187,11 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         allFluents = new HashSet<>();
         this.constants = new HashSet<>();
-        this.typeDefs = new HashMap<String, TypeNode>();
         this.variableStack = new Stack<Map<String, String>>();
+
+        this.typeDefs = new HashMap<String, TypeNode>();
+        this.typeDefs.put("Object", new TypeNode(null));
+
 
 
         visit(tree);
@@ -240,14 +247,14 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitObjectDefinition(DeplParser.ObjectDefinitionContext ctx) {
         String objectName = ctx.objectName().getText();
         String objectType = ctx.objectType().getText();
-        while (!objectType.equalsIgnoreCase("Object")) {
+        allObjects.put(objectName, objectType);
+        while (objectType != null) {
             if (!typeDefs.containsKey(objectType)) {
                 throw new RuntimeException("object type or supertype " + objectType + " not defined");
             }
             typeDefs.get(objectType).groundings.add(objectName);
             objectType = typeDefs.get(objectType).parent;
         }
-        allObjects.put(objectName, objectType);
         return null;
     }
 

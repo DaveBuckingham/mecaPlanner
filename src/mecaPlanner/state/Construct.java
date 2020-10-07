@@ -291,18 +291,31 @@ public class Construct {
             }
         }
 
+        // MAKE SURE EACH P APPEARS IN ONE OF EACH STATEMENT CATEGORY
 
-        Map<String, Map<String, Set<Set<World>>>> frames = new HashMap<>();;
+
+        // Vij
+        Map<String, Map<String, Set<Set<Set<Fluent>>>>> frames = new HashMap<>();
+
+
         for (String i : domain.getAllAgents()) {
             frames.put(i, new HashMap<>());
             for (String j : domain.getAllAgents()) {
                 frames.get(i).put(j, new HashSet<>());
+                Set<Set<Fluent>> inner = new HashSet<>();
+                inner.add(types.get(i).get(j).get(7));
+                frames.get(i).get(j).add(inner);
+            }
+        }
+        for (String i : domain.getAllAgents()) {
+            for (String j : domain.getAllAgents()) {
+                System.out.print("V[" + i + "][" + i + ": ");
+                System.out.print(frames.get(i).get(j));
             }
         }
 
 
         return null;
-        //return new EpistemicState()...
     }
 
 }
