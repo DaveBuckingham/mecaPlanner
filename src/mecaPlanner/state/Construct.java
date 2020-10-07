@@ -59,6 +59,8 @@ public class Construct {
         }
     }
 
+
+
     private static void addPossibly(Set<Set<Fluent>> s, Fluent f) {
         Set<Set<Fluent>> newS = new HashSet<>();
         for (Set<Fluent> ss : s) {
@@ -68,6 +70,9 @@ public class Construct {
         }
         s.addAll(newS);
     }
+
+
+
 
     private static Fluent type1(BeliefFormula formula) {
         if (formula instanceof BeliefNotFormula) {
@@ -352,6 +357,32 @@ public class Construct {
                         addPossibly(inner, f);
                     }
                     frames.get(i).get(j).add(inner);
+
+                    for (Fluent f : types.get(i).get(j).get(9)) {
+                        Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
+                        for (Set<Set<Fluent>> t : temp) {
+                            add(t, f);
+                        }
+                        frames.get(i).get(j).addAll(temp);
+                    }
+                    for (Fluent f : types.get(i).get(j).get(10)) {
+                        Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
+                        for (Set<Set<Fluent>> t : temp) {
+                            addPossibly(t, f);
+                        }
+                        frames.get(i).get(j).addAll(temp);
+                    }
+                    for (Fluent f : types.get(i).get(j).get(10)) {
+                        Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
+                        for (Set<Set<Fluent>> t : frames.get(i).get(j)) {
+                            add(t, f);
+                        }
+                        for (Set<Set<Fluent>> t : temp2) {
+                            addPossibly(t, f);
+                        }
+                        frames.get(i).get(j).addAll(temp);
+                    }
+
                 }
             }
         }
