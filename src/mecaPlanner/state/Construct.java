@@ -309,10 +309,11 @@ public class Construct {
         }
         for (String i : domain.getAllAgents()) {
             for (String j : domain.getAllAgents()) {
-                System.out.print("V[" + i + "][" + i + ": ");
-                System.out.print(frames.get(i).get(j));
+                System.out.print("V[" + i + "][" + j + "]: ");
+                System.out.println(frames.get(i).get(j));
             }
         }
+        System.exit(1);
 
 
         return null;

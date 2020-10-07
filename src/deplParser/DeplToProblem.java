@@ -401,15 +401,22 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            EpistemicState e = (EpistemicState) visit(stateCtx.kripkeModel());
+            EpistemicState e;
+            e = (EpistemicState) visit(stateCtx.initiallyDef());
+            //if (stateCtx.kripkeModel() != null) {
+            //    e = (EpistemicState) visit(stateCtx.kripkeModel());
+            //}
+            //else {
+            //    e = (EpistemicState) visit(stateCtx.initiallyDef());
+            //}
             startStates.add(e);
         }
         return null;
     }
 
     @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
-        EpistemicState e = (EpistemicState) visit(ctx.startStateDef().kripkeModel());
-        domain.setPostState(e);
+        //EpistemicState e = (EpistemicState) visit(ctx.startStateDef().kripkeModel());
+        //domain.setPostState(e);
         return null;
     }
 

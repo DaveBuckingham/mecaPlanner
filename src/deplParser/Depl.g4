@@ -154,9 +154,10 @@ timeFormula
 initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
 
 startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
+//startStateDef : '{' initiallyDef '}' ;
 //startStateDef : '{' kripkeModel '}' ;
 
-initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
+initiallyDef : (beliefFormula ',')* beliefFormula? ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 

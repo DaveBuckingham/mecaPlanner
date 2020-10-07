@@ -1,3 +1,6 @@
+in depl, ommited kripke edges are caught with an assertion, but should be an exception
+
+
 
 FLUENTS
     declared with built-in and user-defined types
