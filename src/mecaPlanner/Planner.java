@@ -1,6 +1,5 @@
 package mecaPlanner;
 
-import mecaPlanner.state.Initialize;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.localFormulae.*;
 import mecaPlanner.formulae.beliefFormulae.*;

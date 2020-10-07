@@ -406,21 +406,14 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    // @Override public Void visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-    //     Set<BeliefFormula> initiallyStatements = new HashSet<>();
-    //     for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
-    //         BeliefFormula statement = (BeliefFormula) visit(statementContext);
-    //         initiallyStatements.add(statement);
-    //     }
-    //     try {
-    //         startStates.add(Initialize.constructState(initiallyStatements, domain, true));
-    //     }
-    //     catch (Exception ex) {
-    //         ex.printStackTrace();
-    //         System.exit(1);
-    //     }
-    //     return null;
-    // }
+    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        Set<BeliefFormula> initiallyStatements = new HashSet<>();
+        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
+            BeliefFormula statement = (BeliefFormula) visit(statementContext);
+            initiallyStatements.add(statement);
+        }
+        return Construct.constructState(initiallyStatements, domain);
+    }
 
 
     @Override public EpistemicState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
@@ -858,6 +851,15 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
         return new BeliefBelievesFormula(agentName, inner);
+    }
+
+    @Override public BeliefFormula visitBeliefPossibly(DeplParser.BeliefPossiblyContext ctx) {
+        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+        String agentName = (String) visit(ctx.groundableObject());
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+        return BeliefNotFormula.make(new BeliefBelievesFormula(agentName, BeliefNotFormula.make(inner)));
     }
 
 

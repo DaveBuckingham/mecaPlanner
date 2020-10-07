@@ -124,8 +124,8 @@ beliefFormula
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
     | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
+    | 'P' '[' groundableObject ']' '(' beliefFormula ')'         # beliefPossibly
     ;
-
 
 inequality
     : '=='                # inequalityEq
@@ -153,10 +153,10 @@ timeFormula
 
 initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
 
-//startStateDef : initiallyDef | kripkeModel ;
-startStateDef : '{' kripkeModel '}' ;
+startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
+//startStateDef : '{' kripkeModel '}' ;
 
-//initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
+initiallyDef : '{' (beliefFormula ',')* beliefFormula? '}' ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
