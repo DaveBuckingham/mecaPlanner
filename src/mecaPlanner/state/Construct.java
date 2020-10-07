@@ -73,6 +73,9 @@ public class Construct {
         if (formula instanceof BeliefNotFormula) {
             return type2(((BeliefNotFormula) formula).getFormula());
         }
+        if (formula instanceof LocalNotFormula) {
+            return type2(((LocalNotFormula) formula).getFormula());
+        }
         return null;
     }
 
@@ -130,8 +133,14 @@ public class Construct {
             return null;
         }
 
+        System.out.println("B");
+        System.out.println(left);
+        System.out.println(right);
         Fluent leftFluent = type2(((BeliefBelievesFormula) left).getFormula());
         Fluent rightFluent = type1(((BeliefBelievesFormula) left).getFormula());
+        System.out.println(leftFluent);
+        System.out.println(rightFluent);
+        System.exit(1);
 
         if (leftFluent == null || rightFluent == null || !leftFluent.equals(rightFluent)) {
             return null;

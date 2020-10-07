@@ -2,6 +2,7 @@ package mecaPlanner.formulae.beliefFormulae;
 
 
 import mecaPlanner.formulae.localFormulae.Literal;
+import mecaPlanner.formulae.localFormulae.LocalNotFormula;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -31,6 +32,9 @@ public class BeliefNotFormula extends BeliefFormula{
         }
         if (inputFormula instanceof BeliefNotFormula) {
             return ((BeliefNotFormula) inputFormula).getFormula();
+        }
+        if (inputFormula instanceof LocalNotFormula) {
+            return ((LocalNotFormula) inputFormula).getFormula();
         }
         return new BeliefNotFormula(inputFormula);
     }
@@ -78,7 +82,7 @@ public class BeliefNotFormula extends BeliefFormula{
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("not(");
+        str.append("~(");
         str.append(this.formula);
         str.append(")");
         return str.toString();
