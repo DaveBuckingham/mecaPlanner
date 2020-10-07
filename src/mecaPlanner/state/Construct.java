@@ -131,15 +131,86 @@ public class Construct {
         String outerAgent = ((BeliefBelievesFormula) formula).getAgent();
         BeliefFormula innerFormula = ((BeliefBelievesFormula) formula).getFormula();
 
+        AgentFluent sub;
+        if (i == 6) {
+            sub = type3to4(3, innerFormula);
+        }
+        else if (i == 7) {
+            sub = type3to4(4, innerFormula);
+        }
+        else if (i == 8) {
+            sub = type5(innerFormula);
+        }
+        else {
+            throw new RuntimeException("illegal input");
+        }
+        if (sub == null) {
+            return null;
+        }
+        return new AgentsFluent(outerAgent, sub.agent, sub.fluent);
+    }
+  
+//9.  PiBj~p & PiBjp & ~Pi(Pj~p & Pjp)
+    private static AgentsFluent pij(BeliefFormula formula) {
+        if (!(formula instanceof BeliefNotFormula)) {
+            return null;
+        }
+        BeliefFormula believesi = ((BeliefNotFormula) formula).getFormula();
 
-//5.  Pi(~p) & Pi(p)
-//6.  BiBj(~p)
-//7.  BiBj(p)
-//8.  Bi( Pj(~p) & Pj(p) )
+        if (!(believesi instanceof BeliefBelievesFormula)) {
+            return null;
+        }
+        String agenti = ((BeliefBelievesFormula) believesi).getAgent();
+        BeliefFormula notbi = ((BeliefBelievesFormula) believesi).getFormula();
+
+        if (!(notbi instanceof BeliefNotFormula)) {
+            return null;
+        }
+        BeliefFormula believesi = ((BeliefNotFormula) believesi).getFormula();
+        ...:w
+    }
+
+    private static AgentsFluent type9to12(int i, BeliefFormula formula) {
+        if (!(formula instanceof BeliefAndFormula)) {
+            return null;
+        }
+        List<Formula> formulae = ((BeliefAndFormula) formula).getFormulae();
+        if (formulae.size != 3) {
+            return null;
+        }
+        BeliefFormula left = formulae[0];
+        BeliefFormula middle = formulae[1];
+        BeliefFormula right = formulae[2];
+
+        if (i == 9) {
+            if (!right instanceof BeliefNotFormula) {
+                return null;
+            }
+            right = ((BeliefNotFormula) right).getFormula();
+        }
+        else if (i == 10) {
+            if (!middle instanceof BeliefNotFormula) {
+                return null;
+            }
+            middle = ((BeliefNotFormula) middle).getFormula();
+        }
+        else if (i == 11) {
+            if (!left instanceof BeliefNotFormula) {
+                return null;
+            }
+            left = ((BeliefNotFormula) left).getFormula();
+        }
+        else if (i != 12) {
+            throw new RuntimeException("illegal input");
+        }
+        
+    }
 //9.  PiBj~p & PiBjp & ~Pi(Pj~p & Pjp)
 //10. PiBj~p & ~PiBjp & Pi(Pj~p & Pjp)
 //11. ~PiBj~p & PiBjp & Pi(Pj~p & Pjp)
 //12. PiBj~p & PiBjp & Pi(Pj~p & Pjp)
+
+
 
 
 //    private static void classify(BeliefFormula formula, boolean store) {
