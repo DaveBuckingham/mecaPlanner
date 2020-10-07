@@ -142,8 +142,8 @@ timeFormula
     : beliefFormula                                              # timeBelief
     | temporalConstraint                                         # timeConstraint
     | OP_NOT timeFormula                                         # timeNot
-    | timeFormula '&' timeFormula ('&' timeFormula)*             # timeAnd
-    | timeFormula '|' timeFormula ('|' timeFormula)*             # timeOr
+    | timeFormula OP_AND timeFormula (OP_AND timeFormula)*       # timeAnd
+    | timeFormula OP_OR timeFormula (OP_OR timeFormula)*         # timeOr
     ;
 
 

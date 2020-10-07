@@ -3,6 +3,7 @@ package mecaPlanner.state;
 import mecaPlanner.formulae.beliefFormulae.*;
 import mecaPlanner.formulae.localFormulae.*;
 import mecaPlanner.Domain;
+import mecaPlanner.Log;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -50,6 +51,22 @@ public class Construct {
             this.agentj = aj;
             this.fluent = f;
         }
+    }
+
+    private static void add(Set<Set<Fluent>> s, Fluent f) {
+        for (Set<Fluent> ss : s) {
+            ss.add(f);
+        }
+    }
+
+    private static void addPossibly(Set<Set<Fluent>> s, Fluent f) {
+        Set<Set<Fluent>> newS = new HashSet<>();
+        for (Set<Fluent> ss : s) {
+            Set<Fluent> newSs = new HashSet<>(ss);
+            newSs.add(f);
+            newS.add(newSs);
+        }
+        s.addAll(newS);
     }
 
     private static Fluent type1(BeliefFormula formula) {
@@ -223,6 +240,7 @@ public class Construct {
     }
 
     public static EpistemicState constructState(Set<BeliefFormula> statements, Domain domain) {
+        //Log.setThreshold("debug");
         Map<String, Map<String, Map<Integer, Set<Fluent>>>> types = new HashMap<>();
         types.put("", new HashMap<>());
         types.get("").put("", new HashMap<>());
@@ -240,51 +258,64 @@ public class Construct {
 
         // NEED TO CHECK FOR DUPLICATES AND MISSING STATEMENTS
         for (BeliefFormula formula : statements) {
+            Log.debug(formula.toString());
             if (type1(formula) != null) {
                 types.get("").get("").get(1).add(type1(formula));
+                Log.debug("1");
             }
             else if (type2(formula) != null) {
                 types.get("").get("").get(2).add(type2(formula));
+                Log.debug("2");
             }
             else if (type3to4(3, formula) != null) {
                 AgentFluent af = type3to4(3, formula);
                 types.get(af.agent).get(af.agent).get(3).add(af.fluent);
+                Log.debug("3");
             }
             else if (type3to4(4, formula) != null) {
                 AgentFluent af = type3to4(4, formula);
                 types.get(af.agent).get(af.agent).get(4).add(af.fluent);
+                Log.debug("4");
             }
             else if (type5(formula) != null) {
                 AgentFluent af = type5(formula);
                 types.get(af.agent).get(af.agent).get(5).add(af.fluent);
+                Log.debug("5");
             }
             else if (type6to8(6, formula) != null) {
                 AgentsFluent af = type6to8(6, formula);
                 types.get(af.agenti).get(af.agentj).get(6).add(af.fluent);
+                Log.debug("6");
             }
             else if (type6to8(7, formula) != null) {
                 AgentsFluent af = type6to8(7, formula);
                 types.get(af.agenti).get(af.agentj).get(7).add(af.fluent);
+                Log.debug("7");
             }
             else if (type6to8(8, formula) != null) {
                 AgentsFluent af = type6to8(8, formula);
                 types.get(af.agenti).get(af.agentj).get(8).add(af.fluent);
+                Log.debug("8");
             }
             else if (type9to12(9, formula) != null) {
                 AgentsFluent af = type9to12(9, formula);
                 types.get(af.agenti).get(af.agentj).get(9).add(af.fluent);
+                Log.debug("9");
             }
             else if (type9to12(10, formula) != null) {
                 AgentsFluent af = type9to12(10, formula);
                 types.get(af.agenti).get(af.agentj).get(10).add(af.fluent);
+                Log.debug("10");
             }
             else if (type9to12(11, formula) != null) {
                 AgentsFluent af = type9to12(11, formula);
                 types.get(af.agenti).get(af.agentj).get(11).add(af.fluent);
+                Log.debug("11");
             }
             else if (type9to12(12, formula) != null) {
                 AgentsFluent af = type9to12(12, formula);
                 types.get(af.agenti).get(af.agentj).get(12).add(af.fluent);
+                Log.debug("12");
             }
             else {
                 throw new RuntimeException("bad statement: " + formula);
@@ -302,9 +333,20 @@ public class Construct {
             frames.put(i, new HashMap<>());
             for (String j : domain.getAllAgents()) {
                 frames.get(i).put(j, new HashSet<>());
-                Set<Set<Fluent>> inner = new HashSet<>();
-                inner.add(types.get(i).get(j).get(7));
-                frames.get(i).get(j).add(inner);
+
+                if (i.equals(j)) {
+                    Set<Set<Fluent>> inner = new HashSet<>();
+                    inner.add(types.get(i).get(j).get(4));
+                    for (Fluent f : types.get(i).get(j).get(5)) {
+                        addPossibly(inner, f);
+                    }
+                    frames.get(i).get(j).add(inner);
+                }
+                else {
+                    Set<Set<Fluent>> inner = new HashSet<>();
+                    inner.add(types.get(i).get(j).get(7));
+                    frames.get(i).get(j).add(inner);
+                }
             }
         }
         for (String i : domain.getAllAgents()) {
@@ -318,5 +360,6 @@ public class Construct {
 
         return null;
     }
+
 
 }
