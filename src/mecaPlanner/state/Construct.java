@@ -32,9 +32,7 @@ public class Construct {
 //11. ~PiBj~p & PiBjp & Pi(Pj~p & Pjp)
 //12. PiBj~p & PiBjp & Pi(Pj~p & Pjp)
 
-    private static Map<String, Map<String, Map<Integer, Set<Fluent>>>> types;
-
-    private class AgentFluent {
+    private static class AgentFluent {
         public String agent;
         public Fluent fluent;
         public AgentFluent(String a, Fluent f) {
@@ -43,11 +41,11 @@ public class Construct {
         }
     }
 
-    private class AgentsFluent {
+    private static class AgentsFluent {
         public String agenti;
         public String agentj;
         public Fluent fluent;
-        public AgentFluent(String ai, String aj, Fluent f) {
+        public AgentsFluent(String ai, String aj, Fluent f) {
             this.agenti = ai;
             this.agentj = aj;
             this.fluent = f;
@@ -56,14 +54,14 @@ public class Construct {
 
     private static Fluent type1(BeliefFormula formula) {
         if (formula instanceof BeliefNotFormula) {
-            return type2((BeliefNotFormula).getFormula());
+            return type2(((BeliefNotFormula) formula).getFormula());
         }
         return null;
     }
 
     private static Fluent type2(BeliefFormula formula) {
         if (formula instanceof Fluent) {
-            return formula;
+            return (Fluent) formula;
         }
         return null;
     }
@@ -83,7 +81,7 @@ public class Construct {
                 throw new RuntimeException("illegal input");
             }
             if (fluent != null) {
-                return new AgentFluent(agent, fluent);
+                return new Construct.AgentFluent(agent, fluent);
             }
         }
         return null;
@@ -93,12 +91,12 @@ public class Construct {
         if (!(formula instanceof BeliefAndFormula)) {
             return null;
         }
-        List<Formula> formulae = ((BeliefAndFormula) formula).getFormulae();
-        if (formulae.size != 2) {
+        List<BeliefFormula> formulae = ((BeliefAndFormula) formula).getFormulae();
+        if (formulae.size() != 2) {
             return null;
         }
-        BeliefFormula left = formulae[0];
-        BeliefFormula right = formulae[1];
+        BeliefFormula left = formulae.get(0);
+        BeliefFormula right = formulae.get(1);
 
         if (!(left instanceof BeliefNotFormula && right instanceof BeliefNotFormula)) {
             return null;
@@ -111,7 +109,7 @@ public class Construct {
         }
 
         String agent = ((BeliefBelievesFormula) left).getAgent();
-        if (!agent.equals(((BeliefBelievesFormula) right).getAgent()) {
+        if (!agent.equals(((BeliefBelievesFormula) right).getAgent())) {
             return null;
         }
 
@@ -150,8 +148,7 @@ public class Construct {
         return new AgentsFluent(outerAgent, sub.agent, sub.fluent);
     }
   
-//9.  PiBj~p & PiBjp & ~Pi(Pj~p & Pjp)
-    private static AgentsFluent pij(BeliefFormula formula) {
+    private static AgentsFluent pij(int i, BeliefFormula formula) {
         if (!(formula instanceof BeliefNotFormula)) {
             return null;
         }
@@ -161,83 +158,75 @@ public class Construct {
             return null;
         }
         String agenti = ((BeliefBelievesFormula) believesi).getAgent();
-        BeliefFormula notbi = ((BeliefBelievesFormula) believesi).getFormula();
+        BeliefFormula notbj = ((BeliefBelievesFormula) believesi).getFormula();
 
-        if (!(notbi instanceof BeliefNotFormula)) {
+        if (!(notbj instanceof BeliefNotFormula)) {
             return null;
         }
-        BeliefFormula believesi = ((BeliefNotFormula) believesi).getFormula();
-        ...:w
+        BeliefFormula inner = ((BeliefNotFormula) notbj).getFormula();
+        AgentFluent sub;
+
+        if (i == 1) {
+            sub = type3to4(3, inner);    
+        }
+        else if (i == 2) {
+            sub = type3to4(4, inner);    
+        }
+        else if (i == 3) {
+            sub = type5(inner);    
+        }
+        else {
+            throw new RuntimeException("illegal input");
+        }
+        if (sub == null) {
+            return null;
+        }
+        return new AgentsFluent(agenti, sub.agent, sub.fluent);
     }
 
     private static AgentsFluent type9to12(int i, BeliefFormula formula) {
         if (!(formula instanceof BeliefAndFormula)) {
             return null;
         }
-        List<Formula> formulae = ((BeliefAndFormula) formula).getFormulae();
-        if (formulae.size != 3) {
+        List<BeliefFormula> formulae = ((BeliefAndFormula) formula).getFormulae();
+        if (formulae.size() != 3) {
             return null;
         }
-        BeliefFormula left = formulae[0];
-        BeliefFormula middle = formulae[1];
-        BeliefFormula right = formulae[2];
+        BeliefFormula left = formulae.get(0);
+        BeliefFormula middle = formulae.get(1);
+        BeliefFormula right = formulae.get(2);
 
         if (i == 9) {
-            if (!right instanceof BeliefNotFormula) {
-                return null;
-            }
-            right = ((BeliefNotFormula) right).getFormula();
+            right = BeliefNotFormula.make(right);
         }
         else if (i == 10) {
-            if (!middle instanceof BeliefNotFormula) {
-                return null;
-            }
-            middle = ((BeliefNotFormula) middle).getFormula();
+            middle = BeliefNotFormula.make(middle);
         }
         else if (i == 11) {
-            if (!left instanceof BeliefNotFormula) {
-                return null;
-            }
-            left = ((BeliefNotFormula) left).getFormula();
+            right = BeliefNotFormula.make(right);
         }
         else if (i != 12) {
             throw new RuntimeException("illegal input");
         }
-        
+        AgentsFluent leftSub = pij(1,left);
+        AgentsFluent middleSub = pij(2,middle);
+        AgentsFluent rightSub = pij(3,right);
+        if (!(leftSub.agenti.equals(middleSub.agenti) &&
+              leftSub.agenti.equals(rightSub.agenti) &&
+              leftSub.agentj.equals(middleSub.agentj) &&
+              leftSub.agentj.equals(rightSub.agentj) &&
+              leftSub.fluent.equals(middleSub.fluent) &&
+              leftSub.fluent.equals(rightSub.fluent))) {
+            return null;
+        }
+        return leftSub;
     }
-//9.  PiBj~p & PiBjp & ~Pi(Pj~p & Pjp)
-//10. PiBj~p & ~PiBjp & Pi(Pj~p & Pjp)
-//11. ~PiBj~p & PiBjp & Pi(Pj~p & Pjp)
-//12. PiBj~p & PiBjp & Pi(Pj~p & Pjp)
-
-
-
-
-//    private static void classify(BeliefFormula formula, boolean store) {
-//        if (formula instanceof BeliefNotFormula) {
-//            // 1
-//            if (!(formula instanceof Fluent)) {
-//                return;
-//            }
-//        }
-//        if (formula instanceof Fluent) {
-//            // 2
-//            types.get("").get("").get(2).add((Fluent) formula);
-//            return;
-//        }
-//        if (formula instanceof BeliefBelievesFormula) {
-//            // 3,4,6,7,8
-//        }
-//        if (formula instanceof BeliefAndFormula) {
-//            // 5,9,10,11,12
-//        }
-//        throw new RuntimeException("Invalid construction formula");
-//    }
 
     public static EpistemicState constructState(Set<BeliefFormula> statements, Domain domain) {
-        types = new HashMap<>();
+        Map<String, Map<String, Map<Integer, Set<Fluent>>>> types = new HashMap<>();
         types.put("", new HashMap<>());
         types.get("").put("", new HashMap<>());
+        types.get("").get("").put(1, new HashSet<>());
         types.get("").get("").put(2, new HashSet<>());
         for (String i : domain.getAllAgents()) {
             types.put(i, new HashMap<>());
@@ -249,10 +238,68 @@ public class Construct {
             }
         }
 
+        // NEED TO CHECK FOR DUPLICATES AND MISSING STATEMENTS
         for (BeliefFormula formula : statements) {
-            classify(formula, true);
+            if (type1(formula) != null) {
+                types.get("").get("").get(1).add(type1(formula));
+            }
+            else if (type2(formula) != null) {
+                types.get("").get("").get(2).add(type2(formula));
+            }
+            else if (type3to4(3, formula) != null) {
+                AgentFluent af = type3to4(3, formula);
+                types.get(af.agent).get(af.agent).get(3).add(af.fluent);
+            }
+            else if (type3to4(4, formula) != null) {
+                AgentFluent af = type3to4(4, formula);
+                types.get(af.agent).get(af.agent).get(4).add(af.fluent);
+            }
+            else if (type5(formula) != null) {
+                AgentFluent af = type5(formula);
+                types.get(af.agent).get(af.agent).get(5).add(af.fluent);
+            }
+            else if (type6to8(6, formula) != null) {
+                AgentsFluent af = type6to8(6, formula);
+                types.get(af.agenti).get(af.agentj).get(6).add(af.fluent);
+            }
+            else if (type6to8(7, formula) != null) {
+                AgentsFluent af = type6to8(7, formula);
+                types.get(af.agenti).get(af.agentj).get(7).add(af.fluent);
+            }
+            else if (type6to8(8, formula) != null) {
+                AgentsFluent af = type6to8(8, formula);
+                types.get(af.agenti).get(af.agentj).get(8).add(af.fluent);
+            }
+            else if (type9to12(9, formula) != null) {
+                AgentsFluent af = type9to12(9, formula);
+                types.get(af.agenti).get(af.agentj).get(9).add(af.fluent);
+            }
+            else if (type9to12(10, formula) != null) {
+                AgentsFluent af = type9to12(10, formula);
+                types.get(af.agenti).get(af.agentj).get(10).add(af.fluent);
+            }
+            else if (type9to12(11, formula) != null) {
+                AgentsFluent af = type9to12(11, formula);
+                types.get(af.agenti).get(af.agentj).get(11).add(af.fluent);
+            }
+            else if (type9to12(12, formula) != null) {
+                AgentsFluent af = type9to12(12, formula);
+                types.get(af.agenti).get(af.agentj).get(12).add(af.fluent);
+            }
+            else {
+                throw new RuntimeException("bad statement: " + formula);
+            }
         }
+
+
+        for (String i : domain.getAllAgents()) {
+            for (String j : domain.getAllAgents()) {
+            }
+        }
+
+
         return null;
+        //return new EpistemicState()...
     }
 
 }
