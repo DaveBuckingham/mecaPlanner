@@ -119,7 +119,7 @@ public class Construct {
             return null;
         }
         left =  ((BeliefNotFormula) left).getFormula();
-        right = ((BeliefNotFormula) left).getFormula();
+        right = ((BeliefNotFormula) right).getFormula();
 
         if (!(left instanceof BeliefBelievesFormula && right instanceof BeliefBelievesFormula)) {
             return null;
