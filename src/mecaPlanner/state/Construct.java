@@ -53,22 +53,28 @@ public class Construct {
         }
     }
 
-    private static void add(Set<Set<Fluent>> s, Fluent f) {
+    private static Set<Set<Fluent>> add(Set<Set<Fluent>> s, Fluent f) {
+        Set<Set<Fluent>> n = new HashSet<>();
         for (Set<Fluent> ss : s) {
-            ss.add(f);
+            Set<Fluent> nn = new HashSet<>(ss);
+            nn.add(f);
+            n.add(nn);
         }
+        return n;
     }
 
 
 
-    private static void addPossibly(Set<Set<Fluent>> s, Fluent f) {
-        Set<Set<Fluent>> newS = new HashSet<>();
+    private static Set<Set<Fluent>> addPossibly(Set<Set<Fluent>> s, Fluent f) {
+        Set<Set<Fluent>> n = new HashSet<>();
         for (Set<Fluent> ss : s) {
-            Set<Fluent> newSs = new HashSet<>(ss);
-            newSs.add(f);
-            newS.add(newSs);
+            Set<Fluent> nn1 = new HashSet<>(ss);
+            Set<Fluent> nn2 = new HashSet<>(ss);
+            nn2.add(f);
+            n.add(nn1);
+            n.add(nn2);
         }
-        s.addAll(newS);
+        return n;
     }
 
 
@@ -349,7 +355,7 @@ public class Construct {
                     Set<Set<Fluent>> inner = new HashSet<>();
                     inner.add(types.get(i).get(j).get(4));
                     for (Fluent f : types.get(i).get(j).get(5)) {
-                        addPossibly(inner, f);
+                        inner = addPossibly(inner, f);
                     }
                     frames.get(i).get(j).add(inner);
                 }
@@ -357,42 +363,42 @@ public class Construct {
                     Set<Set<Fluent>> inner = new HashSet<>();
                     inner.add(types.get(i).get(j).get(7));
                     for (Fluent f : types.get(i).get(j).get(8)) {
-                        addPossibly(inner, f);
+                        inner = addPossibly(inner, f);
                     }
                     frames.get(i).get(j).add(inner);
 
                     for (Fluent f : types.get(i).get(j).get(9)) {
                         Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
                         for (Set<Set<Fluent>> t : temp) {
-                            add(t, f);
+                            t = add(t, f);
                         }
                         frames.get(i).get(j).addAll(temp);
                     }
                     for (Fluent f : types.get(i).get(j).get(10)) {
                         Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
                         for (Set<Set<Fluent>> t : temp) {
-                            addPossibly(t, f);
+                            t = addPossibly(t, f);
                         }
                         frames.get(i).get(j).addAll(temp);
                     }
                     for (Fluent f : types.get(i).get(j).get(11)) {
                         Set<Set<Set<Fluent>>> temp = new HashSet<>(frames.get(i).get(j));
                         for (Set<Set<Fluent>> t : frames.get(i).get(j)) {
-                            add(t, f);
+                            t = add(t, f);
                         }
                         for (Set<Set<Fluent>> t : temp) {
-                            addPossibly(t, f);
+                            t = addPossibly(t, f);
                         }
                         frames.get(i).get(j).addAll(temp);
                     }
                     for (Fluent f : types.get(i).get(j).get(12)) {
-                        Set<Set<Set<Fluent>>> temp1 = new HashSet<>(frames.get(i).get(j));
-                        Set<Set<Set<Fluent>>> temp2 = new HashSet<>(frames.get(i).get(j));
-                        for (Set<Set<Fluent>> t : temp1) {
-                            add(t, f);
+                        Set<Set<Set<Fluent>>> temp1 = new HashSet<>();
+                        for (Set<Set<Fluent>> t : frames.get(i).get(j)) {
+                            temp1.add(add(t, f));
                         }
-                        for (Set<Set<Fluent>> t : temp2) {
-                            addPossibly(t, f);
+                        Set<Set<Set<Fluent>>> temp2 = new HashSet<>();
+                        for (Set<Set<Fluent>> t : frames.get(i).get(j)) {
+                            temp2.add(addPossibly(t, f));
                         }
                         frames.get(i).get(j).addAll(temp1);
                         frames.get(i).get(j).addAll(temp2);
