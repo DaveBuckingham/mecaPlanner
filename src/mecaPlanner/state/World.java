@@ -35,6 +35,10 @@ public class World implements java.io.Serializable {
         fluents = new HashSet<Fluent>(toCopy.getFluents());
     }
 
+    public World(Set<Fluent> fluents) {
+        this(null, fluents);
+    }
+
     protected Set<Fluent> getFluents() {
         return fluents;
     }
