@@ -407,17 +407,28 @@ public class Construct {
             }
         }
 
-        Map<String, Map<String, Set<Set<Set<World>>>>> subClasses = new HashMap<>();
+
+        // for (String i : domain.getAllAgents()) {
+        //     for (String j : domain.getAllAgents()) {
+        //         System.out.print("V[" + i + "][" + j + "]: ");
+        //         System.out.println(frames.get(i).get(j));
+        //     }
+        // }
+
+        Map<String, Map<String, List<Set<Set<World>>>>> subClasses = new HashMap<>();
 
         for (String i : domain.getAllAgents()) {
             for (String j : domain.getAllAgents()) {
-                //System.out.print("V[" + i + "][" + j + "]: ");
-                //System.out.println(frames.get(i).get(j));
                 for (Set<Set<Fluent>> valuationClass : frames.get(i).get(j)) {
-                    for (Set<Fluent> valuation : valuationClass) {
-                        Set<World> subClass = new HashSet<>();
-                        World w = new World(valuation);
-                        subClass.add(w);
+                    for (String k : domain.getAllAgents()) {
+                        if (!k.equals(j)) {
+                            for (Set<Fluent> valuation : valuationClass) {
+                                        for (Set<Set<Fluent>> next : frames.get(j).get(k)) {
+                                for (Set<World> subClass : subClasses) {
+                                    World w = new World(valuation);
+                                    subClass.add(w);
+                                }
+
                     }
                 }
             }
