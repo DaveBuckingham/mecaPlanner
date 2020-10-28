@@ -408,31 +408,25 @@ public class Construct {
         }
 
 
-        // for (String i : domain.getAllAgents()) {
-        //     for (String j : domain.getAllAgents()) {
-        //         System.out.print("V[" + i + "][" + j + "]: ");
-        //         System.out.println(frames.get(i).get(j));
-        //     }
-        // }
 
-        Map<String, Map<String, List<Set<Set<World>>>>> subClasses = new HashMap<>();
+        //Map<String, Map<String, List<Set<Set<World>>>>> subClasses = new HashMap<>();
 
-        for (String i : domain.getAllAgents()) {
-            for (String j : domain.getAllAgents()) {
-                for (Set<Set<Fluent>> valuationClass : frames.get(i).get(j)) {
-                    for (String k : domain.getAllAgents()) {
-                        if (!k.equals(j)) {
-                            for (Set<Fluent> valuation : valuationClass) {
-                                        for (Set<Set<Fluent>> next : frames.get(j).get(k)) {
-                                for (Set<World> subClass : subClasses) {
-                                    World w = new World(valuation);
-                                    subClass.add(w);
-                                }
+        //for (String i : domain.getAllAgents()) {
+        //    for (String j : domain.getAllAgents()) {
+        //        for (Set<Set<Fluent>> valuationClass : frames.get(i).get(j)) {
+        //            for (String k : domain.getAllAgents()) {
+        //                if (!k.equals(j)) {
+        //                    for (Set<Fluent> valuation : valuationClass) {
+        //                                for (Set<Set<Fluent>> next : frames.get(j).get(k)) {
+        //                        for (Set<World> subClass : subClasses) {
+        //                            World w = new World(valuation);
+        //                            subClass.add(w);
+        //                        }
 
-                    }
-                }
-            }
-        }
+        //            }
+        //        }
+        //    }
+        //}
         System.exit(1);
 
 
