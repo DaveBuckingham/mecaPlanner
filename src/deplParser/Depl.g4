@@ -95,7 +95,8 @@ fluentsSection   : 'fluents' '{' (expandableFluent ',')* expandableFluent? '}' ;
 
 // CONSTANTS
 
-constantsSection : 'constants' '{' (expandableFluent ',')* expandableFluent? '}' ;
+constant : OP_NOT? expandableFluent ;
+constantsSection : 'constants' '{' (constant ',')* constant? '}' ;
 
 
 // FORMULAE

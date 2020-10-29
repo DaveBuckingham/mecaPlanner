@@ -43,7 +43,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer agentIndex;
     private Map<String, String> allObjects;     // from object name to object type
 
-    private Set<Fluent> constants;
+    private Set<Fluent> trueConstants;
+    private Set<Fluent> falseConstants;
 
     private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
     private Stack<Map<String, String>> variableStack;
@@ -199,7 +200,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.allObjects = new HashMap<>();
 
         allFluents = new HashSet<>();
-        this.constants = new HashSet<>();
+        this.trueConstants = new HashSet<>();
+        this.falseConstants = new HashSet<>();
         this.variableStack = new Stack<Map<String, String>>();
 
         this.typeDefs = new HashMap<String, TypeNode>();
@@ -361,6 +363,9 @@ public class DeplToProblem extends DeplBaseVisitor {
                 if (allObjects.containsKey(fluent.getName())) {
                     Log.warning("Fluent name already used for object: " + fluent.getName());
                 }
+                if (trueConstants.contains(fluent) || falseConstants.contains(fluent)) {
+                    throw new RuntimeException("Can't define fluent, already a constant: " + fluent);
+                }
                 allFluents.add(fluent);
             }
         }
@@ -399,15 +404,24 @@ public class DeplToProblem extends DeplBaseVisitor {
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
-        for (DeplParser.ExpandableFluentContext fluentsCtx : ctx.expandableFluent()) {
-            for (Fluent fluent : (Set<Fluent>) visit(fluentsCtx)) {
-                constants.add(fluent);
+        visitChildren(ctx);
+        return null;
+    }
+
+    @Override public Void visitConstant(DeplParser.ConstantContext ctx) {
+        for (Fluent fluent : (Set<Fluent>) visit(ctx.expandableFluent())) {
+            if (trueConstants.contains(fluent) || falseConstants.contains(fluent) || allFluents.contains(fluent)) {
+                throw new RuntimeException("Constant previously defined: " + fluent);
+            }
+            if (ctx.OP_NOT() == null) {
+                trueConstants.add(fluent);
+            }
+            else {
+                falseConstants.add(fluent);
             }
         }
         return null;
     }
-
-
 
 
     // INITIALLY
@@ -786,12 +800,19 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.GroundableObjectContext objCtx : ctx.groundableObject()) {
             parameters.add((String) visit(objCtx));
         }
-        return new Fluent(fluentName, parameters);
+        Fluent fluent = new Fluent(fluentName, parameters);
+        return fluent;
     }
 
 
     @Override public LocalFormula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
+        if (trueConstants.contains(fluent)) {
+            return new Literal(true);
+        }
+        if (falseConstants.contains(fluent)) {
+            return new Literal(false);
+        }
         if (!allFluents.contains(fluent)) {
             throw new RuntimeException("unknown fluent: " + fluent);
         }
