@@ -1,0 +1,189 @@
+\documentclass{article}
+
+
+%\usepackage{lineno}
+%\linenumbers
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{mathtools}
+\usepackage{amssymb}
+\usepackage{bbding}
+
+\usepackage{listings}
+
+\usepackage{tikz}
+\usetikzlibrary{automata, positioning, arrows.meta}
+
+
+\newcommand{\entails}{\models}
+\newcommand{\notentails}{\not\models}
+
+
+\newcommand{\ma}{m$\mathcal{A}^*$}
+\newcommand{\agents}{\ensuremath{\mathcal{AG}}}
+\newcommand{\fluents}{\ensuremath{\mathcal{F}}}
+
+\newcommand{\closed}{\ensuremath{c}}
+\newcommand{\locked}{\ensuremath{l}}
+\newcommand{\watching}{\ensuremath{w}}
+\newcommand{\open}{\emph{open}}
+
+\title{MECA Planner \input{../VERSION} \\
+User Manual
+}
+
+\begin{document}
+
+\maketitle
+
+\section{The depl planning language}
+
+Planning problems for the DEPL planner are specified in the doxastic/epistemic
+planning language (depl). A single depl file describes both a planning domain
+and a planning problem.
+
+For the complete depl grammar, defined with the ANTLR meta-language, consult
+\texttt{mecaPlanner/src/deplParser/Depl.g4}.
+
+depl generally ignores whitespace and newlines, inline comments (anything
+following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
+
+A depl file contains the following sections, which must occur in the correct
+order, and are required unless specified as optional:
+
+\begin{itemize}
+\item types
+\item objects
+\item agents
+\item passive (optional)
+\item constants (optional)
+\item fluents
+\item initially
+\item goals
+\item actions
+\end{itemize}
+
+\noindent
+Each section begins with the section name, followed by
+``\texttt{\{}'', 
+then the section contents, and then
+``\texttt{\}}''. 
+
+
+\subsection{types section}
+
+The \emph{types} section defines a type heirarchy relating all objects in the planning
+problem.
+Here is an example \emph{types} section:
+\begin{verbatim}
+types{
+    Robot-Actor,
+    Human-Actor,
+    Actor-Locatable,
+    Food-Locatable,
+    Locatable-Object,
+    Location-Object
+}
+\end{verbatim}
+
+The content of the \emph{types} section consists of a comma-separated list of
+type definitions. A type definition takes the form
+``\texttt{Subtype - Supertype}'' (whitespace surrounding the ``\texttt{-}'' is
+optional). The type ``\texttt{Object}'' is built-in, and
+the type heirarchy must be constructed such that every type is a subtype of
+``\texttt{Object}''.  A type name begins with an uppercase letter, followed
+by any number of upper- or lower-case letters, integers, and underscores.
+
+The depl parser will use the type heirarchy defined in this section for two main
+purposes. First, it will provide type checking of objects as a guard against errors.
+Second, as we will see in some later sections, it will automatically expand some
+statements that contain types into a set of statements instead containing
+objects of those types, providing a convenient short-hand. Note, however, that
+the type-heirarchy is a parse-time entity only, no type information will be
+available to the planner.
+
+
+\section{objects}
+
+The \emph{objects} section defines the objects in the planning problem.
+Here is an example \emph{objects} section:
+\begin{verbatim}
+objects{
+    robot1-Robot,
+    human1-Human,
+    pizza-Food,
+    hotdog-Food,
+    room1-Location,
+    room2-Location,
+}
+\end{verbatim}
+
+The content of the \emph{objects} section consists of a comma-separated list of
+object definitions. An object definition takes the form ``\texttt{object -
+Type}'' (whitespace surrounding the ``\texttt{-}'' is optional). Each type must
+either be ``\texttt{Object}'', or be defined in the \emph{types} section.  An
+object name begins with a lowercase letter, followed by any number of upper-
+or lower-case letters, integers, and underscores.
+
+
+
+\section{agents}
+
+The MECA planner considers three types of \emph{agents}. The single
+\emph{system} and arbitrarily-numberd \emph{environment} agents are specified in
+this section.  The third type, \emph{passive} agents, are specified in the next
+section.
+
+An \emph{agent name} must be an object that has been defined in the
+\emph{objects} section. An agent can have any type, but it is generally
+convenient to create a type for objects that will be agents, for example 
+as we do with the ``\texttt{actor}'' type in our running example.
+
+The \emph{agents} section consists of a comma-separated list of agent
+definitions. There must be at least one agent definition. There must be exactly
+one \emph{system} agent, definitions, the rest must be \emph{environment} agent
+definitions. A system agent definition contains only an agent name (i.e. an
+object that has been defined in the \emph{objects} section). An environment
+agent definition takes the form ``\texttt{name\{Model\}}'', where \texttt{name}
+is an agent name and \texttt{Model} is the name of a model class. The model
+class name must begin with an uppercase letter, followed by any number of
+lower- and upper-case characters, integers, and underscores. The model name must
+be the same as the name of a java class that extends
+\texttt{mecaPlanner.models.Model} (the class should be defined in a
+\texttt{.java} file within \texttt{mecaPlanner/src/mecaPlanner/models/}.
+
+The order in which agents are defined determines the order in which they will
+act.
+
+Here is an example \emph{agents} section:
+\begin{verbatim}
+agents{
+    robot1,
+    human1{PizzaModel},
+}
+\end{verbatim}
+
+This example defines a system agent, \texttt{robot1}, and a single environment
+agent, \texttt{human1}. \texttt{robot1} will act first, followed by
+\texttt{human1}, and then \texttt{robot1} again, etc. The planner will query
+\texttt{PizzaModel} to determine the predicted actions of \texttt{human1}, and
+will attempt to construct a plan that specifies the actions of \texttt{robot1}.
+
+
+
+
+\section{passive (optional)}
+
+
+
+
+\section{constants (optional)}
+\section{fluents}
+\section{initially}
+\section{goals}
+\section{actions}
+
+
+
+\end{document}
