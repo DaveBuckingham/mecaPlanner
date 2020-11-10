@@ -19,7 +19,7 @@ agents{
 }
 
 constants{
-    welder(robot1),
+    ~welder(robot1),
     welder(robot2)
 }
 
