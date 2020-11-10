@@ -29,8 +29,13 @@
 \newcommand{\watching}{\ensuremath{w}}
 \newcommand{\open}{\emph{open}}
 
+\newcommand{\kdff}{\ensuremath{KD45_n}}
+\newcommand{\sfive}{\ensuremath{S5_n}}
+\newcommand{\kbone}{\ensuremath{KB1}}
+\newcommand{\kbtwo}{\ensuremath{KB2}}
+
 \title{MECA Planner \input{../VERSION} \\
-\large User Manual v0.1
+\large User Manual
 }
 
 \begin{document}
@@ -285,7 +290,39 @@ between connected rooms.
 
 \subsection{The \emph{initially} section}
 
-This section d
+This section defines a set of start states (\emph{ed-states}) for the planner.
+Each start state can be defined directly (the \emph{manual} option, currently the only option), or
+can be automatically generated from a set of propositions (the \emph{automatic}
+otpion, not yet implemented). If a single start state is defined, there is no
+plan-time uncertainty. Multiple start states represent plan-time uncertainty:
+the planner will not know which is the actual start state, and will attempt to
+find a conformant solution.
+
+This section contains a list of start-state definitions. Each start state
+definition is enclosed within braces (\verb|{}). Start state definitions are
+optionally delmited by commas. If only a single start state is defined, the
+enclosing braces (which are within the overall \emph{initialy} section braces)
+may be ommitted.
+
+\subsubsection{Manual}
+
+A manual state definition has two parts. First, worlds and their valuations are
+defined. Then, per-agent knowledge and belief relations are defined over worlds.
+Each world definition takes the form
+\verb|w <- {f1,...,fn}|
+where \verb|w| is a world name (used to reference the world when later
+definingrelations) and each of \verb|f1| \ldots \verb|fn| is a fluent 
+that should be true in that world (unlisted fluents are false).
+
+B[human1] <- {(w1,w1)},
+
+The parser will reject Kripke structures that to not satisfy \sfive (on the
+knowledge relation) \kdff (on the belief relation), and
+\kbone and \kbtwo (between the belief and knowledge relations).
+
+\subsubsection{Automatic}
+
+Not implemented.
 
 
 \subsection{The \emph{goals} section}
@@ -310,6 +347,10 @@ Whitespace and newlines are ignored.
 as are, inline comments (anything
 following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
 
+The best way to test a depl file is with the \verb|test| program (see Section
+\ref{sec:test}.
 
+\section{Test}
+\label{sec:test}
 
 \end{document}
