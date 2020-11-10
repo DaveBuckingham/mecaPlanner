@@ -42,8 +42,8 @@ init :
     objectsSection
     agentsSection
     passiveSection?
-    constantsSection?
     fluentsSection
+    constantsSection?
     initiallySection
     postSection?
     goalsSection
