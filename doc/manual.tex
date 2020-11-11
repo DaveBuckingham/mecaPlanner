@@ -51,6 +51,10 @@ and a planning problem.
 For the complete depl grammar, defined with the ANTLR meta-language, consult
 \texttt{mecaPlanner/src/deplParser/Depl.g4}.
 
+Whitespace and newlines are ignored.
+as are, inline comments (anything
+following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
+
 
 A depl file contains the following sections, which must occur in the correct
 order, and are required unless specified as optional:
@@ -299,7 +303,7 @@ the planner will not know which is the actual start state, and will attempt to
 find a conformant solution.
 
 This section contains a list of start-state definitions. Each start state
-definition is enclosed within braces (\verb|{}). Start state definitions are
+definition is enclosed within braces (\verb|{}|). Start state definitions are
 optionally delmited by commas. If only a single start state is defined, the
 enclosing braces (which are within the overall \emph{initialy} section braces)
 may be ommitted.
@@ -326,9 +330,53 @@ Not implemented.
 
 
 \subsection{The \emph{goals} section}
+
+The \emph{goals} section specifies the goals the planner tries to achieve.
+This section contains a comma-delimited list of goal formulae. The parser and's
+these together to construct a single goal formula. A goal $g$ takes the form:
+
+$$
+g \coloneq
+\texttt{true}      \mid
+\texttt{false}     \mid
+f         \mid
+(g)       \mid
+\texttt{B}[a]g     \mid
+g \& g     \mid
+g | g     \mid
+!g        \mid
+!g        \mid
+\texttt{timestep} e i
+$$
+
+\noindent
+where $f$ is an (fluent or constant) atom, $a$ is an agent, 
+$e \coloneq
+\texttt{==} \mid
+\texttt{!=} \mid
+\texttt{<} \mid
+\texttt{<=} \mid
+\texttt{>} \mid
+\texttt{>=}
+$, and $i$ is an integer.
+
+
+
+$P[i]g$ ($i$ believes possibly $g$) is provided as syntactic sugar for
+$!B[i]!g$.
+
+Other supported syntax includes $K[i]g$, $i$ knows $g$, and $Cg$, $g$ is common
+knowledge. However, these or not really recommended. The knowledge relatin is
+intended primarily for performing belief revision when false beliefs are
+corrected, not to represent agent's beliefs. The implementation of common
+knowledge is equivalent to ``everyone knows'', not infinite iteration of shared
+belief.
+
+
+
 \subsection{The \emph{actions} section}
 
-\subsection{Notes}
+\subsection{Optional syntax}
 
 The depl syntax tries to be flexible.
 Any
@@ -343,14 +391,9 @@ Any
 ``\texttt{!}''
 (not) can instead be written as
 ``$\sim$''.
-Whitespace and newlines are ignored.
-as are, inline comments (anything
-following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
 
-The best way to test a depl file is with the \verb|test| program (see Section
-\ref{sec:test}.
 
 \section{Test}
-\label{sec:test}
+The best way to test a depl file is with the \verb|test| program.
 
 \end{document}
