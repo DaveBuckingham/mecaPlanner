@@ -1,29 +1,6 @@
+improve makefile
 in depl, ommited kripke edges are caught with an assertion, but should be an exception
-
-
-
-FLUENTS
-    declared with built-in and user-defined types
-    in formulae
-        goals
-        initially?
-        actions
-    assigned formulae (ontic effects)
-    assigned values (initially)
-    assigned values in worlds
-
-
-
-
-
-
-
-FIX NDState.equivalent!
-implement initialize
-
-
-OPTIMIZATIONS
-    fast check for agent type at depth
+fast check for agent type at depth
 
 
 NEEDED FOR AIJ PAPER
@@ -33,72 +10,33 @@ NEEDED FOR AIJ PAPER
     !plan for model learning, track models through search tree
     !model updates
 
-DONE FOR AIJ
-    arbitrary agent turn order (recode search algo)
-    read config files
-    time formulae for goals
-    conditional effects ('hiding')
-    constants, constant removal
-    observesif (and causesif, and what else?) should check constants as well as fluents
-    handle mulitple observes and observesif rules per agent, probably or them together
-
 move check for right types of agents etc to planner instead of parser:
 e.g. should be able to have depls with no system agent just for testing actions
 
-remove static id counter from Solution
+stop early if cycles?
 
-stop early if cycles
+add a new abstract class for NonPassiveAgents?
 
-move Initialize into parser directory
-
-add a new abstract class for NonPassiveAgents
-
-redo test: getworlds only gives form worlds.
+redo test: getworlds only gives form worlds?
 
 beliefRelation and KnowledgeRelation subtypes, just for type safety in kripkeStructure constructor
 
 try to execute an action without preconditions satisfied, e.g. using test system: not caught except that there is no designated world...
 
-make parser die on parse error
-
-improve makefile, still finnicky
-
 observesif uses undefined type in expansion, catch error
 
-can't expand on 'object' type
-
-predicates as action parameters, variables?
+can't expand on 'object' type?
 
 iterated dfs: iterate cost instead of # actions?
 
-hashCode and equals functions for actions, so we don't have to search through action names or whatever
-
-
+hashCode and equals functions for actions, so we don't have to search through action names or whatever?
 
 heurisitics to speed search
 heuristics to stop before goal, time limits?
 common knowledge
-real fluents
 probability
 
 
-
-DAGSTUHL
-
-    APPLICATIONS
-        cooperative agents
-        purley adversarial games
-        assistive agent problems
-        security games
-    PROBLEMS
-      * Gossip (f) [a,c,d]
-        Hanabi (b,z) [d,z,h]
-        Clue [b,h,z]
-        Scotland yard
-        Bitstring
-        BlocksWorld For Teams - BW4T
-        
-    BENCHMARKS
 
 
 

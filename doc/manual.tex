@@ -360,8 +360,6 @@ $e \coloneq
 \texttt{>=}
 $, and $i$ is an integer.
 
-
-
 $P[i]g$ ($i$ believes possibly $g$) is provided as syntactic sugar for
 $!B[i]!g$.
 
@@ -372,6 +370,13 @@ corrected, not to represent agent's beliefs. The implementation of common
 knowledge is equivalent to ``everyone knows'', not infinite iteration of shared
 belief.
 
+An example goals section is:
+\begin{verbatim}
+goals{
+    at(robot1,room1),
+    timestep<=7
+}
+\begin{verbatim}
 
 
 \subsection{The \emph{actions} section}
