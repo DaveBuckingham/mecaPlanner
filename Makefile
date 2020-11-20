@@ -89,4 +89,7 @@ clean:
 	rm -f ./mecad
 	rm -f ./sim
 	rm -f ./demo
+	rm -f ./debug
+	rm -f ./example
+	rm -f ./test
 	rm -f ./mecaPlanner*.jar

@@ -1,3 +1,0 @@
-#./test problems/paper_ontic.depl 'openDoor[alice]()';
-./test problems/paper_sensing.depl 'lookBox[alice]()';
-#./test problems/paper_announcement.depl 'tellRaining[alice]()';

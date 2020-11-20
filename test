@@ -1,2 +1,0 @@
-#!/bin/bash
-java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Test "$@"
