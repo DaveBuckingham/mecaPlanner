@@ -412,10 +412,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                 throw new RuntimeException("Constant previously defined as fluent: " + fluent);
             }
             if (ctx.OP_NOT() == null) {
-                constants.put(fluent, True);
+                constants.put(fluent, true);
             }
             else {
-                constants.put(fluent, False);
+                constants.put(fluent, false);
             }
         }
         return null;
