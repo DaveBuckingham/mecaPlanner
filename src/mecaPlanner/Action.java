@@ -431,23 +431,10 @@ public class Action implements java.io.Serializable {
         // UPDATE THE MODELS
         Map<String, Model> newModels = new HashMap();
         for (String agent : oldModels.keySet()) {
-            NDState perspective = beforeState.getBeliefPerspective(agent);
-            Model updatedModel = oldModels.get(agent).update(perspective, this);
+            //NDState perspective = beforeState.getBeliefPerspective(agent);
+            //Model updatedModel = oldModels.get(agent).update(perspective, this);
+            Model updatedModel = oldModels.get(agent).update(beforeState, this);
             newModels.put(agent, updatedModel);
-            //// THIS IS WRONG, NEED TO HIDE INFO THE AGENT SHOULDN'T GET
-            //if (isObservant(agent)) {
-            //    NDState perspective = beforeState.getBeliefPerspective(agent);
-            //    Model updatedModel = oldModels.get(agent).update(perspective, this);
-            //    newModels.put(agent, updatedModel);
-            //}
-            //else if (isAware(agent)) {
-            //    NDState perspective = beforeState.getBeliefPerspective(agent);
-            //    Model updatedModel = oldModels.get(agent).update(perspective, this);
-            //    newModels.put(agent, updatedModel);
-            //}
-            //else {
-            //    newModels.put(agent, oldModels.get(agent));
-            //}
         }
 
         return new Action.UpdatedStateAndModels(newState, newModels);

@@ -1,6 +1,5 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;

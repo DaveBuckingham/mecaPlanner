@@ -22,7 +22,8 @@ public class PizzaModel extends Model {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(NDState ndState) {
+    public Set<Action> getPrediction(EpistemicState eState) {
+        NDState ndState = eState.getBeliefPerspective(agent);
         Set<Action> allActions = getSafeActions(ndState);
         Set<Action> prediction = new HashSet<>();
         for (Action a : allActions) {

@@ -22,7 +22,7 @@ public class SheepModel extends Model {
     }
 
 
-    public Set<Action> getPrediction(NDState ndState) {
+    public Set<Action> getPrediction(EpistemicState eState) {
         return null;
 
 //        String sheepLocation = null;

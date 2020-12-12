@@ -21,15 +21,15 @@ public class DragonModel extends Model {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(NDState ndState) {
+    public Set<Action> getPrediction(EpistemicState eState) {
         Set<Action> predictions = new HashSet<>();
-        predictions.add(getSinglePrediction(ndState));
+        predictions.add(getSinglePrediction(eState));
         return predictions;
     }
 
 
 
-    public Action getSinglePrediction(NDState ndState) {
+    public Action getSinglePrediction(EpistemicState eState) {
         return null;
 
 //        String dragonLocation = ndStas

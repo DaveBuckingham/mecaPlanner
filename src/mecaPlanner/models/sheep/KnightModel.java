@@ -21,15 +21,15 @@ public class KnightModel extends Model {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(NDState ndState) {
+    public Set<Action> getPrediction(EpistemicState eState) {
         Set<Action> predictions = new HashSet<>();
-        Action p = getSinglePrediction(ndState);
+        Action p = getSinglePrediction(eState);
         predictions.add(p);
         return predictions;
     }
 
 
-    public Action getSinglePrediction(NDState ndState) {
+    public Action getSinglePrediction(EpistemicState eState) {
         return null;
 
 //        String dragonLocation = null;

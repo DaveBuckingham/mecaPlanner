@@ -29,7 +29,8 @@ public class AndNode extends GNode {
 
     protected Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<Action>();
-        Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
+        //Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
+        Set<Action> prediction = models.get(agent).getPrediction(estate);
 
         if (prediction == null) {
             throw new RuntimeException("Model returned null, indicating model failure.");

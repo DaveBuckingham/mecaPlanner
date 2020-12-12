@@ -23,9 +23,9 @@ public class TrivialModel extends Model {
     private Action waitAction;
 
 
-    public Set<Action> getPrediction(NDState ndState) {
+    public Set<Action> getPrediction(EpistemicState eState) {
 
-        return getSafeActions(ndState);
+        return getSafeActions(eState.getBeliefPerspective(agent));
 
     }
 

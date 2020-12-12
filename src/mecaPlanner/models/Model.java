@@ -113,9 +113,10 @@ public abstract class Model implements java.io.Serializable {
     //     return singleton;
     // }
 
-    public abstract Set<Action> getPrediction(NDState ndState);
+    //public abstract Set<Action> getPrediction(NDState ndState);
+    public abstract Set<Action> getPrediction(EpistemicState eState);
 
-    public Model update(NDState perspective, Action action) {
+    public Model update(EpistemicState eState, Action action) {
         return this;
     }
 
