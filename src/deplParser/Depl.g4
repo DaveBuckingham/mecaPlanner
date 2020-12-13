@@ -28,6 +28,8 @@ VARIABLE                : '?' LOWER_NAME;
 LOWER_NAME              : LOWER ANYCHAR*;
 UPPER_NAME              : UPPER ANYCHAR*;
 
+STAR                    : '*';
+
  
 LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;
 COMMENT                 : '/*' .*? '*/' -> skip;
@@ -162,7 +164,7 @@ initiallyDef : (beliefFormula ',')* beliefFormula? ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
-kripkeWorld : LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
+kripkeWorld : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
 kripkeRelation : relationType '[' objectName ']' ASSIGN
                  '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;

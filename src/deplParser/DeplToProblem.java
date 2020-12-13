@@ -426,14 +426,15 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            EpistemicState e;
+            NDState ndState;
             if (stateCtx.kripkeModel() != null) {
-                e = (EpistemicState) visit(stateCtx.kripkeModel());
+                ndState = (NDState) visit(stateCtx.kripkeModel());
             }
             else {
-                e = (EpistemicState) visit(stateCtx.initiallyDef());
+                throw new RuntimeException("state construction not supported");
+                //ndState = (NDState) visit(stateCtx.initiallyDef());
             }
-            startStates.add(e);
+            startStates.addAll(ndState.getEpistemicStates());
         }
         return null;
     }
@@ -454,19 +455,19 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-    @Override public EpistemicState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
+    @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
-        World designatedWorld = null;
+        Set<World> designatedWorlds = new HashSet<>();;
         Map<String, Relation> beliefRelations = new HashMap<>();
         Map<String, Relation> knowledgeRelations = new HashMap<>();
         for (DeplParser.KripkeWorldContext worldCtx : ctx.kripkeWorld()) {
             World world = (World) visit(worldCtx);
             worlds.put(world.getName(),world);
-            if (designatedWorld == null) {
-                designatedWorld = world;
+            if (worldCtx.STAR() != null) {
+                designatedWorlds.add(world);
             }
         }
-        assert(designatedWorld != null);
+        assert(!designatedWorlds.isEmpty());
 
 
         for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
@@ -508,9 +509,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
         KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        return new EpistemicState(kripke, designatedWorld);
-        //startStates.add(new EpistemicState(kripke, designatedWorld));
-        //return null;
+        return new NDState(kripke, designatedWorlds);
     }
 
 
