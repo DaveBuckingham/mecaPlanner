@@ -42,6 +42,24 @@ public class Domain implements java.io.Serializable {
 
     }
 
+    public Domain(Domain d) {
+        actions = new HashMap<>();
+        actionsBySignature = new HashMap<>();;
+
+        for (Action a : d.getAllActions()) {
+            addAction(a);
+        }
+
+        allAgents = new HashSet<>(d.getAllAgents());
+        nonPassiveAgents = new ArrayList<>(d.getNonPassiveAgents());
+        passiveAgents = new HashSet<>(d.getPassiveAgents());
+
+        postState = d.getPostState();
+
+    }
+
+
+
     //public Set<Fluent> getAllFluents() {
     //    return allFluents;
     //}
