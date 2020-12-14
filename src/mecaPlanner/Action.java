@@ -163,11 +163,15 @@ public class Action implements java.io.Serializable {
     }
 
     
-    private PartialResult partial(KripkeStructure oldKripke) {
+    public PartialResult partial(KripkeStructure oldKripke) {
+
+        Map<World, World> map = new HashMap<>();
 
         Map<World,World> newToOld;
         Set<World> oldWorlds = oldKripke.getWorlds();
         Set<World> newWorlds = new HashSet<>();
+        Map<String, Relation> newBeliefs = new HashMap<>();
+        Map<String, Relation> newKnowledges = new HashMap<>();
         for (String a : domain.getAllAgents()) {
             newBeliefs.put(a, new Relation());
             newKnowledges.put(a, new Relation());
@@ -177,8 +181,8 @@ public class Action implements java.io.Serializable {
         for (World oldWorld : oldWorlds) {
             if (precondition.evaluate(oldWorld)) {
                 World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
-                newWorlds.add(newWorlds);
-                newWorldsToOld.put(newWorld, oldWorld);
+                newWorlds.add(newWorld);
+                map.put(newWorld, oldWorld);
             }
         }
 
@@ -189,32 +193,29 @@ public class Action implements java.io.Serializable {
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             // NEED TO ADD "EITHER THIS OR THAT WAS THE CAUSE, I KNOW A OR B"
             Set<LocalFormula> revealedConditions = new HashSet<>();
-                for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
-                    Assignment assignment = e.getKey();
-                    LocalFormula condition = e.getValue();
-                    assert(!condition.isFalse());
-                    if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
-                        // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
-                        if (condition.evaluate(oldFromWorld)) {
-                            revealedConditions.add(condition);
-                        }
-                        else {
-                            revealedConditions.add(condition.negate());
-                        }
+            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+                Assignment assignment = e.getKey();
+                LocalFormula condition = e.getValue();
+                assert(!condition.isFalse());
+                if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
+                    // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
+                    if (condition.evaluate(oldFromWorld)) {
+                        revealedConditions.add(condition);
+                    }
+                    else {
+                        revealedConditions.add(condition.negate());
                     }
                 }
             }
 
             // WHAT DO OBSERVERS SENSE
             Set<LocalFormula> groundDetermines = new HashSet<>();
-            if (anyObservers) {
-                for (LocalFormula f : determines) {
-                    if (f.evaluate(oldFromWorld)) {
-                        groundDetermines.add(f);
-                    }
-                    else {
-                        groundDetermines.add(f.negate());
-                    }
+            for (LocalFormula f : determines) {
+                if (f.evaluate(oldFromWorld)) {
+                    groundDetermines.add(f);
+                }
+                else {
+                    groundDetermines.add(f.negate());
                 }
             }
 
@@ -293,7 +294,6 @@ public class Action implements java.io.Serializable {
 
                 }
                 else if (isAware(agent, oldFromWorld)){
-                    assert(anyAware);
 
                     for (World toWorld: newWorlds) {
                         World oldToWorld = map.get(toWorld);
@@ -343,6 +343,13 @@ public class Action implements java.io.Serializable {
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
 
+        // UPDATE THE MODELS
+        Map<String, Model> newModels = new HashMap();
+        for (String agent : oldModels.keySet()) {
+            Model updatedModel = oldModels.get(agent).update(beforeState, this);
+            newModels.put(agent, updatedModel);
+        }
+
 //         for (World oldToWorld: oldWorlds) {
 //             if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
 //                 newBeliefs.get(agent).connect(fromWorld, oldWorldsToOblivious.get(oldToWorld));
@@ -353,23 +360,60 @@ public class Action implements java.io.Serializable {
 //             }
 //         }
 
-        Kripke oldModel = beforeState.getKripke();
-        Action.PartialResults p = partial(oldModel);
-        Kripke actionModel = p.kripke;
+        Kripke oldKripke = beforeState.getKripke();
+        Action.PartialResults p = partial(oldKripke);
+        Kripke actionKripke = p.kripke;
         Map<World,World> actionMap = p.map;
 
-        // DONT DO IT HERE, CHECK WHILE BUILDING...
+        Set<Action> hypotheticalActions = new HashSet<>();
+
         boolean anyOblivious = false;
-        for (World oldWorld : actionMap.values()) {
+        for (World newWorld : actionMap.keySet()) {
+            if (anyOblivious) {
+                break;
+            }
             for (String agent : domain.getAllAgents()) {
-                if (isOblivious(agent, oldWorld)) {
+                if (isOblivious(agent, map.get(newWorld))) {
                     anyOblivious = true;
+                    break;
                 }
             }
         }
 
-        Set<Kripke> hypotheticalModels = new HashSet<>();
+        // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
+        // WE CAN JUST RETURN THE PARTIAL KRIPKE
+        if (!anyOblivious) {
+            World d = null;
+            for (World w : newKripke.getWorlds()) {
+                if (map.get(w).equals(beforeState.getDesignatedWorld())) {
+                    d = w;
+                    break;
+                }
+            }
+            assert(d != null);
+            return new Action.UpdatedStateAndModels(new EpistemicState(actionKripke, d), newModels);
+        }
+
+
+        Map<String, Relation> emptyBelief = new HashMap<>();
+        Map<String, Relation> emptyKnowledge = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
+            emptyBelief.put(agent, new Relation());
+            emptyKnowledge.put(agent, new Relation());
+        }
+        KripkeStructure hypotheticalModels = new KripkeStructure(new HashSet<World>(), emptyBelief, emptyKnowledge);
+
+        Map<World,World> hypotheticalMap = new HashMap<>();
+        for (World w : oldKripke.getWorlds()) {
+            for (String agent : domain.getAllAgents()) {
+                if (isOblivious(agent,w)) {
+                     for (Action a : possibleActions(oldKripke, w, agent)) {
+                         PartialResult partialResult = a.partial(oldKripke);
+                         hypotheticalModels.add(partialResult.kripke);
+                         hypotheticalMap.addAll(partialResult.map);
+                     }
+                }
+            }
         }
 
 
@@ -388,15 +432,24 @@ public class Action implements java.io.Serializable {
         }
 
 
-        // UPDATE THE MODELS
-        Map<String, Model> newModels = new HashMap();
-        for (String agent : oldModels.keySet()) {
-            Model updatedModel = oldModels.get(agent).update(beforeState, this);
-            newModels.put(agent, updatedModel);
-        }
-
         return new Action.UpdatedStateAndModels(newState, newModels);
 
+    }
+
+    private Set<Action>  possibleActions(KripkeStructure kripke, World world, String agent) {
+        Set<Action> actions = new HashSet<>();
+        for (Action action : Domain.getAllActions()) {
+            BeliefFormula possiblyPreconditioned = new BeliefKnowsFormula(agent,
+                action.getPrecondition().negate()).negate();
+            BeliefFormula possiblyOblivious = BelifAndFormula.make(
+                new BeliefKnowsFormula(observesIf.get(agent)).negate(),
+                new BeliefKnowsFormula(awareIf.get(agent)).negate());
+
+            if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious(kripke, world)) {
+                actions.add(action);
+            }
+        }
+        return actions;
     }
 
 
