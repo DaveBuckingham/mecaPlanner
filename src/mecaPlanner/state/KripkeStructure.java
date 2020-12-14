@@ -188,6 +188,15 @@ public class KripkeStructure implements java.io.Serializable {
         return partition;
     }
 
+    public void add(KripkeStructure other) {
+        assert (this != other);
+        this.worlds.addAll(other.getWorlds());
+        for (String agent : agents) {
+            beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
+            knowledgeRelations.get(agent).add(other.getKnowledgeRelations().get(agent));
+        }
+    }
+
     public KripkeStructure union(KripkeStructure other) {
         assert (this != other);
 

@@ -70,6 +70,11 @@ public class Relation implements java.io.Serializable {
         return edges;
     }
 
+    public Relation add(Relation other) {
+        assert (other != null);
+        edges.putAll(other.getEdges());
+    }
+
     public Relation union(Relation other) {
         assert (other != null);
         Map<World, Set<World>> unionEdges = new HashMap<>(edges);
