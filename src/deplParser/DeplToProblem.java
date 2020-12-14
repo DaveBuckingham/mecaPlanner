@@ -467,7 +467,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                 designatedWorlds.add(world);
             }
         }
-        assert(!designatedWorlds.isEmpty());
+
+        if (designatedWorlds.isEmpty()) {
+            throw new RuntimeException("an initial state has no designaged worlds");
+        }
 
 
         for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {

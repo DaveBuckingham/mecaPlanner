@@ -63,6 +63,15 @@ example: mecaPlanner.jar
 	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Example "$$@"' >> ./debug
 	chmod +x ./debug
 
+actions: mecaPlanner.jar
+	$(java) src/tools/Actions.java -d build/
+	echo '#!/bin/bash' > ./action
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
+	chmod +x ./actions
+	echo '#!/bin/bash' > ./debug
+	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
+	chmod +x ./actions
+
 efp2depl: build/efp2depl/
 
 build/efp2depl/: src/translators/efp2depl/EfpToDepl.java build/efp2deplSrc/
@@ -91,5 +100,6 @@ clean:
 	rm -f ./demo
 	rm -f ./debug
 	rm -f ./example
+	rm -f ./actions
 	rm -f ./test
 	rm -f ./mecaPlanner*.jar
