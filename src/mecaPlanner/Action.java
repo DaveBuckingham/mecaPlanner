@@ -202,10 +202,10 @@ public class Action implements java.io.Serializable {
                 break;
             }
             for (String a : domain.getAllAgents()) {
-                if (isObservant(a, world)){
+                if (isObservant(a, observedWorldsToOld(world))){
                     anyObservers = true;
                 }
-                else if (isAware(a, world)){
+                else if (isAware(a, observedWorldsToOld(world))){
                     anyAware = true;
                 }
                 else {
