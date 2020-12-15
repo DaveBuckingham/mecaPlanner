@@ -92,6 +92,10 @@ public class Action implements java.io.Serializable {
                     applicableEffects.add(assignment);
                 }
             }
+        //System.out.println("APPLICABLE:");
+        //for (Assignment a : applicableEffects) {
+        //    System.out.println(a);
+        //}
         return applicableEffects;
     }
 
@@ -338,8 +342,6 @@ public class Action implements java.io.Serializable {
 
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
 
-        assert(newKripke.checkRelations());
-
         return new Action.PartialResult(newKripke, map);
     }
 
@@ -463,12 +465,15 @@ public class Action implements java.io.Serializable {
             BeliefFormula possiblyPreconditioned = new BeliefKnowsFormula(agent,
                 action.getPrecondition().negate()).negate();
             BeliefFormula possiblyOblivious = BeliefAndFormula.make(
-                new BeliefKnowsFormula(agent, observesIf.get(agent)).negate(),
-                new BeliefKnowsFormula(agent, awareIf.get(agent)).negate());
+                new BeliefKnowsFormula(agent, action.observesIf.get(agent)).negate(),
+                new BeliefKnowsFormula(agent, action.awareIf.get(agent)).negate());
 
             if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
                 actions.add(action);
             }
+        }
+        for (Action a : actions) {
+            System.out.println(a.getSignature());
         }
         return actions;
     }

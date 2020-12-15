@@ -240,6 +240,34 @@ public class KripkeStructure implements java.io.Serializable {
 
     public boolean checkRelations() {
         for (String agent : agents) {
+            for (World f : beliefRelations.get(agent).getEdges().keySet()) {
+                if (!worlds.contains(f)) {
+                    Log.severe("failed check: unknown from world in b-relation: " + f.toString());
+                    return false;
+                }
+                for (World t : beliefRelations.get(agent).getEdges().get(f)) {
+                    if (!worlds.contains(t)) {
+                        Log.severe("failed check: unknown to world in b-relation: " + t.toString());
+                        return false;
+                    }
+                }
+            }
+            for (World f : knowledgeRelations.get(agent).getEdges().keySet()) {
+                if (!worlds.contains(f)) {
+                    Log.severe("failed check: unknown from world in k-relation: " + f.toString());
+                    return false;
+                }
+                for (World t : knowledgeRelations.get(agent).getEdges().get(f)) {
+                    if (!worlds.contains(t)) {
+                        Log.severe("failed check: unknown to world in k-relation: " + t.toString());
+                        return false;
+                    }
+                }
+            }
+
+
+
+
             if (!beliefRelations.get(agent).checkSerial(worlds)) {
                 Log.severe("failed check: serial belief for agent " + agent);
                 //Log.debug(toString());

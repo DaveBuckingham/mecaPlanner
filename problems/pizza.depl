@@ -31,7 +31,7 @@ fluents{
 
 
 initially{
-    w1 <-
+    *w1 <-
     {
         at(human1, room1),
         at(robot1, room1),
