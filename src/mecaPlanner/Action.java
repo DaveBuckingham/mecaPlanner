@@ -229,7 +229,21 @@ public class Action implements java.io.Serializable {
 
             // FOR EACH AGENT, CONNECT TO-WORLDS FOR BELIEF AND KNOWLEDGE
             for (String agent : domain.getAllAgents()) {
+
+                // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION
+                // ASSUMING THAT ANNOUNCEMTNS MIGHT BE LIES
+                Set<LocalFormula> allKnowledgeLearned = new HashSet<>();
+
+                // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
+                // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
+                Set<BeliefFormula> allBeliefLearned = new HashSet<>();
+
                 if (isObservant(agent, oldFromWorld)){
+
+                    allKnowledgeLearned.addAll(revealedConditions);
+                    allKnowledgeLearned.addAll(groundDetermines);
+
+                    allKnowledgeLearned.add(observesIf.get(agent));
 
                     // WHAT DOES THE AGENT HEAR ANNOUNCED AND NOT REJECT
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
@@ -240,20 +254,28 @@ public class Action implements java.io.Serializable {
                         }
                     }
 
-                    // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION
-                    // ASSUMING THAT ANNOUNCEMTNS MIGHT BE LIES
-                    Set<LocalFormula> allKnowledgeLearned = new HashSet<>();
-                    allKnowledgeLearned.addAll(revealedConditions);
-                    allKnowledgeLearned.addAll(groundDetermines);
-                    LocalFormula learnedKnowledgeFormula = LocalAndFormula.make(allKnowledgeLearned);
-
-                    // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
-                    // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
-                    Set<BeliefFormula> allBeliefLearned = new HashSet<>();
                     allBeliefLearned.addAll(allKnowledgeLearned);
                     allBeliefLearned.addAll(acceptedAnnouncements);
-                    BeliefFormula learnedBeliefFormula = BeliefAndFormula.make(allBeliefLearned);
+                }
 
+                else if (isAware(agent, oldFromWorld)){
+                    allKnowledgeLearned.addAll(revealedConditions);
+                    allKnowledgeLearned.add(LocalAndFormula.make(observesIf.get(agent).negate(), 
+                                                                 awareIf.get(agent)));
+                    allBeliefLearned.addAll(allKnowledgeLearned);
+                }
+
+                else {    // oblivious
+                    allKnowledgeLearned.add(LocalAndFormula.make(observesIf.get(agent).negate(), 
+                                                                 awareIf.get(agent).negate()));
+                }
+
+
+                LocalFormula learnedKnowledgeFormula = LocalAndFormula.make(allKnowledgeLearned);
+                BeliefFormula learnedBeliefFormula = BeliefAndFormula.make(allBeliefLearned);
+
+
+                if (isObservant(agent, oldFromWorld) || isAware(agent, oldFromWorld)) {
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
                     for (World toWorld: newWorlds) {
                         World oldToWorld = map.get(toWorld);
@@ -288,55 +310,19 @@ public class Action implements java.io.Serializable {
                             }
                         }
                     }
-
-
-                    // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION UNLESS TO-WORLD CONTRADICTS LEARNED KNOWLEDGE
-                    for (World toWorld: newWorlds) {
-                        World oldToWorld = map.get(toWorld);
-                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedKnowledgeFormula.evaluate(oldToWorld)) {
-                                newKnowledges.get(agent).connect(fromWorld, toWorld);
-                            }
-                        }
-                    }
-
                 }
-                else if (isAware(agent, oldFromWorld)){
 
-                    for (World toWorld: newWorlds) {
-                        World oldToWorld = map.get(toWorld);
-                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                            newBeliefs.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
 
-                    // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                    // SPECIFICALLY, A NEW WORLD HAS OUTGOING EDGES ONLY TO OLD WORLDS
-                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
-                        Log.debug("aware agent " + agent + " reset by " + getSignatureWithActor());
-                        for (World toWorld: newWorlds) {
-                            World oldToWorld = map.get(toWorld);
-                            if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                                newBeliefs.get(agent).connect(fromWorld, toWorld);
-                            }
-                        }
-                    }
-
-                    // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION 
-                    for (World toWorld: newWorlds) {
-                        World oldToWorld = map.get(toWorld);
-                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                // COPY CONNECTIONS FROM OLD KNOWLEDGE RELATION UNLESS TO-WORLD CONTRADICTS LEARNED KNOWLEDGE
+                for (World toWorld: newWorlds) {
+                    World oldToWorld = map.get(toWorld);
+                    if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                        if (learnedKnowledgeFormula.evaluate(oldToWorld)) {
                             newKnowledges.get(agent).connect(fromWorld, toWorld);
                         }
                     }
                 }
-                else {  //oblivious
-                    for (World toWorld: newWorlds) {
-                        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, map.get(toWorld))) {
-                            newKnowledges.get(agent).connect(fromWorld, toWorld);
-                        }
-                    }
-                }
+
             }
         }
 
