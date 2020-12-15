@@ -40,6 +40,10 @@ public class Actions {
 
         // VARIABLES TO TRACK THE SYSTEM STATE
         EpistemicState currentState = problem.getStartState();
+
+        currentState.getKripke().forceCheck();
+
+
         Map<String, Model> models = problem.getStartingModels();
         int depth = 0;
 

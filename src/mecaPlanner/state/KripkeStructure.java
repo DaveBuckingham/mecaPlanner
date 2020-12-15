@@ -237,6 +237,15 @@ public class KripkeStructure implements java.io.Serializable {
         return true;
     }
 
+    public void forceCheck() {
+        if (!checkRelations()) {
+            System.out.println("Failed Kripke:");
+            System.out.println(toString());
+            System.exit(1);
+        }
+    }
+
+
 
     public boolean checkRelations() {
         for (String agent : agents) {
@@ -264,8 +273,6 @@ public class KripkeStructure implements java.io.Serializable {
                     }
                 }
             }
-
-
 
 
             if (!beliefRelations.get(agent).checkSerial(worlds)) {

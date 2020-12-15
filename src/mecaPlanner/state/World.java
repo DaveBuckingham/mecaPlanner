@@ -87,7 +87,9 @@ public class World implements java.io.Serializable {
             str.append(f);
             str.append(", ");
         }
-        str.delete(str.length()-2, str.length());
+        if (!fluents.isEmpty()) {
+            str.delete(str.length()-2, str.length());
+        }
         str.append("}");
         return str.toString();
     }
