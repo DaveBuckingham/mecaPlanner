@@ -271,8 +271,11 @@ public class Action implements java.io.Serializable {
                 }
 
 
+
                 LocalFormula learnedKnowledgeFormula = LocalAndFormula.make(allKnowledgeLearned);
                 BeliefFormula learnedBeliefFormula = BeliefAndFormula.make(allBeliefLearned);
+
+                System.out.println("LEARNED: " + oldFromWorld.toString() + " " + agent + ": " + learnedKnowledgeFormula.toString());
 
 
                 if (isObservant(agent, oldFromWorld) || isAware(agent, oldFromWorld)) {

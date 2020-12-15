@@ -3,13 +3,13 @@ types{
 }
 
 objects{
-    i-Actor,
-    j-Actor,
+    a-Actor,
+    b-Actor,
 }
 
 agents{
-    i,
-    j{TrivialModel}
+    a,
+    b{TrivialModel}
 }
 
 
@@ -19,26 +19,26 @@ fluents{
 
 
 initially{
-    *w1 <- {f()},
-    w2 <- {},
-    w3 <- {f(),g()},
-    w4 <- {g()},
-    B[i] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+    *w1 <- {f(),g()},
+    w2 <- {f()},
+    w3 <- {g()},
+    w4 <- {},
+    B[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
              (w2,w1),(w2,w2),(w2,w3),(w2,w4),
              (w3,w1),(w3,w2),(w3,w3),(w3,w4),
              (w4,w1),(w4,w2),(w4,w3),(w4,w4)},
-    B[j] <- {(w1,w1),(w1,w2),
-             (w2,w2),(w2,w1),
-             (w3,w3),(w3,w4),
-             (w4,w4),(w4,w3)},
-    K[i] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+    B[b] <- {(w1,w1),(w1,w3),
+             (w2,w2),(w2,w4),
+             (w3,w3),(w3,w1),
+             (w4,w4),(w4,w2)},
+    K[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
              (w2,w1),(w2,w2),(w2,w3),(w2,w4),
              (w3,w1),(w3,w2),(w3,w3),(w3,w4),
              (w4,w1),(w4,w2),(w4,w3),(w4,w4)},
-    K[j] <- {(w1,w1),(w1,w2),
-             (w2,w2),(w2,w1),
-             (w3,w3),(w3,w4),
-             (w4,w4),(w4,w3)},
+    K[b] <- {(w1,w1),(w1,w3),
+             (w2,w2),(w2,w4),
+             (w3,w3),(w3,w1),
+             (w4,w4),(w4,w2)},
 }
 
 goals{
@@ -46,10 +46,10 @@ goals{
 
 actions{
     ann(){
-        owner{i},
-        announces{g()},
-        observes(){i},
-        observes(){j if f()},
+        owner{a},
+        determines{f()},
+        observes(){a},
+        observes(){b if g()},
     }
 
 }
