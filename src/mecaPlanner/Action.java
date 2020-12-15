@@ -160,6 +160,10 @@ public class Action implements java.io.Serializable {
     private class PartialResult {
         public KripkeStructure kripke;
         public Map<World,World> map;
+        public PartialResult(KripkeStructure k, Map<World,World> m) {
+            this.kripke = k;
+            this.map = m;
+        }
     }
 
     
@@ -227,7 +231,7 @@ public class Action implements java.io.Serializable {
                     Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
                     for (BeliefFormula announcement : announces) {
                         BeliefFormula knowsNotAnnouncement = new BeliefKnowsFormula(agent, announcement.negate());
-                        if (!knowsNotAnnouncement.evaluate(beforeState)) {
+                        if (!knowsNotAnnouncement.evaluate(oldKripke, oldFromWorld)) {
                             acceptedAnnouncements.add(announcement);
                         }
                     }
@@ -332,9 +336,10 @@ public class Action implements java.io.Serializable {
             }
         }
 
+        KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
+
         assert(newKripke.checkRelations());
 
-        KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
         return new Action.PartialResult(newKripke, map);
     }
 
@@ -360,15 +365,26 @@ public class Action implements java.io.Serializable {
 //             }
 //         }
 
-        Kripke oldKripke = beforeState.getKripke();
-        Action.PartialResults p = partial(oldKripke);
-        Kripke actionKripke = p.kripke;
-        Map<World,World> actionMap = p.map;
+        KripkeStructure oldKripke = beforeState.getKripke();
+        Action.PartialResult p = partial(oldKripke);
+        KripkeStructure newKripke = p.kripke;
+        Map<World,World> map = p.map;
 
-        Set<Action> hypotheticalActions = new HashSet<>();
 
+        World newDesignated = null;
+        for (World w : newKripke.getWorlds()) {
+            if (map.get(w).equals(beforeState.getDesignatedWorld())) {
+                newDesignated = w;
+                break;
+            }
+        }
+        assert(newDesignated != null);
+
+
+        // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
+        // WE CAN JUST RETURN THE PARTIAL KRIPKE
         boolean anyOblivious = false;
-        for (World newWorld : actionMap.keySet()) {
+        for (World newWorld : map.keySet()) {
             if (anyOblivious) {
                 break;
             }
@@ -379,47 +395,54 @@ public class Action implements java.io.Serializable {
                 }
             }
         }
-
-        // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
-        // WE CAN JUST RETURN THE PARTIAL KRIPKE
         if (!anyOblivious) {
-            World d = null;
-            for (World w : newKripke.getWorlds()) {
-                if (map.get(w).equals(beforeState.getDesignatedWorld())) {
-                    d = w;
-                    break;
-                }
-            }
-            assert(d != null);
-            return new Action.UpdatedStateAndModels(new EpistemicState(actionKripke, d), newModels);
+            return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
         }
 
 
-        Map<String, Relation> emptyBelief = new HashMap<>();
-        Map<String, Relation> emptyKnowledge = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            emptyBelief.put(agent, new Relation());
-            emptyKnowledge.put(agent, new Relation());
-        }
-        KripkeStructure hypotheticalModels = new KripkeStructure(new HashSet<World>(), emptyBelief, emptyKnowledge);
+        //Map<String, Relation> emptyBelief = new HashMap<>();
+        //Map<String, Relation> emptyKnowledge = new HashMap<>();
+        //for (String agent : domain.getAllAgents()) {
+        //    emptyBelief.put(agent, new Relation());
+        //    emptyKnowledge.put(agent, new Relation());
+        //}
+        //Set<Action> hypotheticalActions = new HashSet<>();
+        //KripkeStructure hypotheticalKripke = new KripkeStructure(new HashSet<World>(), emptyBelief, emptyKnowledge);
+        //Map<World,World> hypotheticalMap = new HashMap<>();
 
-        Map<World,World> hypotheticalMap = new HashMap<>();
         for (World w : oldKripke.getWorlds()) {
             for (String agent : domain.getAllAgents()) {
                 if (isOblivious(agent,w)) {
-                     for (Action a : possibleActions(oldKripke, w, agent)) {
-                         PartialResult partialResult = a.partial(oldKripke);
-                         hypotheticalModels.add(partialResult.kripke);
-                         hypotheticalMap.addAll(partialResult.map);
+                     for (Action a : possibleActions(agent, oldKripke, w)) {
+                         if (!a.equals(this)) {
+                             Action.PartialResult partialResult = a.partial(oldKripke);
+                             newKripke.add(partialResult.kripke);
+                             map.putAll(partialResult.map);
+                         }
                      }
                 }
             }
         }
 
+        for (String agent : domain.getAllAgents()) {
+            for (World newFromWorld : map.keySet()) {
+                 World oldFromWorld = map.get(newFromWorld);
+                 if (isOblivious(agent, oldFromWorld)) {
+                     for (World oldToWorld : oldKripke.getWorlds()) {
+                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                             newKripke.connectBelief(agent, newFromWorld, oldToWorld);
+                         }
+                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                             newKripke.connectKnowledge(agent, newFromWorld, oldToWorld);
+                             newKripke.connectKnowledge(agent, oldToWorld, newFromWorld);
+                         }
+                     }    
+                 }
+            }
+        }
 
+        EpistemicState newState = new EpistemicState(newKripke, newDesignated);
 
-
-        EpistemicState newState = new EpistemicState(newKripke, newDesignatedWorld);
 
         if (!newKripke.checkRelations()) {
             System.out.println("BEFORE:");
@@ -431,21 +454,19 @@ public class Action implements java.io.Serializable {
             System.exit(1);
         }
 
-
         return new Action.UpdatedStateAndModels(newState, newModels);
-
     }
 
-    private Set<Action>  possibleActions(KripkeStructure kripke, World world, String agent) {
+    private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
         Set<Action> actions = new HashSet<>();
-        for (Action action : Domain.getAllActions()) {
+        for (Action action : domain.getAllActions()) {
             BeliefFormula possiblyPreconditioned = new BeliefKnowsFormula(agent,
                 action.getPrecondition().negate()).negate();
-            BeliefFormula possiblyOblivious = BelifAndFormula.make(
-                new BeliefKnowsFormula(observesIf.get(agent)).negate(),
-                new BeliefKnowsFormula(awareIf.get(agent)).negate());
+            BeliefFormula possiblyOblivious = BeliefAndFormula.make(
+                new BeliefKnowsFormula(agent, observesIf.get(agent)).negate(),
+                new BeliefKnowsFormula(agent, awareIf.get(agent)).negate());
 
-            if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious(kripke, world)) {
+            if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
                 actions.add(action);
             }
         }

@@ -70,7 +70,7 @@ public class Relation implements java.io.Serializable {
         return edges;
     }
 
-    public Relation add(Relation other) {
+    public void add(Relation other) {
         assert (other != null);
         edges.putAll(other.getEdges());
     }
