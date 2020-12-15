@@ -32,16 +32,21 @@ goals{
 actions{
     put(){
         owner{sally},
+        precondition{p()},
+        precondition{~t()},
         observes(?o-Actor){?o},
         causes{t()},
     }
     leave(){
         owner{sally},
+        precondition{p()},
         observes(?o-Actor){?o},
         causes{~p()},
     }
     transfer(){
         owner{anne},
+        precondition{t()},
+        precondition{~x()},
         observes(){anne},
         observes(){sally if p()},
         causes{~t()},
@@ -49,6 +54,7 @@ actions{
     }
     reenter(){
         owner{sally},
+        precondition{~p()},
         observes(?o-Actor){?o},
         causes{p()},
     }

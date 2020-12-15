@@ -68,9 +68,6 @@ actions: mecaPlanner.jar
 	echo '#!/bin/bash' > ./action
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
 	chmod +x ./actions
-	echo '#!/bin/bash' > ./debug
-	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
-	chmod +x ./actions
 
 efp2depl: build/efp2depl/
 

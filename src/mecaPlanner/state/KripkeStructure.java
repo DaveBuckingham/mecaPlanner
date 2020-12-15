@@ -27,17 +27,6 @@ public class KripkeStructure implements java.io.Serializable {
     private Set<World> worlds;
 
 
-    // THERE'S PROBABLY A BETTER WAY TO DO THIS WITH A COPY CONSTRUCTOR,
-    // BUT I COULDNT' FIGURE OUT HOW TO MAKE THE NEW SET OF WORLDS ALL IN ONE LINE.
-    //public KripkeStructure copy() {
-    //   Set<World> newWorlds = new HashSet<>();
-    //   for (World w : worlds) {
-    //       newWorlds.add(new World(w));
-    //   }
-    //   return new KripkeStructure(newWorlds, beliefRelations, knowledgeRelations);
-    //}
-
-
 
 
     public KripkeStructure(Set<World> worlds, Map<String, Relation> belief, Map<String, Relation> knowledge) {
@@ -112,17 +101,6 @@ public class KripkeStructure implements java.io.Serializable {
         return this.knowledgeRelations;
     }
 
-//    // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK WOULD BE FASTER?
-//    private Set<Set<World>> getInitialPartition() {
-//        Map<Set<FluentAtom>, Set<World>> mapValuation = new HashMap<>();
-//        for (World w : worlds) {
-//            if (!mapValuation.containsKey(w.getAtoms())) {
-//                mapValuation.put(w.getAtoms(), new HashSet<World>());
-//            }
-//            mapValuation.get(w.getAtoms()).add(w);
-//        }
-//        return new HashSet<Set<World>>(mapValuation.values());
-//    }
 
     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK WOULD BE FASTER?
     private Set<Set<World>> getInitialPartition() {
@@ -186,6 +164,15 @@ public class KripkeStructure implements java.io.Serializable {
         } while (partition.size() != oldPartition.size());
 
         return partition;
+    }
+
+    public void add(KripkeStructure other) {
+        assert (this != other);
+        this.worlds.addAll(other.getWorlds());
+        for (String agent : agents) {
+            beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
+            knowledgeRelations.get(agent).add(other.getKnowledgeRelations().get(agent));
+        }
     }
 
     public KripkeStructure union(KripkeStructure other) {
@@ -253,6 +240,34 @@ public class KripkeStructure implements java.io.Serializable {
 
     public boolean checkRelations() {
         for (String agent : agents) {
+            for (World f : beliefRelations.get(agent).getEdges().keySet()) {
+                if (!worlds.contains(f)) {
+                    Log.severe("failed check: unknown from world in b-relation: " + f.toString());
+                    return false;
+                }
+                for (World t : beliefRelations.get(agent).getEdges().get(f)) {
+                    if (!worlds.contains(t)) {
+                        Log.severe("failed check: unknown to world in b-relation: " + t.toString());
+                        return false;
+                    }
+                }
+            }
+            for (World f : knowledgeRelations.get(agent).getEdges().keySet()) {
+                if (!worlds.contains(f)) {
+                    Log.severe("failed check: unknown from world in k-relation: " + f.toString());
+                    return false;
+                }
+                for (World t : knowledgeRelations.get(agent).getEdges().get(f)) {
+                    if (!worlds.contains(t)) {
+                        Log.severe("failed check: unknown to world in k-relation: " + t.toString());
+                        return false;
+                    }
+                }
+            }
+
+
+
+
             if (!beliefRelations.get(agent).checkSerial(worlds)) {
                 Log.severe("failed check: serial belief for agent " + agent);
                 //Log.debug(toString());
