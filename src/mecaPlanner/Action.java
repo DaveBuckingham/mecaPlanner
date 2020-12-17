@@ -263,7 +263,7 @@ public class Action implements java.io.Serializable {
                         }
                     }
 
-                    allBeliefLearned.addAll(allKnowledgeLearned);
+                    //allBeliefLearned.addAll(allKnowledgeLearned);
                     allBeliefLearned.addAll(acceptedAnnouncements);
                 }
 
@@ -298,37 +298,43 @@ public class Action implements java.io.Serializable {
                     for (World toWorld: newWorlds) {
                         World oldToWorld = map.get(toWorld);
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedBeliefFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)) {
+                            if (learnedBeliefFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
+                                && learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
+                                && learnedKnowledgeFormula.get(agent).get(oldToWorld).evaluate(oldKripke, oldFromWorld)){
                                 newBeliefs.get(agent).connect(fromWorld, toWorld);
                             }
                         }
                     }
 
-                    //// IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                    //if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
-                    //    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
-                    //    for (World toWorld: newWorlds) {
-                    //        World oldToWorld = map.get(toWorld);
-                    //        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                    //            if (learnedBeliefFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)) {
-                    //                newBeliefs.get(agent).connect(fromWorld, toWorld);
-                    //            }
-                    //        }
-                    //    }
-                    //}
-                    //// SECOND BELIEF RESET
-                    //if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
-                    //    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
-                    //    for (World toWorld: newWorlds) {
-                    //        World oldToWorld = map.get(toWorld);
-                    //        if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                    //            if (learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
-                    //            && learnedKnowledgeFormula.get(agent).get(oldToWorld).evaluate(oldKripke, oldFromWorld)){
-                    //                newBeliefs.get(agent).connect(fromWorld, toWorld);
-                    //            }
-                    //        }
-                    //    }
-                    //}
+                    // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
+                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
+                        for (World toWorld: newWorlds) {
+                            World oldToWorld = map.get(toWorld);
+                            if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                                if (learnedBeliefFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
+                                && learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
+                                && learnedKnowledgeFormula.get(agent).get(oldToWorld).evaluate(oldKripke, oldFromWorld)){
+                                    newBeliefs.get(agent).connect(fromWorld, toWorld);
+                                }
+                            }
+                        }
+                    }
+                    // SECOND BELIEF RESET
+                    if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                        Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+                        for (World toWorld: newWorlds) {
+                            World oldToWorld = map.get(toWorld);
+                            if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                                // NOT SURE ABOUT DOING THIS TWO-WAYS...
+                                if (learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)){
+                                //if (learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)
+                                //&& learnedKnowledgeFormula.get(agent).get(oldToWorld).evaluate(oldKripke, oldFromWorld)){
+                                    newBeliefs.get(agent).connect(fromWorld, toWorld);
+                                }
+                            }
+                        }
+                    }
                 }
 
 

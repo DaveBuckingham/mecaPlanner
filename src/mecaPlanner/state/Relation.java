@@ -119,6 +119,7 @@ public class Relation implements java.io.Serializable {
                 for (World z : worlds) {
                     if (isConnected(u, v) && isConnected(u, z)) {
                         if (!isConnected(v, z)) {
+                            Log.severe("not euclidean: " + u.getName() + ", " + v.getName() + ", " + z.getName());
                             return false;
                         }
                     }

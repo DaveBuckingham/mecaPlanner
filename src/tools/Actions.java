@@ -67,17 +67,17 @@ public class Actions {
                 System.out.println(i + ": " + applicable.get(i).getSignature());
             }
             Integer selection = -1;
-            while (selection < 0 || selection >= applicable.size()) {
-                try{
+
+            try{
                 selection = stdin.nextInt();
-                }
-                catch(Exception e){
-                    System.exit(0);
-                }
-                if (selection < 0 || selection >= applicable.size()) {
-                    System.exit(0);
-                }
             }
+            catch(Exception e){
+                System.exit(0);
+            }
+            if (selection < 0 || selection >= applicable.size()) {
+                System.exit(0);
+            }
+
             Action action = applicable.get(selection);
 
             if (action == null) {
