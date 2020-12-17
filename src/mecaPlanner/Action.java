@@ -35,6 +35,7 @@ public class Action implements java.io.Serializable {
 
 
 
+
     public Action(String name,
                   List<String> parameters,
                   String actor,
@@ -444,6 +445,12 @@ public class Action implements java.io.Serializable {
                              newKripke.connectKnowledge(agent, oldToWorld, newFromWorld);
                          }
                      }    
+                     for (World newToWorld : map.keySet()) {
+                         World oldToWorld = map.get(newToWorld);
+                         if (obliviousKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                             newKripke.connectKnowledge(agent, newFromWorld, newToWorld);
+                         }
+                     }
                  }
             }
         }

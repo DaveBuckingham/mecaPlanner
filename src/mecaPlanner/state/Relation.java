@@ -1,5 +1,7 @@
 package mecaPlanner.state;
 
+import mecaPlanner.Log;
+
 import java.util.List;
 import java.util.ArrayList;
 
@@ -100,6 +102,7 @@ public class Relation implements java.io.Serializable {
                 for (World z : worlds) {
                     if (isConnected(u, v) && isConnected(v, z)) {
                         if (!isConnected(u, z)) {
+                            Log.severe("not transitive: " + u.getName() + ", " + v.getName() + ", " + z.getName());
                             return false;
                         }
                     }

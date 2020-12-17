@@ -1,3 +1,9 @@
+if we put in a depl file multiple b-relations for some agent for some state, and no k relation,
+we get an exception in KripkeStructure breaking the assertion:
+assert(belief.keySet().equals(knowledge.keySet()));
+instead, this should be caught at parse time.
+
+
 improve makefile
 in depl, ommited kripke edges are caught with an assertion, but should be an exception
 fast check for agent type at depth
