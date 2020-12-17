@@ -74,6 +74,9 @@ public class Actions {
                 catch(Exception e){
                     System.exit(0);
                 }
+                if (selection < 0 || selection >= applicable.size()) {
+                    System.exit(0);
+                }
             }
             Action action = applicable.get(selection);
 
