@@ -59,6 +59,7 @@ public class Action implements java.io.Serializable {
         this.announces = announces;
         this.effects = effects;
         this.domain = domain;
+
     }
 
     public String getName() {
@@ -275,7 +276,6 @@ public class Action implements java.io.Serializable {
                 LocalFormula learnedKnowledgeFormula = LocalAndFormula.make(allKnowledgeLearned);
                 BeliefFormula learnedBeliefFormula = BeliefAndFormula.make(allBeliefLearned);
 
-                System.out.println("LEARNED: " + oldFromWorld.toString() + " " + agent + ": " + learnedKnowledgeFormula.toString());
 
 
                 if (isObservant(agent, oldFromWorld) || isAware(agent, oldFromWorld)) {
@@ -477,9 +477,6 @@ public class Action implements java.io.Serializable {
             if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
                 actions.add(action);
             }
-        }
-        for (Action a : actions) {
-            System.out.println(a.getSignature());
         }
         return actions;
     }

@@ -55,11 +55,11 @@ public class LocalOrFormula extends LocalFormula{
 
     public Boolean evaluate(World world) {
         for (LocalFormula formula : formulae) {
-            if (!formula.evaluate(world)) {
-                return false;
+            if (formula.evaluate(world)) {
+                return true;
             }
         }
-        return true;
+        return false;
     }
 
 

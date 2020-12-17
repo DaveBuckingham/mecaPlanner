@@ -68,7 +68,12 @@ public class Actions {
             }
             Integer selection = -1;
             while (selection < 0 || selection >= applicable.size()) {
+                try{
                 selection = stdin.nextInt();
+                }
+                catch(Exception e){
+                    System.exit(0);
+                }
             }
             Action action = applicable.get(selection);
 
