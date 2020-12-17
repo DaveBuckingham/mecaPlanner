@@ -41,7 +41,6 @@ public class Actions {
         // VARIABLES TO TRACK THE SYSTEM STATE
         EpistemicState currentState = problem.getStartState();
 
-        currentState.getKripke().forceCheck();
 
 
         Map<String, Model> models = problem.getStartingModels();
@@ -49,6 +48,7 @@ public class Actions {
 
         while(true) {
 
+            currentState.getKripke().forceCheck();
             System.out.println(currentState);
 
             List<Action> applicable = new ArrayList<>();
