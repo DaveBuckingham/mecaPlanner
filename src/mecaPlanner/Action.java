@@ -177,80 +177,142 @@ public class Action implements java.io.Serializable {
 
         Map<World, World> map = new HashMap<>();
 
-        Map<World,World> newToOld;
         Set<World> oldWorlds = oldKripke.getWorlds();
-        Set<World> newWorlds = new HashSet<>();
-        Map<String, Relation> newBeliefs = new HashMap<>();
-        Map<String, Relation> newKnowledges = new HashMap<>();
-        for (String a : domain.getAllAgents()) {
-            newBeliefs.put(a, new Relation());
-            newKnowledges.put(a, new Relation());
+
+        //Set<World> newWorlds = new HashSet<>();
+        //Map<String, Relation> newBeliefs = new HashMap<>();
+        //Map<String, Relation> newKnowledges = new HashMap<>();
+        //for (String a : domain.getAllAgents()) {
+        //    newBeliefs.put(a, new Relation());
+        //    newKnowledges.put(a, new Relation());
+        //}
+
+
+
+
+
+        // FOR EACH OLD WORLD, FOR EACH AGENT, BUILD FORMULA
+        // CONTAINING ALL KNOWLEDGE LEARNED
+        // AND ONE FOR BLIEF
+
+        Map<World,Map<String, LocalFormula>> learnedKnowledgeFormula = new HashMap<>();
+        Map<World,Map<String, BeliefFormula>> learnedBeliefFormula = new HashMap<>();
+        for (World world : oldWorlds) {
+            learnedKnowledgeFormula.put(world, new HashMap<>());
+            learnedBeliefFormula.put(world, new HashMap<>());
         }
 
-        // FOR EACH OLD WORLD, IF PRECONDITIONS HOLD, MUTATE INTO NEW, USING CONDITIONAL EFFECTS
+        Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
+        Map<World, LocalFormula> learnedDetermined = new HashMap<>();
+        Map<Agent, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+
         for (World oldWorld : oldWorlds) {
-            if (precondition.evaluate(oldWorld)) {
-                World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
-                newWorlds.add(newWorld);
-                map.put(newWorld, oldWorld);
-            }
-        }
-
-        Map<String,Map<World, LocalFormula>> learnedKnowledgeFormula = new HashMap<>();
-        Map<String,Map<World, BeliefFormula>> learnedBeliefFormula = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            learnedKnowledgeFormula.put(agent, new HashMap<>());
-            learnedBeliefFormula.put(agent, new HashMap<>());
-        }
-
-
-        for (World fromWorld : newWorlds) {
-            World oldFromWorld = map.get(fromWorld);
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
-            // NEED TO ADD "EITHER THIS OR THAT WAS THE CAUSE, I KNOW A OR B"
-            Set<LocalFormula> revealedConditions = new HashSet<>();
+            Map<Fluent, Set<LocalFormula>> fluentsPossibleChangers = new HashMap<>();
             for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
                 Assignment assignment = e.getKey();
+                Fluent target = assignment.getFluent();
+                Boolean value = assignment.getValue();
                 LocalFormula condition = e.getValue();
                 assert(!condition.isFalse());
-                if (oldFromWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
+                if (!fluentsPossibleChangers.containsKey(target)) {
+                    fluentsPossibleChangers.put(target, new HashSet<LocalFormula>();
+                }
+                if (oldWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
                     // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
-                    if (condition.evaluate(oldFromWorld)) {
-                        revealedConditions.add(condition);
-                    }
-                    else {
-                        revealedConditions.add(condition.negate());
-                    }
+                    fluentsPossibleChangers.get(target).add(condition);
                 }
             }
+            Set<LocalFormula> revealedConditions = new HashSet<>();
+            for (Fluent fluent : fluentPossibleChangers.keySet()) {
+                LocalFormula possibleChangersFormula = LocalOrFormula.make(fluentPossibleChangers.get(fluent));
+                if (possibleChangersFormula.evaluate(oldWorld)) {
+                    revealedConditions.add(possibleChangersFormula);
+                }
+                else {
+                    revealedConditions.add(possibleChangersFormula.negate());
+                }
+            }
+            learnedEffectConditions.put(oldWorld, LocalAndFormula.make(revealedConditions));
+
 
             // WHAT DO OBSERVERS SENSE
             Set<LocalFormula> groundDetermines = new HashSet<>();
             for (LocalFormula f : determines) {
-                if (f.evaluate(oldFromWorld)) {
+                if (f.evaluate(oldWorld)) {
                     groundDetermines.add(f);
                 }
                 else {
                     groundDetermines.add(f.negate());
                 }
             }
+            learnedDetermined.put(oldWorld, LocalAndFormula.make(groundDetermines));
 
-            // FOR EACH AGENT, CONNECT TO-WORLDS FOR BELIEF AND KNOWLEDGE
+            // WHAT DO AGENTS LEARN BECAUSE THEY KNOW THEIR OBSERVER STATUS
             for (String agent : domain.getAllAgents()) {
+                learnedObserver.put(agent, new HashMap<World, LocalFormula>());
 
-                // WHAT DOES THE AGENT LEARN WITH CERTAINTY BY OBSERVING THE ACTION
-                // ASSUMING THAT ANNOUNCEMTNS MIGHT BE LIES
-                Set<LocalFormula> allKnowledgeLearned = new HashSet<>();
+                LocalFormula observerConditions = observesIf.get(agent);
+                LocalFormula awareConditions = awareIf.get(agent);
 
-                // WHAT DOES THE AGENT LEARN BY OBSERVING THE ACTION
-                // ASSUMING THAT NON-REJECTED ANNOUNCEMENTS ARE TRUE
-                Set<BeliefFormula> allBeliefLearned = new HashSet<>();
+                if (isObservant(agent, oldWorld)){
+                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions,
+                                                                                  awareConditions.negate()));
+                }
+                else if (isAware(agent, oldWorld)){
+                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions.negate(),
+                                                                                  awareConditions));
+                }
+                else {
+                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions.negate(),
+                                                                                  awareConditions.negate()));
+                }
+            }
 
-                if (isObservant(agent, oldFromWorld)){
 
-                    allKnowledgeLearned.addAll(revealedConditions);
-                    allKnowledgeLearned.addAll(groundDetermines);
+            // PUT TOGETHER ALL SOURCES OF KNOWLEDGE
+            for (String agent : domain.getAllAgents()) {
+                if (isObservant(agent, oldWorld)){
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, LocalAndFormula.make(
+                        learnedDetermined.get(oldWorld),
+                        learnedEffectConditions.get(oldWorld),
+                        learnedObserver.get(agent).get(oldWorld));
+                }
+                else if (isAware(agent, oldWorld)){
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, LocalAndFormula.make(
+                        learnedEffectConditions.get(oldWorld),
+                        learnedObserver.get(agent).get(oldWorld));
+                }
+                else {
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(false));
+                }
+            }
+
+
+            // PUT TOGETHER ALL SOURCES OF BELIEF
+            for (String agent : domain.getAllAgents()) {
+                if (isObservant(agent, oldWorld)){
+                    learnedBeliefFormula.get(oldWorld).put(agent, BeliefAndFormula.make(announces));
+                }
+                else if (isAware(agent, oldWorld)){
+                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
+                }
+                else {
+                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(false));
+                }
+            }
+
+        }
+
+// HERE!
+
+
+        // MAKE NEW WORLDS, GROUPED (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
+        List<Set<World>>
+        for (World oldWorld : oldWorlds) {
+
+
 
                     allKnowledgeLearned.add(observesIf.get(agent));
 
@@ -263,7 +325,6 @@ public class Action implements java.io.Serializable {
                         }
                     }
 
-                    //allBeliefLearned.addAll(allKnowledgeLearned);
                     allBeliefLearned.addAll(acceptedAnnouncements);
                 }
 
