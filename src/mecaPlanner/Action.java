@@ -305,52 +305,42 @@ public class Action implements java.io.Serializable {
 
         }
 
-// HERE!
 
-
-        // MAKE NEW WORLDS, GROUPED (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
-        List<Set<World>>
+        // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
+        Set<Set<World>> equivalenceClasses = new HashSet<>();
         for (World oldWorld : oldWorlds) {
-
-
-
-                    allKnowledgeLearned.add(observesIf.get(agent));
-
-                    // WHAT DOES THE AGENT HEAR ANNOUNCED AND NOT REJECT
-                    Set<BeliefFormula> acceptedAnnouncements = new HashSet<>();
-                    for (BeliefFormula announcement : announces) {
-                        BeliefFormula knowsNotAnnouncement = new BeliefKnowsFormula(agent, announcement.negate());
-                        if (!knowsNotAnnouncement.evaluate(oldKripke, oldFromWorld)) {
-                            acceptedAnnouncements.add(announcement);
-                        }
+            for (String agent : domain.getAllAgents()) {
+                Set<World> equivalent = new HashSet<>();
+                for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
+                    if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
+                        equivalent.add(toWorld);
                     }
-
-                    allBeliefLearned.addAll(acceptedAnnouncements);
                 }
-
-                else if (isAware(agent, oldFromWorld)){
-                    allKnowledgeLearned.addAll(revealedConditions);
-                    allKnowledgeLearned.add(LocalAndFormula.make(observesIf.get(agent).negate(), 
-                                                                 awareIf.get(agent)));
-                    allBeliefLearned.addAll(allKnowledgeLearned);
-                }
-
-                else {    // oblivious
-                    allKnowledgeLearned.add(LocalAndFormula.make(observesIf.get(agent).negate(), 
-                                                                 awareIf.get(agent).negate()));
-                }
-
-                learnedKnowledgeFormula.get(agent).put(oldFromWorld, LocalAndFormula.make(allKnowledgeLearned));
-                learnedBeliefFormula.get(agent).put(oldFromWorld, BeliefAndFormula.make(allBeliefLearned));
+                equivalenceClasses.add(equivalent);
             }
         }
 
 
+        // HERE (FIGURE OUT AGENTS)
 
+
+        Map<String, Relation> newKnowledges = new HashMap<>();
+
+        for (Set<World> equivalent : equivalenceClasses) {
+            Set<World> newEquivalent = new HashSet<>();
+            for (World oldWorld : equivalent) {
+                equivalent.add(oldWorld.update(getApplicableEffects(oldWorld)));
+            }
+        }
+
+            
 
         // MAKE CONNECTIONS
-        for (World fromWorld : newWorlds) {
+        for (World fromWorld : map.keySet()) {
             World oldFromWorld = map.get(fromWorld);
+            for (World toWorld : map.keySet()) {
+                World oldToWorld = map.get(toWorld);
+
 
             for (String agent : domain.getAllAgents()) {
 
