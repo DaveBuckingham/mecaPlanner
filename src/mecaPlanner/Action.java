@@ -308,6 +308,9 @@ public class Action implements java.io.Serializable {
 
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
         Set<Set<World>> equivalenceClasses = new HashSet<>();
+        for (String agent : domain.getAllAgents()) {
+            perAgentClasses.add(new HashSet<Set<World>>());
+        }
         for (World oldWorld : oldWorlds) {
             for (String agent : domain.getAllAgents()) {
                 Set<World> equivalent = new HashSet<>();
@@ -325,21 +328,33 @@ public class Action implements java.io.Serializable {
 
 
         Map<String, Relation> newKnowledges = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            newKnowledgeds.put(agent, new Relation);
+        }
 
         for (Set<World> equivalent : equivalenceClasses) {
             Set<World> newEquivalent = new HashSet<>();
             for (World oldWorld : equivalent) {
-                equivalent.add(oldWorld.update(getApplicableEffects(oldWorld)));
+                World transformedWorld = oldWorld.update(getApplicableEffects(oldWorld));
+                map.add(transformedWorld, oldWorld)
+                newEquivalent.add(transformedWorld);
+            }
+
+            for (String agent : domain.getAllAgents()) {
+                for (World u : newEquivalent) {
+                    for (World v : newEquivalent) {
+                        if (oldKripke.isConnectedKnowledge(map.get(u), map.get(v));
+                            // SHOULD BE ALL TRUE OR FALSE FOR ANY newEquivalent
+                            newKnowledges.get(agent).connect(u,v);
+                        }
+                    }
+                }
             }
         }
 
+        // HERE
             
 
-        // MAKE CONNECTIONS
-        for (World fromWorld : map.keySet()) {
-            World oldFromWorld = map.get(fromWorld);
-            for (World toWorld : map.keySet()) {
-                World oldToWorld = map.get(toWorld);
 
 
             for (String agent : domain.getAllAgents()) {
