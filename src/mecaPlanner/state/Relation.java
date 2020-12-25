@@ -58,7 +58,8 @@ public class Relation implements java.io.Serializable {
 
     public Set<World> getToWorlds(World from) {
         if(!edges.containsKey(from)) {
-            return new HashSet<World>();
+            throw new RuntimeException("no to worlds from " + from.toString());
+            //return new HashSet<World>();
         }
         return edges.get(from);
     }
