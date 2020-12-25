@@ -34,6 +34,7 @@ public class KripkeStructure implements java.io.Serializable {
         assert(!worlds.isEmpty());
         assert(belief.keySet().equals(knowledge.keySet()));
 
+        //this.worlds = new HashSet<World>(worlds);
         this.worlds = worlds;
 
         this.beliefRelations = belief;
