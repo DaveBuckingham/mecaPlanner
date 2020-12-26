@@ -263,6 +263,7 @@ public class Action implements java.io.Serializable {
                 LocalFormula awareConditions = awareIf.get(agent);
 
                 if (isObservant(agent, oldWorld)){
+                    assert (!isAware(agent, oldWorld));  // THERE'S PROBABLY A BETTER PLACE FOR THIS CHECK
                     learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions,
                                                                                   awareConditions.negate()));
                 }
@@ -513,35 +514,34 @@ public class Action implements java.io.Serializable {
 
 
         // BUILD NULL ACTION AND GET USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
-        Map<String, LocalFormula> nullObservabilityConditions = new HashMap<>();
+        Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
+        Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
-            nullObservablityConditions.put(agent, new Literal(true));
+            nullObserverConditions.put(agent, new Literal(true));
+            nullAwareConditions.put(agent, new Literal(false));
         }
 
         Action nullAction = new Action("nullAction",                            // name
                                        new ArrayList<String>(),                 // parameters
                                        "nullActor",                             // actor
-                                       0,                                       // cost
+                                       1,                                       // cost
                                        new Literal(true),                       // preconditions 
-                                       nullObservabilityConditions,             // observesIf
-                                       nullObservabilityConditions,             // awareIf
+                                       nullObserverConditions,                  // observesIf
+                                       nullAwareConditions,                     // awareIf
                                        new HashSet<LocalFormula>(),             // determines
                                        new HashSet<BeliefFormula>(),            // announces
                                        new HashMap<Assignment, LocalFormula>(), // effects
                                        domain
                                       );
-        Action.PartialResult oblivousPartial = nullAction.partial(oldKripke);
-        newKripke.add(obliviousPartial.kripke);
+        Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
+        KripkeStructure obliviousKripke = obliviousPartial.kripke;
+        newKripke.add(obliviousKripke);
         map.putAll(obliviousPartial.map);
-
-
-// HERE
-
 
 
 
         // BUILD HYPOTHETICAL MODELS
-        for (World w : obliviousWorlds) {
+        for (World w : oldKripke.getWorlds()) {
             for (String agent : domain.getAllAgents()) {
                 if (isOblivious(agent,w)) {
                      for (Action a : possibleActions(agent, obliviousKripke, w)) {
@@ -557,24 +557,26 @@ public class Action implements java.io.Serializable {
 
         // OBLIVIOUS AGENT INTRA- AND INTER-SUB-MODEL CONNECTIONS
         for (String agent : domain.getAllAgents()) {
-            for (World newFromWorld : map.keySet()) {
-                 World oldFromWorld = map.get(newFromWorld);
-                 if (isOblivious(agent, oldFromWorld)) {
-                     for (World oldToWorld : obliviousWorlds) {
-                         if (obliviousKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                             newKripke.connectBelief(agent, newFromWorld, oldToWorld);
-                         }
-                         if (obliviousKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             newKripke.connectKnowledge(agent, newFromWorld, oldToWorld);
-                             newKripke.connectKnowledge(agent, oldToWorld, newFromWorld);
-                         }
-                     }    
-                     for (World newToWorld : map.keySet()) {
-                         World oldToWorld = map.get(newToWorld);
-                         if (obliviousKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             newKripke.connectKnowledge(agent, newFromWorld, newToWorld);
+            for (World fromWorld : map.keySet()) {
+                 World oldFromWorld = map.get(fromWorld);
+                 if (isOblivious(agent, fromWorld)) {
+                     // BELIEF EDGES ONLY GO TO (AND WITHIN) THE OBLIVIOUS SUB-MODEL
+                     for (World toWorld : obliviousKripke.getWorlds()) {
+                         World oldToWorld = map.get(toWorld);
+                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                             newKripke.connectBelief(agent, fromWorld, toWorld);
                          }
                      }
+                     // KNOWLEDGE EDGES BETWEEN AND WITHIN ALL SUB-MODELS
+                     for (World toWorld : map.keySet()) {
+                         World oldToWorld = map.get(toWorld);
+                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                             if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
+                                 newKripke.connectKnowledge(agent, fromWorld, toWorld);
+                             }
+                         }
+                     }
+
                  }
             }
         }
