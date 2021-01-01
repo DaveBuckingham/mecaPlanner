@@ -333,9 +333,20 @@ public class Action implements java.io.Serializable {
                     }
                 }
                 if (equivalenceClasses.containsKey(equivalent)) {
+                    System.out.println("Y");
                     equivalenceClasses.get(equivalent).add(agent);
                 }
                 else {
+                    System.out.println("N: " + agent);
+                    for (World w : equivalent) {
+                        System.out.println(w);
+                    }
+                    for (Set<World> s : equivalenceClasses.keySet()) {
+                        System.out.println("--");
+                        for (World w : s) {
+                            System.out.println(w);
+                        }
+                    }
                     Set<String> agents = new HashSet<>();
                     agents.add(agent);
                     equivalenceClasses.put(equivalent, agents);

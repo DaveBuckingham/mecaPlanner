@@ -1,0 +1,56 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    t-Actor,
+    m-Actor,
+}
+
+agents{
+    t,
+    m{TrivialModel}
+}
+
+
+fluents{
+    b(),o()
+}
+
+
+initially{
+    *w1 <- {b(),o()},
+    w2 <- {b()},
+    w3 <- {o()},
+    w4 <- {},
+    B[m] <- {(w1,w1),(w1,w2),
+             (w2,w1),(w2,w2),
+             (w3,w3),(w3,w4),
+             (w4,w3),(w4,w4)},
+    B[t] <- {(w1,w1),(w1,w3),
+             (w2,w2),(w2,w4),
+             (w3,w3),(w3,w1),
+             (w4,w4),(w4,w2)},
+    K[m] <- {(w1,w1),(w1,w2),
+             (w2,w1),(w2,w2),
+             (w3,w3),(w3,w4),
+             (w4,w3),(w4,w4)},
+    K[t] <- {(w1,w1),(w1,w3),
+             (w2,w2),(w2,w4),
+             (w3,w3),(w3,w1),
+             (w4,w4),(w4,w2)},
+}
+
+goals{
+}
+
+actions{
+    look(){
+        owner{t},
+        determines{b()},
+        observes(){t if o()},
+        aware(){t if ~o()},
+        aware(){m},
+    }
+
+}
