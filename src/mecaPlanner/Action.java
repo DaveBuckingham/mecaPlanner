@@ -184,17 +184,6 @@ public class Action implements java.io.Serializable {
 
         Set<World> oldWorlds = oldKripke.getWorlds();
 
-        //Set<World> newWorlds = new HashSet<>();
-        //Map<String, Relation> newBeliefs = new HashMap<>();
-        //Map<String, Relation> newKnowledges = new HashMap<>();
-        //for (String a : domain.getAllAgents()) {
-        //    newBeliefs.put(a, new Relation());
-        //    newKnowledges.put(a, new Relation());
-        //}
-
-
-
-
 
         // FOR EACH OLD WORLD, FOR EACH AGENT, BUILD FORMULA
         // CONTAINING ALL KNOWLEDGE LEARNED
@@ -323,8 +312,9 @@ public class Action implements java.io.Serializable {
 
 
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
-        Map<Set<World>, Set<String>> equivalenceClasses = new HashMap<>();
+        Map<String, Set<Set<World>>> equivalenceClasses = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
+            equivalenceClasses.put(agent, new HashSet<Set<World>>();
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
@@ -332,27 +322,50 @@ public class Action implements java.io.Serializable {
                         equivalent.add(toWorld);
                     }
                 }
-                if (equivalenceClasses.containsKey(equivalent)) {
-                    System.out.println("Y");
-                    equivalenceClasses.get(equivalent).add(agent);
-                }
-                else {
-                    System.out.println("N: " + agent);
-                    for (World w : equivalent) {
-                        System.out.println(w);
+                equivalenceClasses.get(agent).add(equivalent);
+            }
+        }
+
+
+        // MAP EACH AGENT x WORLD TO THE SET OF EQUIVALENCE CLASSES CONTAINING THAT WORLD
+        Map<String, Map<World, Set<Set<World>>>> containingClasses = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            containingClasses.put(agent, new HashMap<World, Set<Set<World>>>());
+            for (World world : oldWorlds) {
+                containingClasses.get(agent).get(world).put(new HashSet<Set<world>>());
+                for (Set<World> class : equivalenceClasses.get(agent)) {
+                    if (class.contains(world)) {
+                        containingClasses.get(agent).get(world).add(class);
                     }
-                    for (Set<World> s : equivalenceClasses.keySet()) {
-                        System.out.println("--");
-                        for (World w : s) {
-                            System.out.println(w);
-                        }
-                    }
-                    Set<String> agents = new HashSet<>();
-                    agents.add(agent);
-                    equivalenceClasses.put(equivalent, agents);
                 }
             }
         }
+
+
+
+        // MAP EACH WORLD TO AN ASSIGNMENT TO AN EQUIVALENCE CLASS FOR EACH AGENT
+        Map<World, Map<String, Set<World>>> assignments = new HashMap<>();
+
+
+
+
+        Map<World, World> newToOld = new HashMap<>();
+        Map<World, Set<World>> oldToNew = new HashMap<>();
+        for (World fromWorld : oldWorlds) {
+            Set<World> newFromWorlds = new HashSet<>();
+            newFromWorlds.add(fromWorld.update(getApplicableEffects(fromWorld)));
+            for (String agent : domain.getAllAgents()) {
+                Set<World> tempNewFromWorlds = new HashSet<>(tempFromWorlds);
+                for (Set<World> class : containingClasses.get(agent).get(fromWorld)) {
+                }
+                newFromWorlds = tempFromWorlds;
+            }
+        }
+
+
+
+
+
 
 
         // KNOWLEDGE RELATIONS
