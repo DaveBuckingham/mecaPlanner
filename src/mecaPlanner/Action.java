@@ -342,24 +342,30 @@ public class Action implements java.io.Serializable {
         }
 
 
+        // MAP EACH AGENT x WORLD TO A LIST OF UNIQUE EQUIVALENCE CLASSES CONTAINING THAT WORLD
+        Map<String, Map<World, List<Set<World>>>> containingClassesList = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            containingClassesList.put(agent, new HashMap<World, List<Set<World>>>());
+            for (World world : oldWorlds) {
+                containingClassesList.get(agent).get(world).put(new ArrayList<Set<world>>());
+                for (Set<World> class : containingClasses.get(agent).get(world)) {
+                    containingClassesList.get(agent).get(world).add(class);
+                }
+            }
+        }
+
+
 
         // MAP EACH WORLD TO AN ASSIGNMENT TO AN EQUIVALENCE CLASS FOR EACH AGENT
-        Map<World, Map<String, Set<World>>> assignments = new HashMap<>();
+        Map<World, Set<Map<String, Set<World>>>> assignments = new HashMap<>();
+        int indeces[] = new int[domain.getAllAgents().size()];
 
-
-
-
-        Map<World, World> newToOld = new HashMap<>();
-        Map<World, Set<World>> oldToNew = new HashMap<>();
-        for (World fromWorld : oldWorlds) {
-            Set<World> newFromWorlds = new HashSet<>();
-            newFromWorlds.add(fromWorld.update(getApplicableEffects(fromWorld)));
-            for (String agent : domain.getAllAgents()) {
-                Set<World> tempNewFromWorlds = new HashSet<>(tempFromWorlds);
-                for (Set<World> class : containingClasses.get(agent).get(fromWorld)) {
-                }
-                newFromWorlds = tempFromWorlds;
+        for (World world : oldWorlds) {
+            Arrays.fill(indeces, 0);
+            do {
+            // HERE
             }
+            while (Arrays.stream(array).sum() > 0);
         }
 
 
