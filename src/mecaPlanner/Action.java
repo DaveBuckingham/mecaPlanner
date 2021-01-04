@@ -317,6 +317,8 @@ public class Action implements java.io.Serializable {
             equivalenceClasses.put(agent, new HashSet<Set<World>>());
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
+                assert(oldKripke.isConnectedKnowledge(agent, oldWorld, oldWorld));
+                assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
                     if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
                         equivalent.add(toWorld);
@@ -338,6 +340,7 @@ public class Action implements java.io.Serializable {
                         containingClasses.get(agent).get(world).add(eqClass);
                     }
                 }
+                assert(!containingClasses.get(agent).get(world).isEmpty());
             }
         }
 
@@ -421,8 +424,10 @@ public class Action implements java.io.Serializable {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
                 for (World toWorld : newWorlds) {
-                    if (postAssignments.get(fromWorld).get(agent).contains(newToOld.get(toWorld)) &&
-                        postAssignments.get(toWorld).get(agent).contains(newToOld.get(fromWorld))) {
+                    //if (postAssignments.get(fromWorld).get(agent).contains(newToOld.get(toWorld)) &&
+                    //    postAssignments.get(toWorld).get(agent).contains(newToOld.get(fromWorld))) {
+                    if (postAssignments.get(fromWorld).get(agent).equals(
+                        postAssignments.get(toWorld).get(agent))){
                         newKnowledge.connect(fromWorld, toWorld);
                     }
                 }
@@ -476,8 +481,8 @@ public class Action implements java.io.Serializable {
             newBeliefs.put(agent, newBelief);
         }
 
-        //KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
-        KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
+        KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
+        //KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
 
         return new Action.PartialResult(newKripke, newToOld);
     }
