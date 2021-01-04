@@ -106,7 +106,7 @@ public class Domain implements java.io.Serializable {
         return this.postState;
     }
 
-    public Set<String> getPassiveAgents() {
+    public List<String> getPassiveAgents() {
         return passiveAgents;
     }
 

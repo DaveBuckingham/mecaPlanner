@@ -314,7 +314,7 @@ public class Action implements java.io.Serializable {
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
         Map<String, Set<Set<World>>> equivalenceClasses = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
-            equivalenceClasses.put(agent, new HashSet<Set<World>>();
+            equivalenceClasses.put(agent, new HashSet<Set<World>>());
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
@@ -332,10 +332,10 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             containingClasses.put(agent, new HashMap<World, Set<Set<World>>>());
             for (World world : oldWorlds) {
-                containingClasses.get(agent).get(world).put(new HashSet<Set<world>>());
-                for (Set<World> class : equivalenceClasses.get(agent)) {
-                    if (class.contains(world)) {
-                        containingClasses.get(agent).get(world).add(class);
+                containingClasses.get(agent).put(world, new HashSet<Set<World>>());
+                for (Set<World> eqClass : equivalenceClasses.get(agent)) {
+                    if (eqClass.contains(world)) {
+                        containingClasses.get(agent).get(world).add(eqClass);
                     }
                 }
             }
@@ -347,9 +347,9 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             containingClassesList.put(agent, new HashMap<World, List<Set<World>>>());
             for (World world : oldWorlds) {
-                containingClassesList.get(agent).get(world).put(new ArrayList<Set<world>>());
-                for (Set<World> class : containingClasses.get(agent).get(world)) {
-                    containingClassesList.get(agent).get(world).add(class);
+                containingClassesList.get(agent).put(world, new ArrayList<Set<World>>());
+                for (Set<World> eqClass : containingClasses.get(agent).get(world)) {
+                    containingClassesList.get(agent).get(world).add(eqClass);
                 }
             }
         }
@@ -365,67 +365,80 @@ public class Action implements java.io.Serializable {
                 indeces.put(agent, 0);
             }
             assignments.put(world, new HashSet<Map<String, Set<World>>>());
+            boolean carry;
             do {
                 Map<String, Set<World>> assignment = new HashMap<>();
+                carry = true;
                 for (String agent : domain.getAllAgents()) {
                     assignment.put(agent, containingClassesList.get(agent).get(world).get(indeces.get(agent)));
+                    if (carry) {
+                        indeces.put(agent, indeces.get(agent)+1);
+                        if (indeces.get(agent) == containingClassesList.get(agent).get(world).size()) {
+                            indeces.put(agent, 0);
+                        }
+                        else {
+                            carry = false;
+                        }
+                    }
                 }
                 assignments.get(world).add(assignment);
             }
-            while (indeces.values.stream.sum() > 0);
+            while (!carry);
         }
 
-
-
-
-
-
+        // NEW WORLDS
+        Set<World> newWorlds = new HashSet<>();
+        Map<World, World> newToOld = new HashMap<>();
+        Map<World, Set<World>> oldToNew = new HashMap<>();
+        Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
+        for (World oldWorld : oldWorlds) {
+            oldToNew.put(oldWorld, new HashSet<World>());
+            for (Map<String, Set<World>> assignment : assignments.get(oldWorld)) {
+                World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
+                newWorlds.add(newWorld);
+                newToOld.put(newWorld, oldWorld);
+                oldToNew.get(oldWorld).add(newWorld);
+                postAssignments.put(newWorld, assignment);
+            }
+        }
 
         // KNOWLEDGE RELATIONS
         Map<String, Relation> newKnowledges = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            newKnowledges.put(agent, new Relation());
-        }
 
-//        for (Set<World> equivalent : equivalenceClasses.keySet()) {
-//            Set<String> agents = equivalenceClasses.get(equivalent);
-//            for (World w : equivalent) {
-//                System.out.println(w);
+//        for (String agent : domain.getAllAgents()) {
+//            Relation newKnowledge = new Relation();
+//            for (World fromWorld : newWorlds) {
+//                for (World oldToWorld: postAssignments.get(fromWorld).get(agent)) {
+//                    for (World newToWorld: oldToNew.get(oldToWorld)) {
+//                        newKnowledge.connect(fromWorld, newToWorld);
+//                    }
+//                }
 //            }
-//            for (String a : agents) {
-//                System.out.println(a);
-//            }
+//            newKnowledges.put(agent, newKnowledge);
 //        }
-//        System.out.println("========");
 
-        for (Set<World> equivalent : equivalenceClasses.keySet()) {
-            Set<String> agents = equivalenceClasses.get(equivalent);
-            Set<World> newEquivalent = new HashSet<>();
-            for (World oldWorld : equivalent) {
-                World transformedWorld = oldWorld.update(getApplicableEffects(oldWorld));
-                map.put(transformedWorld, oldWorld);
-                newEquivalent.add(transformedWorld);
-            }
-
-            for (String agent : agents) {
-                for (World u : newEquivalent) {
-                    for (World v : newEquivalent) {
-                        assert (oldKripke.isConnectedKnowledge(agent, map.get(u), map.get(v)));
-                        newKnowledges.get(agent).connect(u,v);
+        for (String agent : domain.getAllAgents()) {
+            Relation newKnowledge = new Relation();
+            for (World fromWorld : newWorlds) {
+                for (World toWorld : newWorlds) {
+                    if (postAssignments.get(fromWorld).get(agent).contains(newToOld.get(toWorld)) &&
+                        postAssignments.get(toWorld).get(agent).contains(newToOld.get(fromWorld))) {
+                        newKnowledge.connect(fromWorld, toWorld);
                     }
                 }
             }
+            newKnowledges.put(agent, newKnowledge);
         }
+
+
+
 
         // BELIEF RELATIONS
         Map<String, Relation> newBeliefs = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
-            newBeliefs.put(agent, new Relation());
-        }
-
-        for (String agent : domain.getAllAgents()) {
-            for (World fromWorld: map.keySet()) {
-                World oldFromWorld = map.get(fromWorld);
+            Relation newBelief = new Relation();
+            for (World fromWorld: newWorlds) {
+                World oldFromWorld = newToOld.get(fromWorld);
                 BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
                 // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
@@ -433,39 +446,40 @@ public class Action implements java.io.Serializable {
                     World oldToWorld = map.get(toWorld);
                     if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                         if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
-                            newBeliefs.get(agent).connect(fromWorld, toWorld);
+                            newBelief.connect(fromWorld, toWorld);
                         }
                     }
                 }
 
                 // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
                     Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
                     for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = map.get(toWorld);
+                        World oldToWorld = newToOld.get(toWorld);
                         if (learnedBelief.evaluate(oldKripke, oldToWorld)){
-                            newBeliefs.get(agent).connect(fromWorld, toWorld);
+                            newBelief.connect(fromWorld, toWorld);
                         }
                     }
                 }
 
                 // SECOND BELIEF RESET
-                if (newBeliefs.get(agent).getToWorlds(fromWorld).isEmpty()) {
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
                     Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
                     for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = map.get(toWorld);
+                        World oldToWorld = newToOld.get(toWorld);
                         if (learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)){
-                            newBeliefs.get(agent).connect(fromWorld, toWorld);
+                            newBelief.connect(fromWorld, toWorld);
                         }
                     }
                 }
             }
+            newBeliefs.put(agent, newBelief);
         }
 
-        Set<World> newWorlds = new HashSet<World>(map.keySet());
-        KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
+        //KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
+        KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
 
-        return new Action.PartialResult(newKripke, map);
+        return new Action.PartialResult(newKripke, newToOld);
     }
 
 

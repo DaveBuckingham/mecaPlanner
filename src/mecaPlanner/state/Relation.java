@@ -29,6 +29,10 @@ public class Relation implements java.io.Serializable {
         this.edges = new HashMap<World, Set<World>>(edgesParam);
     }
 
+    public Relation(Relation toCopy) {
+        this.edges = new HashMap<World, Set<World>>(toCopy.getEdges());
+    }
+
     public void connect(World from, World to) {
         assert (from != null);
         assert (to != null);
