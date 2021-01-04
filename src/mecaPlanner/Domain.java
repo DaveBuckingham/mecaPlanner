@@ -18,9 +18,9 @@ public class Domain implements java.io.Serializable {
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
 
-    private Set<String> allAgents;
+    private List<String> allAgents;
     private List<String> nonPassiveAgents;
-    private Set<String> passiveAgents;
+    private List<String> passiveAgents;
 
     private EpistemicState postState;
 
@@ -34,9 +34,9 @@ public class Domain implements java.io.Serializable {
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
-        allAgents = new HashSet<>();
+        allAgents = new ArrayList<>();
         nonPassiveAgents = new ArrayList<>();
-        passiveAgents = new HashSet<>();
+        passiveAgents = new ArrayList<>();
 
         postState = null;
 
@@ -136,11 +136,11 @@ public class Domain implements java.io.Serializable {
 
 
 
-    public Set<String> getAllAgents() {
+    public List<String> getAllAgents() {
         return allAgents;
     }
 
-    public Set<String> getAgents() {
+    public List<String> getAgents() {
         return allAgents;
     }
 

@@ -358,14 +358,21 @@ public class Action implements java.io.Serializable {
 
         // MAP EACH WORLD TO AN ASSIGNMENT TO AN EQUIVALENCE CLASS FOR EACH AGENT
         Map<World, Set<Map<String, Set<World>>>> assignments = new HashMap<>();
-        int indeces[] = new int[domain.getAllAgents().size()];
+        Map<String, Integer> indeces = new HashMap<>();
 
         for (World world : oldWorlds) {
-            Arrays.fill(indeces, 0);
-            do {
-            // HERE
+            for (String agent : domain.getAllAgents()) {
+                indeces.put(agent, 0);
             }
-            while (Arrays.stream(array).sum() > 0);
+            assignments.put(world, new HashSet<Map<String, Set<World>>>());
+            do {
+                Map<String, Set<World>> assignment = new HashMap<>();
+                for (String agent : domain.getAllAgents()) {
+                    assignment.put(agent, containingClassesList.get(agent).get(world).get(indeces.get(agent)));
+                }
+                assignments.get(world).add(assignment);
+            }
+            while (indeces.values.stream.sum() > 0);
         }
 
 
