@@ -64,6 +64,9 @@ public class Action implements java.io.Serializable {
         this.domain = domain;
 
         learnedObserver = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        }
 
     }
 
@@ -246,7 +249,6 @@ public class Action implements java.io.Serializable {
 
             // WHAT DO AGENTS LEARN BECAUSE THEY KNOW THEIR OBSERVER STATUS
             for (String agent : domain.getAllAgents()) {
-                learnedObserver.put(agent, new HashMap<World, LocalFormula>());
 
                 LocalFormula observerConditions = observesIf.get(agent);
                 LocalFormula awareConditions = awareIf.get(agent);
@@ -282,8 +284,15 @@ public class Action implements java.io.Serializable {
                         learnedObserver.get(agent).get(oldWorld)));
                 }
                 else {
-                    learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(false));
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(true));
                 }
+                //if(!learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld)) {
+                //    System.out.println(agent + " learned:");
+                //    System.out.println(learnedKnowledgeFormula.get(oldWorld).get(agent));
+                //    System.out.println("at world:");
+                //    System.out.println(oldWorld);
+                //    throw new RuntimeException("learned knowledge violates world");
+                //}
             }
 
 
@@ -317,7 +326,6 @@ public class Action implements java.io.Serializable {
             equivalenceClasses.put(agent, new HashSet<Set<World>>());
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
-                assert(oldKripke.isConnectedKnowledge(agent, oldWorld, oldWorld));
                 assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
                     if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
@@ -472,7 +480,7 @@ public class Action implements java.io.Serializable {
                     Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
                     for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
                         World oldToWorld = newToOld.get(toWorld);
-                        if (learnedKnowledgeFormula.get(agent).get(oldFromWorld).evaluate(oldKripke, oldToWorld)){
+                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
                             newBelief.connect(fromWorld, toWorld);
                         }
                     }
@@ -627,6 +635,12 @@ public class Action implements java.io.Serializable {
                      for (World toWorld : map.keySet()) {
                          World oldToWorld = map.get(toWorld);
                          if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+                             //System.out.println("--------");
+                             //System.out.println(learnedObserver);
+                             //System.out.println(agent);
+                             //System.out.println(oldFromWorld);
+                             //System.out.println(learnedObserver.get(agent));
+                             //System.out.println(learnedObserver.get(agent).get(oldFromWorld));
                              if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
                                  newKripke.connectKnowledge(agent, fromWorld, toWorld);
                              }
