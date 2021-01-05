@@ -313,8 +313,12 @@ public class Action implements java.io.Serializable {
                     learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
                 }
                 else {
-                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(false));
+                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
                 }
+                System.out.println("------");
+                System.out.println(agent);
+                System.out.println(oldWorld);
+                System.out.println(learnedBeliefFormula.get(oldWorld).get(agent));
             }
 
         }
@@ -431,12 +435,12 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
-                for (World toWorld : newWorlds) {
-                    //if (postAssignments.get(fromWorld).get(agent).contains(newToOld.get(toWorld)) &&
-                    //    postAssignments.get(toWorld).get(agent).contains(newToOld.get(fromWorld))) {
-                    if (postAssignments.get(fromWorld).get(agent).equals(
-                        postAssignments.get(toWorld).get(agent))){
-                        newKnowledge.connect(fromWorld, toWorld);
+                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                    for (World toWorld : newWorlds) {
+                        if (postAssignments.get(fromWorld).get(agent).equals(
+                            postAssignments.get(toWorld).get(agent))){
+                            newKnowledge.connect(fromWorld, toWorld);
+                        }
                     }
                 }
             }
@@ -451,37 +455,40 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
-                World oldFromWorld = newToOld.get(fromWorld);
-                BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
+                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                    World oldFromWorld = newToOld.get(fromWorld);
+                    BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
-                // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
-                for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                    World oldToWorld = map.get(toWorld);
-                    if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                        if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
-                            newBelief.connect(fromWorld, toWorld);
+                    // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
+                    Log.debug("setting belief edges");
+                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                        World oldToWorld = map.get(toWorld);
+                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                            if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
+                                newBelief.connect(fromWorld, toWorld);
+                            }
                         }
                     }
-                }
 
-                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
-                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = newToOld.get(toWorld);
-                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
-                            newBelief.connect(fromWorld, toWorld);
+                    // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
+                    if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
+                        for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                            World oldToWorld = newToOld.get(toWorld);
+                            if (learnedBelief.evaluate(oldKripke, oldToWorld)){
+                                newBelief.connect(fromWorld, toWorld);
+                            }
                         }
                     }
-                }
 
-                // SECOND BELIEF RESET
-                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
-                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = newToOld.get(toWorld);
-                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
-                            newBelief.connect(fromWorld, toWorld);
+                    // SECOND BELIEF RESET
+                    if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                        Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+                        for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                            World oldToWorld = newToOld.get(toWorld);
+                            if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
+                                newBelief.connect(fromWorld, toWorld);
+                            }
                         }
                     }
                 }
@@ -577,7 +584,7 @@ public class Action implements java.io.Serializable {
 
 
 
-        // BUILD NULL ACTION AND GET USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
+        // BUILD NULL ACTION AND  USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
         Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
         Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
