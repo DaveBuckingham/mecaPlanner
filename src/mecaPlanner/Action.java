@@ -183,7 +183,6 @@ public class Action implements java.io.Serializable {
     
     public PartialResult partial(KripkeStructure oldKripke) {
 
-        Map<World, World> map = new HashMap<>();
 
         Set<World> oldWorlds = oldKripke.getWorlds();
 
@@ -315,10 +314,10 @@ public class Action implements java.io.Serializable {
                 else {
                     learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
                 }
-                System.out.println("------");
-                System.out.println(agent);
-                System.out.println(oldWorld);
-                System.out.println(learnedBeliefFormula.get(oldWorld).get(agent));
+                //System.out.println("------");
+                //System.out.println(agent);
+                //System.out.println(oldWorld);
+                //System.out.println(learnedBeliefFormula.get(oldWorld).get(agent));
             }
 
         }
@@ -460,9 +459,8 @@ public class Action implements java.io.Serializable {
                     BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
                     // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
-                    Log.debug("setting belief edges");
                     for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = map.get(toWorld);
+                        World oldToWorld = newToOld.get(toWorld);
                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
                             if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
                                 newBelief.connect(fromWorld, toWorld);
@@ -472,7 +470,7 @@ public class Action implements java.io.Serializable {
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor());
+                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() + " at " + fromWorld.toString());
                         for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
                             World oldToWorld = newToOld.get(toWorld);
                             if (learnedBelief.evaluate(oldKripke, oldToWorld)){
@@ -615,9 +613,9 @@ public class Action implements java.io.Serializable {
         for (World w : oldKripke.getWorlds()) {
             for (String agent : domain.getAllAgents()) {
                 if (isOblivious(agent,w)) {
-                     for (Action a : possibleActions(agent, obliviousKripke, w)) {
+                     for (Action a : possibleActions(agent, oldKripke, w)) {
                          if (!a.equals(this)) {
-                             Action.PartialResult partialResult = a.partial(obliviousKripke);
+                             Action.PartialResult partialResult = a.partial(oldKripke);
                              newKripke.add(partialResult.kripke);
                              map.putAll(partialResult.map);
                          }
@@ -676,6 +674,7 @@ public class Action implements java.io.Serializable {
     }
 
     private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
+        assert (!kripke.getKnownWorlds(agent, world).isEmpty());
         Set<Action> actions = new HashSet<>();
         for (Action action : domain.getAllActions()) {
             BeliefFormula possiblyPreconditioned = new BeliefKnowsFormula(agent,
@@ -683,7 +682,6 @@ public class Action implements java.io.Serializable {
             BeliefFormula possiblyOblivious = BeliefAndFormula.make(
                 new BeliefKnowsFormula(agent, action.observesIf.get(agent)).negate(),
                 new BeliefKnowsFormula(agent, action.awareIf.get(agent)).negate());
-
             if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
                 actions.add(action);
             }
