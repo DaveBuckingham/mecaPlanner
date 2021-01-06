@@ -283,7 +283,8 @@ public class Action implements java.io.Serializable {
                         learnedObserver.get(agent).get(oldWorld)));
                 }
                 else {
-                    learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(true));
+                    //learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(true));
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, learnedObserver.get(agent).get(oldWorld));
                 }
                 //if(!learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld)) {
                 //    System.out.println(agent + " learned:");
@@ -406,13 +407,15 @@ public class Action implements java.io.Serializable {
         Map<World, Set<World>> oldToNew = new HashMap<>();
         Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
         for (World oldWorld : oldWorlds) {
-            oldToNew.put(oldWorld, new HashSet<World>());
-            for (Map<String, Set<World>> assignment : assignments.get(oldWorld)) {
-                World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
-                newWorlds.add(newWorld);
-                newToOld.put(newWorld, oldWorld);
-                oldToNew.get(oldWorld).add(newWorld);
-                postAssignments.put(newWorld, assignment);
+            if (precondition.evaluate(oldWorld)) {
+                oldToNew.put(oldWorld, new HashSet<World>());
+                for (Map<String, Set<World>> assignment : assignments.get(oldWorld)) {
+                    World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
+                    newWorlds.add(newWorld);
+                    newToOld.put(newWorld, oldWorld);
+                    oldToNew.get(oldWorld).add(newWorld);
+                    postAssignments.put(newWorld, assignment);
+                }
             }
         }
 
