@@ -29,7 +29,6 @@ public class RecursiveModel extends Model {
 
     public Set<Action> getPrediction(EpistemicState eState) {
         Perspective perspective = new Perspective(eState, agent);
-        Set<Action> prediction = new HashSet<>();
 
         if (plan == null || !plan.hasPerspective(perspective)) {
 
