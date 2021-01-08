@@ -643,12 +643,8 @@ public class Action implements java.io.Serializable {
                      for (World toWorld : map.keySet()) {
                          World oldToWorld = map.get(toWorld);
                          if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             //System.out.println("--------");
-                             //System.out.println(learnedObserver);
-                             //System.out.println(agent);
-                             //System.out.println(oldFromWorld);
-                             //System.out.println(learnedObserver.get(agent));
-                             //System.out.println(learnedObserver.get(agent).get(oldFromWorld));
+                             // IT SHOULD BE THIS, BUT NEED TO MOVE learnedKnowledgeFormula TO GLOBAL...
+                             //if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldToWorld)) {
                              if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
                                  newKripke.connectKnowledge(agent, fromWorld, toWorld);
                              }

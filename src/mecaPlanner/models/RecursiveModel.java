@@ -51,10 +51,14 @@ public class RecursiveModel extends Model {
             }
 
             Set<EpistemicState> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
-            //Map<String,Model> 
 
             //Problem problem = new Problem(localDomain, systemAgentIndex, startStates, 
+            //Map<String,Model> 
         }
+        assert (plan != null);
+        assert (plan.hasPerspective(perspective));
+        Set<Action> prediction = new HashSet<>();
+        prediction.add(plan.getAction(perspective));
         return prediction;
 
 //    public Problem(Domain domain,
