@@ -473,6 +473,7 @@ public class Action implements java.io.Serializable {
 
                     // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
                     if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                        System.out.println("!!!");
                         Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() + " at " + fromWorld.toString());
                         for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
                             World oldToWorld = newToOld.get(toWorld);
@@ -484,6 +485,7 @@ public class Action implements java.io.Serializable {
 
                     // SECOND BELIEF RESET
                     if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                        System.out.println("!!!");
                         Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
                         for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
                             World oldToWorld = newToOld.get(toWorld);

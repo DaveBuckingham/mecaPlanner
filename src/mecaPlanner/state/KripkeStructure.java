@@ -307,6 +307,38 @@ public class KripkeStructure implements java.io.Serializable {
                 //Log.debug(toString());
                 return false;
             }
+            if (!checkKb1(knowledgeRelations.get(agent), beliefRelations.get(agent), worlds)) {
+                Log.severe("failed check: KB1 for agent " + agent);
+                return false;
+            }
+            if (!checkKb2(knowledgeRelations.get(agent), beliefRelations.get(agent), worlds)) {
+                Log.severe("failed check: KB2 for agent " + agent);
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean checkKb1(Relation knowledge, Relation belief, Set<World> worlds) {
+        for (World fromWorld : worlds) {
+            for (World toWorld : belief.getToWorlds(fromWorld)) {
+                if (!knowledge.isConnected(fromWorld,toWorld)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean checkKb2(Relation knowledge, Relation belief, Set<World> worlds) {
+        for (World u : worlds) {
+            for (World v : knowledge.getToWorlds(u)) {
+                for (World w : belief.getToWorlds(v)) {
+                    if (!belief.isConnected(u,w)) {
+                        return false;
+                    }
+                }
+            }
         }
         return true;
     }
