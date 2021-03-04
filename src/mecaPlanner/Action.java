@@ -34,6 +34,8 @@ public class Action implements java.io.Serializable {
 
     Map<String, Map<World, LocalFormula>> learnedObserver;
 
+    Map<Action, Map<World, Map<String, Set<World>>>> postAssignments;
+
 
 
 
@@ -67,6 +69,8 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             learnedObserver.put(agent, new HashMap<World, LocalFormula>());
         }
+
+        postAssignments = new HashMap<>();
 
     }
 
@@ -405,7 +409,9 @@ public class Action implements java.io.Serializable {
         Set<World> newWorlds = new HashSet<>();
         Map<World, World> newToOld = new HashMap<>();
         Map<World, Set<World>> oldToNew = new HashMap<>();
-        Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
+        //Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
+        Map<Action, Map<World, Map<String, Set<World>>>> postAssignments;
+        postAssignmen
         for (World oldWorld : oldWorlds) {
             if (precondition.evaluate(oldWorld)) {
                 oldToNew.put(oldWorld, new HashSet<World>());
@@ -437,7 +443,7 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                if (isObservant(agent, newToOld.get(fromWorld)) || isAware(agent, newToOld.get(fromWorld))) {
                     for (World toWorld : newWorlds) {
                         if (postAssignments.get(fromWorld).get(agent).equals(
                             postAssignments.get(toWorld).get(agent))){
@@ -457,7 +463,7 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                if (isObservant(agent, newToOld.get(fromWorld)) || isAware(agent, newToOld.get(fromWorld))) {
                     World oldFromWorld = newToOld.get(fromWorld);
                     BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
@@ -629,31 +635,53 @@ public class Action implements java.io.Serializable {
             }
         }
 
+
         // OBLIVIOUS AGENT INTRA- AND INTER-SUB-MODEL CONNECTIONS
         for (String agent : domain.getAllAgents()) {
             for (World fromWorld : map.keySet()) {
-                 World oldFromWorld = map.get(fromWorld);
-                 if (isOblivious(agent, fromWorld)) {
-                     // BELIEF EDGES ONLY GO TO (AND WITHIN) THE OBLIVIOUS SUB-MODEL
-                     for (World toWorld : obliviousKripke.getWorlds()) {
-                         World oldToWorld = map.get(toWorld);
-                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                             newKripke.connectBelief(agent, fromWorld, toWorld);
-                         }
-                     }
-                     // KNOWLEDGE EDGES BETWEEN AND WITHIN ALL SUB-MODELS
-                     for (World toWorld : map.keySet()) {
-                         World oldToWorld = map.get(toWorld);
-                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             // IT SHOULD BE THIS, BUT NEED TO MOVE learnedKnowledgeFormula TO GLOBAL...
-                             //if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldToWorld)) {
-                             if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
-                                 newKripke.connectKnowledge(agent, fromWorld, toWorld);
-                             }
-                         }
-                     }
+                World oldFromWorld = map.get(fromWorld);
+                if (isOblivious(agent, oldFromWorld)) {
 
-                 }
+                    for (World toWorld : map.keySet()) {
+                        if (postAssignments.get(fromWorld).get(agent).equals(
+                            postAssignments.get(toWorld).get(agent))){
+                            newKripke.connectKnowledge(agent, fromWorld, toWorld);
+                        }
+                    }
+
+                    for (World toWorld: oblivousKripke.getWorlds) {
+                        if (newKripke.isConnectedKnowledge(agent, fromWorld, toWorld)) {
+                            World oldToWorld = newToOld.get(toWorld);
+                            if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                                if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
+                                    newBelief.connect(fromWorld, toWorld);
+                                }
+                            }
+                        }
+                    }
+
+
+//                      // KNOWLEDGE EDGES BETWEEN AND WITHIN ALL SUB-MODELS
+//                      for (World toWorld : map.keySet()) {
+//                          World oldToWorld = map.get(toWorld);
+//                          if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
+//                              // IT SHOULD BE THIS, BUT NEED TO MOVE learnedKnowledgeFormula TO GLOBAL...
+//                              //if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldToWorld)) {
+//                              if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
+//                                  newKripke.connectKnowledge(agent, fromWorld, toWorld);
+//                              }
+//                          }
+//                      }
+// 
+//                      // BELIEF EDGES ONLY GO TO (AND WITHIN) THE OBLIVIOUS SUB-MODEL
+//                      for (World toWorld : obliviousKripke.getWorlds()) {
+//                          World oldToWorld = map.get(toWorld);
+//                          if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+//                              newKripke.connectBelief(agent, fromWorld, toWorld);
+//                          }
+//                      }
+//                 }
+                }
             }
         }
 
