@@ -18,6 +18,8 @@ public class PNode  {
     private int depth;      // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
     private Domain domain;
 
+    private static final int INFINITY = 9999;
+
 
 
     public PNode(Perspective perspective, Set<OrNode> grounds, int time, int depth, Domain domain) {
@@ -66,6 +68,7 @@ public class PNode  {
         if (depth > maxDepth) {
             return false;
         }
+        int bestBestCaseDepth = INFINTIY;
         for (Action action : getPossibleActions()) {
             successors = pTransition(action);
             if (successors == null) {
@@ -79,11 +82,13 @@ public class PNode  {
                 }
             }
             if (!failedSuccessor) {
-                successfulAction = action;
-                return true;
+                if ((succesfulAction == null) && (bestCaseDepthForAction < bestBestCaseDepth)) {
+                    successfulAction = action;
+                    bestBestCaseDepth = bestCaseDepthForAction;
+                }
             }
         }
-        return false;
+        return (successfulAction != null);
     }
     // returns null if transition fails due to cycles or depth limit
     // returns empty set if found goal
@@ -91,7 +96,10 @@ public class PNode  {
         Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
         for (OrNode ground : grounds ){
 
-            Set<OrNode> gSuccessors = ground.transition(action).descend();
+            //Set<OrNode> gSuccessors = ground.transition(action).descend();
+
+            GroundSuccessors successors = ground.transition(action).descend();
+            Set<OrNode> gSuccessors = sucessors.getOrLayer();
 
             if (gSuccessors == null) {
                 return null;

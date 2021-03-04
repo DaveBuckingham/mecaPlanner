@@ -109,7 +109,7 @@ public abstract class GNode  {
         }
     }
 
-    public abstract Set<OrNode> descend();
+    public abstract GroundSuccessors descend();
 
     private String treeToString(int time) {
         StringBuilder str = new StringBuilder();

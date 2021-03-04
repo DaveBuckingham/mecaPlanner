@@ -68,7 +68,13 @@ public class AndNode extends GNode {
         }
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
-            Set<OrNode> orSuccessors = successor.descend();
+
+            //Set<OrNode> orSuccessors = successor.descend();
+
+            GroundSuccessors successors = successor.descend();
+            Set<OrNode> orSuccessors = sucessors.getOrLayer();
+
+
             if (orSuccessors == null) {
                 return null;
             }
