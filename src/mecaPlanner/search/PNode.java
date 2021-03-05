@@ -70,20 +70,25 @@ public class PNode  {
         }
         Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
 
+        Integer best = Integer.MAX_VALUE;
         for (PNode successor : potentialSuccessors) {
-            if (!successor.expand(maxDepth)) {
+
+            Integer successorsBest = successor.expand(maxDepth);
+            if (successorsBest == Integer.MAX_VALUE) {
                 return null;
             }
+            best = Integer.min(best, successorsBest);
         }
-        return successorsWithScore;
+        return new PerspectiveSuccessors(best, potentialSuccessors);
     }
 
-    public boolean expand(int maxDepth) {
+    public Integer expand(int maxDepth) {
         if (depth > maxDepth) {
-            return false;
+            return Integer.MAX_VALUE;
         }
         Integer bestBestCaseDepth = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
+                //System.out.println(action.getSignature());
             PerspectiveSuccessors successorsWithScore = evaluate(action, maxDepth);
             if (successorsWithScore == null) {
                 continue;
@@ -92,12 +97,13 @@ public class PNode  {
             Integer actionBestScore = successorsWithScore.getBestCaseDepth();
 
             if (actionBestScore < bestBestCaseDepth) {
+                System.out.println(action.getSignature());
                 successfulAction = action;
                 bestBestCaseDepth = actionBestScore;
                 successors = successorsWithScore.getPLayer();
             }
         }
-        return (successfulAction != null);
+        return (bestBestCaseDepth);
     }
 
     // returns null if transition fails due to cycles or depth limit

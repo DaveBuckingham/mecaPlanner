@@ -115,7 +115,7 @@ public class Search {
     public Solution searchToDepth(Set<PNode> startPNodes, int maxDepth) {
 
         for (PNode startPNode : startPNodes) {
-            if (!startPNode.expand(maxDepth)) {
+            if (startPNode.expand(maxDepth) == Integer.MAX_VALUE) {
                 return null;
             };
         }

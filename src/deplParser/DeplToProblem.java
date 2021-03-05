@@ -595,6 +595,9 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(obsCtx.groundableObject());
+                        if (!domain.getAllAgents().contains(agentName)) {
+                            throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
+                        }
                         LocalFormula condition;
                         if (obsCtx.localFormula() == null) {
                             condition = new Literal(true);
