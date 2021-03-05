@@ -110,13 +110,15 @@ public class PNode  {
             //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
             GroundSuccessors successors = ground.transition(action).descend();
+
+            if (successors == null) {
+                return null;
+            }
+
             Set<OrNode> gSuccessors = successors.getOrLayer();
 
             bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
 
-            if (gSuccessors == null) {
-                return null;
-            }
             for (OrNode gSuccessor : gSuccessors) {
                 Perspective successorPerspective = new Perspective(gSuccessor.getState(), gSuccessor.getAgent());
                 if (!successorPerspectives.containsKey(successorPerspective)) {

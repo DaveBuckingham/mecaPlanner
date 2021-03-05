@@ -76,13 +76,14 @@ public class AndNode extends GNode {
 
             GroundSuccessors successors = successor.descend();
 
+            if (successors == null) {
+                return null;
+            }
+
             Set<OrNode> orSuccessors = successors.getOrLayer();
 
             bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
 
-            if (orSuccessors == null) {
-                return null;
-            }
             allOrSuccessors.addAll(orSuccessors);
         }
         //return allOrSuccessors;

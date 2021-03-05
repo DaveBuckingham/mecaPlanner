@@ -18,19 +18,19 @@ agents{
     robots,
 }
 
-constants{
-    ~welder(robot1),
-    welder(robot2)
-}
-
 fluents{
     at(Locatable, Location),
     online(Tube),
 }
 
+constants{
+    ~welder(robot1),
+    welder(robot2)
+}
+
 initially{
     {
-        w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
+        *w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
         w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
@@ -59,7 +59,7 @@ initially{
     },
 
     {
-        w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
+        *w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
         w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
@@ -88,7 +88,7 @@ initially{
     },
 
     {
-        w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
+        *w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
@@ -117,7 +117,7 @@ initially{
     },
 
     {
-        w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
+        *w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
@@ -146,7 +146,7 @@ initially{
     },
 
     {
-        w4 <- { at(robot1, center), at(robot2, center), online(tube1)}
+        *w4 <- { at(robot1, center), at(robot2, center), online(tube1)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
@@ -175,7 +175,7 @@ initially{
     },
 
     {
-        w5 <- { at(robot1, center), at(robot2, center), online(tube2)}
+        *w5 <- { at(robot1, center), at(robot2, center), online(tube2)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
@@ -204,7 +204,7 @@ initially{
     },
 
     {
-        w6 <- { at(robot1, center), at(robot2, center), online(tube3)}
+        *w6 <- { at(robot1, center), at(robot2, center), online(tube3)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
@@ -233,7 +233,7 @@ initially{
     },
 
     {
-        w7 <- { at(robot1, center), at(robot2, center)}
+        *w7 <- { at(robot1, center), at(robot2, center)}
         w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
         w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
         w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}

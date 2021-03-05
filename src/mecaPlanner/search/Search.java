@@ -117,7 +117,7 @@ public class Search {
         for (PNode startPNode : startPNodes) {
             if (!startPNode.expand(maxDepth)) {
                 return null;
-            }
+            };
         }
         return pnodesToSolution(startPNodes);
     }

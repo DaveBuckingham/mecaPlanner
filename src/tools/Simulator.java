@@ -22,6 +22,7 @@ import java.util.HashMap;
 
 import depl.DeplToProblem;
 
+// INTERACT WITH USER, MODELED AS AN ENVIRONMENT AGENT
 
 public class Simulator {
 
