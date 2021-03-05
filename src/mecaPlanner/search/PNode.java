@@ -63,32 +63,43 @@ public class PNode  {
         return possibleActions;
     }
 
-    public boolean evaluate(int maxDepth) {
+    public PerspectiveSuccessors evaluate(Action action, int maxDepth) {
+        PerspectiveSuccessors successorsWithScore = pTransition(action);
+        if (successorsWithScore == null) {
+            return null;
+        }
+        Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
+
+        for (PNode successor : potentialSuccessors) {
+            if (!successor.expand(maxDepth)) {
+                return null;
+            }
+        }
+        return successorsWithScore;
+    }
+
+    public boolean expand(int maxDepth) {
         if (depth > maxDepth) {
             return false;
         }
         Integer bestBestCaseDepth = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
-            successors = pTransition(action);
-            if (successors == null) {
+            PerspectiveSuccessors successorsWithScore = evaluate(action, maxDepth);
+            if (successorsWithScore == null) {
                 continue;
             }
-            boolean failedSuccessor = false;
-            for (PNode successor : successors) {
-                if (!successor.evaluate(maxDepth)) {
-                    failedSuccessor = true;
-                    break;
-                }
-            }
-            if (!failedSuccessor) {
-                if (bestCaseDepthForAction < bestBestCaseDepth) {
-                    successfulAction = action;
-                    bestBestCaseDepth = bestCaseDepthForAction;
-                }
+
+            Integer actionBestScore = successorsWithScore.getBestCaseDepth();
+
+            if (actionBestScore < bestBestCaseDepth) {
+                successfulAction = action;
+                bestBestCaseDepth = actionBestScore;
+                successors = successorsWithScore.getPLayer();
             }
         }
         return (successfulAction != null);
     }
+
     // returns null if transition fails due to cycles or depth limit
     // returns empty set if found goal
     private PerspectiveSuccessors pTransition(Action action) {
@@ -99,9 +110,8 @@ public class PNode  {
             //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
             GroundSuccessors successors = ground.transition(action).descend();
-            Set<OrNode> gSuccessors = sucessors.getOrLayer();
+            Set<OrNode> gSuccessors = successors.getOrLayer();
 
-            Integer.min bestCaseDepth = successors.getBestCaseDepth();
             bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
 
             if (gSuccessors == null) {

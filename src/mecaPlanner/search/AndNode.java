@@ -60,11 +60,10 @@ public class AndNode extends GNode {
     // starts at the first AndNode after an OrNode,
     // descends through layers of and-nodes,
     // stops when we reach an or-node layer
-    public GroundSuccessor descend() {
+    public GroundSuccessors descend() {
         Set<OrNode> allOrSuccessors = new HashSet<>();
         if (isGoal()) {
-            return allOrSuccessors;
-            return new GroundSuccessor(time, allOrSuccessors);
+            return new GroundSuccessors(time, allOrSuccessors);
         }
         if (isCycle()) {
             return null;
@@ -77,7 +76,7 @@ public class AndNode extends GNode {
 
             GroundSuccessors successors = successor.descend();
 
-            Set<OrNode> orSuccessors = sucessors.getOrLayer();
+            Set<OrNode> orSuccessors = successors.getOrLayer();
 
             bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
 
@@ -87,7 +86,7 @@ public class AndNode extends GNode {
             allOrSuccessors.addAll(orSuccessors);
         }
         //return allOrSuccessors;
-        return new GroundSuccessor(bestCaseDepth, allOrSuccessors);
+        return new GroundSuccessors(bestCaseDepth, allOrSuccessors);
     }
 }
 

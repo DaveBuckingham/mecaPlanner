@@ -25,16 +25,16 @@ public class OrNode extends GNode {
     }
 
     // bottom out a recursive descent through and nodes
-    public Set<OrNode> descend() {
+    public GroundSuccessors descend() {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
-            return s;
+            return new GroundSuccessors(time, s);
         }
         if (isCycle()) {
             return null;
         }
         s.add(this);
-        return s;
+        return new GroundSuccessors(Integer.MAX_VALUE, s);
     }
 
     // follow the action, recursively descending through any and nodes, and return the resulting or node set

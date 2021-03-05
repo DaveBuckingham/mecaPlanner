@@ -10,7 +10,7 @@ public class PerspectiveSuccessors {
 
     public PerspectiveSuccessors(Integer bestCaseDepth, Set<PNode> orLayer) {
         this.bestCaseDepth = bestCaseDepth;
-        this.orLayer = orLayer;
+        this.pLayer = pLayer;
     }
 
     Integer getBestCaseDepth() {

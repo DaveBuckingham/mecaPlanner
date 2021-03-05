@@ -71,11 +71,16 @@ public class Search {
         else {
             for (EpistemicState eState : startStates) {
                 AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, domain);
-                Set<OrNode> startOrNodes = startAndNode.descend();
-                if (startOrNodes == null) {
+                //Set<OrNode> startOrNodes = startAndNode.descend();
+
+                GroundSuccessors startOrNodesWithScore = startAndNode.descend();
+
+                if (startOrNodesWithScore == null) {
                     return null;
                 }
-                allStartOrNodes.addAll(startOrNodes);
+
+
+                allStartOrNodes.addAll(startOrNodesWithScore.getOrLayer());
             }
         }
 
@@ -110,7 +115,7 @@ public class Search {
     public Solution searchToDepth(Set<PNode> startPNodes, int maxDepth) {
 
         for (PNode startPNode : startPNodes) {
-            if (!startPNode.evaluate(maxDepth)) {
+            if (!startPNode.expand(maxDepth)) {
                 return null;
             }
         }
