@@ -16,7 +16,7 @@ import java.util.Map;
 public abstract class GNode  {
     protected EpistemicState estate;
     protected TimeFormula goal;
-    protected int time;
+    protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
     protected Map<String, Model> models;
@@ -33,7 +33,7 @@ public abstract class GNode  {
 
     public GNode(EpistemicState estate,
                  TimeFormula goal,
-                 int time,
+                 Integer time,
                  GNode parent,
                  Map<String, Model> models,
                  int systemAgentIndex,
@@ -67,7 +67,7 @@ public abstract class GNode  {
         return parent;
     }
 
-    public int getTime() {
+    public Integer getTime() {
         return time;
     }
 

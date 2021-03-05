@@ -14,11 +14,10 @@ public class PNode  {
     private Perspective perspective;
     private Set<OrNode> grounds;
     private Set<PNode> successors;
-    private int time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
+    private Integer time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
     private int depth;      // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
     private Domain domain;
 
-    private static final int INFINITY = 9999;
 
 
 
@@ -43,7 +42,7 @@ public class PNode  {
         return successors;
     }
 
-    public int getTime() {
+    public Integer getTime() {
         return time;
     }
 
@@ -68,7 +67,7 @@ public class PNode  {
         if (depth > maxDepth) {
             return false;
         }
-        int bestBestCaseDepth = INFINTIY;
+        Integer bestBestCaseDepth = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
             successors = pTransition(action);
             if (successors == null) {
@@ -82,7 +81,7 @@ public class PNode  {
                 }
             }
             if (!failedSuccessor) {
-                if ((succesfulAction == null) && (bestCaseDepthForAction < bestBestCaseDepth)) {
+                if (bestCaseDepthForAction < bestBestCaseDepth) {
                     successfulAction = action;
                     bestBestCaseDepth = bestCaseDepthForAction;
                 }
@@ -92,14 +91,18 @@ public class PNode  {
     }
     // returns null if transition fails due to cycles or depth limit
     // returns empty set if found goal
-    private Set<PNode> pTransition(Action action) {
+    private PerspectiveSuccessors pTransition(Action action) {
         Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
+        Integer bestCaseDepth = Integer.MAX_VALUE;
         for (OrNode ground : grounds ){
 
             //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
             GroundSuccessors successors = ground.transition(action).descend();
             Set<OrNode> gSuccessors = sucessors.getOrLayer();
+
+            Integer.min bestCaseDepth = successors.getBestCaseDepth();
+            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
 
             if (gSuccessors == null) {
                 return null;
@@ -118,7 +121,7 @@ public class PNode  {
             int newTime = time + domain.getNonPassiveAgents().size();
             successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, domain));
         }
-        return successorNodes;
+        return new PerspectiveSuccessors(bestCaseDepth, successorNodes);
     }
 }
 

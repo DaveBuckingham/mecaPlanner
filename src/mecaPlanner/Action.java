@@ -411,7 +411,6 @@ public class Action implements java.io.Serializable {
         Map<World, Set<World>> oldToNew = new HashMap<>();
         //Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
         Map<Action, Map<World, Map<String, Set<World>>>> postAssignments;
-        postAssignmen
         for (World oldWorld : oldWorlds) {
             if (precondition.evaluate(oldWorld)) {
                 oldToNew.put(oldWorld, new HashSet<World>());
