@@ -57,17 +57,31 @@ initially{
                       (w7,w0),(w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7)
                      },
     },
+
+//    {
+//        *w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
+//        *w1 <- { at(robot1, center), at(robot2, center), online(tube1)}
+//        *w2 <- { at(robot1, center), at(robot2, center), online(tube2)}
+//        *w3 <- { at(robot1, center), at(robot2, center)}
+//        B[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),
+//                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),
+//                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),
+//                      (w3,w0),(w3,w1),(w3,w2),(w3,w3)
+//                     },
+//        K[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),
+//                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),
+//                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),
+//                      (w3,w0),(w3,w1),(w3,w2),(w3,w3)
+//                     },
+//    },
+
 }
 
 
-
-
-
-
 goals{
-    online(tube1),
-    online(tube2),
-    online(tube3),
+    online(tube1) & B[robots](online(tube1)),
+    online(tube2) & B[robots](online(tube2)),
+    online(tube3) & B[robots](online(tube3)),
 }
 
 actions{
