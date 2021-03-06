@@ -70,7 +70,7 @@ public class PNode  {
         }
         Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
 
-        Integer best = Integer.MAX_VALUE;
+        Integer best = successorsWithScore.getBestCaseDepth();
         for (PNode successor : potentialSuccessors) {
 
             Integer successorsBest = successor.expand(maxDepth);
@@ -88,7 +88,6 @@ public class PNode  {
         }
         Integer bestBestCaseDepth = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
-                //System.out.println(action.getSignature());
             PerspectiveSuccessors successorsWithScore = evaluate(action, maxDepth);
             if (successorsWithScore == null) {
                 continue;
@@ -97,7 +96,6 @@ public class PNode  {
             Integer actionBestScore = successorsWithScore.getBestCaseDepth();
 
             if (actionBestScore < bestBestCaseDepth) {
-                System.out.println(action.getSignature());
                 successfulAction = action;
                 bestBestCaseDepth = actionBestScore;
                 successors = successorsWithScore.getPLayer();
