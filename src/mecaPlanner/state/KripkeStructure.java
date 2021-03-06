@@ -49,6 +49,13 @@ public class KripkeStructure implements java.io.Serializable {
 
     }
 
+    public KripkeStructure(KripkeStructure toCopy) {
+        this.worlds = new HashSet<World>(toCopy.getWorlds());
+        this.beliefRelations = new HashMap<String, Relation>(toCopy.getBeliefRelations());
+        this.knowledgeRelations = new HashMap<String, Relation>(toCopy.getKnowledgeRelations());
+        this.agents = new HashSet<String>(toCopy.getAgents());
+    }
+
     public Set<World> getWorlds() {
         return worlds;
     }
@@ -81,8 +88,16 @@ public class KripkeStructure implements java.io.Serializable {
         return beliefRelations.get(agent).getToWorlds(from);
     }
 
+    public Map<String, Relation> getBelieRelations() {
+        return beliefRelations;
+    }
+
     public Set<World> getKnownWorlds(String agent, World from) {
         return knowledgeRelations.get(agent).getToWorlds(from);
+    }
+
+    public Map<String, Relation> getKnowledgeRelations() {
+        return knowledgeRelations;
     }
 
     public Set<World> getChildren(World world) {
@@ -96,10 +111,6 @@ public class KripkeStructure implements java.io.Serializable {
 
     public Map<String, Relation> getBeliefRelations() {
         return this.beliefRelations;
-    }
-
-    public Map<String, Relation> getKnowledgeRelations() {
-        return this.knowledgeRelations;
     }
 
 
@@ -167,8 +178,13 @@ public class KripkeStructure implements java.io.Serializable {
         return partition;
     }
 
+    public Set<String> getAgents() {
+        return agents;
+    }
+
     public void add(KripkeStructure other) {
         assert (this != other);
+        assert (this.agents == other.getAgents());
         this.worlds.addAll(other.getWorlds());
         for (String agent : agents) {
             beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
