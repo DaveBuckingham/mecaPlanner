@@ -1,0 +1,38 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    z-Actor,
+}
+
+agents{
+    z,
+}
+
+
+fluents{
+    a(),b(),c(),d()
+}
+
+
+initially{
+    *u <- {a()},
+    v <- {b()},
+    w <- {c()},
+    x <- {d()},
+    B[z] <- {(u,v),(v,x),(x,x),(w,w),(u,x),(v,v),(x,v)},
+    K[z] <- {(u,u),(u,v),(u,w),(u,x),(v,v),(v,u),(v,w),(w,w),(w,u),(w,v),(v,x),(x,v),(x,x),(w,x),(x,w),(x,u),(u,x)},
+}
+
+goals{
+}
+
+actions{
+    go(){
+        owner{z},
+        announces{~d()},
+        observes(){z},
+    }
+
+}
