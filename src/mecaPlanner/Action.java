@@ -113,6 +113,10 @@ public class Action implements java.io.Serializable {
         return this.cost;
     }
 
+    public Set<LocalFormula> getDetermines() {
+        return this.determines;
+    }
+
     public boolean executable(EpistemicState state) {
         return precondition.evaluate(state.getDesignatedWorld());
     }
