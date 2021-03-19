@@ -90,6 +90,14 @@ public class Action implements java.io.Serializable {
         return this.effects;
     }
 
+    public Map<String, LocalFormula> getObserves() {
+        return this.observesIf;
+    }
+
+    public Map<String, LocalFormula> getAware() {
+        return this.awareIf;
+    }
+
     // DO THIS HERE INSTEAD OF IN WORLD IN CASE WE WANT TO SWITCH
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {
