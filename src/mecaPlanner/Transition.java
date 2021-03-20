@@ -212,13 +212,25 @@ public class Transition {
 
 
         // Q_iu
-        Map<String, Map<World, Set<World>>> containingClasses = new HashMap<>();
+        Map<String, Map<World, Set<Set<World>>>> containingClasses = new HashMap<>();
         for (String agent : agents) {
-            for (World w : worlds) {
-                Map<World, Set<World>> equivalenceClass = equivalenceClasses.get(agent);
+            Map<World, Set<Set<World>>> worldsWithContainingClasses = new HashMap<>();
+            for (World u : worlds) {
+                Set<Set<World>> classesContainingU = new HashSet<>();
+                for (Map.Entry<World, Set<World>> entry : equivalenceClasses.get(agent).entrySet()) {
+                    for (Set<World> eqClass : equivalenceClasses.get(agent).values()) {
+                        if (eqClass.contains(u)) {
+                            classesContainingU.add(eqClass);
+                        }
+                    }
+                }
+                worldsWithContainingClasses.put(u, classesContainingU);
             }
-
+            containingClasses.put(agent, worldsWithContainingClasses);
         }
+
+
+        // G_u
 
 
 
