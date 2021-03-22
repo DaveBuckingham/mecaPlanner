@@ -19,6 +19,42 @@ import java.util.Objects;
 
 public class Transition {
 
+    private static class PostWorld {
+        public World oldWorld;
+        public Action action;
+        public List<Set<World>> eqClassAssignment;
+        public PostWorld(World oldWorld, Action action, List<Set<World>> eqClassAssignment) {
+            this.oldWorld = oldWorld;
+            this.action = action;
+            this.eqClassAssignment = eqClassAssignment;
+        }
+    }
+
+
+    // THIS FUNCTION IS COPIED FROM PHILLIP MEISTER:
+    // https://stackoverflow.com/questions/714108/cartesian-product-of-arbitrary-sets-in-java
+    private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
+        List<List<T>> resultLists = new ArrayList<List<T>>();
+        if (lists.size() == 0) {
+            resultLists.add(new ArrayList<T>());
+            return resultLists;
+        } else {
+            List<T> firstList = lists.get(0);
+            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
+            for (T condition : firstList) {
+                for (List<T> remainingList : remainingLists) {
+                    ArrayList<T> resultList = new ArrayList<T>();
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
+    }
+
+
+
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
         Set<World> worlds = inModel.getWorlds();
         Set<String> agents  = inModel.getAgents();
@@ -212,10 +248,10 @@ public class Transition {
 
 
         // Q_iu
-        Map<String, Map<World, Set<Set<World>>>> containingClasses = new HashMap<>();
-        for (String agent : agents) {
-            Map<World, Set<Set<World>>> worldsWithContainingClasses = new HashMap<>();
-            for (World u : worlds) {
+        Map<World, Map<String, Set<Set<World>>>> containingClasses = new HashMap<>();
+        for (World u : worlds) {
+            Map<String, Set<Set<World>>> worldsWithContainingClasses = new HashMap<>();
+            for (String agent : agents) {
                 Set<Set<World>> classesContainingU = new HashSet<>();
                 for (Map.Entry<World, Set<World>> entry : equivalenceClasses.get(agent).entrySet()) {
                     for (Set<World> eqClass : equivalenceClasses.get(agent).values()) {
@@ -224,17 +260,38 @@ public class Transition {
                         }
                     }
                 }
-                worldsWithContainingClasses.put(u, classesContainingU);
+                worldsWithContainingClasses.put(agent, classesContainingU);
             }
-            containingClasses.put(agent, worldsWithContainingClasses);
+            containingClasses.put(u, worldsWithContainingClasses);
         }
 
 
         // G_u
+        Map<World, List<List<Set<World>>>> classAssignments = new HashMap<>();
+
+        for (World w : containingClasses.keySet()) {
+            List<List<Set<World>>> byAgent = new ArrayList<>(containingClasses.get(w).size());
+            for (Map.Entry<String, Set<Set<World>>> entry : containingClasses.get(w).entrySet()) {
+                byAgent.add(new ArrayList<Set<World>>(entry.getValue()));
+            }
+            classAssignments.put(w, cartesianProduct(byAgent));
+        }
+
+
+        // S^a
+        Set<PostWorld> postWorlds = new HashSet<>();
+        for (World w : worlds) {
+            if (action.executable(w)) {
+                for (List<Set<World>> assignment : classAssignments.get(w)) {
+                    postWorlds.add(new PostWorld(w, action, assignment));
+                }
+            }
+        }
 
 
 
         return null;
+
     }
 
 

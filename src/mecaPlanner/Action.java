@@ -126,7 +126,7 @@ public class Action implements java.io.Serializable {
     }
 
     public boolean executable(EpistemicState state) {
-        return precondition.evaluate(state.getDesignatedWorld());
+        return executable(state.getDesignatedWorld());
     }
 
     protected boolean executable(World world) {
