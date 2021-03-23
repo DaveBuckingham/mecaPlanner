@@ -279,15 +279,39 @@ public class Transition {
 
 
         // S^a
-        Set<PostWorld> postWorlds = new HashSet<>();
+        Map<World, PostWorld> postWorlds = new HashMap<>();
         for (World w : worlds) {
             if (action.executable(w)) {
-                for (List<Set<World>> assignment : classAssignments.get(w)) {
-                    postWorlds.add(new PostWorld(w, action, assignment));
+                for (List<Set<World>> classAssignment : classAssignments.get(w)) {
+                    World newWorld = w.update(action.getApplicableEffects(w));
+                    postWorlds.put(newWorld, new PostWorld(w, action, classAssignment));
                 }
             }
         }
 
+
+        // K^a_i
+        Map<String, Relation> alphaKRelation = new HashMap<>();
+        for (String agent : agents) {
+            Relation relation = new Relation();
+            for (Map.Entry<World, PostWorld> entry : postWorlds.entrySet()) {
+                World u = entry.getKey();
+                PostWorld uDef = entry.getValue();
+                for (Map.Entry<World, PostWorld> entry2 : postWorlds.entrySet()) {
+                    World v = entry2.getKey();
+                    PostWorld vDef = entry2.getValue();
+                    if (uDef.eqClassAssignment == vDef.eqClassAssignment) {
+                        relation.connect(u,v);
+                    }
+                }
+            }
+            alphaKRelation.put(agent, relation);
+        }
+
+        System.out.println(alphaKRelation);
+
+
+        System.exit(1);
 
 
         return null;
@@ -296,6 +320,7 @@ public class Transition {
 
 
     public static EpistemicState transition(EpistemicState inState, Action action) {
+        KripkeStructure modelAlpha = intermediateTransition(inState.getKripke(), action);
         return null;
     }
 

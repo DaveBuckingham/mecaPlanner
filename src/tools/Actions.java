@@ -11,6 +11,7 @@ import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
 import mecaPlanner.Log;
+import mecaPlanner.Transition;
 
 import java.util.Scanner;
 import java.util.List;
@@ -23,6 +24,7 @@ import java.util.HashMap;
 import depl.DeplToProblem;
 
 // LOAD A DEPL, ASK USER TO SELECT AN ACTION, SHOW TRANSITION, REPEAT
+// USES THE KR2021 TRANSITION IMPLEMENTATION
 
 public class Actions {
 
@@ -86,8 +88,10 @@ public class Actions {
                 throw new RuntimeException("somehow failed to select an action");
             }
 
-            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            currentState = transitionResult.getState();
+            //Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+            //currentState = transitionResult.getState();
+
+            currentState = Transition.transition(currentState, action);
 
         }
 
