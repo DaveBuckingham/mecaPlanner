@@ -151,9 +151,7 @@ public class Transition {
             if (!disjunctionF.containsKey(agent)) {
                 disjunctionF.put(agent, new HashSet<LocalFormula>());
             }
-            else {
-                disjunctionF.get(agent).add(condition);
-            }
+            disjunctionF.get(agent).add(condition);
         }
         for (Map.Entry<String, Set<LocalFormula>> entry : disjunctionF.entrySet()) {
             observesConditions.put(entry.getKey(), LocalOrFormula.make(entry.getValue()));
@@ -168,9 +166,7 @@ public class Transition {
             if (!disjunctionP.containsKey(agent)) {
                 disjunctionP.put(agent, new HashSet<LocalFormula>());
             }
-            else {
-                disjunctionP.get(agent).add(condition);
-            }
+            disjunctionP.get(agent).add(condition);
         }
         for (Map.Entry<String, Set<LocalFormula>> entry : disjunctionP.entrySet()) {
             awareConditions.put(entry.getKey(), LocalOrFormula.make(entry.getValue()));
@@ -186,6 +182,7 @@ public class Transition {
                 if (action.isObservant(agent, w)) {
                     worldsToFormulae.put(w, LocalAndFormula.make(observesConditions.get(agent),
                                                                  awareConditions.get(agent).negate()));
+
                 }
                 else if (action.isAware(agent, w)) {
                     worldsToFormulae.put(w, LocalAndFormula.make(observesConditions.get(agent).negate(),
@@ -203,12 +200,14 @@ public class Transition {
 
         // SCRIPT-K-ALPHA-I-U
         for (String agent : agents) {
+            Map<World, LocalFormula> knowledgeByWorld = new HashMap<>();
             for (World w : worlds) {
                 LocalFormula learnedKnowledgeFormula;
                 if (action.isObservant(agent, w)) {
                     learnedKnowledgeFormula = LocalAndFormula.make(learnedKnowledgeDetermined.get(w),
                                                                    learnedKnowledgeEffects.get(w),
                                                                    learnedKnowledgeObserver.get(agent).get(w));
+
                 }
                 else if (action.isAware(agent, w)) {
                     learnedKnowledgeFormula = LocalAndFormula.make(learnedKnowledgeEffects.get(w),
@@ -217,8 +216,9 @@ public class Transition {
                 else {
                     learnedKnowledgeFormula = learnedKnowledgeObserver.get(agent).get(w);
                 }
-                learnedKnowledge.get(agent).put(w, learnedKnowledgeFormula);
+                knowledgeByWorld.put(w, learnedKnowledgeFormula);
             }
+            learnedKnowledge.put(agent, knowledgeByWorld);
         }
 
 
