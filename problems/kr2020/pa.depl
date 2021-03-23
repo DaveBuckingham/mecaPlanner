@@ -1,0 +1,40 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    a-Actor,
+}
+
+agents{a}
+
+passive{
+}
+
+fluents{
+    p()-Boolean,
+    r()-Boolean,
+}
+
+initially{
+    w1<-{p()},
+    w2<-{p(),r()},
+    w3<-{},
+    w4<-{r()},
+    B[a]<-{(w1,w3),(w1,w4),(w2,w3),(w2,w4),(w3,w3),(w3,w4),(w4,w4),(w4,w3),(w3,w3),(w4,w4)},
+    K[a]<-{(w1,w3),(w3,w1),(w1,w4),(w4,w1),(w2,w3),(w3,w2),(w2,w4),(w4,w2),(w3,w4),(w4,w3),(w1,w2),(w2,w1),
+    (w1,w1),(w2,w2),(w3,w3),(w4,w4)}
+}
+
+goals{}
+
+actions{
+
+    broadcast() {
+        owner{a},
+        precondition{p()},
+        observes(){a},
+        announces{r()}
+    }
+
+}

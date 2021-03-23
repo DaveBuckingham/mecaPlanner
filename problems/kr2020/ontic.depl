@@ -1,0 +1,61 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    alice-Actor,
+    bob  -Actor,
+    carol-Actor
+}
+
+agents{alice}
+
+passive{
+    bob,
+    carol
+}
+
+fluents{
+    closed()-Boolean,
+    looking(Actor)-Boolean,
+    locked()-Boolean,
+}
+
+initially{
+    w1<-{closed()<-true,looking(alice)<-true,looking(bob)<-true},
+    w2<-{closed()<-true,locked()<-true,looking(alice)<-true,looking(bob)<-true},
+    B[alice]<-{(w1,w1),(w2,w2)},
+    B[bob]<-  {(w1,w2),(w2,w2)},
+    B[carol]<-{(w1,w1),(w2,w2)},
+    K[alice]<-{(w1,w1),(w2,w2)},
+    K[bob]<-  {(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
+    K[carol]<-{(w1,w1),(w2,w2)},
+}
+
+post{
+    w1<-{looking(alice),looking(bob)},
+    w2<-{closed(),looking(alice),looking(bob)},
+    w3<-{closed(),locked(),looking(alice),looking(bob)},
+    B[alice]<-{(w1,w1),(w2,w2),(w3,w3)},
+    B[bob]<-  {(w1,w1),(w2,w3),(w3,w3)},
+    B[carol]<-{(w1,w2),(w2,w2),(w3,w3)},
+    K[alice]<-{(w1,w1),(w2,w2),(w3,w3)},
+    K[bob]<-  {(w1,w1),(w2,w2),(w3,w3),(w2,w3),(w3,w2)},
+    K[carol]<-{(w1,w1),(w2,w2),(w3,w3),(w1,w2),(w2,w1)},
+}
+
+goals{
+}
+
+actions{
+
+    openDoor(){
+        owner{alice},
+        precondition{~locked()},
+        precondition{closed()},
+        observes(?o - Actor){?o if looking(?o)},
+        causes{~closed()},
+    }
+
+}
+

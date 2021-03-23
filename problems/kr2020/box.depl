@@ -1,0 +1,59 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    f-Actor,
+    a-Actor,
+    o-Actor,
+}
+
+agents{f}
+
+passive{a,o}
+
+
+fluents{
+    t()-Boolean,
+    c()-Boolean,
+}
+
+initially{
+    w3<-{t(),c()},
+    w4<-{c()},
+    B[f]<-{(w3,w4),(w4,w4)},
+    B[a]<-{(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    B[o]<-{(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    K[f]<-{(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    K[a]<-{(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    K[o]<-{(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+}
+
+post {
+    w1<-{t()},
+    w2<-{},
+    w3<-{t(),c()},
+    w4<-{c()},
+    B[f]<-{(w1,w2),(w2,w2),(w3,w3),(w4,w4)},
+    B[a]<-{(w1,w1),(w1,w2),(w2,w2),(w2,w1),(w3,w3),(w4,w4),(w3,w4),(w4,w3)},
+    B[o]<-{(w1,w3),(w1,w4),(w2,w3),(w2,w4),(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    K[f]<-{(w1,w1),(w1,w2),(w2,w2),(w2,w1),(w3,w3),(w4,w4)},
+    K[a]<-{(w1,w1),(w1,w2),(w2,w2),(w2,w1),(w3,w3),(w4,w4),(w3,w4),(w4,w3)},
+    K[o]<-{(w1,w1),(w1,w2),(w2,w2),(w2,w1),(w3,w3),(w4,w4),(w3,w4),(w4,w3),(w1,w3),(w3,w1),(w1,w4),(w4,w1),(w2,w3),(w3,w2),(w2,w4),(w4,w2),(w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+
+}
+
+goals{}
+
+actions{
+
+    look() {
+        owner{f},
+        precondition{true},
+        causes(){~c()},
+        determines(){t()},
+        observes(){f},
+        aware(){a}
+    }
+
+}

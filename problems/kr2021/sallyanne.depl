@@ -1,0 +1,62 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    sally-Actor,
+    anne-Actor,
+}
+
+agents{
+    sally,
+    anne{TrivialModel}
+}
+
+
+fluents{
+    p(),t(),x()
+}
+
+
+initially{
+    *w1 <- {p()}
+    B[sally] <- {(w1,w1)},
+    K[sally] <- {(w1,w1)},
+    B[anne] <- {(w1,w1)},
+    K[anne] <- {(w1,w1)},
+}
+
+goals{
+}
+
+actions{
+    put(){
+        owner{sally},
+        precondition{p()},
+        precondition{~t()},
+        observes(?o-Actor){?o},
+        causes{t()},
+    }
+    leave(){
+        owner{sally},
+        precondition{p()},
+        observes(?o-Actor){?o},
+        causes{~p()},
+    }
+    transfer(){
+        owner{anne},
+        precondition{t()},
+        precondition{~x()},
+        observes(){anne},
+        observes(){sally if p()},
+        causes{~t()},
+        causes{x()},
+    }
+    reenter(){
+        owner{sally},
+        precondition{~p()},
+        observes(?o-Actor){?o},
+        causes{p()},
+    }
+
+}
