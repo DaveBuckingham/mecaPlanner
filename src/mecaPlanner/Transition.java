@@ -56,7 +56,7 @@ public class Transition {
 
 
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
-        Set<World> worlds = inModel.getWorlds();
+        Set<World> oldWorlds = inModel.getWorlds();
         Set<String> agents  = inModel.getAgents();
         
 
@@ -85,7 +85,7 @@ public class Transition {
 
         // SCRIPT-K-ALPHA-U-DET
         {
-        for (World w : worlds) {
+        for (World w : oldWorlds) {
             Set<LocalFormula> conjunction = new HashSet<>();
             for (LocalFormula determined : action.getDetermines()) {
                 if (determined.evaluate(w)) {
@@ -102,7 +102,7 @@ public class Transition {
 
         // PHI-U-ALPHA-F
         {
-        for (World w : worlds) {
+        for (World w : oldWorlds) {
             Map<Fluent, Set<LocalFormula>> disjunction = new HashMap<>();
             for (Map.Entry<Assignment, LocalFormula> entry : action.getEffects().entrySet()) {
                 Fluent       fluent    = entry.getKey().getFluent();
@@ -124,7 +124,7 @@ public class Transition {
 
 
         // SCRIPT-K-ALPHA-U-EFF
-        for (World w : worlds) {
+        for (World w : oldWorlds) {
             Set<LocalFormula> conjunction = new HashSet<>();
             Map<Fluent, LocalFormula> fluentsToConditions = possibleCauses.get(w);
             for (Map.Entry<Fluent, LocalFormula> entry : fluentsToConditions.entrySet()) {
@@ -178,7 +178,7 @@ public class Transition {
             assert(observesConditions.containsKey(agent));
             assert(awareConditions.containsKey(agent));
             Map<World, LocalFormula> worldsToFormulae = new HashMap<>();
-            for (World w : worlds) {
+            for (World w : oldWorlds) {
                 if (action.isObservant(agent, w)) {
                     worldsToFormulae.put(w, LocalAndFormula.make(observesConditions.get(agent),
                                                                  awareConditions.get(agent).negate()));
@@ -201,7 +201,7 @@ public class Transition {
         // SCRIPT-K-ALPHA-I-U
         for (String agent : agents) {
             Map<World, LocalFormula> knowledgeByWorld = new HashMap<>();
-            for (World w : worlds) {
+            for (World w : oldWorlds) {
                 LocalFormula learnedKnowledgeFormula;
                 if (action.isObservant(agent, w)) {
                     learnedKnowledgeFormula = LocalAndFormula.make(learnedKnowledgeDetermined.get(w),
@@ -224,7 +224,7 @@ public class Transition {
 
         // TEST THEOREM 1
         for (String agent : agents) {
-            for (World w : worlds) {
+            for (World w : oldWorlds) {
                 assert (learnedKnowledge.get(agent).get(w).evaluate(w));
             }
         }
@@ -234,7 +234,7 @@ public class Transition {
         Map<String, Map<World, Set<World>>> equivalenceClasses = new HashMap<>();
         for (String agent : agents) {
             Map<World, Set<World>> perAgent = new HashMap<>();
-            for (World u : worlds) {
+            for (World u : oldWorlds) {
                 Set<World> toWorlds = new HashSet<>();
                 for (World v : inModel.getKnownWorlds(agent, u)) {
                     if (learnedKnowledge.get(agent).get(u).evaluate(v)) {
@@ -249,7 +249,7 @@ public class Transition {
 
         // Q_iu
         Map<World, Map<String, Set<Set<World>>>> containingClasses = new HashMap<>();
-        for (World u : worlds) {
+        for (World u : oldWorlds) {
             Map<String, Set<Set<World>>> worldsWithContainingClasses = new HashMap<>();
             for (String agent : agents) {
                 Set<Set<World>> classesContainingU = new HashSet<>();
@@ -280,7 +280,7 @@ public class Transition {
 
         // S^a
         Map<World, PostWorld> postWorlds = new HashMap<>();
-        for (World w : worlds) {
+        for (World w : oldWorlds) {
             if (action.executable(w)) {
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
@@ -308,7 +308,20 @@ public class Transition {
             alphaKRelation.put(agent, relation);
         }
 
-        System.out.println(alphaKRelation);
+
+
+        // {B}^a_iu
+        Map<String, Map<World, LocalFormula>> acquiredBelief = new HashMap<>();
+        for (String agent : agents) {
+            for (World u : oldWorlds) {
+                if() {
+                }
+                else {
+                    ...
+                }
+            }
+        }
+
 
 
         System.exit(1);
