@@ -125,6 +125,10 @@ public class Action implements java.io.Serializable {
         return this.determines;
     }
 
+    public Set<BeliefFormula> getAnnounces() {
+        return this.announces;
+    }
+
     public boolean executable(EpistemicState state) {
         return executable(state.getDesignatedWorld());
     }

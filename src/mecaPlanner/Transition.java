@@ -54,10 +54,15 @@ public class Transition {
     }
 
 
+    private static Map<World, PostWorld> postWorlds;
 
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
         Set<World> oldWorlds = inModel.getWorlds();
         Set<String> agents  = inModel.getAgents();
+
+        if (postWorlds == null) {
+            postWorlds = new HashMap<>();
+        }
         
 
         // SCRIPT-K-ALPHA-U-DET
@@ -279,11 +284,12 @@ public class Transition {
 
 
         // S^a
-        Map<World, PostWorld> postWorlds = new HashMap<>();
+        Set<World> newWorlds = new HashSet<>();
         for (World w : oldWorlds) {
             if (action.executable(w)) {
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
+                    newWorlds.add(newWorld);
                     postWorlds.put(newWorld, new PostWorld(w, action, classAssignment));
                 }
             }
@@ -294,10 +300,10 @@ public class Transition {
         Map<String, Relation> alphaKRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
-            for (Map.Entry<World, PostWorld> entry : postWorlds.entrySet()) {
+            for (Map.Entry<World, PostWorld> entry : newWorlds) {
                 World u = entry.getKey();
                 PostWorld uDef = entry.getValue();
-                for (Map.Entry<World, PostWorld> entry2 : postWorlds.entrySet()) {
+                for (Map.Entry<World, PostWorld> entry2 : newWorlds) {
                     World v = entry2.getKey();
                     PostWorld vDef = entry2.getValue();
                     if (uDef.eqClassAssignment == vDef.eqClassAssignment) {
@@ -311,29 +317,93 @@ public class Transition {
 
 
         // {B}^a_iu
-        Map<String, Map<World, LocalFormula>> acquiredBelief = new HashMap<>();
+        Map<String, Map<World, BeliefFormula>> acquiredBelief = new HashMap<>();
         for (String agent : agents) {
+            Map<World, BeliefFormula> perAgent = new HashMap<>();
             for (World u : oldWorlds) {
-                if() {
+                if (action.isObservant(agent, u)) {
+                    perAgent.put(u, BeliefAndFormula.make(action.getAnnounces()));
                 }
                 else {
-                    ...
+                    perAgent.put(u, new Literal(true));
                 }
             }
+            acquiredBelief.put(agent, perAgent);
         }
 
 
 
-        System.exit(1);
+        // B^a_i
+        Map<String, Relation> alphaBRelation = new HashMap<>();
+        for (String agent : agents) {
+            Relation relation = new Relation();
 
+            for (World u : newWorlds) {
+                World oldU = postWorlds.get(u).oldWorld;
+                BeliefFormula learned = acquiredBelief.get(agent).get(oldU);
 
-        return null;
+                // B^a1_i
+                for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
+                    World oldV = postWorlds.get(v).oldWorld;
+                    if (inModel.isConnectedBelief(agent, oldU, oldV)) {
+                        if (learned.evaluate(inModel, oldV)) {
+                            relation.connect(u,v);
+                        }
+                    }
+                }
 
+                // B^a2_i
+                if (relation.deadEnd(u)) {
+                    for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
+                        World oldV = postWorlds.get(v).oldWorld;
+                        if (learned.evaluate(inModel, oldV)) {
+                            relation.connect(u,v);
+                        }
+                    }
+                }
+
+                // B^a_i
+                if (relation.deadEnd(u)) {
+                    for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
+                        relation.connect(u,v);
+                    }
+                }
+            }
+
+            alphaBRelation.put(agent, relation);
+        }
+
+        return new KripkeStructure(newWorlds, alphaBRelation, alphaKRelation);
     }
 
 
     public static EpistemicState transition(EpistemicState inState, Action action) {
+        
+        // CHECK EQUATION 22, ACTION PRECONDITIONS ARE SATISFIED
+        assert(action.executable(inState.getDesignatedWorld()));
+
+
+        // M^a
         KripkeStructure modelAlpha = intermediateTransition(inState.getKripke(), action);
+
+        // SHORTCUT: IF NO OBLIVIOUS AGENTS CAN JUST RETURN INTERMEDIATE TRANSITION
+        boolean anyOblivious = false;
+        for (World w : modelAlpha.getWorlds()) {
+            for (String agent : agents) {
+                if (action.isOblivious(agent, map.get(newWorld))) {
+                    anyOblivious = true;
+                    break;
+                }
+            }
+            if (anyOblivious) {
+                break;
+            }
+        }
+        if (!anyOblivious) {
+            return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
+        }
+
+
         return null;
     }
 
