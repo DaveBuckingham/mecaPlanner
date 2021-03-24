@@ -459,10 +459,24 @@ public class Transition {
         KripkeStructure modelNull = intermediateTransition(inState.getKripke(), nullAction);
 
 
-        Map<String, Set<Action>> hypotheticalActions = new HashMap<>();
+        // H_i
+        Map<String, Set<KripkeStructure>> hypotheticalModels = new HashMap<>();
         for (String agent : agents) {
-            hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, inState));
+            Set<KripkeStructure> models = new HashSet<>();
+            for (Action hypotheticalAction : getHypotheticalActions(domain, agent, actualAction, inState)) {
+                models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
+            }
+            hypotheticalModels.put(agent, model);
         }
+
+
+
+        // NEED TO ONLY DO OBLIVIOUS AGENTS....
+        Map<String, Set<KripkeStructure>> allModels = new HashMap<>(hypotheticalModels);
+        for (String agent : agents) {
+            allModels.get(agent).add(l
+        }
+
 
 
 
