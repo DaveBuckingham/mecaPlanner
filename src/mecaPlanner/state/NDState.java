@@ -77,6 +77,10 @@ public class NDState implements java.io.Serializable {
         return this.designatedWorlds;
     }
 
+    public Set<World> getWorlds() {
+        return kripkeStructure.getWorlds();
+    }
+
     public Set<EpistemicState> getEpistemicStates() {
         Set<EpistemicState> states = new HashSet<EpistemicState>();
         for (World w : designatedWorlds) {

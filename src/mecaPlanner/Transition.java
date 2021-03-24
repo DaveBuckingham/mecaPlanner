@@ -54,6 +54,24 @@ public class Transition {
     }
 
 
+    private static Set<Action> getHypotheticalActions(Domain domain, String agent, Action actual, EpistemicState state) {
+        Set<Action> hypotheticalActions = new HashSet<>();
+        for (Action action : domain.getAllActions()) {
+            boolean anyOblivious = false;
+            for (World u : state.getWorlds()) {
+                if (!action.equals(actual)) {
+                    if (actual.isOblivious(agent, u) && action.isOblivious(agent, u)) {
+                        if (action.executable(u)){
+                            hypotheticalActions.add(action);
+                        }
+                    }
+                }
+            }
+        }
+        return hypotheticalActions;
+    }
+
+
     private static Map<World, PostWorld> map;
 
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
@@ -441,7 +459,10 @@ public class Transition {
         KripkeStructure modelNull = intermediateTransition(inState.getKripke(), nullAction);
 
 
-        Set<Action> hypotheticalActions = getHypotheticalActions(inState);
+        Map<String, Set<Action>> hypotheticalActions = new HashMap<>();
+        for (String agent : agents) {
+            hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, inState));
+        }
 
 
 
