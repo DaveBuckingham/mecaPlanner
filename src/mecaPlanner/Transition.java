@@ -54,14 +54,14 @@ public class Transition {
     }
 
 
-    private static Map<World, PostWorld> postWorlds;
+    private static Map<World, PostWorld> map;
 
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
         Set<World> oldWorlds = inModel.getWorlds();
         Set<String> agents  = inModel.getAgents();
 
-        if (postWorlds == null) {
-            postWorlds = new HashMap<>();
+        if (map == null) {
+            map = new HashMap<>();
         }
         
 
@@ -290,7 +290,7 @@ public class Transition {
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
                     newWorlds.add(newWorld);
-                    postWorlds.put(newWorld, new PostWorld(w, action, classAssignment));
+                    map.put(newWorld, new PostWorld(w, action, classAssignment));
                 }
             }
         }
@@ -300,12 +300,10 @@ public class Transition {
         Map<String, Relation> alphaKRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
-            for (Map.Entry<World, PostWorld> entry : newWorlds) {
-                World u = entry.getKey();
-                PostWorld uDef = entry.getValue();
-                for (Map.Entry<World, PostWorld> entry2 : newWorlds) {
-                    World v = entry2.getKey();
-                    PostWorld vDef = entry2.getValue();
+            for (World u : newWorlds) {
+                PostWorld uDef = map.get(u);
+                for (World v : newWorlds) {
+                    PostWorld vDef = map.get(v);
                     if (uDef.eqClassAssignment == vDef.eqClassAssignment) {
                         relation.connect(u,v);
                     }
@@ -339,12 +337,12 @@ public class Transition {
             Relation relation = new Relation();
 
             for (World u : newWorlds) {
-                World oldU = postWorlds.get(u).oldWorld;
+                World oldU = map.get(u).oldWorld;
                 BeliefFormula learned = acquiredBelief.get(agent).get(oldU);
 
                 // B^a1_i
                 for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
-                    World oldV = postWorlds.get(v).oldWorld;
+                    World oldV = map.get(v).oldWorld;
                     if (inModel.isConnectedBelief(agent, oldU, oldV)) {
                         if (learned.evaluate(inModel, oldV)) {
                             relation.connect(u,v);
@@ -355,7 +353,7 @@ public class Transition {
                 // B^a2_i
                 if (relation.deadEnd(u)) {
                     for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
-                        World oldV = postWorlds.get(v).oldWorld;
+                        World oldV = map.get(v).oldWorld;
                         if (learned.evaluate(inModel, oldV)) {
                             relation.connect(u,v);
                         }
@@ -377,20 +375,34 @@ public class Transition {
     }
 
 
-    public static EpistemicState transition(EpistemicState inState, Action action) {
+    public static EpistemicState transition(EpistemicState inState, Action actualAction) {
         
         // CHECK EQUATION 22, ACTION PRECONDITIONS ARE SATISFIED
-        assert(action.executable(inState.getDesignatedWorld()));
+        assert(actualAction.executable(inState.getDesignatedWorld()));
+
+        Set<String> agents  = inState.getKripke().getAgents();
+        Domain domain = actualAction.getDomain();
 
 
         // M^a
-        KripkeStructure modelAlpha = intermediateTransition(inState.getKripke(), action);
+        KripkeStructure modelAlpha = intermediateTransition(inState.getKripke(), actualAction);
+
+        World designatedAlpha = null;
+        for (World w : modelAlpha.getWorlds()) {
+            // SHOLD WE USE "==" INSTEAD OF ".equals"?
+            if (map.get(w).oldWorld.equals(inState.getDesignatedWorld())) {
+                assert(designatedAlpha == null);
+                designatedAlpha = w;
+            }
+        }
+        assert(designatedAlpha != null);
+
 
         // SHORTCUT: IF NO OBLIVIOUS AGENTS CAN JUST RETURN INTERMEDIATE TRANSITION
         boolean anyOblivious = false;
         for (World w : modelAlpha.getWorlds()) {
             for (String agent : agents) {
-                if (action.isOblivious(agent, map.get(newWorld))) {
+                if (actualAction.isOblivious(agent, map.get(w).oldWorld)) {
                     anyOblivious = true;
                     break;
                 }
@@ -400,8 +412,38 @@ public class Transition {
             }
         }
         if (!anyOblivious) {
-            return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
+            return new EpistemicState(modelAlpha, designatedAlpha);
         }
+
+
+        // BUILD NULL ACTION
+        Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
+        Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
+        for (String agent : agents) {
+            nullObserverConditions.put(agent, new Literal(true));
+            nullAwareConditions.put(agent, new Literal(false));
+        }
+        Action nullAction = new Action("nullAction",                            // name
+                                       new ArrayList<String>(),                 // parameters
+                                       "nullActor",                             // actor
+                                       1,                                       // cost
+                                       new Literal(true),                       // preconditions 
+                                       nullObserverConditions,                  // observesIf
+                                       nullAwareConditions,                     // awareIf
+                                       new HashSet<LocalFormula>(),             // determines
+                                       new HashSet<BeliefFormula>(),            // announces
+                                       new HashMap<Assignment, LocalFormula>(), // effects
+                                       domain
+                                      );
+
+        
+        // M^0
+        KripkeStructure modelNull = intermediateTransition(inState.getKripke(), nullAction);
+
+
+        Set<Action> hypotheticalActions = getHypotheticalActions(inState);
+
+
 
 
         return null;

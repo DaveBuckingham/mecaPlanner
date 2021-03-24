@@ -98,6 +98,10 @@ public class Action implements java.io.Serializable {
         return this.awareIf;
     }
 
+    public Domain getDomain() {
+        return this.domain;
+    }
+
     // DO THIS HERE INSTEAD OF IN WORLD IN CASE WE WANT TO SWITCH
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {

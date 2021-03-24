@@ -73,6 +73,10 @@ public class Domain implements java.io.Serializable {
         return actions;
     }
 
+    public Set<Action> getActions(String agent) {
+        return actions.get(agent);
+    }
+
     public Set<Action> getAllActions() {
         Set<Action> allActions = new HashSet<>();
         for (Set<Action> agentActions : actions.values()) {
