@@ -302,12 +302,12 @@ public class Transition {
 
 
         // S^a
-        Set<World> newWorlds = new HashSet<>();
+        Set<World> alphaWorlds = new HashSet<>();
         for (World w : oldWorlds) {
             if (action.executable(w)) {
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
-                    newWorlds.add(newWorld);
+                    alphaWorlds.add(newWorld);
                     map.put(newWorld, new PostWorld(w, action, classAssignment));
                 }
             }
@@ -318,9 +318,9 @@ public class Transition {
         Map<String, Relation> alphaKRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
-            for (World u : newWorlds) {
+            for (World u : alphaWorlds) {
                 PostWorld uDef = map.get(u);
-                for (World v : newWorlds) {
+                for (World v : alphaWorlds) {
                     PostWorld vDef = map.get(v);
                     if (uDef.eqClassAssignment == vDef.eqClassAssignment) {
                         relation.connect(u,v);
@@ -354,7 +354,7 @@ public class Transition {
         for (String agent : agents) {
             Relation relation = new Relation();
 
-            for (World u : newWorlds) {
+            for (World u : alphaWorlds) {
                 World oldU = map.get(u).oldWorld;
                 BeliefFormula learned = acquiredBelief.get(agent).get(oldU);
 
@@ -389,7 +389,7 @@ public class Transition {
             alphaBRelation.put(agent, relation);
         }
 
-        return new KripkeStructure(newWorlds, alphaBRelation, alphaKRelation);
+        return new KripkeStructure(alphaWorlds, alphaBRelation, alphaKRelation);
     }
 
 
@@ -466,16 +466,33 @@ public class Transition {
             for (Action hypotheticalAction : getHypotheticalActions(domain, agent, actualAction, inState)) {
                 models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
             }
-            hypotheticalModels.put(agent, model);
+            if (!models.isEmpty()) {
+                models.add(modelNull);
+            }
+            models.add(modelAlpha);
+            hypotheticalModels.put(agent, models);
         }
 
 
+        // S'
+        Set<World> newWorlds = new HashSet<>();
+        for (Map.Entry<String, Set<KripkeStructure>> entry : hypotheticalModels.entrySet()) {
+            for (KripkeStructure model : entry.getValue()) {
+                newWorlds.addAll(model.getWorlds());
+            }
+        }
 
-        // NEED TO ONLY DO OBLIVIOUS AGENTS....
-        Map<String, Set<KripkeStructure>> allModels = new HashMap<>(hypotheticalModels);
+
+        // K'_iF
+        Map<String, Relation> newKRelation = new HashMap<>();
         for (String agent : agents) {
-            allModels.get(agent).add(l
-        }
+            Relation relation = new Relation();
+            for (World u : newWorlds) {
+                Action uAction = map.get(u).action;
+                Relation oldK =  // NEED A REFERENCE, INDEXED BY ACTION, TO EACH MODEL IN HYPOTHETICAL MODELS
+
+
+
 
 
 
