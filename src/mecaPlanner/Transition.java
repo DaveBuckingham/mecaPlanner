@@ -74,6 +74,7 @@ public class Transition {
 
     private static Map<World, PostWorld> map;
 
+
     private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
         Set<World> oldWorlds = inModel.getWorlds();
         Set<String> agents  = inModel.getAgents();
@@ -403,10 +404,10 @@ public class Transition {
 
 
         // M^a
-        KripkeStructure modelAlpha = intermediateTransition(inState.getKripke(), actualAction);
+        KripkeStructure modelActual = intermediateTransition(inState.getKripke(), actualAction);
 
         World designatedAlpha = null;
-        for (World w : modelAlpha.getWorlds()) {
+        for (World w : modelActual.getWorlds()) {
             // SHOLD WE USE "==" INSTEAD OF ".equals"?
             if (map.get(w).oldWorld.equals(inState.getDesignatedWorld())) {
                 assert(designatedAlpha == null);
@@ -418,7 +419,7 @@ public class Transition {
 
         // SHORTCUT: IF NO OBLIVIOUS AGENTS CAN JUST RETURN INTERMEDIATE TRANSITION
         boolean anyOblivious = false;
-        for (World w : modelAlpha.getWorlds()) {
+        for (World w : modelActual.getWorlds()) {
             for (String agent : agents) {
                 if (actualAction.isOblivious(agent, map.get(w).oldWorld)) {
                     anyOblivious = true;
@@ -430,7 +431,7 @@ public class Transition {
             }
         }
         if (!anyOblivious) {
-            return new EpistemicState(modelAlpha, designatedAlpha);
+            return new EpistemicState(modelActual, designatedAlpha);
         }
 
 
@@ -460,24 +461,27 @@ public class Transition {
 
 
         // H_i
-        Map<String, Set<KripkeStructure>> hypotheticalModels = new HashMap<>();
+        Map<String, Map<Action, KripkeStructure>> hypotheticalModels = new HashMap<>();
+        //Map<String, Set<KripkeStructure>> hypotheticalModels = new HashMap<>();
         for (String agent : agents) {
-            Set<KripkeStructure> models = new HashSet<>();
+            //Set<KripkeStructure> models = new HashSet<>();
+            Map<Action, KripkeStructure> models = new HashMap<>();
             for (Action hypotheticalAction : getHypotheticalActions(domain, agent, actualAction, inState)) {
-                models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
+                //models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
+                models.put(hypotheticalAction, intermediateTransition(inState.getKripke(), hypotheticalAction));
             }
             if (!models.isEmpty()) {
-                models.add(modelNull);
+                models.put(nullAction, modelNull);
             }
-            models.add(modelAlpha);
+            models.put(actualAction, modelActual);
             hypotheticalModels.put(agent, models);
         }
 
 
         // S'
         Set<World> newWorlds = new HashSet<>();
-        for (Map.Entry<String, Set<KripkeStructure>> entry : hypotheticalModels.entrySet()) {
-            for (KripkeStructure model : entry.getValue()) {
+        for (Map.Entry<String, Map<Action, KripkeStructure>> entry : hypotheticalModels.entrySet()) {
+            for (KripkeStructure model : entry.getValue().values()) {
                 newWorlds.addAll(model.getWorlds());
             }
         }
@@ -488,11 +492,16 @@ public class Transition {
         for (String agent : agents) {
             Relation relation = new Relation();
             for (World u : newWorlds) {
+                assert(map.containsKey(u));
                 Action uAction = map.get(u).action;
-                Relation oldK =  // NEED A REFERENCE, INDEXED BY ACTION, TO EACH MODEL IN HYPOTHETICAL MODELS
-
-
-
+                if (uAction.isObservant(agent, map.get(u).oldWorld) || uAction.isAware(agent, map.get(u).oldWorld)) {
+                    for (World v : hypotheticalModels.get(agent).get(uAction).getKnownWorlds(agent, u)) {
+                        relation.connect(u,v);
+                    }
+                }
+            }
+            newKRelation.put(agent, relation);
+        }
 
 
 
