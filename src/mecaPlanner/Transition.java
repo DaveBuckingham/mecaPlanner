@@ -487,21 +487,36 @@ public class Transition {
         }
 
 
-        // K'_iF
+        // K'_i
         Map<String, Relation> newKRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
             for (World u : newWorlds) {
                 assert(map.containsKey(u));
                 Action uAction = map.get(u).action;
+                KripkeStructure uModel = hypotheticalModels.get(agent).get(uAction);
+
+                // K'_iF
                 if (uAction.isObservant(agent, map.get(u).oldWorld) || uAction.isAware(agent, map.get(u).oldWorld)) {
-                    for (World v : hypotheticalModels.get(agent).get(uAction).getKnownWorlds(agent, u)) {
+                    for (World v : umodel.getKnownWorlds(agent, u)) {
                         relation.connect(u,v);
+                    }
+                }
+
+                // K'_iO
+                else {
+                    for (World v : newWorlds) {
+                        assert(map.containsKey(v));
+                        Action vAction = map.get(v).action;
+                        KripkeStructure vModel = hypotheticalModels.get(agent).get(vAction);
+                        if ((uMo
                     }
                 }
             }
             newKRelation.put(agent, relation);
         }
+
+
 
 
 
