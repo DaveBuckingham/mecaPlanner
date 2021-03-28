@@ -73,15 +73,20 @@ public class Transition {
 
 
     private static Map<World, PostWorld> map;
+    //private static Map<World, Set<World>> inverse;
 
 
-    private static KripkeStructure intermediateTransition(KripkeStructure inModel, Action action) {
-        Set<World> oldWorlds = inModel.getWorlds();
-        Set<String> agents  = inModel.getAgents();
+    private static KripkeStructure intermediateTransition(KripkeStructure oldModel, Action action) {
+        Set<World> oldWorlds = oldModel.getWorlds();
+        Set<String> agents  = oldModel.getAgents();
 
         if (map == null) {
             map = new HashMap<>();
         }
+
+//        if (inverse == null) {
+//            inverse = new HashMap<>();
+//        }
         
 
         // SCRIPT-K-ALPHA-U-DET
@@ -260,7 +265,7 @@ public class Transition {
             Map<World, Set<World>> perAgent = new HashMap<>();
             for (World u : oldWorlds) {
                 Set<World> toWorlds = new HashSet<>();
-                for (World v : inModel.getKnownWorlds(agent, u)) {
+                for (World v : oldModel.getKnownWorlds(agent, u)) {
                     if (learnedKnowledge.get(agent).get(u).evaluate(v)) {
                         toWorlds.add(v);
                     }
@@ -305,11 +310,13 @@ public class Transition {
         // S^a
         Set<World> alphaWorlds = new HashSet<>();
         for (World w : oldWorlds) {
-            if (action.executable(w)) {
+            //inverse.put(w, new HashSet<World>())
+            if (action.executable(w)) {;
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
                     alphaWorlds.add(newWorld);
                     map.put(newWorld, new PostWorld(w, action, classAssignment));
+                    //inverse.get(w).add(newWorld);
                 }
             }
         }
@@ -362,8 +369,8 @@ public class Transition {
                 // B^a1_i
                 for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
                     World oldV = map.get(v).oldWorld;
-                    if (inModel.isConnectedBelief(agent, oldU, oldV)) {
-                        if (learned.evaluate(inModel, oldV)) {
+                    if (oldModel.isConnectedBelief(agent, oldU, oldV)) {
+                        if (learned.evaluate(oldModel, oldV)) {
                             relation.connect(u,v);
                         }
                     }
@@ -373,7 +380,7 @@ public class Transition {
                 if (relation.deadEnd(u)) {
                     for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
                         World oldV = map.get(v).oldWorld;
-                        if (learned.evaluate(inModel, oldV)) {
+                        if (learned.evaluate(oldModel, oldV)) {
                             relation.connect(u,v);
                         }
                     }
@@ -461,12 +468,12 @@ public class Transition {
 
 
         // H_i
+        Map<String, Set<Action>> hypotheticalActions = new HashMap<>();
         Map<String, Map<Action, KripkeStructure>> hypotheticalModels = new HashMap<>();
-        //Map<String, Set<KripkeStructure>> hypotheticalModels = new HashMap<>();
         for (String agent : agents) {
-            //Set<KripkeStructure> models = new HashSet<>();
+            hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, inState));
             Map<Action, KripkeStructure> models = new HashMap<>();
-            for (Action hypotheticalAction : getHypotheticalActions(domain, agent, actualAction, inState)) {
+            for (Action hypotheticalAction : hypotheticalActions.get(agent)) {
                 //models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
                 models.put(hypotheticalAction, intermediateTransition(inState.getKripke(), hypotheticalAction));
             }
@@ -495,10 +502,11 @@ public class Transition {
                 assert(map.containsKey(u));
                 Action uAction = map.get(u).action;
                 KripkeStructure uModel = hypotheticalModels.get(agent).get(uAction);
+                World uOld = map.get(u).oldWorld;
 
                 // K'_iF
-                if (uAction.isObservant(agent, map.get(u).oldWorld) || uAction.isAware(agent, map.get(u).oldWorld)) {
-                    for (World v : umodel.getKnownWorlds(agent, u)) {
+                if (uAction.isObservant(agent, uOld) || uAction.isAware(agent, uOld)) {
+                    for (World v : uModel.getKnownWorlds(agent, u)) {
                         relation.connect(u,v);
                     }
                 }
@@ -509,7 +517,18 @@ public class Transition {
                         assert(map.containsKey(v));
                         Action vAction = map.get(v).action;
                         KripkeStructure vModel = hypotheticalModels.get(agent).get(vAction);
-                        if ((uMo
+                        World vOld = map.get(v).oldWorld;
+                        if ((uAction == vAction) || (hypotheticalActions.get(agent).contains(uAction) && 
+                                                     hypotheticalActions.get(agent).contains(vAction))) {
+                            for (World uNull : modelNull.getWorlds()) {
+                                for (World vNull : modelNull.getKnownWorlds(agent, uNull)) {
+                                    if (map.get(uNull).oldWorld == uOld && map.get(vNull).oldWorld == vOld) {
+                                        relation.connect(u,v);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
@@ -518,11 +537,51 @@ public class Transition {
 
 
 
+        // B'_i
+        Map<String, Relation> newBRelation = new HashMap<>();
+        for (String agent : agents) {
+            Relation relation = new Relation();
+            for (World u : newWorlds) {
+                assert(map.containsKey(u));
+                Action uAction = map.get(u).action;
+                KripkeStructure uModel = hypotheticalModels.get(agent).get(uAction);
+                World uOld = map.get(u).oldWorld;
 
+                // B'_iF
+                if (uAction.isObservant(agent, uOld) || uAction.isAware(agent, uOld)) {
+                    for (World v : uModel.getBelievedWorlds(agent, u)) {
+                        relation.connect(u,v);
+                    }
+                }
 
+                // B'_iO
+                else {
+                    for (World v : newWorlds) {
+                        assert(map.containsKey(v));
+                        Action vAction = map.get(v).action;
+                        KripkeStructure vModel = hypotheticalModels.get(agent).get(vAction);
+                        World vOld = map.get(v).oldWorld;
+                        if ((hypotheticalActions.get(agent).contains(uAction) && (uAction == nullAction)) ||
+                            ((uAction == vAction) && (!hypotheticalActions.get(agent).contains(uAction)))) {
+                            for (World uNull : modelNull.getWorlds()) {
+                                for (World vNull : modelNull.getBelievedWorlds(agent, uNull)) {
+                                    if (map.get(uNull).oldWorld == uOld && map.get(vNull).oldWorld == vOld) {
+                                        relation.connect(u,v);
+                                        break;
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            newBRelation.put(agent, relation);
+        }
 
+        KripkeStructure newModel = new KripkeStructure(newWorlds, newBRelation, newKRelation);
+        EpistemicState newState = new EpistemicState(newModel, designatedAlpha);
 
-        return null;
+        return newState;
     }
 
 }
