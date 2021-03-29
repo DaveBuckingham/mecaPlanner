@@ -70,7 +70,9 @@ public class Transition {
                 }
             }
             if (anyOblivious) {
+                // if (action == actual) {
                 hypotheticalActions.add(action);
+                // }
             }
         }
         if (!hypotheticalActions.isEmpty()) {
