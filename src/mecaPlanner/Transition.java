@@ -55,25 +55,33 @@ public class Transition {
     }
 
 
-    private static Set<Action> getHypotheticalActions(Domain domain, String agent, Action actual, EpistemicState state) {
+    private static Set<Action> getHypotheticalActions(Domain domain, String agent, Action actual, Action nullAction, EpistemicState state) {
         Set<Action> hypotheticalActions = new HashSet<>();
         for (Action action : domain.getAllActions()) {
             boolean anyOblivious = false;
             for (World u : state.getWorlds()) {
-                if (!action.equals(actual)) {
-                    if (actual.isOblivious(agent, u) && action.isOblivious(agent, u)) {
+                if (actual.isOblivious(agent, u)) {
+                    if (action.isOblivious(agent, u)) {
                         if (action.executable(u)){
-                            hypotheticalActions.add(action);
+                            anyOblivious = true;
+                            break;
                         }
                     }
                 }
             }
+            if (anyOblivious) {
+                hypotheticalActions.add(action);
+            }
+        }
+        if (!hypotheticalActions.isEmpty()) {
+            hypotheticalActions.add(nullAction);
         }
         return hypotheticalActions;
     }
 
 
     private static Map<World, PostWorld> map;
+    private static Map<World, KripkeStructure> worldModels;
     //private static Map<World, Set<World>> inverse;
 
 
@@ -86,6 +94,10 @@ public class Transition {
 
         if (map == null) {
             map = new HashMap<>();
+        }
+
+        if (worldModels == null) {
+            worldModels = new HashMap<>();
         }
 
 //        if (inverse == null) {
@@ -432,7 +444,11 @@ public class Transition {
             alphaBRelation.put(agent, relation);
         }
 
-        return new KripkeStructure(alphaWorlds, alphaBRelation, alphaKRelation);
+        KripkeStructure alphaKripke = new KripkeStructure(alphaWorlds, alphaBRelation, alphaKRelation);
+        for (World w : alphaWorlds) {
+            worldModels.put(w, alphaKripke);
+        }
+        return alphaKripke;
     }
 
 
@@ -481,7 +497,7 @@ public class Transition {
         Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
         Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
         for (String agent : agents) {
-            nullObserverConditions.put(agent, new Literal(true));
+            nullObserverConditions.put(agent, new Literal(false));
             nullAwareConditions.put(agent, new Literal(false));
         }
         Action nullAction = new Action("nullAction",                            // name
@@ -504,26 +520,20 @@ public class Transition {
 
         // H_i
         Map<String, Set<Action>> hypotheticalActions = new HashMap<>();
-        Map<String, Map<Action, KripkeStructure>> hypotheticalModels = new HashMap<>();
+        Map<String, Set<KripkeStructure>> hypotheticalModels = new HashMap<>();
         for (String agent : agents) {
-            hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, inState));
-            Map<Action, KripkeStructure> models = new HashMap<>();
+            hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, nullAction, inState));
+            hypotheticalModels.put(agent, new HashSet<>());
             for (Action hypotheticalAction : hypotheticalActions.get(agent)) {
-                //models.add(intermediateTransition(inState.getKripke(), hypotheticalAction));
-                models.put(hypotheticalAction, intermediateTransition(inState.getKripke(), hypotheticalAction));
+                hypotheticalModels.get(agent).add(intermediateTransition(inState.getKripke(), hypotheticalAction));
             }
-            if (!models.isEmpty()) {
-                models.put(nullAction, modelNull);
-            }
-            models.put(actualAction, modelActual);
-            hypotheticalModels.put(agent, models);
         }
 
 
         // S'
         Set<World> newWorlds = new HashSet<>();
-        for (Map.Entry<String, Map<Action, KripkeStructure>> entry : hypotheticalModels.entrySet()) {
-            for (KripkeStructure model : entry.getValue().values()) {
+        for (String agent : agents) {
+            for (KripkeStructure model : hypotheticalModels.get(agent)) {
                 newWorlds.addAll(model.getWorlds());
             }
         }
@@ -536,7 +546,7 @@ public class Transition {
             for (World u : newWorlds) {
                 assert(map.containsKey(u));
                 Action uAction = map.get(u).action;
-                KripkeStructure uModel = hypotheticalModels.get(agent).get(uAction);
+                KripkeStructure uModel = worldModels.get(u);
                 World uOld = map.get(u).oldWorld;
 
                 // K'_iF
@@ -551,7 +561,7 @@ public class Transition {
                     for (World v : newWorlds) {
                         assert(map.containsKey(v));
                         Action vAction = map.get(v).action;
-                        KripkeStructure vModel = hypotheticalModels.get(agent).get(vAction);
+                        KripkeStructure vModel = worldModels.get(v);
                         World vOld = map.get(v).oldWorld;
                         if ((uAction == vAction) || (hypotheticalActions.get(agent).contains(uAction) && 
                                                      hypotheticalActions.get(agent).contains(vAction))) {
@@ -579,7 +589,7 @@ public class Transition {
             for (World u : newWorlds) {
                 assert(map.containsKey(u));
                 Action uAction = map.get(u).action;
-                KripkeStructure uModel = hypotheticalModels.get(agent).get(uAction);
+                KripkeStructure uModel = worldModels.get(u);
                 World uOld = map.get(u).oldWorld;
 
                 // B'_iF
@@ -594,9 +604,9 @@ public class Transition {
                     for (World v : newWorlds) {
                         assert(map.containsKey(v));
                         Action vAction = map.get(v).action;
-                        KripkeStructure vModel = hypotheticalModels.get(agent).get(vAction);
+                        KripkeStructure vModel = worldModels.get(v);
                         World vOld = map.get(v).oldWorld;
-                        if ((hypotheticalActions.get(agent).contains(uAction) && (uAction == nullAction)) ||
+                        if ((hypotheticalActions.get(agent).contains(uAction) && (vAction == nullAction)) ||
                             ((uAction == vAction) && (!hypotheticalActions.get(agent).contains(uAction)))) {
                             for (World uNull : modelNull.getWorlds()) {
                                 for (World vNull : modelNull.getBelievedWorlds(agent, uNull)) {

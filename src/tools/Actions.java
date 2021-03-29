@@ -31,6 +31,7 @@ public class Actions {
 
     public static void main(String args[]) {
 
+        //Log.setThreshold("debug");
         Log.setThreshold("warning");
 
         if (args.length != 1) {
@@ -78,11 +79,11 @@ public class Actions {
             }
             catch(Exception e){
                 cont = false;
-                break;
+                continue;
             }
             if (selection < 0 || selection >= applicable.size()) {
                 cont = false;
-                break;
+                continue;
             }
 
             Action action = applicable.get(selection);
