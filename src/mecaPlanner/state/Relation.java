@@ -18,8 +18,6 @@ import java.util.Comparator;
 public class Relation implements java.io.Serializable {
 
 
-    // THERE ARE TWO WAYS TO HAVE A DEAD END AT WORLD U: U NOT IN KEYS, OR U MAPS TO EMPTY SET,
-    // MAYBE WE SHOULD CHANGE THIS AND REQUIRE EVERY WORLD IN KEYS...
     private Map<World, Set<World>> edges;
 
 
@@ -70,8 +68,10 @@ public class Relation implements java.io.Serializable {
         return edges.get(from);
     }
 
+    // THERE ARE TWO WAYS TO HAVE A DEAD END AT WORLD U: U NOT IN KEYS, OR U MAPS TO EMPTY SET,
+    // MAYBE WE SHOULD CHANGE THIS AND REQUIRE EVERY WORLD IN KEYS...
     public boolean deadEnd(World from) {
-        return (edges.containsKey(from) && !edges.get(from).isEmpty());
+        return (!edges.containsKey(from) || edges.get(from).isEmpty());
     }
 
     protected Map<World, Set<World>> getEdges() {

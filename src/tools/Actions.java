@@ -31,8 +31,7 @@ public class Actions {
 
     public static void main(String args[]) {
 
-        Log.setThreshold("debug");
-        //Log.debug("setting log level: debug");
+        Log.setThreshold("warning");
 
         if (args.length != 1) {
             throw new RuntimeException("expected single depl file parameter.");
@@ -50,7 +49,9 @@ public class Actions {
         Map<String, Model> models = problem.getStartingModels();
         int depth = 0;
 
-        while(true) {
+        boolean cont = true;
+
+        while(cont) {
 
             currentState.getKripke().forceCheck();
             System.out.println(currentState);
@@ -76,10 +77,12 @@ public class Actions {
                 selection = stdin.nextInt();
             }
             catch(Exception e){
-                System.exit(0);
+                cont = false;
+                break;
             }
             if (selection < 0 || selection >= applicable.size()) {
-                System.exit(0);
+                cont = false;
+                break;
             }
 
             Action action = applicable.get(selection);

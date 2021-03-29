@@ -50,7 +50,7 @@ public class LocalNotFormula extends LocalFormula{
 
     @Override
     public String toString() {
-        return ("!(" + formula.toString() + ")");
+        return ("~(" + formula.toString() + ")");
     }
 
     @Override

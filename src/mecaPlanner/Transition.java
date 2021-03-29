@@ -31,6 +31,7 @@ public class Transition {
     }
 
 
+
     // THIS FUNCTION IS COPIED FROM PHILLIP MEISTER:
     // https://stackoverflow.com/questions/714108/cartesian-product-of-arbitrary-sets-in-java
     private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
@@ -78,7 +79,10 @@ public class Transition {
 
     private static KripkeStructure intermediateTransition(KripkeStructure oldModel, Action action) {
         Set<World> oldWorlds = oldModel.getWorlds();
-        Set<String> agents  = oldModel.getAgents();
+
+        Domain domain = action.getDomain();
+
+        List<String> agents  = domain.getAllAgents();
 
         if (map == null) {
             map = new HashMap<>();
@@ -113,6 +117,7 @@ public class Transition {
 
 
         // SCRIPT-K-ALPHA-U-DET
+        Log.info("K-alpha-u-det:");
         {
         for (World w : oldWorlds) {
             Set<LocalFormula> conjunction = new HashSet<>();
@@ -125,11 +130,14 @@ public class Transition {
                 }
             }
             learnedKnowledgeDetermined.put(w, LocalAndFormula.make(conjunction));
+            Log.info("    " + w.getName() + ": " +  learnedKnowledgeDetermined.get(w).toString());
         }
         }
+
 
 
         // PHI-U-ALPHA-F
+        Log.info("Phi-u-alpha-F:");
         {
         for (World w : oldWorlds) {
             Map<Fluent, Set<LocalFormula>> disjunction = new HashMap<>();
@@ -146,13 +154,17 @@ public class Transition {
             }
             Map<Fluent, LocalFormula> fluentsToConditions = new HashMap<>();
             for (Map.Entry<Fluent, Set<LocalFormula>> entry : disjunction.entrySet()) {
-                fluentsToConditions.put(entry.getKey(), LocalOrFormula.make(entry.getValue()));
+                Fluent fluent = entry.getKey();
+                LocalFormula condition = LocalOrFormula.make(entry.getValue());
+                fluentsToConditions.put(fluent, condition);
+                Log.info("    " + w.getName() + ", " + fluent.toString() + ": " + condition.toString());
             }
             possibleCauses.put(w, fluentsToConditions);
         }
 
 
         // SCRIPT-K-ALPHA-U-EFF
+        Log.info("K-alpha-u-eff:");
         for (World w : oldWorlds) {
             Set<LocalFormula> conjunction = new HashSet<>();
             Map<Fluent, LocalFormula> fluentsToConditions = possibleCauses.get(w);
@@ -167,6 +179,7 @@ public class Transition {
                 }
             }
             learnedKnowledgeEffects.put(w, LocalAndFormula.make(conjunction));
+            Log.info("    " + w.getName() + ": " +  learnedKnowledgeEffects.get(w).toString());
         }
         }
 
@@ -228,6 +241,7 @@ public class Transition {
 
 
         // SCRIPT-K-ALPHA-I-U
+        Log.info("K-alpha-iu:");
         for (String agent : agents) {
             Map<World, LocalFormula> knowledgeByWorld = new HashMap<>();
             for (World w : oldWorlds) {
@@ -246,6 +260,7 @@ public class Transition {
                     learnedKnowledgeFormula = learnedKnowledgeObserver.get(agent).get(w);
                 }
                 knowledgeByWorld.put(w, learnedKnowledgeFormula);
+                Log.info("    " + w.getName() + ", " + agent + ": " +  learnedKnowledgeFormula);
             }
             learnedKnowledge.put(agent, knowledgeByWorld);
         }
@@ -277,6 +292,7 @@ public class Transition {
 
 
         // Q_iu
+        Log.info("Q_iu:");
         Map<World, Map<String, Set<Set<World>>>> containingClasses = new HashMap<>();
         for (World u : oldWorlds) {
             Map<String, Set<Set<World>>> worldsWithContainingClasses = new HashMap<>();
@@ -290,39 +306,41 @@ public class Transition {
                     }
                 }
                 worldsWithContainingClasses.put(agent, classesContainingU);
+                Log.info("    " + u.getName() + ", " + agent + ": " +  classesContainingU);
             }
             containingClasses.put(u, worldsWithContainingClasses);
         }
 
 
         // G_u
+        Log.info("G_u:");
         Map<World, List<List<Set<World>>>> classAssignments = new HashMap<>();
 
         for (World w : containingClasses.keySet()) {
             List<List<Set<World>>> byAgent = new ArrayList<>(containingClasses.get(w).size());
-            for (Map.Entry<String, Set<Set<World>>> entry : containingClasses.get(w).entrySet()) {
-                byAgent.add(new ArrayList<Set<World>>(entry.getValue()));
+            for (String agent : agents) {
+                byAgent.add(new ArrayList<Set<World>>(containingClasses.get(w).get(agent)));
             }
             classAssignments.put(w, cartesianProduct(byAgent));
+            Log.info("    " + w.getName() + ": " +  classAssignments.get(w));
         }
 
 
         // S^a
         Set<World> alphaWorlds = new HashSet<>();
         for (World w : oldWorlds) {
-            //inverse.put(w, new HashSet<World>())
             if (action.executable(w)) {;
                 for (List<Set<World>> classAssignment : classAssignments.get(w)) {
                     World newWorld = w.update(action.getApplicableEffects(w));
                     alphaWorlds.add(newWorld);
                     map.put(newWorld, new PostWorld(w, action, classAssignment));
-                    //inverse.get(w).add(newWorld);
                 }
             }
         }
 
 
         // K^a_i
+        Log.info("K^alpha_i");
         Map<String, Relation> alphaKRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
@@ -330,17 +348,25 @@ public class Transition {
                 PostWorld uDef = map.get(u);
                 for (World v : alphaWorlds) {
                     PostWorld vDef = map.get(v);
-                    if (uDef.eqClassAssignment == vDef.eqClassAssignment) {
+                    int index = agents.indexOf(agent);
+                    if (uDef.eqClassAssignment.get(index) == vDef.eqClassAssignment.get(index)) {
                         relation.connect(u,v);
                     }
+                    //else {
+                    //    System.out.println("!!!!");
+                    //    System.out.println(uDef.eqClassAssignment);
+                    //    System.out.println(vDef.eqClassAssignment);
+                    //}
                 }
             }
             alphaKRelation.put(agent, relation);
+            Log.info("    " + agent + ": " +  alphaKRelation.get(agent));
         }
 
 
 
         // {B}^a_iu
+        Log.info("{B}^alpha_iu");
         Map<String, Map<World, BeliefFormula>> acquiredBelief = new HashMap<>();
         for (String agent : agents) {
             Map<World, BeliefFormula> perAgent = new HashMap<>();
@@ -351,6 +377,7 @@ public class Transition {
                 else {
                     perAgent.put(u, new Literal(true));
                 }
+                Log.info("    " + agent + ", " + u.getName() + ": " +  perAgent.get(u));
             }
             acquiredBelief.put(agent, perAgent);
         }
@@ -358,38 +385,46 @@ public class Transition {
 
 
         // B^a_i
+        Log.info("B^alpha_i");
         Map<String, Relation> alphaBRelation = new HashMap<>();
         for (String agent : agents) {
             Relation relation = new Relation();
 
             for (World u : alphaWorlds) {
+                Log.info("    " + agent + ", " + u.getName() + ":");
                 World oldU = map.get(u).oldWorld;
                 BeliefFormula learned = acquiredBelief.get(agent).get(oldU);
 
                 // B^a1_i
+                Log.info("        1:");
                 for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
                     World oldV = map.get(v).oldWorld;
                     if (oldModel.isConnectedBelief(agent, oldU, oldV)) {
                         if (learned.evaluate(oldModel, oldV)) {
                             relation.connect(u,v);
+                            Log.info("            " + v.getName());
                         }
                     }
                 }
 
                 // B^a2_i
+                Log.info("        2:");
                 if (relation.deadEnd(u)) {
                     for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
                         World oldV = map.get(v).oldWorld;
                         if (learned.evaluate(oldModel, oldV)) {
                             relation.connect(u,v);
+                            Log.info("            " + v.getName());
                         }
                     }
                 }
 
                 // B^a_i
+                Log.info("        3:");
                 if (relation.deadEnd(u)) {
                     for (World v : alphaKRelation.get(agent).getToWorlds(u)) {
                         relation.connect(u,v);
+                        Log.info("            " + v.getName());
                     }
                 }
             }
