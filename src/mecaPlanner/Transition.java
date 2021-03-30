@@ -57,7 +57,10 @@ public class Transition {
 
     private static Set<Action> getHypotheticalActions(Domain domain, String agent, Action actual, Action nullAction, EpistemicState state) {
         Set<Action> hypotheticalActions = new HashSet<>();
-        for (Action action : domain.getAllActions()) {
+        Set<Action> allActions = new HashSet<>(domain.getAllActions());
+        allActions.add(nullAction);
+        //for (Action action : domain.getAllActions()) {
+        for (Action action : allActions) {
             boolean anyOblivious = false;
             for (World u : state.getWorlds()) {
                 if (actual.isOblivious(agent, u)) {
@@ -70,9 +73,7 @@ public class Transition {
                 }
             }
             if (anyOblivious) {
-                // if (action == actual) {
                 hypotheticalActions.add(action);
-                // }
             }
         }
         if (!hypotheticalActions.isEmpty()) {
@@ -468,7 +469,7 @@ public class Transition {
 
         World designatedAlpha = null;
         for (World w : modelActual.getWorlds()) {
-            // SHOLD WE USE "==" INSTEAD OF ".equals"?
+            // SHOULD WE USE "==" INSTEAD OF ".equals"?
             if (map.get(w).oldWorld.equals(inState.getDesignatedWorld())) {
                 assert(designatedAlpha == null);
                 designatedAlpha = w;
@@ -527,7 +528,15 @@ public class Transition {
             hypotheticalActions.put(agent, getHypotheticalActions(domain, agent, actualAction, nullAction, inState));
             hypotheticalModels.put(agent, new HashSet<>());
             for (Action hypotheticalAction : hypotheticalActions.get(agent)) {
-                hypotheticalModels.get(agent).add(intermediateTransition(inState.getKripke(), hypotheticalAction));
+                if (hypotheticalAction == actualAction) {
+                    hypotheticalModels.get(agent).add(modelActual);
+                }
+                else if (hypotheticalAction == nullAction) {
+                    hypotheticalModels.get(agent).add(modelNull);
+                }
+                else {
+                    hypotheticalModels.get(agent).add(intermediateTransition(inState.getKripke(), hypotheticalAction));
+                }
             }
         }
 
@@ -624,6 +633,8 @@ public class Transition {
             }
             newBRelation.put(agent, relation);
         }
+
+        assert(newWorlds.contains(designatedAlpha));
 
         KripkeStructure newModel = new KripkeStructure(newWorlds, newBRelation, newKRelation);
         EpistemicState newState = new EpistemicState(newModel, designatedAlpha);

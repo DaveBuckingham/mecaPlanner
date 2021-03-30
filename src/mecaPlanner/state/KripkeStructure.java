@@ -60,12 +60,12 @@ public class KripkeStructure implements java.io.Serializable {
         return worlds;
     }
 
-    public boolean containsWorld(World world) {
-        return worlds.contains(world);
+    public boolean containsWorld(World member) {
+        return worlds.contains(member);
     }
 
-    public boolean containsWorlds(Set<World> worlds) {
-        return worlds.containsAll(worlds);
+    public boolean containsWorlds(Set<World> subset) {
+        return this.worlds.containsAll(subset);
     }
 
     public void connectBelief(String agent, World from, World to) {
@@ -365,6 +365,8 @@ public class KripkeStructure implements java.io.Serializable {
 
 
     public String toString(Set<World> designated) {
+
+        assert(worlds.containsAll(designated));
         StringBuilder str = new StringBuilder();
 
         List<World> worldsSorted = getWorlds().stream().collect(Collectors.toList());

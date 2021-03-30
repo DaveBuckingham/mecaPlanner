@@ -67,6 +67,7 @@ public class NDState implements java.io.Serializable {
         for (World d : toCopy.getDesignatedWorlds()) {
             designatedWorlds.add(originalToNew.get(d));
         }
+        assert(kripkeStructure.containsWorlds(designatedWorlds));
     }
 
     public KripkeStructure getKripke() {

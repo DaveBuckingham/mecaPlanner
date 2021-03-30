@@ -78,6 +78,7 @@ public class EpistemicState extends NDState {
 
     @Override
     public String toString() {
+        assert(kripkeStructure.containsWorlds(getDesignatedWorlds()));
         StringBuilder str = new StringBuilder();
         str.append(kripkeStructure.toString(getDesignatedWorlds()));
         return str.toString();
