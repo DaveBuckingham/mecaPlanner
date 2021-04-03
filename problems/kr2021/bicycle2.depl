@@ -45,7 +45,7 @@ goals{
 }
 
 actions{
-    look(){
+    look2(){
         owner{t},
         determines{b()},
         observes(){t if o()},

@@ -754,7 +754,7 @@ public class Action implements java.io.Serializable {
             return false;
         }
         Action other = (Action) obj;
-        return (this.getSignatureWithActor() == other.getSignatureWithActor());
+        return (this.getSignatureWithActor().equals(other.getSignatureWithActor()));
     }
 
     @Override

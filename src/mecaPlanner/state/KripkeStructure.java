@@ -387,6 +387,7 @@ public class KripkeStructure implements java.io.Serializable {
                         str.append(", ");
                 }
                 str.deleteCharAt(str.length() - 1);
+                str.deleteCharAt(str.length() - 1);
                 str.append("\n");
                 str.append("  K(" + agent + ") = ");
                 List<World> known = getKnownWorlds(agent, w).stream().collect(Collectors.toList());
@@ -395,6 +396,7 @@ public class KripkeStructure implements java.io.Serializable {
                     str.append(to.getName());
                         str.append(", ");
                 }
+                str.deleteCharAt(str.length() - 1);
                 str.deleteCharAt(str.length() - 1);
                 str.append("\n");
             }

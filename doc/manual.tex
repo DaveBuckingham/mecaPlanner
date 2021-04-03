@@ -44,17 +44,15 @@
 
 \section{The depl planning language}
 
-Planning problems for the DEPL planner are specified in the doxastic/epistemic
+Planning problems for the MECA Planner are specified in the doxastic/epistemic
 planning language (depl). A single depl file describes both a planning domain
 and a planning problem.
-
-For the complete depl grammar, defined with the ANTLR meta-language, consult
+For the complete depl grammar, defined with the ANTLR meta-language, consult\\
 \texttt{mecaPlanner/src/deplParser/Depl.g4}.
 
 Whitespace and newlines are ignored.
 as are, inline comments (anything
 following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
-
 
 A depl file contains the following sections, which must occur in the correct
 order, and are required unless specified as optional:
@@ -376,7 +374,7 @@ goals{
     at(robot1,room1),
     timestep<=7
 }
-\begin{verbatim}
+\end{verbatim}
 
 
 \subsection{The \emph{actions} section}

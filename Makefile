@@ -36,25 +36,25 @@ build/deplSrc/: src/deplParser/Depl.g4
 	cd src/deplParser; $(antlr) $(visitor) -package depl Depl.g4 -o ../../build/deplSrc
 
 
-simulator: mecaPlanner.jar
+simulator: mecaPlanner.jar src/tools/Simulator.java
 	$(java) src/tools/Simulator.java -d build/
 	echo '#!/bin/bash' > ./sim
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Simulator "$$@"' >> ./sim
 	chmod +x ./sim
 
-demo: mecaPlanner.jar
+demo: mecaPlanner.jar src/tools/Demo.java
 	$(java) src/tools/Demo.java -d build/
 	echo '#!/bin/bash' > ./demo
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Demo "$$@"' >> ./demo
 	chmod +x ./demo
 
-test: mecaPlanner.jar
+test: mecaPlanner.jar src/tools/Test.java
 	$(java) src/tools/Test.java -d build/
 	echo '#!/bin/bash' > ./test
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Test "$$@"' >> ./test
 	chmod +x ./test
 
-example: mecaPlanner.jar
+example: mecaPlanner.jar src/tools/Example.java
 	$(java) src/tools/Example.java -d build/
 	echo '#!/bin/bash' > ./example
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Example "$$@"' >> ./example
@@ -63,11 +63,17 @@ example: mecaPlanner.jar
 	echo 'jdb -classpath "./mecaPlanner.jar:./lib/*:./build/" tools.Example "$$@"' >> ./debug
 	chmod +x ./debug
 
-actions: mecaPlanner.jar
+actions: mecaPlanner.jar src/tools/Actions.java
 	$(java) src/tools/Actions.java -d build/
-	echo '#!/bin/bash' > ./action
+	echo '#!/bin/bash' > ./actions
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
 	chmod +x ./actions
+
+kr2021: mecaPlanner.jar src/tools/KR2021.java
+	$(java) src/tools/KR2021.java -d build/
+	echo '#!/bin/bash' > ./kr2021
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.KR2021 "$$@"' >> ./kr2021
+	chmod +x ./kr2021
 
 efp2depl: build/efp2depl/
 
@@ -77,8 +83,6 @@ build/efp2depl/: src/translators/efp2depl/EfpToDepl.java build/efp2deplSrc/
 build/efp2deplSrc/: src/translators/efp2depl/Efp.g4
 	cd src/translators/efp2depl; $(antlr) $(visitor) -package efp2depl Efp.g4 -o ../../../build/efp2deplSrc
 
-
-
 epddl2depl: build/epddl2depl/
 
 build/epddl2depl/: src/translators/epddl2depl/EpddlToDepl.java build/epddl2deplSrc/
@@ -86,7 +90,6 @@ build/epddl2depl/: src/translators/epddl2depl/EpddlToDepl.java build/epddl2deplS
 
 build/epddl2deplSrc/: src/translators/epddl2depl/Epddl.g4
 	cd src/translators/epddl2depl; $(antlr) $(visitor) -package epddl2depl Epddl.g4 -o ../../../build/epddl2deplSrc
-
 
 
 clean:
@@ -98,5 +101,6 @@ clean:
 	rm -f ./debug
 	rm -f ./example
 	rm -f ./actions
+	rm -f ./kr2021
 	rm -f ./test
 	rm -f ./mecaPlanner*.jar
