@@ -36,7 +36,7 @@ within the file:
 
 The epistemic-doxastic state representation is implemented across several files
 within the directory:
-.../src/mecaPlanner/state
+.../src/mecaPlanner/state/
 
 The example scenarios are described in the files:
 .../problems/kr2021/bicycle1.depl
