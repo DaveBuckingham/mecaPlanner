@@ -9,41 +9,44 @@ passive{}
 fluents{v(),l(),r(),d()}
 
 initially{
-    {C(~B_thief(r) & ~B_thief(~r))},
-    {r, C(~B_thief(r) & ~B_thief(~r))},
+    *w1 <- {r()}
+    *w2 <- {},
+    B[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)},
+    K[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
 }
 
-goals{d}
+
+goals{d()}
 
 actions{
 
-    take_left[](){
+    take_left(){
         owner{thief},
-        precondition{v & ~d & ~r},
-        observes[]{thief},
-        causes{d}
+        precondition{v() & ~d() & ~r()},
+        observes{thief},
+        causes{d()}
     }
 
-    take_right[](){
+    take_right(){
         owner{thief},
-        precondition{v & ~d & r},
-        observes[]{thief},
-        causes{d}
+        precondition{v() & ~d() & r()},
+        observes{thief},
+        causes{d()}
     }
 
-    flick[](){
+    flick(){
         owner{thief},
-        precondition{v},
-        observes[]{thief},
-        determines{r}
+        precondition{v()},
+        observes{thief},
+        determines{r()}
     }
 
-    move[](){
+    move(){
         owner{thief},
-        precondition{T},
-        observes[]{thief},
-        causes{v if ~v},
-        causes{~v if v}
+        precondition{true},
+        observes{thief},
+        causes{v() if ~v()},
+        causes{~v() if v()}
     }
 
 }
