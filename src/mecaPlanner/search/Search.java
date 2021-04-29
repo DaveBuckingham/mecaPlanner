@@ -86,6 +86,21 @@ public class Search {
 
         time = systemAgentIndex;
 
+        int maxDepth = 0;
+        Solution solution = null;
+        while (solution == null) {
+            System.out.println(maxDepth);
+            solution = searchToDepth(allStartOrNodes, time,  maxDepth);
+            maxDepth += 1;
+        }
+        return solution;
+    }
+
+    
+
+    public Solution searchToDepth(Set<OrNode> allStartOrNodes, int time, int maxDepth) {
+
+
         Map<Perspective, Set<OrNode>> perspectives = new HashMap<>();
         for (OrNode ground : allStartOrNodes ){
             Perspective perspective = new Perspective(ground.getState(), ground.getAgent());
@@ -95,27 +110,15 @@ public class Search {
             perspectives.get(perspective).add(ground);
         }
             
+
+
         Set<PNode> startPNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : perspectives.entrySet()) {
-            startPNodes.add(new PNode(entry.getKey(), entry.getValue(), time, 0, domain));
+            startPNodes.add(new PNode(entry.getKey(), entry.getValue(), time, 0, maxDepth, domain));
         }
-
-        int maxDepth = 0;
-        Solution solution = null;
-        while (solution == null) {
-            System.out.println(maxDepth);
-            solution = searchToDepth(startPNodes, maxDepth);
-            maxDepth += 1;
-        }
-        return solution;
-    }
-
-    
-
-    public Solution searchToDepth(Set<PNode> startPNodes, int maxDepth) {
 
         for (PNode startPNode : startPNodes) {
-            if (startPNode.expand(maxDepth) == Integer.MAX_VALUE) {
+            if (startPNode.expand() == Integer.MAX_VALUE) {
                 return null;
             };
         }
