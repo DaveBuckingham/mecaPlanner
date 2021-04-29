@@ -19,20 +19,19 @@ import java.util.Objects;
 
 public class Action implements java.io.Serializable {
 
-    protected Domain domain;
+    private Domain domain;
 
-    protected String name;
-    protected List<String> parameters;
-    protected int cost;
-    protected String actor;
-    protected LocalFormula precondition;
-    protected Map<String, LocalFormula> observesIf;
-    protected Map<String, LocalFormula> awareIf;
-    protected Set<LocalFormula> determines;
-    protected Set<BeliefFormula> announces;
-    protected Map<Assignment, LocalFormula> effects;
+    private String name;
+    private List<String> parameters;
+    private int cost;
+    private String actor;
+    private LocalFormula precondition;
+    private Map<String, LocalFormula> observesIf;
+    private Map<String, LocalFormula> awareIf;
+    private Set<LocalFormula> determines;
+    private Set<BeliefFormula> announces;
+    private Map<Assignment, LocalFormula> effects;
 
-    Map<String, Map<World, LocalFormula>> learnedObserver;
 
 
 
@@ -63,10 +62,6 @@ public class Action implements java.io.Serializable {
         this.effects = effects;
         this.domain = domain;
 
-        learnedObserver = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
-        }
 
     }
 
@@ -193,9 +188,11 @@ public class Action implements java.io.Serializable {
     private class PartialResult {
         public KripkeStructure kripke;
         public Map<World,World> map;
-        public PartialResult(KripkeStructure k, Map<World,World> m) {
+        public Map<String, Map<World, LocalFormula>> learnedObserver;
+        public PartialResult(KripkeStructure k, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
             this.kripke = k;
             this.map = m;
+            this.learnedObserver = l;
         }
     }
 
@@ -220,6 +217,11 @@ public class Action implements java.io.Serializable {
 
         Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
         Map<World, LocalFormula> learnedDetermined = new HashMap<>();
+
+        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        }
 
         for (World oldWorld : oldWorlds) {
 
@@ -520,7 +522,7 @@ public class Action implements java.io.Serializable {
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
         //KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
 
-        return new Action.PartialResult(newKripke, newToOld);
+        return new Action.PartialResult(newKripke, newToOld, learnedObserver);
     }
 
 
@@ -537,41 +539,19 @@ public class Action implements java.io.Serializable {
 
         KripkeStructure oldKripke = beforeState.getKripke();
 
-
-//        // BUILD OBLIVIOUS KRIPKE
-//        Map<String, Relation> obliviousBeliefs = new HashMap<>();
-//        Map<String, Relation> obliviousKnowledges = new HashMap<>();
-//        for (String a : domain.getAllAgents()) {
-//            obliviousBeliefs.put(a, new Relation());
-//            obliviousKnowledges.put(a, new Relation());
-//        }
-//        Set<World> obliviousWorlds = new HashSet<>();
-//        Map<World,World> oldWorldsToOblivious = new HashMap<>();
-//        for (World w : beforeState.getKripke().getWorlds()) {
-//            World obliviousWorld = new World(w);
-//            obliviousWorlds.add(obliviousWorld);
-//            oldWorldsToOblivious.put(w, obliviousWorld);
-//        }
-//        for (String a : domain.getAllAgents()) {
-//            for (World w : beforeState.getKripke().getWorlds()) {
-//                World oblivousFrom = oldWorldsToOblivious.get(w);
-//                for (World oldToWorld: oldKripke.getBelievedWorlds(a, w)) {
-//                    obliviousBeliefs.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
-//                }
-//                for (World oldToWorld: oldKripke.getKnownWorlds(a, w)) {
-//                    obliviousKnowledges.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
-//                }
-//            }
-//        }
-//        KripkeStructure obliviousKripke = new KripkeStructure(obliviousWorlds, obliviousBeliefs, obliviousKnowledges);
-//        World obliviousDesignated = oldWorldsToOblivious.get(beforeState.getDesignatedWorld());
-
-
+        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        }
 
 
         Action.PartialResult actualPartial = this.partial(oldKripke);
         KripkeStructure newKripke = actualPartial.kripke;
         Map<World,World> map = actualPartial.map;
+
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
+        }
 
 
         World newDesignated = null;
@@ -663,8 +643,6 @@ public class Action implements java.io.Serializable {
                      for (World toWorld : map.keySet()) {
                          World oldToWorld = map.get(toWorld);
                          if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             // IT SHOULD BE THIS, BUT NEED TO MOVE learnedKnowledgeFormula TO GLOBAL...
-                             //if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldToWorld)) {
                              if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
                                  newKripke.connectKnowledge(agent, fromWorld, toWorld);
                              }

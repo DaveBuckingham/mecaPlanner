@@ -19,7 +19,6 @@ public class LocalAndFormula extends LocalFormula{
 
 
     private LocalAndFormula(List<LocalFormula> formulae) {
-        assert(formula != null_);
         this.formulae = formulae;
     }
 
