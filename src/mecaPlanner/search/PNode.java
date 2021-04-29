@@ -28,6 +28,8 @@ public class PNode  {
         this.time = time;
         this.depth = depth;
         this.domain = domain;
+        //System.out.print("::: ");
+        //System.out.println(java.lang.Thread.activeCount());
     }
 
     public Perspective getPerspective() {
