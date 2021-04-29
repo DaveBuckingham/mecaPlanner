@@ -31,8 +31,8 @@ public class PNode extends RecursiveTask<Integer> {
         this.depth = depth;
         this.maxDepth = maxDepth;
         this.domain = domain;
-        System.out.print("::: ");
-        System.out.println(java.lang.Thread.activeCount());
+        //System.out.print("::: ");
+        //System.out.println(java.lang.Thread.activeCount());
     }
 
     public Perspective getPerspective() {
