@@ -295,6 +295,9 @@ public class DeplToProblem extends DeplBaseVisitor {
         visitChildren(ctx);
         String agent = ctx.objectName().getText();
 
+        if (!allObjects.containsKey(agent)) {
+            throw new RuntimeException("agent " + agent + " is not a defined object.");
+        }
 
         if (ctx.UPPER_NAME() == null) {
             if (this.systemAgentIndex != null) {

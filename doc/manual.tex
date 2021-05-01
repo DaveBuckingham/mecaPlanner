@@ -42,17 +42,19 @@
 
 \maketitle
 
-\section{The depl planning language}
 
 Planning problems for the MECA Planner are specified in the doxastic/epistemic
-planning language (depl). A single depl file describes both a planning domain
+planning language: \emph{depl}. A single depl file describes both a planning domain
 and a planning problem.
-For the complete depl grammar, defined with the ANTLR meta-language, consult\\
-\texttt{mecaPlanner/src/deplParser/Depl.g4}.
+The grammar of depl is defined with the ANTLR meta-language in the file:
+\texttt{src/deplParser/Depl.g4}.
 
-Whitespace and newlines are ignored.
-as are, inline comments (anything
-following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
+Whitespace and newlines are ignored,
+as are, C-style inline comments (anything
+following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
+
+
+\section{Structure}
 
 A depl file contains the following sections, which must occur in the correct
 order, and are required unless specified as optional:
@@ -76,7 +78,7 @@ then the section contents, and then
 ``\verb|}|''. 
 
 
-\subsection{The \emph{types} section}
+\subsection{types}
 
 The \emph{types} section defines a type heirarchy relating all objects in the planning
 problem.
@@ -94,22 +96,22 @@ types{
 
 The content of the \emph{types} section consists of a comma-separated list of
 type definitions. A type definition takes the form
-``\texttt{Subtype - Supertype}'' (whitespace surrounding the ``\texttt{-}'' is
-optional). The type ``\texttt{Object}'' is built-in, and
+``\texttt{Subtype - Supertype}''.
+The type ``\texttt{Object}'' is built-in, and
 the type heirarchy must be constructed such that every type is a subtype of
 ``\texttt{Object}''.  A type name begins with an uppercase letter, followed
 by any number of upper- or lower-case letters, integers, and underscores.
 
-The depl parser will use the type heirarchy defined in this section for two main
+The depl parser will use the type heirarchy defined in this section for two 
 purposes. First, it will provide type checking of objects as a guard against errors.
-Second, as we will see in some later sections, it will automatically expand some
+Second, it will automatically expand some
 statements that contain types into a set of statements instead containing
-objects of those types, providing a convenient short-hand. Note, however, that
-the type-heirarchy is a parse-time entity only, no type information will be
+objects of those types, providing a convenient short-hand. 
+The type heirarchy is a strictly parse-time entity: no type information will be
 available to the planner.
 
 
-\subsection{The \emph{objects} section}
+\subsection{objects}
 
 The \emph{objects} section defines the objects in the planning problem.
 Here is an example \emph{objects} section:
@@ -126,28 +128,43 @@ objects{
 
 The content of the \emph{objects} section consists of a comma-separated list of
 object definitions. An object definition takes the form ``\texttt{object -
-Type}'' (whitespace surrounding the ``\texttt{-}'' is optional). Each type must
+Type}''. Each type must
 either be ``\texttt{Object}'', or be defined in the \emph{types} section.  An
 object name begins with a lowercase letter, followed by any number of upper-
 or lower-case letters, integers, and underscores.
-
+Objects will be used as arguments to predicates to build a set of atomic
+boolean fluents (propositions).
 
 
 \subsection{The \emph{agents} section}
 
-The MECA planner considers three types of \emph{agents}. The single
-\emph{system} and arbitrarily-numberd \emph{environment} agents are specified in
+The MECA planner uses three types of \emph{agents}. The single
+\emph{system} agent and any number of \emph{environment} agents are specified in
 this section.  The third type, \emph{passive} agents, are specified in the next
-section.
+section.  Here is an example \emph{agents} section:
 
-An \emph{agent name} must be an object that has been defined in the
-\emph{objects} section. An agent can have any type, but it is generally
-convenient to create a type for objects that will be agents, for example 
-as we do with the ``\texttt{actor}'' type in our running example.
+\begin{verbatim}
+agents{
+    robot1,
+    human1{PizzaModel},
+}
+\end{verbatim}
+
+
+An \emph{agent}
+begins with a lowercase letter, followed by any number of upper-
+or lower-case letters, integers, and underscores.
+
+While agents are distinct from objects, it will often be convenient 
+to create an object corresponding to each agent (i.e. with the same name),
+and to create one or more types corresponding to such agent objects, for example 
+as we do with the ``\texttt{actor}'' type in our running example. Thus, as we
+will see when we define actions, we can
+use automatic type expansion of agents.
 
 The \emph{agents} section consists of a comma-separated list of agent
 definitions. There must be at least one agent definition. There must be exactly
-one \emph{system} agent, definitions, the rest must be \emph{environment} agent
+one \emph{system} agent definition and the rest must be \emph{environment} agent
 definitions. A system agent definition contains only an agent name (i.e. an
 object that has been defined in the \emph{objects} section). An environment
 agent definition takes the form ``\texttt{name\{Model\}}'', where \texttt{name}
@@ -160,14 +177,6 @@ be the same as the name of a java class that extends
 
 The order in which agents are defined determines the order in which they will
 act.
-
-Here is an example \emph{agents} section:
-\begin{verbatim}
-agents{
-    robot1,
-    human1{PizzaModel},
-}
-\end{verbatim}
 
 This example defines a system agent, \texttt{robot1}, and a single environment
 agent, \texttt{human1}. \texttt{robot1} will act first, followed by
