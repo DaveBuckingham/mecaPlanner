@@ -350,6 +350,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitPassiveDef(DeplParser.PassiveDefContext ctx) {
         String name = ctx.objectName().getText();
+        if (!allObjects.containsKey(name)) {
+            throw new RuntimeException("passive agent " + name + " is not a defined object.");
+        }
         domain.addPassive(name);
         return null;
     }
