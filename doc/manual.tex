@@ -34,6 +34,8 @@
 \newcommand{\kbone}{\ensuremath{KB1}}
 \newcommand{\kbtwo}{\ensuremath{KB2}}
 
+\lstset{basicstyle=\ttfamily,breaklines=true}
+
 \title{MECA Planner \input{../VERSION} \\
 \large User Manual
 }
@@ -49,9 +51,32 @@ and a planning problem.
 The grammar of depl is defined with the ANTLR meta-language in the file:
 \texttt{src/deplParser/Depl.g4}.
 
-Whitespace and newlines are ignored,
-as are, C-style inline comments (anything
-following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
+
+\section{Example}
+
+We will use an example depl file, which is located at 
+\texttt{problems/example.depl}.
+
+This describes a planning domain involving two agents: a robot, whose behavior
+will be determined by the planner, and a human, whose behavior is
+estimated by a predictive model. There are two rooms and two hallways: each
+hallway connects the two rooms. The first room contains a coin and both agents,
+the second room contains a pizza. The robot does not know whether the coin lies
+heads- or tails-up, althought the human does. The robot knows about the pizza in
+the second room, but the human is unaware of the pizza.
+The robot's goal is to know how the coin lies without the human knowing that the
+robot knows this.
+The robot can determine
+how the coin lies by looking at it, but if the human is in the same room, she
+will observe this and know that the robot knows. The human is hungry, and would
+leave for the second room if she know about the pizza (according to the
+predictive model).
+A succesful plan is for the robot to announce to the human that there is pizza
+in the other room, wait for the human to leave by either of the halls, and then
+observe the coin. Here is the example depl file describing this problem:
+
+\lstinputlisting{../problems/example.depl}
+
 
 
 \section{Structure}
@@ -78,22 +103,16 @@ then the section contents, and then
 ``\verb|}|''. 
 
 
+\subsection{Whitespace and newlines}
+Whitespace and newlines are ignored,
+as are, C-style inline comments (anything
+following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
+
+
 \subsection{types}
 
 The \emph{types} section defines a type heirarchy relating all objects in the planning
 problem.
-Here is an example \emph{types} section:
-\begin{verbatim}
-types{
-    Robot-Actor,
-    Human-Actor,
-    Actor-Locatable,
-    Food-Locatable,
-    Locatable-Object,
-    Location-Object
-}
-\end{verbatim}
-
 The content of the \emph{types} section consists of a comma-separated list of
 type definitions. A type definition takes the form
 ``\texttt{Subtype - Supertype}''.
@@ -114,18 +133,6 @@ available to the planner.
 \subsection{objects}
 
 The \emph{objects} section defines the objects in the planning problem.
-Here is an example \emph{objects} section:
-\begin{verbatim}
-objects{
-    robot1-Robot,
-    human1-Human,
-    pizza-Food,
-    hotdog-Food,
-    room1-Location,
-    room2-Location,
-}
-\end{verbatim}
-
 The content of the \emph{objects} section consists of a comma-separated list of
 object definitions. An object definition takes the form ``\texttt{object -
 Type}''. Each type must
@@ -146,13 +153,6 @@ An \emph{agent} must be an object that has been defined in the
 \emph{objects} section. An agent can have any type, but it is generally
 convenient to create a type for objects that will be agents, for example 
 as we do with the ``\texttt{actor}'' type in our running example.
-Here is an example \emph{agents} section:
-\begin{verbatim}
-agents{
-    robot1,
-    human1{PizzaModel},
-}
-\end{verbatim}
 
 The \emph{agents} section consists of a comma-separated list of agent
 definitions. There must be at least one agent definition. There must be exactly
@@ -203,25 +203,9 @@ agent definition: an agent name.
 
 \subsection{fluents}
 
-This section defines all fluent atoms that will be available to the planner. A
+The \emph{fluents} section defines all fluent atoms that will be available to the planner. A
 fluent atom consists of a predicate and a (possibly empty) orderd list of
 arguments. Arguments are objects, as defined in the \emph{objects} section.
-Here is an example \emph{fluents} section:
-\begin{verbatim}
-fluents{
-    at(robot1, room1),
-    at(human1, room1),
-    at(pizza,  room1),
-    at(hotdog, room1),
-    at(robot1, room2),
-    at(human1, room2),
-    at(pizza,  room2,
-    at(hotdog, room2),
-    human_hungry(),
-    door_open(),
-    robot_charged(),
-}
-\end{verbatim}
 
 This section contains a comma-delimited list of fluent definitions. A fluent
 definition taks the form \verb|name(p1,...,pn)|, where \verb|name| is the
@@ -232,18 +216,7 @@ upper- and lower-case letters, integers, and underscores, and each element of
 of a fluent definition are object names, a single fluent is defined. If any
 arguments are type names, the fluent definition is automatically expanded,
 substituting all objects that are of the specified type(s), in all combinations, to
-construct multiple fluents. For example, given the previous example \emph{types}
-and \emph{objects} example sections, the following example
-\emph{fluents} section is equivalent to the previous example:
-
-\begin{verbatim}
-fluents{
-    at(Locatable, Location),
-    human_hungry(),
-    door_open(),
-    robot_charged(),
-}
-\end{verbatim}
+construct multiple fluents.
 
 
 
