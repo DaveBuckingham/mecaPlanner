@@ -184,7 +184,7 @@ public class KripkeStructure implements java.io.Serializable {
 
     public void add(KripkeStructure other) {
         assert (this != other);
-        assert (this.agents == other.getAgents());
+        assert (this.agents.equals(other.getAgents()));
         this.worlds.addAll(other.getWorlds());
         for (String agent : agents) {
             beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));

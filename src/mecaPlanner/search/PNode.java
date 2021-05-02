@@ -76,22 +76,38 @@ public class PNode extends RecursiveTask<Integer> {
         Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
 
         Integer best = successorsWithScore.getBestCaseDepth();
-        for (PNode successor : potentialSuccessors) {
 
-            //Integer successorsBest = successor.expand();
-            successor.fork();
-        }
-        boolean failed = false;
+
+
+        // NO MULTITHREADING
         for (PNode successor : potentialSuccessors) {
-            Integer successorsBest = successor.join();
+            Integer successorsBest = successor.expand();
             if (successorsBest == Integer.MAX_VALUE) {
-                failed = true;
+                return null;
             }
             best = Integer.min(best, successorsBest);
         }
-        if (failed) {
-            return null;
-        }
+
+
+
+        // WITH MULTITHREADING
+//        for (PNode successor : potentialSuccessors) {
+//            successor.fork();
+//        }
+//        boolean failed = false;
+//        for (PNode successor : potentialSuccessors) {
+//            Integer successorsBest = successor.join();
+//            if (successorsBest == Integer.MAX_VALUE) {
+//                failed = true;
+//            }
+//            best = Integer.min(best, successorsBest);
+//        }
+//        if (failed) {
+//            return null;
+//        }
+
+
+        
         return new PerspectiveSuccessors(best, potentialSuccessors);
     }
 
