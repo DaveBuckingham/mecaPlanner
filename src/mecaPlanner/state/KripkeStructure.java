@@ -56,6 +56,23 @@ public class KripkeStructure implements java.io.Serializable {
         this.agents = new HashSet<String>(toCopy.getAgents());
     }
 
+    public KripkeStructure(Set<World> worlds, Set<String> agents) {
+        assert(!worlds.isEmpty());
+        this.worlds = worlds;
+
+        this.beliefRelations = new HashMap<String, Relation>();
+        this.knowledgeRelations = new HashMap<String, Relation>();
+        this.agents = agents;
+
+        for (String agent : agents) {
+            beliefRelations.put(agent, new Relation());
+            knowledgeRelations.put(agent, new Relation());
+        }
+
+    }
+
+
+
     public Set<World> getWorlds() {
         return worlds;
     }

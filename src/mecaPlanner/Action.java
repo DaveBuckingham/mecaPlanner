@@ -445,18 +445,6 @@ public class Action implements java.io.Serializable {
         // KNOWLEDGE RELATIONS
         Map<String, Relation> newKnowledges = new HashMap<>();
 
-//        for (String agent : domain.getAllAgents()) {
-//            Relation newKnowledge = new Relation();
-//            for (World fromWorld : newWorlds) {
-//                for (World oldToWorld: postAssignments.get(fromWorld).get(agent)) {
-//                    for (World newToWorld: oldToNew.get(oldToWorld)) {
-//                        newKnowledge.connect(fromWorld, newToWorld);
-//                    }
-//                }
-//            }
-//            newKnowledges.put(agent, newKnowledge);
-//        }
-
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
@@ -540,26 +528,23 @@ public class Action implements java.io.Serializable {
         }
 
         KripkeStructure oldKripke = beforeState.getKripke();
-        //oldKripke.forceCheck();
-        assert(oldKripke.checkRelations());
 
         Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
             learnedObserver.put(agent, new HashMap<World, LocalFormula>());
         }
 
-
         Action.PartialResult actualPartial = this.partial(oldKripke);
-        KripkeStructure newKripke = actualPartial.kripke;
-        Map<World,World> map = actualPartial.map;
+        //KripkeStructure newKripke = actualPartial.kripke;
+        Map<World,World> map = new HashMap<>();
+        map.addAll(actualPartial.map);
 
         for (String agent : domain.getAllAgents()) {
             learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
 
-
         World newDesignated = null;
-        for (World w : newKripke.getWorlds()) {
+        for (World w : actualPartial.kripke.getWorlds()) {
             if (map.get(w).equals(beforeState.getDesignatedWorld())) {
                 newDesignated = w;
                 break;
@@ -583,12 +568,9 @@ public class Action implements java.io.Serializable {
             }
         }
         if (!anyOblivious) {
-            newKripke.forceCheck();
-            //assert(newKripke.checkRelations());
-            return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
+            assert(actualPartial.kripke.checkRelations());
+            return new Action.UpdatedStateAndModels(new EpistemicState(actualPartial.kripke, newDesignated), newModels);
         }
-
-
 
 
         // BUILD NULL ACTION AND  USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
@@ -613,7 +595,7 @@ public class Action implements java.io.Serializable {
                                       );
         Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
         KripkeStructure obliviousKripke = obliviousPartial.kripke;
-        newKripke.add(obliviousKripke);
+        //newKripke.add(obliviousKripke);
         map.putAll(obliviousPartial.map);
 
 
@@ -625,13 +607,15 @@ public class Action implements java.io.Serializable {
                      for (Action a : possibleActions(agent, oldKripke, w)) {
                          if (!a.equals(this)) {
                              Action.PartialResult partialResult = a.partial(oldKripke);
-                             newKripke.add(partialResult.kripke);
+                             //newKripke.add(partialResult.kripke);
                              map.putAll(partialResult.map);
                          }
                      }
                 }
             }
         }
+
+        KripkeStructure newKripke = new KripkeStructure(map.keySet(), oldKripke.getAgents());
 
         // OBLIVIOUS AGENT INTRA- AND INTER-SUB-MODEL CONNECTIONS
         for (String agent : domain.getAllAgents()) {
@@ -662,7 +646,18 @@ public class Action implements java.io.Serializable {
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
 
 
-        assert(newKripke.checkRelations());
+        if (!newKripke.checkRelations()) {
+            System.out.println("action broke kripke:");
+            System.out.println(this);
+            System.out.println(newDesignated);
+            System.out.println(newKripke);
+            System.out.println(isOblivious("human1", map.get(newDesignated)));
+            for (World toWorld : obliviousKripke.getWorlds()) {
+                System.out.println(toWorld);
+            }
+            System.exit(1);
+        }
+        //assert(newKripke.checkRelations());
         //newKripke.forceCheck();
         //if (!newKripke.checkRelations()) {
         //    System.out.println("BEFORE:");
@@ -677,6 +672,7 @@ public class Action implements java.io.Serializable {
 
         return new Action.UpdatedStateAndModels(newState, newModels);
     }
+
 
     private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
         assert (!kripke.getKnownWorlds(agent, world).isEmpty());
