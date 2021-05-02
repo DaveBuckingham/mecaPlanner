@@ -22,9 +22,6 @@ agents{
     human1{HumanModel},
 }
 
-passive{
-}
-
 fluents{
     at(Locatable, Location),
     heads(),
@@ -69,15 +66,17 @@ initially{
     K[human1] <- {(w1,w1),(w1,w3),(w3,w3),(w3,w1),(w2,w2),(w2,w4),(w4,w4),(w4,w2)},
 }
 
-goals{(B[robot1]heads() & !B[human1]B[robot1]heads()) |
-      (B[robot1]!heads() & !B[human1]B[robot1]!heads())}
+goals{heads()}
+//goals{(B[robot1]heads() & !B[human1]B[robot1]heads()) |
+//      (B[robot1]!heads() & !B[human1]B[robot1]!heads())}
 
 actions{
     move(?a-Actor,?f-Location,?t-Location){
         owner{?a},
         precondition{at(?a, ?f)},
         precondition{connected(?f,?t)|connected(?t,?f)},
-        observes(?o-Actor){?o if at(?o,?f) | at(?o,?t)},
+        //observes(?o-Actor){?o if at(?o,?f) | at(?o,?t)},
+        observes(?o-Actor){?o if at(?o,?f)},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
     }
@@ -86,7 +85,8 @@ actions{
         owner{human1},
         precondition{at(human1, ?l)},
         precondition{at(pizza, ?l)},
-        observes(?o-Actor){?o if at(?o,?l)},
+        //observes(?o-Actor){?o if at(?o,?l)},
+        observes(?o-Actor){?o},
         causes{~hungry()},
     }
 
@@ -99,14 +99,16 @@ actions{
     look(){
         owner{robot1},
         precondition{at(robot1, roomA)},
-        observes(?o-Actor){?o if at(?o, roomA)},
+        //observes(?o-Actor){?o if at(?o, roomA)},
+        observes(?o-Actor){?o},
         determines{heads()}
     }
 
     wait(?a - Actor,?l-Location) {
         owner{?a},
         precondition{at(?a, ?l)},
-        observes(?o-Actor){?o if at(?a,?l)},
+        //observes(?o-Actor){?o if at(?a,?l)},
+        observes(?o-Actor){?o},
     }
 }
 

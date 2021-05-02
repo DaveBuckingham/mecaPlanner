@@ -55,6 +55,10 @@ public class Search {
 
         Set<EpistemicState> startStates = problem.getStartStates();
 
+        for (EpistemicState eState : startStates) {
+            eState.getKripke().forceCheck();
+        }
+
         int systemAgentIndex = problem.getSystemAgentIndex();
 
         int numAgents = domain.getNonPassiveAgents().size();

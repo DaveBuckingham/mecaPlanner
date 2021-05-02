@@ -146,6 +146,8 @@ public class PNode extends RecursiveTask<Integer> {
 
             //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
+            //assert(ground.getState().getKripke().checkRelations());
+
             GroundSuccessors successors = ground.transition(action).descend();
 
             if (successors == null) {

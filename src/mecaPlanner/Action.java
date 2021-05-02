@@ -353,6 +353,7 @@ public class Action implements java.io.Serializable {
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
                 assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
+                assert(oldKripke.getKnownWorlds(agent, oldWorld).contains(oldWorld));
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
                     if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
                         equivalent.add(toWorld);
@@ -459,14 +460,14 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
                     for (World toWorld : newWorlds) {
                         if (postAssignments.get(fromWorld).get(agent).equals(
                             postAssignments.get(toWorld).get(agent))){
                             newKnowledge.connect(fromWorld, toWorld);
                         }
                     }
-                }
+                //}
             }
             newKnowledges.put(agent, newKnowledge);
         }
@@ -479,7 +480,8 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, newToOld.get(fromWorld)) || isAware(agent, newToOld.get(fromWorld))) {
                     World oldFromWorld = newToOld.get(fromWorld);
                     BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
@@ -514,7 +516,7 @@ public class Action implements java.io.Serializable {
                             }
                         }
                     }
-                }
+                //}
             }
             newBeliefs.put(agent, newBelief);
         }
@@ -538,6 +540,8 @@ public class Action implements java.io.Serializable {
         }
 
         KripkeStructure oldKripke = beforeState.getKripke();
+        //oldKripke.forceCheck();
+        assert(oldKripke.checkRelations());
 
         Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
@@ -579,6 +583,8 @@ public class Action implements java.io.Serializable {
             }
         }
         if (!anyOblivious) {
+            newKripke.forceCheck();
+            //assert(newKripke.checkRelations());
             return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
         }
 
@@ -631,7 +637,7 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             for (World fromWorld : map.keySet()) {
                  World oldFromWorld = map.get(fromWorld);
-                 if (isOblivious(agent, fromWorld)) {
+                 if (isOblivious(agent, oldFromWorld)) {
                      // BELIEF EDGES ONLY GO TO (AND WITHIN) THE OBLIVIOUS SUB-MODEL
                      for (World toWorld : obliviousKripke.getWorlds()) {
                          World oldToWorld = map.get(toWorld);
@@ -656,7 +662,8 @@ public class Action implements java.io.Serializable {
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
 
 
-        newKripke.forceCheck();
+        assert(newKripke.checkRelations());
+        //newKripke.forceCheck();
         //if (!newKripke.checkRelations()) {
         //    System.out.println("BEFORE:");
         //    System.out.println(beforeState);
@@ -666,6 +673,7 @@ public class Action implements java.io.Serializable {
         //    System.out.println(newState);
         //    System.exit(1);
         //}
+
 
         return new Action.UpdatedStateAndModels(newState, newModels);
     }
