@@ -1,0 +1,112 @@
+types{
+    Robot-Actor,
+    Human-Actor,
+    Actor-Locatable,
+    Food-Locatable,
+    Locatable-Object,
+    Location-Object
+}
+
+objects{
+    robot1-Robot,
+    human1-Human,
+    pizza-Food,
+    roomA - Location,
+    roomB - Location,
+    hall1 - Location,
+    hall2 - Location,
+}
+
+agents{
+    robot1,
+    human1{HumanModel},
+}
+
+passive{
+}
+
+fluents{
+    at(Locatable, Location),
+    heads(),
+    hungry()
+}
+
+constants{
+    !connected(Location, Location),
+    connected(roomA,hall1),
+    connected(roomA,hall2),
+    connected(hall1,roomB),
+    connected(hall2,roomB),
+}
+
+initially{
+    *w1 <- {
+        at(robot1, roomA),
+        at(human1, roomA),
+        at(pizza,roomB),
+        heads()
+    }
+    *w2 <- {
+        at(robot1, roomA),
+        at(human1, roomA),
+        at(pizza,roomB),
+    }
+    w3 <- {
+        at(robot1, roomA),
+        at(human1, roomA),
+        heads()
+    }
+    w4 <- {
+        at(robot1, roomA),
+        at(human1, roomA),
+    }
+
+    B[robot1] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1),
+                  (w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    K[robot1] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1),
+                  (w3,w3),(w3,w4),(w4,w4),(w4,w3)},
+    B[human1] <- {(w1,w3),(w2,w4),(w3,w3),(w4,w4)},
+    K[human1] <- {(w1,w1),(w1,w3),(w3,w3),(w3,w1),(w2,w2),(w2,w4),(w4,w4),(w4,w2)},
+}
+
+goals{(B[robot1]heads() & !B[human1]B[robot1]heads()) |
+      (B[robot1]!heads() & !B[human1]B[robot1]!heads())}
+
+actions{
+    move(?a-Actor,?f-Location,?t-Location){
+        owner{?a},
+        precondition{at(?a, ?f)},
+        precondition{connected(?f,?t)|connected(?t,?f)},
+        observes(?o-Actor){?o if at(?o,?f) | at(?o,?t)},
+        causes{at(?a, ?t)},
+        causes{~(at(?a, ?f))},
+    }
+
+    eat(?l-Location){
+        owner{human1},
+        precondition{at(human1, ?l)},
+        precondition{at(pizza, ?l)},
+        observes(?o-Actor){?o if at(?o,?l)},
+        causes{~hungry()},
+    }
+
+    announcePizza(){
+        owner{robot1},
+        observes(?o-Actor){?o},
+        announces{at(pizza,roomB)},
+    }
+
+    look(){
+        owner{robot1},
+        precondition{at(robot1, roomA)},
+        observes(?o-Actor){?o if at(?o, roomA)},
+        determines{heads()}
+    }
+
+    wait(?a - Actor,?l-Location) {
+        owner{?a},
+        precondition{at(?a, ?l)},
+        observes(?o-Actor){?o if at(?a,?l)},
+    }
+}
+
