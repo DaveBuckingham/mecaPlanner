@@ -126,8 +126,8 @@ beliefFormula
     | beliefFormula OP_AND beliefFormula                         # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
-    | 'P' '[' groundableObject ']' '(' beliefFormula ')'         # beliefPossibly
+    | 'B' '[' groundableObject ']'  beliefFormula          # beliefBelieves
+    | 'P' '[' groundableObject ']'  beliefFormula          # beliefPossibly
     ;
 
 inequality
