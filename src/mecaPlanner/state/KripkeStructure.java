@@ -93,6 +93,24 @@ public class KripkeStructure implements java.io.Serializable {
         knowledgeRelations.get(agent).connect(from,to);
     }
 
+    public void connectBelief(String agent, World from, Set<World> to) {
+        beliefRelations.get(agent).connect(from,to);
+    }
+
+    public void connectKnowledge(String agent, World from, Set<World> to) {
+        knowledgeRelations.get(agent).connect(from,to);
+    }
+
+
+
+//    public void addBeliefRelation(String agent, Relation relation) {
+//        beliefRelations.get(agent).add(relation);
+//    }
+//
+//    public void addKnowledgeRelation(String agent, Relation relation) {
+//        knowledgeRelations.get(agent).add(relation);
+//    }
+
     public Boolean isConnectedBelief(String agent, World from, World to) {
         return beliefRelations.get(agent).isConnected(from,to);
     }
