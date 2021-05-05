@@ -548,7 +548,7 @@ public class Action implements java.io.Serializable {
 
         submodels.add(actualPartial);
         for (String agent : domain.getAllAgents()) {
-            agentSubmodels.put(agent, new hashSet<PartialResult>());
+            agentSubmodels.put(agent, new HashSet<PartialResult>());
             agentSubmodels.get(agent).add(actualPartial);
             learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
@@ -644,7 +644,7 @@ public class Action implements java.io.Serializable {
         // OBSERVERS COPY RELATIONS
         for (PartialResult sub : submodels) {
             for (String agent : domain.getAllAgents()) {
-                for (World fromWorld : sub.getWorlds() {
+                for (World fromWorld : sub.getWorlds()) {
                     World oldFromWorld = sub.map.get(fromWorld);
                     if (isObservant(agent, oldFromWorld) || isAware(agent, oldFromWorld)) {
                         newKripke.connectBelief(fromWorld, sub.kripke.getBelievedWorlds(agent, fromWorld));
@@ -652,7 +652,7 @@ public class Action implements java.io.Serializable {
                     }
                     else {
                         if (agentSubmodels.get(agent).contains(sub)) {
-                            for (World toWorld : obliviousPartial.getWorlds() {
+                            for (World toWorld : obliviousPartial.getWorlds()) {
                                 World oldtoWorld = obliviousPartial.map.get(toWorld);
                                 if (oldKripke.isConnectedBelief(oldFromWorld, oldToWorld)){
                                     // if there is a corresponding edge in the oblivious submodel beliefs, then
