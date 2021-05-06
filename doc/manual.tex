@@ -272,23 +272,39 @@ between connected rooms.
 
 \subsection{initially}
 
-This section defines the start state (or possibly a set of start states) for the planner.
-A state definition has two parts. First, worlds and their valuations are
+This section defines the start state or the set of start states.
+The state representations used by the planner are presented only in outline
+here. For a complete description of these state representations, please
+consult \citefull{buckingham2021}. 
+
+A state definition has two parts.
+If there are multiple start states, they represent
+plan-time uncertainty of the of the planner about the start state: the planner
+will search for find a conformant plan that can achieve its goals from any of
+the start states.
+First, worlds and their valuations are
 defined. Then, per-agent knowledge and belief relations are defined over worlds.
-
-
 
 Each world definition takes the form
 \verb|w <- {f1,...,fn}|
-where \verb|w| is a world name (used to reference the world when later
-definingrelations) and each of \verb|f1| \ldots \verb|fn| is a fluent 
-that should be true in that world (unlisted fluents are false).
+where \verb|w| is a world name
+and each of \verb|f1| \ldots \verb|fn| is a fluent 
+that is true in that world. Unlisted fluents are false.
+Designated worlds are prerpended by a star (\verb|*|).
+There must be at least one designated world. 
+If there are mutliple designated worlds, the state willl be replicated to
+construct multiple pointed states, one taking each of those worlds as its
+designated world. This is equivalent to defining multiple start states that
+differ only in the selection of the designated world.
 
 B[human1] <- {(w1,w1)},
 
-The parser will reject Kripke structures that to not satisfy \sfive (on the
-knowledge relation) \kdff (on the belief relation), and
-\kbone and \kbtwo (between the belief and knowledge relations).
+The Belief relations must be serial, transitive, and Euclidean (the \kdff
+properties). The Knowledge relations must be reflexive, transitive, and
+symmetric (the \sfive properties). The Belief and Knowledge relations must also
+satisfy the \kbone property ($B_i \subseteq K_i$), and the \kbtwo property
+($(u,v) \in K_i, (v,w) \in B_i \rightarrow (u,w) \in B_i$) for every agent
+$i$.
 
 
 
