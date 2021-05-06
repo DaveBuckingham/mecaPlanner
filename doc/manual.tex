@@ -16,6 +16,24 @@
 \usetikzlibrary{automata, positioning, arrows.meta}
 
 
+\usepackage[style=authoryear-comp]{biblatex}
+\addbibresource{\jobname.bib}
+
+
+\begin{filecontents}{\jobname.bib}
+@inproceedings{buckingham2021multiagent,
+  title={A Multi-Agent Epistemic and Doxastic Action Language with Belief Revision and Local Dynamic Observability},
+  author={Buckingham, David and Sarathy, Vasanth and Scheutz, Matthias and Son, Tran Cao},
+  booktitle={Proceedings of the International Conference on Principles of Knowledge Representation and Reasoning},
+  volume={18},
+  year={2021}
+}
+\end{filecontents}
+
+
+
+
+
 \newcommand{\entails}{\models}
 \newcommand{\notentails}{\not\models}
 
@@ -275,7 +293,7 @@ between connected rooms.
 This section defines the start state or the set of start states.
 The state representations used by the planner are presented only in outline
 here. For a complete description of these state representations, please
-consult \citefull{buckingham2021}. 
+consult \fullcite{buckingham2021multiagent} (\emph{under review}). 
 
 A state definition has two parts.
 If there are multiple start states, they represent
@@ -380,4 +398,11 @@ Any
 \section{Test}
 The best way to test a depl file is with the \verb|test| program.
 
+
+%\printbibliography
+
+
+
+
 \end{document}
+
