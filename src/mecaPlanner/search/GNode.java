@@ -53,6 +53,7 @@ public abstract class GNode  {
         this.numAgents = domain.getNonPassiveAgents().size();
         this.agentIndex = this.time % this.numAgents;
         this.agent = domain.getNonPassiveAgents().get(agentIndex);
+
     }
 
     public Set<GNode> getSuccessors() {

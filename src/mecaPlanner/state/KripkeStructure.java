@@ -56,6 +56,23 @@ public class KripkeStructure implements java.io.Serializable {
         this.agents = new HashSet<String>(toCopy.getAgents());
     }
 
+    public KripkeStructure(Set<World> worlds, Set<String> agents) {
+        assert(!worlds.isEmpty());
+        this.worlds = worlds;
+
+        this.beliefRelations = new HashMap<String, Relation>();
+        this.knowledgeRelations = new HashMap<String, Relation>();
+        this.agents = agents;
+
+        for (String agent : agents) {
+            beliefRelations.put(agent, new Relation());
+            knowledgeRelations.put(agent, new Relation());
+        }
+
+    }
+
+
+
     public Set<World> getWorlds() {
         return worlds;
     }
@@ -75,6 +92,24 @@ public class KripkeStructure implements java.io.Serializable {
     public void connectKnowledge(String agent, World from, World to) {
         knowledgeRelations.get(agent).connect(from,to);
     }
+
+    public void connectBelief(String agent, World from, Set<World> to) {
+        beliefRelations.get(agent).connect(from,to);
+    }
+
+    public void connectKnowledge(String agent, World from, Set<World> to) {
+        knowledgeRelations.get(agent).connect(from,to);
+    }
+
+
+
+//    public void addBeliefRelation(String agent, Relation relation) {
+//        beliefRelations.get(agent).add(relation);
+//    }
+//
+//    public void addKnowledgeRelation(String agent, Relation relation) {
+//        knowledgeRelations.get(agent).add(relation);
+//    }
 
     public Boolean isConnectedBelief(String agent, World from, World to) {
         return beliefRelations.get(agent).isConnected(from,to);
@@ -208,17 +243,23 @@ public class KripkeStructure implements java.io.Serializable {
         return new KripkeStructure(unionWorlds, unionBelief, unionKnowledge);
     }
 
-    public boolean reduce() {
+    public boolean reduce(World designated) {
         Set<Set<World>> partition = refineSystem();
         if (partition.size() == worlds.size()) {
             return false;
         }
 
-
         Map <World, World> oldWorldsToNew = new HashMap<>();
 
         for (Set<World> block : partition) {
-            World newWorld = new World(block.iterator().next());
+            //World newWorld = new World(block.iterator().next());
+            World newWorld = null;
+            if (block.contains(designated)) {
+                newWorld = designated;
+            }
+            else {
+                newWorld = block.iterator().next();
+            }
             for (World oldWorld : block) {
                 oldWorldsToNew.put(oldWorld, newWorld);
             }

@@ -19,20 +19,19 @@ import java.util.Objects;
 
 public class Action implements java.io.Serializable {
 
-    protected Domain domain;
+    private Domain domain;
 
-    protected String name;
-    protected List<String> parameters;
-    protected int cost;
-    protected String actor;
-    protected LocalFormula precondition;
-    protected Map<String, LocalFormula> observesIf;
-    protected Map<String, LocalFormula> awareIf;
-    protected Set<LocalFormula> determines;
-    protected Set<BeliefFormula> announces;
-    protected Map<Assignment, LocalFormula> effects;
+    private String name;
+    private List<String> parameters;
+    private int cost;
+    private String actor;
+    private LocalFormula precondition;
+    private Map<String, LocalFormula> observesIf;
+    private Map<String, LocalFormula> awareIf;
+    private Set<LocalFormula> determines;
+    private Set<BeliefFormula> announces;
+    private Map<Assignment, LocalFormula> effects;
 
-    Map<String, Map<World, LocalFormula>> learnedObserver;
 
 
 
@@ -63,10 +62,6 @@ public class Action implements java.io.Serializable {
         this.effects = effects;
         this.domain = domain;
 
-        learnedObserver = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
-        }
 
     }
 
@@ -193,9 +188,14 @@ public class Action implements java.io.Serializable {
     private class PartialResult {
         public KripkeStructure kripke;
         public Map<World,World> map;
-        public PartialResult(KripkeStructure k, Map<World,World> m) {
+        public Map<String, Map<World, LocalFormula>> learnedObserver;
+        public PartialResult(KripkeStructure k, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
             this.kripke = k;
             this.map = m;
+            this.learnedObserver = l;
+        }
+        public Set<World> getWorlds() {
+            return map.keySet();
         }
     }
 
@@ -220,6 +220,11 @@ public class Action implements java.io.Serializable {
 
         Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
         Map<World, LocalFormula> learnedDetermined = new HashMap<>();
+
+        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        }
 
         for (World oldWorld : oldWorlds) {
 
@@ -351,6 +356,7 @@ public class Action implements java.io.Serializable {
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
                 assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
+                assert(oldKripke.getKnownWorlds(agent, oldWorld).contains(oldWorld));
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
                     if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
                         equivalent.add(toWorld);
@@ -424,16 +430,16 @@ public class Action implements java.io.Serializable {
         // NEW WORLDS
         Set<World> newWorlds = new HashSet<>();
         Map<World, World> newToOld = new HashMap<>();
-        Map<World, Set<World>> oldToNew = new HashMap<>();
+        //Map<World, Set<World>> oldToNew = new HashMap<>();
         Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
         for (World oldWorld : oldWorlds) {
             if (precondition.evaluate(oldWorld)) {
-                oldToNew.put(oldWorld, new HashSet<World>());
+                //oldToNew.put(oldWorld, new HashSet<World>());
                 for (Map<String, Set<World>> assignment : assignments.get(oldWorld)) {
                     World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
                     newWorlds.add(newWorld);
                     newToOld.put(newWorld, oldWorld);
-                    oldToNew.get(oldWorld).add(newWorld);
+                    //oldToNew.get(oldWorld).add(newWorld);
                     postAssignments.put(newWorld, assignment);
                 }
             }
@@ -442,29 +448,17 @@ public class Action implements java.io.Serializable {
         // KNOWLEDGE RELATIONS
         Map<String, Relation> newKnowledges = new HashMap<>();
 
-//        for (String agent : domain.getAllAgents()) {
-//            Relation newKnowledge = new Relation();
-//            for (World fromWorld : newWorlds) {
-//                for (World oldToWorld: postAssignments.get(fromWorld).get(agent)) {
-//                    for (World newToWorld: oldToNew.get(oldToWorld)) {
-//                        newKnowledge.connect(fromWorld, newToWorld);
-//                    }
-//                }
-//            }
-//            newKnowledges.put(agent, newKnowledge);
-//        }
-
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
                     for (World toWorld : newWorlds) {
                         if (postAssignments.get(fromWorld).get(agent).equals(
                             postAssignments.get(toWorld).get(agent))){
                             newKnowledge.connect(fromWorld, toWorld);
                         }
                     }
-                }
+                //}
             }
             newKnowledges.put(agent, newKnowledge);
         }
@@ -477,7 +471,8 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
-                if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
+                //if (isObservant(agent, newToOld.get(fromWorld)) || isAware(agent, newToOld.get(fromWorld))) {
                     World oldFromWorld = newToOld.get(fromWorld);
                     BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
@@ -512,7 +507,7 @@ public class Action implements java.io.Serializable {
                             }
                         }
                     }
-                }
+                //}
             }
             newBeliefs.put(agent, newBelief);
         }
@@ -520,13 +515,15 @@ public class Action implements java.io.Serializable {
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
         //KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
 
-        return new Action.PartialResult(newKripke, newToOld);
+        return new Action.PartialResult(newKripke, newToOld, learnedObserver);
     }
 
 
 
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
+
+        //Map<World,World> newToOld = new HashMap<>();
 
         // UPDATE THE MODELS
         Map<String, Model> newModels = new HashMap();
@@ -537,46 +534,29 @@ public class Action implements java.io.Serializable {
 
         KripkeStructure oldKripke = beforeState.getKripke();
 
+        Map<String, Set<PartialResult>> agentSubmodels = new HashMap<>();
+        Set<PartialResult> submodels = new HashSet<>();
 
-//        // BUILD OBLIVIOUS KRIPKE
-//        Map<String, Relation> obliviousBeliefs = new HashMap<>();
-//        Map<String, Relation> obliviousKnowledges = new HashMap<>();
-//        for (String a : domain.getAllAgents()) {
-//            obliviousBeliefs.put(a, new Relation());
-//            obliviousKnowledges.put(a, new Relation());
-//        }
-//        Set<World> obliviousWorlds = new HashSet<>();
-//        Map<World,World> oldWorldsToOblivious = new HashMap<>();
-//        for (World w : beforeState.getKripke().getWorlds()) {
-//            World obliviousWorld = new World(w);
-//            obliviousWorlds.add(obliviousWorld);
-//            oldWorldsToOblivious.put(w, obliviousWorld);
-//        }
-//        for (String a : domain.getAllAgents()) {
-//            for (World w : beforeState.getKripke().getWorlds()) {
-//                World oblivousFrom = oldWorldsToOblivious.get(w);
-//                for (World oldToWorld: oldKripke.getBelievedWorlds(a, w)) {
-//                    obliviousBeliefs.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
-//                }
-//                for (World oldToWorld: oldKripke.getKnownWorlds(a, w)) {
-//                    obliviousKnowledges.get(a).connect(oblivousFrom, oldWorldsToOblivious.get(oldToWorld));
-//                }
-//            }
-//        }
-//        KripkeStructure obliviousKripke = new KripkeStructure(obliviousWorlds, obliviousBeliefs, obliviousKnowledges);
-//        World obliviousDesignated = oldWorldsToOblivious.get(beforeState.getDesignatedWorld());
-
-
-
+        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        for (String agent : domain.getAllAgents()) {
+            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        }
 
         Action.PartialResult actualPartial = this.partial(oldKripke);
-        KripkeStructure newKripke = actualPartial.kripke;
-        Map<World,World> map = actualPartial.map;
+
+        //newToOld.addAll(actualPartial.map);
+
+        submodels.add(actualPartial);
+        for (String agent : domain.getAllAgents()) {
+            agentSubmodels.put(agent, new HashSet<PartialResult>());
+            agentSubmodels.get(agent).add(actualPartial);
+            learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
+        }
 
 
         World newDesignated = null;
-        for (World w : newKripke.getWorlds()) {
-            if (map.get(w).equals(beforeState.getDesignatedWorld())) {
+        for (World w : actualPartial.kripke.getWorlds()) {
+            if (actualPartial.map.get(w).equals(beforeState.getDesignatedWorld())) {
                 newDesignated = w;
                 break;
             }
@@ -587,22 +567,21 @@ public class Action implements java.io.Serializable {
         // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
         // WE CAN JUST RETURN THE PARTIAL KRIPKE
         boolean anyOblivious = false;
-        for (World newWorld : map.keySet()) {
+        for (World newWorld : actualPartial.getWorlds()) {
             if (anyOblivious) {
                 break;
             }
             for (String agent : domain.getAllAgents()) {
-                if (isOblivious(agent, map.get(newWorld))) {
+                if (isOblivious(agent, actualPartial.map.get(newWorld))) {
                     anyOblivious = true;
                     break;
                 }
             }
         }
         if (!anyOblivious) {
-            return new Action.UpdatedStateAndModels(new EpistemicState(newKripke, newDesignated), newModels);
+            assert(actualPartial.kripke.checkRelations());
+            return new Action.UpdatedStateAndModels(new EpistemicState(actualPartial.kripke, newDesignated), newModels);
         }
-
-
 
 
         // BUILD NULL ACTION AND  USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
@@ -627,58 +606,109 @@ public class Action implements java.io.Serializable {
                                       );
         Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
         KripkeStructure obliviousKripke = obliviousPartial.kripke;
-        newKripke.add(obliviousKripke);
-        map.putAll(obliviousPartial.map);
+        submodels.add(obliviousPartial);
+        //newToOld.addAll(obliviousPartial.map);
 
 
 
         // BUILD HYPOTHETICAL MODELS
-        for (World w : oldKripke.getWorlds()) {
-            for (String agent : domain.getAllAgents()) {
+        for (String agent : domain.getAllAgents()) {
+            boolean obliviousAnywhere = false;
+            for (World w : oldKripke.getWorlds()) {
                 if (isOblivious(agent,w)) {
-                     for (Action a : possibleActions(agent, oldKripke, w)) {
-                         if (!a.equals(this)) {
-                             Action.PartialResult partialResult = a.partial(oldKripke);
-                             newKripke.add(partialResult.kripke);
-                             map.putAll(partialResult.map);
-                         }
-                     }
+                    obliviousAnywhere = true;
+                    for (Action a : possibleActions(agent, oldKripke, w)) {
+                        if (!a.equals(this)) {
+                            Action.PartialResult hypotheticalPartial = a.partial(oldKripke);
+                            agentSubmodels.get(agent).add(hypotheticalPartial);
+                            submodels.add(hypotheticalPartial);
+                            //newToOld.addAll(hypotheticalPartial.map);
+                        }
+                    }
+                }
+                if (obliviousAnywhere) {
+                    agentSubmodels.get(agent).add(obliviousPartial);
                 }
             }
         }
 
-        // OBLIVIOUS AGENT INTRA- AND INTER-SUB-MODEL CONNECTIONS
-        for (String agent : domain.getAllAgents()) {
-            for (World fromWorld : map.keySet()) {
-                 World oldFromWorld = map.get(fromWorld);
-                 if (isOblivious(agent, fromWorld)) {
-                     // BELIEF EDGES ONLY GO TO (AND WITHIN) THE OBLIVIOUS SUB-MODEL
-                     for (World toWorld : obliviousKripke.getWorlds()) {
-                         World oldToWorld = map.get(toWorld);
-                         if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                             newKripke.connectBelief(agent, fromWorld, toWorld);
-                         }
-                     }
-                     // KNOWLEDGE EDGES BETWEEN AND WITHIN ALL SUB-MODELS
-                     for (World toWorld : map.keySet()) {
-                         World oldToWorld = map.get(toWorld);
-                         if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)) {
-                             // IT SHOULD BE THIS, BUT NEED TO MOVE learnedKnowledgeFormula TO GLOBAL...
-                             //if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldToWorld)) {
-                             if (learnedObserver.get(agent).get(oldFromWorld).evaluate(oldToWorld)) {
-                                 newKripke.connectKnowledge(agent, fromWorld, toWorld);
-                             }
-                         }
-                     }
+        Map<World, Action.PartialResult> worldsToSubmodels = new HashMap<>();
+        for (PartialResult sub : submodels) {
+            for (World w : sub.map.keySet()) {
+                worldsToSubmodels.put(w, sub);
+            }
+        }
+        KripkeStructure newKripke = new KripkeStructure(worldsToSubmodels.keySet(), oldKripke.getAgents());
 
-                 }
+
+        for (PartialResult sub : submodels) {
+            for (String agent : domain.getAllAgents()) {
+                for (World fromWorld : sub.getWorlds()) {
+                    World oldFromWorld = sub.map.get(fromWorld);
+                    if (isObservant(agent, oldFromWorld) || isAware(agent, oldFromWorld)) {
+                        newKripke.connectBelief(agent, fromWorld, sub.kripke.getBelievedWorlds(agent, fromWorld));
+                        newKripke.connectKnowledge(agent, fromWorld, sub.kripke.getKnownWorlds(agent, fromWorld));
+                    }
+                    else {
+                        if (agentSubmodels.get(agent).contains(sub)) {
+                            for (World toWorld : obliviousPartial.getWorlds()) {
+                                World oldToWorld = obliviousPartial.map.get(toWorld);
+                                if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)){
+                                    // if there is a corresponding edge in the oblivious submodel beliefs, then
+                                    // connect beliefs from submodels that belong to this agent to oblivious submodel
+                                    newKripke.connectBelief(agent, fromWorld, toWorld);
+                                }
+                            }
+                            for (PartialResult toSub : agentSubmodels.get(agent)) {
+                                for (World toWorld : toSub.getWorlds()) {
+                                    //System.out.println("??? " + fromWorld.getName() + " -> " + toWorld.getName());
+                                    World oldToWorld = toSub.map.get(toWorld);
+                                    if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)){
+                                        // if there is a corresponding edge in the oblivious submodel knowledge, then
+                                        // connect knowledge within and between submodels that belong to this agent
+                                        //System.out.println("::: " + fromWorld.getName() + " -> " + toWorld.getName());
+                                        newKripke.connectKnowledge(agent, fromWorld, toWorld);
+                                    }
+                                }
+                            }
+                        }
+                        else {
+                            for (World toWorld : sub.getWorlds()) {
+                                World oldToWorld = sub.map.get(toWorld);
+                                if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)){
+                                    // if there is a corresponding edge in the oblivious submodel beliefs, then
+                                    // connect beliefs within each submodel that doesn't belong to this agent
+                                    newKripke.connectBelief(agent, fromWorld, toWorld);
+                                }
+                                if (oldKripke.isConnectedKnowledge(agent, oldFromWorld, oldToWorld)){
+                                    // if there is a corresponding edge in the oblivious submodel knowledge, then
+                                    // connect within (but not between) each submodel that doesn't belong to this agent
+                                    newKripke.connectKnowledge(agent, fromWorld, toWorld);
+                                }
+                            }
+                        }
+                    }
+                }
             }
         }
 
+
+        newKripke.reduce(newDesignated);
+
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
 
-
-        newKripke.forceCheck();
+        if (!newKripke.checkRelations()) {
+            System.out.println("action broke kripke:");
+            System.out.println(beforeState);
+            System.out.println(this);
+            System.out.println(newState);
+            //for (World toWorld : obliviousKripke.getWorlds()) {
+            //    System.out.println(toWorld);
+            //}
+            System.exit(1);
+        }
+        //assert(newKripke.checkRelations());
+        //newKripke.forceCheck();
         //if (!newKripke.checkRelations()) {
         //    System.out.println("BEFORE:");
         //    System.out.println(beforeState);
@@ -689,8 +719,10 @@ public class Action implements java.io.Serializable {
         //    System.exit(1);
         //}
 
+
         return new Action.UpdatedStateAndModels(newState, newModels);
     }
+
 
     private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
         assert (!kripke.getKnownWorlds(agent, world).isEmpty());

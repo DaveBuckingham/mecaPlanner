@@ -42,14 +42,14 @@ public class Relation implements java.io.Serializable {
         edges.get(from).add(to);
     }
 
-//    public void connect(World from, Set<World> to) {
-//        assert (from != null);
-//        assert (to != null);
-//        if (!edges.containsKey(from)) {
-//            edges.put(from, new HashSet<World>());
-//        }
-//        edges.get(from).addAll(to);
-//    }
+    public void connect(World from, Set<World> to) {
+        assert (from != null);
+        assert (to != null);
+        if (!edges.containsKey(from)) {
+            edges.put(from, new HashSet<World>());
+        }
+        edges.get(from).addAll(to);
+    }
 
     public void connectBack(World from, World to) {
         connect(from, to);

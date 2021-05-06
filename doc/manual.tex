@@ -34,6 +34,8 @@
 \newcommand{\kbone}{\ensuremath{KB1}}
 \newcommand{\kbtwo}{\ensuremath{KB2}}
 
+\lstset{basicstyle=\ttfamily,breaklines=true}
+
 \title{MECA Planner \input{../VERSION} \\
 \large User Manual
 }
@@ -42,17 +44,42 @@
 
 \maketitle
 
-\section{The depl planning language}
 
 Planning problems for the MECA Planner are specified in the doxastic/epistemic
-planning language (depl). A single depl file describes both a planning domain
+planning language: \emph{depl}. A single depl file describes both a planning domain
 and a planning problem.
-For the complete depl grammar, defined with the ANTLR meta-language, consult\\
-\texttt{mecaPlanner/src/deplParser/Depl.g4}.
+The grammar of depl is defined with the ANTLR meta-language in the file:
+\texttt{src/deplParser/Depl.g4}.
 
-Whitespace and newlines are ignored.
-as are, inline comments (anything
-following ``\texttt{//}''), and block comments (``\texttt{/*\ldots*/}'').
+
+\section{Example}
+
+We will use an example depl file, which is located at 
+\texttt{problems/example.depl}.
+
+This describes a planning domain involving two agents: a robot, whose behavior
+will be determined by the planner, and a human, whose behavior is
+estimated by a predictive model. There are two rooms and two hallways: each
+hallway connects the two rooms. The first room contains a coin and both agents,
+the second room contains a pizza. The robot does not know whether the coin lies
+heads- or tails-up, althought the human does. The robot knows about the pizza in
+the second room, but the human is unaware of the pizza.
+The robot's goal is to know how the coin lies without the human knowing that the
+robot knows this.
+The robot can determine
+how the coin lies by looking at it, but if the human is in the same room, she
+will observe this and know that the robot knows. The human is hungry, and would
+leave for the second room if she know about the pizza (according to the
+predictive model).
+A succesful plan is for the robot to announce to the human that there is pizza
+in the other room, wait for the human to leave by either of the halls, and then
+observe the coin. Here is the example depl file describing this problem:
+
+\lstinputlisting{../problems/example.depl}
+
+
+
+\section{Structure}
 
 A depl file contains the following sections, which must occur in the correct
 order, and are required unless specified as optional:
@@ -76,71 +103,53 @@ then the section contents, and then
 ``\verb|}|''. 
 
 
-\subsection{The \emph{types} section}
+\subsection{Whitespace and newlines}
+Whitespace and newlines are ignored,
+as are, C-style inline comments (anything
+following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
+
+
+\subsection{types}
 
 The \emph{types} section defines a type heirarchy relating all objects in the planning
 problem.
-Here is an example \emph{types} section:
-\begin{verbatim}
-types{
-    Robot-Actor,
-    Human-Actor,
-    Actor-Locatable,
-    Food-Locatable,
-    Locatable-Object,
-    Location-Object
-}
-\end{verbatim}
-
 The content of the \emph{types} section consists of a comma-separated list of
 type definitions. A type definition takes the form
-``\texttt{Subtype - Supertype}'' (whitespace surrounding the ``\texttt{-}'' is
-optional). The type ``\texttt{Object}'' is built-in, and
+``\texttt{Subtype - Supertype}''.
+The type ``\texttt{Object}'' is built-in, and
 the type heirarchy must be constructed such that every type is a subtype of
 ``\texttt{Object}''.  A type name begins with an uppercase letter, followed
 by any number of upper- or lower-case letters, integers, and underscores.
 
-The depl parser will use the type heirarchy defined in this section for two main
+The depl parser will use the type heirarchy defined in this section for two 
 purposes. First, it will provide type checking of objects as a guard against errors.
-Second, as we will see in some later sections, it will automatically expand some
+Second, it will automatically expand some
 statements that contain types into a set of statements instead containing
-objects of those types, providing a convenient short-hand. Note, however, that
-the type-heirarchy is a parse-time entity only, no type information will be
+objects of those types, providing a convenient short-hand. 
+The type heirarchy is a strictly parse-time entity: no type information will be
 available to the planner.
 
 
-\subsection{The \emph{objects} section}
+\subsection{objects}
 
 The \emph{objects} section defines the objects in the planning problem.
-Here is an example \emph{objects} section:
-\begin{verbatim}
-objects{
-    robot1-Robot,
-    human1-Human,
-    pizza-Food,
-    hotdog-Food,
-    room1-Location,
-    room2-Location,
-}
-\end{verbatim}
-
 The content of the \emph{objects} section consists of a comma-separated list of
 object definitions. An object definition takes the form ``\texttt{object -
-Type}'' (whitespace surrounding the ``\texttt{-}'' is optional). Each type must
+Type}''. Each type must
 either be ``\texttt{Object}'', or be defined in the \emph{types} section.  An
 object name begins with a lowercase letter, followed by any number of upper-
 or lower-case letters, integers, and underscores.
+Objects will be used as arguments to predicates to build a set of atomic
+boolean fluents (propositions).
 
 
+\subsection{agents}
 
-\subsection{The \emph{agents} section}
-
-The MECA planner considers three types of \emph{agents}. The single
-\emph{system} and arbitrarily-numberd \emph{environment} agents are specified in
+The MECA planner uses three types of \emph{agents}. The single
+\emph{system} agent and any number of \emph{environment} agents are specified in
 this section.  The third type, \emph{passive} agents, are specified in the next
-section.
-
-An \emph{agent name} must be an object that has been defined in the
+section. 
+An \emph{agent} must be an object that has been defined in the
 \emph{objects} section. An agent can have any type, but it is generally
 convenient to create a type for objects that will be agents, for example 
 as we do with the ``\texttt{actor}'' type in our running example.
@@ -148,29 +157,20 @@ as we do with the ``\texttt{actor}'' type in our running example.
 The \emph{agents} section consists of a comma-separated list of agent
 definitions. There must be at least one agent definition. There must be exactly
 one \emph{system} agent, definitions, the rest must be \emph{environment} agent
-definitions. A system agent definition contains only an agent name (i.e. an
-object that has been defined in the \emph{objects} section). An environment
+definitions. A system agent definition consists of only an agent name.
+An environment
 agent definition takes the form ``\texttt{name\{Model\}}'', where \texttt{name}
 is an agent name and \texttt{Model} is the name of a model class. The model
 class name must begin with an uppercase letter, followed by any number of
 lower- and upper-case characters, integers, and underscores. The model name must
 be the same as the name of a java class that extends
-\texttt{mecaPlanner.models.Model} (the class should be defined in a
-\texttt{.java} file within \texttt{mecaPlanner/src/mecaPlanner/models/}.
-
-The order in which agents are defined determines the order in which they will
-act.
-
-Here is an example \emph{agents} section:
-\begin{verbatim}
-agents{
-    robot1,
-    human1{PizzaModel},
-}
-\end{verbatim}
+\texttt{mecaPlanner.models.Model}, and the class should be defined in a
+\texttt{.java} file \texttt{src/mecaPlanner/models/}.
 
 This example defines a system agent, \texttt{robot1}, and a single environment
-agent, \texttt{human1}. \texttt{robot1} will act first, followed by
+agent, \texttt{human1}.
+The order in which agents are defined determines the order in which they will
+act. thus \texttt{robot1} will act first, followed by
 \texttt{human1}, and then \texttt{robot1} again, etc. The planner will query
 \texttt{PizzaModel} to determine the predicted actions of \texttt{human1}, and
 will attempt to construct a plan that specifies the actions of \texttt{robot1}.
@@ -181,74 +181,53 @@ the planner for \emph{system} agents, as predicted by a model for
 \emph{environment} agents. Second, it models their beliefs and knowledge, which
 are represented as part of the states over which the planner searches.
 
+The depl parser and the Meca planner will use the information defined in this
+section for three
+purposes. First, agents will be associated with actions. Second, and the model
+assigned to each environment agent will be queried to predict that agent's
+actions. Third, the epistemic and doxiastic state and action
+systems will maintain representations of agents' mental states.
 
-\subsection{The \emph{passive} section}
+
+
+\subsection{passive}
 
 This optional section defines \emph{passive} agents, whose beliefs and knowledge are
-modeled by the planner (as with \emph{system} and \emph{environment} agents), but
-who do not act (unlike \emph{system} and \emph{environment} agents).
-
-The \emph{passive} section consists of a comma-separated list of \emph{passive} agent
-definitions. A passive agent definition takes the same form as a \emph{system}
-agent definition: an agent name, i.e. an object name as has been defined in the
-\emph{objects} section.
+modeled by the planner (as with system and environment agents), but
+who do not act (unlike system and environment agents).
+The passive section consists of a comma-separated list of passive agent
+definitions. A passive agent definition takes the same form as a system
+agent definition: an agent name.
 
 
-\subsection{The \emph{fluents} section}
 
-This section defines all fluent atoms that will be available to the planner. A
-fluent atom has a name and a (possibly empty) orderd list of parameters. Parameters are
-objects, as deinfed in the \emph{objects} section.
+\subsection{fluents}
+
+The \emph{fluents} section defines all fluent atoms that will be available to the planner. A
+fluent atom consists of a predicate and a (possibly empty) orderd list of
+arguments. Arguments are objects, as defined in the \emph{objects} section.
 
 This section contains a comma-delimited list of fluent definitions. A fluent
-definition taks the form \verb|name(p1 \ldots pn)|, where \verb|name| is the
-fluent name, which begins with a lowercase letter, followed by any number of
-upper- and lower-case letters, integers, and underscores, and each
-$p\in$\verb|(p1 \ldots pn)| is a parameter definition. A parameter definition is
-\emph{either} an object name \emph{or} a type name. If all parameter definitions
-for a fluent definition are object names, a single fluent is defined. If any
-parameter definitions are type names, the fluent definition is expanded,
+definition taks the form \verb|name(p1,...,pn)|, where \verb|name| is the
+predicate, which begins with a lowercase letter, followed by any number of
+upper- and lower-case letters, integers, and underscores, and each element of
+\verb|(p1,...,pn)| is an argument. An argument is
+\emph{either} an object name \emph{or} a type name. If all arguments
+of a fluent definition are object names, a single fluent is defined. If any
+arguments are type names, the fluent definition is automatically expanded,
 substituting all objects that are of the specified type(s), in all combinations, to
-construct multiple fluents. For example, given the previous example \emph{types}
-and \emph{objects} example sections, the following two example
-\emph{fluents} sections are equivalent:
-
-\begin{verbatim}
-fluents{
-    at(robot1, room1),
-    at(human1, room1),
-    at(pizza,  room1),
-    at(hotdog, room1),
-    at(robot1, room2),
-    at(human1, room2),
-    at(pizza,  room2,
-    at(hotdog, room2),
-    human_hungry(),
-    door_open(),
-    robot_charged(),
-}
-\end{verbatim}
-
-\begin{verbatim}
-fluents{
-    at(Locatable, Location),
-    human_hungry(),
-    door_open(),
-    robot_charged(),
-}
-\end{verbatim}
+construct multiple fluents.
 
 
 
-\subsection{The \emph{constants} section}
-
+\subsection{constants}
 
 This optional section defines constant (either true or false) atoms. This
 \emph{constants} section consists of a comma-delimited list of constant
 definitions, where a constant definition takes either the form
-\verb|name(p1 \ldots pn)| (true), 
+\verb|name(p1,...,pn)| (true), 
 or
-\verb|!name(p1 \ldots pn)| (false).
+\verb|!name(p1,...,pn)| (false).
 Automatic type-expansion is allowed as with fluent definitions.
 
 If a constant is defined multiple times, its previously-defined values will be
@@ -270,46 +249,35 @@ constants{
 \end{verbatim}
 
 Similarly to the type heirarchy, constant definitions are a parse-time entity.
-The planner does not have access to them (the planner is concerned with change).
-Anywhere a defined constant is found, it is replaced withe a true literal or a
-false literal.  depl uses constants to simplify and clarify some definitions,
+The planner does not have access to them.
+Wherever a defined constant is found within a depl file, it is replaced withe a
+\emph{true} literal or a
+\emph{false} literal.  Cosntants can be used to simplify and clarify some definitions,
 especially action definitions. For example, with the given example
 \emph{constants} section, we might define a \emph{move} action that transitions
 between two rooms (called, perhaps, \verb|?from| and \verb|?to|, see the
 \emph{actions} section below) only if they are connected, specifying as a
 precondition that \verb"connected(?from,?to) | connected(?to,?from)".  If this
-were done using fluents instead of constants (and just being careful never to
-change their values), the parser would generate (and give to the planner) an
-aciton for \emph{every} pair of rooms. As ther planner searched for a plan, it
+were done using fluents instead of constants,
+the parser would generate (and give to the planner) an
+action for every pair of rooms. As ther planner searched for a plan, it
 would repeatedly consider each of these move actions, only to discover that the
-preconditions are never satisfied for the vast majority of them. If we defining
-the \verb|connected| constraints as \emph{constants}, the parser determines that
+preconditions are never satisfied for the vast majority of them. If
+the \verb|connected| constraints are defined as constants, the parser determines that
 the preconditions for most of the possible \emph{move} actions are constatnly
 false, and only generates (and passes to the planner) actions for movement
 between connected rooms.
 
 
 
-\subsection{The \emph{initially} section}
+\subsection{initially}
 
-This section defines a set of start states (\emph{ed-states}) for the planner.
-Each start state can be defined directly (the \emph{manual} option, currently the only option), or
-can be automatically generated from a set of propositions (the \emph{automatic}
-otpion, not yet implemented). If a single start state is defined, there is no
-plan-time uncertainty. Multiple start states represent plan-time uncertainty:
-the planner will not know which is the actual start state, and will attempt to
-find a conformant solution.
-
-This section contains a list of start-state definitions. Each start state
-definition is enclosed within braces (\verb|{}|). Start state definitions are
-optionally delmited by commas. If only a single start state is defined, the
-enclosing braces (which are within the overall \emph{initialy} section braces)
-may be ommitted.
-
-\subsubsection{Manual}
-
-A manual state definition has two parts. First, worlds and their valuations are
+This section defines the start state (or possibly a set of start states) for the planner.
+A state definition has two parts. First, worlds and their valuations are
 defined. Then, per-agent knowledge and belief relations are defined over worlds.
+
+
+
 Each world definition takes the form
 \verb|w <- {f1,...,fn}|
 where \verb|w| is a world name (used to reference the world when later
@@ -322,9 +290,6 @@ The parser will reject Kripke structures that to not satisfy \sfive (on the
 knowledge relation) \kdff (on the belief relation), and
 \kbone and \kbtwo (between the belief and knowledge relations).
 
-\subsubsection{Automatic}
-
-Not implemented.
 
 
 \subsection{The \emph{goals} section}

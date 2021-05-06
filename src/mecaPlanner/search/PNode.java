@@ -8,25 +8,28 @@ import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
 
+import java.util.concurrent.RecursiveTask;
 
-public class PNode  {
+
+public class PNode extends RecursiveTask<Integer> {
     private Action successfulAction;
     private Perspective perspective;
     private Set<OrNode> grounds;
     private Set<PNode> successors;
     private Integer time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
     private int depth;      // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
+    private int maxDepth;
     private Domain domain;
 
 
 
-
-    public PNode(Perspective perspective, Set<OrNode> grounds, int time, int depth, Domain domain) {
+    public PNode(Perspective perspective, Set<OrNode> grounds, int time, int depth, int maxDepth, Domain domain) {
         successfulAction = null;
         this.perspective = perspective;
         this.grounds = grounds;
         this.time = time;
         this.depth = depth;
+        this.maxDepth = maxDepth;
         this.domain = domain;
         //System.out.print("::: ");
         //System.out.println(java.lang.Thread.activeCount());
@@ -65,7 +68,7 @@ public class PNode  {
         return possibleActions;
     }
 
-    public PerspectiveSuccessors evaluate(Action action, int maxDepth) {
+    public PerspectiveSuccessors evaluate(Action action) {
         PerspectiveSuccessors successorsWithScore = pTransition(action);
         if (successorsWithScore == null) {
             return null;
@@ -73,24 +76,52 @@ public class PNode  {
         Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
 
         Integer best = successorsWithScore.getBestCaseDepth();
-        for (PNode successor : potentialSuccessors) {
 
-            Integer successorsBest = successor.expand(maxDepth);
+
+
+        // NO MULTITHREADING
+        for (PNode successor : potentialSuccessors) {
+            Integer successorsBest = successor.expand();
             if (successorsBest == Integer.MAX_VALUE) {
                 return null;
             }
             best = Integer.min(best, successorsBest);
         }
+
+
+
+        // WITH MULTITHREADING
+//        for (PNode successor : potentialSuccessors) {
+//            successor.fork();
+//        }
+//        boolean failed = false;
+//        for (PNode successor : potentialSuccessors) {
+//            Integer successorsBest = successor.join();
+//            if (successorsBest == Integer.MAX_VALUE) {
+//                failed = true;
+//            }
+//            best = Integer.min(best, successorsBest);
+//        }
+//        if (failed) {
+//            return null;
+//        }
+
+
+        
         return new PerspectiveSuccessors(best, potentialSuccessors);
     }
 
-    public Integer expand(int maxDepth) {
+    public Integer compute() {
+        return expand();
+    }
+
+    public Integer expand() {
         if (depth > maxDepth) {
             return Integer.MAX_VALUE;
         }
         Integer bestBestCaseDepth = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
-            PerspectiveSuccessors successorsWithScore = evaluate(action, maxDepth);
+            PerspectiveSuccessors successorsWithScore = evaluate(action);
             if (successorsWithScore == null) {
                 continue;
             }
@@ -115,6 +146,8 @@ public class PNode  {
 
             //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
+            //assert(ground.getState().getKripke().checkRelations());
+
             GroundSuccessors successors = ground.transition(action).descend();
 
             if (successors == null) {
@@ -137,7 +170,7 @@ public class PNode  {
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
             int newTime = time + domain.getNonPassiveAgents().size();
-            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, domain));
+            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, maxDepth, domain));
         }
         return new PerspectiveSuccessors(bestCaseDepth, successorNodes);
     }
