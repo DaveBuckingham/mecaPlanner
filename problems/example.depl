@@ -19,7 +19,7 @@ objects{
 
 agents{
     robot1,
-    human1{HumanModel},
+    human1{ExampleModel},
 }
 
 fluents{

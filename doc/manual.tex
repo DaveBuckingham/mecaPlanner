@@ -31,6 +31,14 @@
 \end{filecontents}
 
 
+\usepackage{hyperref}
+\hypersetup{
+    colorlinks,
+    citecolor=blue,
+    filecolor=blue,
+    linkcolor=blue,
+    urlcolor=blue
+}
 
 
 
@@ -62,6 +70,20 @@
 
 \maketitle
 
+\tableofcontents
+
+
+\section{The MECA planner}
+
+\section{Usage}
+\subsection{Building}
+\subsection{Demo}
+\subsection{Output}
+
+
+\section{
+
+\section{The depl planning language}
 
 Planning problems for the MECA Planner are specified in the doxastic/epistemic
 planning language: \emph{depl}. A single depl file describes both a planning domain
@@ -70,7 +92,9 @@ The grammar of depl is defined with the ANTLR meta-language in the file:
 \texttt{src/deplParser/Depl.g4}.
 
 
-\section{Example}
+\section{Environment agent models}
+
+
 
 We will use an example depl file, which is located at 
 \texttt{problems/example.depl}.
@@ -93,11 +117,13 @@ A succesful plan is for the robot to announce to the human that there is pizza
 in the other room, wait for the human to leave by either of the halls, and then
 observe the coin. Here is the example depl file describing this problem:
 
+\subsection{Example depl}
+
 \lstinputlisting{../problems/example.depl}
 
 
 
-\section{Structure}
+\subsection{Structure}
 
 A depl file contains the following sections, which must occur in the correct
 order, and are required unless specified as optional:
@@ -120,11 +146,21 @@ Each section begins with the section name, followed by
 then the section contents, and then
 ``\verb|}|''. 
 
-
-\subsection{Whitespace and newlines}
 Whitespace and newlines are ignored,
 as are, C-style inline comments (anything
 following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
+Any
+``\texttt{\&}''
+(and) can instead be written as
+``\texttt{\&\&}''.
+Any
+``\texttt{|}''
+(or) can instead be written as
+``\texttt{||}''.
+Any
+``\texttt{!}''
+(not) can instead be written as
+``$\sim$''.
 
 
 \subsection{types}
@@ -183,14 +219,18 @@ class name must begin with an uppercase letter, followed by any number of
 lower- and upper-case characters, integers, and underscores. The model name must
 be the same as the name of a java class that extends
 \texttt{mecaPlanner.models.Model}, and the class should be defined in a
-\texttt{.java} file \texttt{src/mecaPlanner/models/}.
+\texttt{.java} file \texttt{src/mecaPlanner/models/}. Our example environment
+agnet model is ExampleModel, which is is located at
+\texttt{/src/mecaplanner/models/ExampleModel.depl}.
+
+\lstinputlisting{../src/mecaplanner/models/ExampleModel.depl}
 
 This example defines a system agent, \texttt{robot1}, and a single environment
 agent, \texttt{human1}.
 The order in which agents are defined determines the order in which they will
 act. thus \texttt{robot1} will act first, followed by
 \texttt{human1}, and then \texttt{robot1} again, etc. The planner will query
-\texttt{PizzaModel} to determine the predicted actions of \texttt{human1}, and
+\texttt{ExampleModel} to determine the predicted actions of \texttt{human1}, and
 will attempt to construct a plan that specifies the actions of \texttt{robot1}.
 
 The planner considers two main things with \emph{system} and \emph{environment}
@@ -377,23 +417,6 @@ goals{
 
 
 \subsection{The \emph{actions} section}
-
-\subsection{Optional syntax}
-
-The depl syntax tries to be flexible.
-Any
-``\texttt{\&}''
-(and) can instead be written as
-``\texttt{\&\&}''.
-Any
-``\texttt{|}''
-(or) can instead be written as
-``\texttt{||}''.
-Any
-``\texttt{!}''
-(not) can instead be written as
-``$\sim$''.
-
 
 \section{Test}
 The best way to test a depl file is with the \verb|test| program.
