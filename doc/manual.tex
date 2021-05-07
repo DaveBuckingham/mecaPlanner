@@ -403,38 +403,24 @@ $i$.
 
 The \emph{goals} section specifies the goals the planner tries to achieve.
 This section contains a comma-delimited list of goal formulae. The parser and's
-these together to construct a single goal formula. A goal $g$ takes the form:
+these together to construct a single goal formula. A goal \verb|G| takes the form:
 
-$$
-g \coloneq
-\texttt{true}      \mid
-\texttt{false}     \mid
-f         \mid
-(g)       \mid
-\texttt{B}[a]g     \mid
-g \& g     \mid
-g | g     \mid
-!g        \mid
-!g        \mid
-\texttt{timestep} e i
-$$
+\begin{lstlisting}
+G := f | (G) | M[a]G | G&G | G|G | !G | Timestep E i
+M := B | K | P | C
+E := == | != | < | <= | > | >=
+\end{lstlisting}
 
 \noindent
 where $f$ is a fluent or a constant, $a$ is an agent, 
-$e \coloneq
-\texttt{==} \mid
-\texttt{!=} \mid
-\texttt{<} \mid
-\texttt{<=} \mid
-\texttt{>} \mid
-\texttt{>=}
-$, and $i$ is an integer.
+and $i$ is an integer.
 
-$P[i]g$ ($i$ believes possibly $g$) is provided as syntactic sugar for
-$!B[i]!g$.
-Other supported syntax includes $K[i]g$, $i$ knows $g$, and $Cg$, $g$ is common
-knowledge.  The implementation of common knowledge is equivalent to ``everyone
-knows that'', not infinite iteration of shared belief.
+\verb|B[a]G| means that agent \verb|a| believes that formula \verb|G| is true.
+\verb|P[a]G| provides syntactic sugar for the dual, i.e. is equivalent to
+\verb|!B[i]!g|.
+\verb|K[a]G| means that agent \verb|a| knows \verb|G|.
+\verb|C[a]G| means that all agents believe \verb|G| 
+(there is not infinite iteration of common knowledge).
 
 
 \subsection{actions}
@@ -447,7 +433,12 @@ Each of \verb|p1,...,pn| is a parameter, taking the form \verb|?n - T|, where
 The action definition will be expanded into one or more ground actions by
 assigning each action parameter to each object having its type.
 
-Each of \verb|f1,...,fn| is an action definition field\ldots
+Each of \verb|f1,...,fn| is an action definition. An action definition
+takes the form \verb|name(p1,...,pn){f1,...,fm}|.
+
+For more information about action definitions, see
+\cite{buckingham2021multiagent}.
+ 
 
 
 \section{Environment agent models}
@@ -456,7 +447,6 @@ Our example environment agnet model is ExampleModel, which is located at
 \texttt{/src/mecaplanner/models/ExampleModel.depl}.
 
 \lstinputlisting{../src/mecaPlanner/models/ExampleModel.java}
-
 
 
 \section{Testing a planning problem}
