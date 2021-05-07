@@ -63,7 +63,8 @@
 \lstset{basicstyle=\ttfamily,breaklines=true}
 
 \title{MECA Planner \input{../VERSION} \\
-\large User Manual
+\large User Manual \\
+dbucki01@tufts.edu
 }
 
 \begin{document}
@@ -73,15 +74,50 @@
 \tableofcontents
 
 
-\section{The MECA planner}
+\section{The MECA Planner}
 
-\section{Usage}
-\subsection{Building}
-\subsection{Demo}
-\subsection{Output}
+A planning problem includes a single system agent and zero or more environment
+agents. 
+
+We also admit so-called passive agents. Passive agents do not act, but the
+planner will maintain representations of their mental states within
+epistemic-doxastic states.
+
+We assume discrete turn-taking.
+
+Our search algorithm is described in detail in \ref{???}.
 
 
-\section{
+\section{Building}
+
+
+You can build the MECA Planner with
+
+\begin{lstlisting}
+$ make
+\end{lstlisting}
+
+Intermediate generated files will be put into the \verb|/build| directory. 
+The compiled planner will be encapsulated within a \verb|mecaPlanner.jar|, which
+will be put into the top level directory, along with one or more executable scripts. 
+The \verb|meca| executable takes a .depl planning problem file as its single
+argument and runs the planner.
+
+
+\section{Demo}
+
+\begin{lstlisting}
+$ meca problems/example.depl
+\end{lstlisting}
+
+
+\section{Output}
+
+As the planner performs iterated depth first search, it prints out the current
+search depth limit. For the example problem, the planner searches to depth 1
+before finding a solution.
+
+The solution is a conditional plan.
 
 \section{The depl planning language}
 
@@ -90,11 +126,6 @@ planning language: \emph{depl}. A single depl file describes both a planning dom
 and a planning problem.
 The grammar of depl is defined with the ANTLR meta-language in the file:
 \texttt{src/deplParser/Depl.g4}.
-
-
-\section{Environment agent models}
-
-
 
 We will use an example depl file, which is located at 
 \texttt{problems/example.depl}.
@@ -219,11 +250,7 @@ class name must begin with an uppercase letter, followed by any number of
 lower- and upper-case characters, integers, and underscores. The model name must
 be the same as the name of a java class that extends
 \texttt{mecaPlanner.models.Model}, and the class should be defined in a
-\texttt{.java} file \texttt{src/mecaPlanner/models/}. Our example environment
-agnet model is ExampleModel, which is is located at
-\texttt{/src/mecaplanner/models/ExampleModel.depl}.
-
-\lstinputlisting{../src/mecaplanner/models/ExampleModel.depl}
+\texttt{.java} file \texttt{src/mecaPlanner/models/}.
 
 This example defines a system agent, \texttt{robot1}, and a single environment
 agent, \texttt{human1}.
@@ -355,18 +382,24 @@ construct multiple pointed states, one taking each of those worlds as its
 designated world. This is equivalent to defining multiple start states that
 differ only in the selection of the designated world.
 
-B[human1] <- {(w1,w1)},
+A comma-separated list of belief and knowledge relations for each agent follow the world definitions.
+A belief relation takes the form
+\verb|B[i] <- {e1,...,en}|
+where \verb|i| is an agent
+and each of \verb|e1| \ldots \verb|en| is a pair of worlds, taking the
+form \verb|(w1,w2)| where \verb|w1| and \verb|w2| are worlds.
+A knowledge relation takes the same form except replacing \verb|B| with \verb|K|.
 
-The Belief relations must be serial, transitive, and Euclidean (the \kdff
+The Belief relations must be serial, transitive, and Euclidean (the \kdff{}
 properties). The Knowledge relations must be reflexive, transitive, and
-symmetric (the \sfive properties). The Belief and Knowledge relations must also
-satisfy the \kbone property ($B_i \subseteq K_i$), and the \kbtwo property
+symmetric (the \sfive{} properties). The Belief and Knowledge relations must also
+satisfy the \kbone{} property ($B_i \subseteq K_i$), and the \kbtwo{} property
 ($(u,v) \in K_i, (v,w) \in B_i \rightarrow (u,w) \in B_i$) for every agent
 $i$.
 
 
 
-\subsection{The \emph{goals} section}
+\subsection{goals}
 
 The \emph{goals} section specifies the goals the planner tries to achieve.
 This section contains a comma-delimited list of goal formulae. The parser and's
@@ -387,7 +420,7 @@ g | g     \mid
 $$
 
 \noindent
-where $f$ is an (fluent or constant) atom, $a$ is an agent, 
+where $f$ is a fluent or a constant, $a$ is an agent, 
 $e \coloneq
 \texttt{==} \mid
 \texttt{!=} \mid
@@ -399,27 +432,43 @@ $, and $i$ is an integer.
 
 $P[i]g$ ($i$ believes possibly $g$) is provided as syntactic sugar for
 $!B[i]!g$.
-
 Other supported syntax includes $K[i]g$, $i$ knows $g$, and $Cg$, $g$ is common
-knowledge. However, these or not really recommended. The knowledge relatin is
-intended primarily for performing belief revision when false beliefs are
-corrected, not to represent agent's beliefs. The implementation of common
-knowledge is equivalent to ``everyone knows'', not infinite iteration of shared
-belief.
-
-An example goals section is:
-\begin{verbatim}
-goals{
-    at(robot1,room1),
-    timestep<=7
-}
-\end{verbatim}
+knowledge.  The implementation of common knowledge is equivalent to ``everyone
+knows that'', not infinite iteration of shared belief.
 
 
-\subsection{The \emph{actions} section}
+\subsection{actions}
 
-\section{Test}
-The best way to test a depl file is with the \verb|test| program.
+The \emph{actions} section defines actions available to system and environment
+agents. An action definition takes the from 
+\verb|name(p1,...,pn){f1,...,fm}|.
+Each of \verb|p1,...,pn| is a parameter, taking the form \verb|?n - T|, where
+\verb|?n| is a variable name starting with \verb|?| and \verb|T| is a type.
+The action definition will be expanded into one or more ground actions by
+assigning each action parameter to each object having its type.
+
+Each of \verb|f1,...,fn| is an action definition field\ldots
+
+
+\section{Environment agent models}
+
+Our example environment agnet model is ExampleModel, which is located at
+\texttt{/src/mecaplanner/models/ExampleModel.depl}.
+
+\lstinputlisting{../src/mecaPlanner/models/ExampleModel.java}
+
+
+
+\section{Testing a planning problem}
+The \verb|test| program allows you to manually interact with an instantiated planning domain.
+It allows you to display the start state, apply actions, and observe subsequent
+states.
+
+You can build \verb|test| with:
+
+\begin{lstlisting}
+$ make test
+\end{lstlisting}
 
 
 %\printbibliography
