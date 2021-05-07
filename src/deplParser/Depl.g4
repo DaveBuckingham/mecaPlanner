@@ -6,19 +6,13 @@ fragment LETTER         : LOWER | UPPER;
 fragment ANYCHAR        : LETTER | DIGIT | '_';
 fragment DIGIT          :  [0-9];
 
-fragment OP_LT          : '<';
-fragment OP_LTE         : '<=';
-fragment OP_GE          : '>';
-fragment OP_GTE         : '>=';
-COMPARE                 : OP_LT | OP_LTE | OP_GE | OP_GTE;
-OP_EQ                   : '==';
 OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
 OP_NOT                  : '!'|'~' ;
 
-KEYWORD_TRUE            : 'true' ;
-KEYWORD_FALSE           : 'false' ;
-KEYWORD_TIME            : 'Timestep' ;
+KEYWORD_TRUE            : 'true'|'True' ;
+KEYWORD_FALSE           : 'false'|'False' ;
+KEYWORD_TIME            : 'timestep'|'Timestep' ;
 
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-';
@@ -30,7 +24,6 @@ UPPER_NAME              : UPPER ANYCHAR*;
 
 STAR                    : '*';
 
- 
 LINECOMMENT             : '//' .*? '\r'? '\n' -> skip;
 COMMENT                 : '/*' .*? '*/' -> skip;
 WS                      : [ \n\t\r]+ -> skip;
@@ -56,43 +49,33 @@ init :
 // TYPE DEFINITIONS
 
 typesSection : 'types' '{' (typeDefinition ',')* typeDefinition? '}' ;
-
 typeDefinition : objectType '-' objectType ;
 
 
-// objectName DEFINITIONS
+// OBJECTNAME DEFINITIONS
 
 objectsSection : 'objects' '{' (objectDefinition ',')* objectDefinition? '}' ;
-
 objectDefinition : objectName '-' objectType ;
-
 
 
 // AGENT DEFINITIONS
 
 agentsSection : 'agents' '{' (agentDef ',')* agentDef? '}' ;
-
 agentDef : objectName ('{' UPPER_NAME '}')? ;
 
 
-
-// PASSIVE AGENT DEFINITIONS
+// OPTIONAL PASSIVE AGENT DEFINITIONS
 
 passiveSection : 'passive' '{' (passiveDef ',')* passiveDef? '}' ;
-
 passiveDef : objectName ;
-
-
 
 
 // FLUENTS DEFINITIONS
 
 groundableObject : objectName | VARIABLE ;
 expandableObject : objectName | objectType;
-
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
 fluentsSection   : 'fluents' '{' (expandableFluent ',')* expandableFluent? '}' ;
-
 
 
 // CONSTANTS
@@ -108,8 +91,7 @@ fluent
     | '(' fluent ')'
     ;
 
-
-localFormula  // EVALUATE TO BOOLEAN
+localFormula
     : fluent                                                            # localFluent
     | KEYWORD_TRUE                                                      # localLiteralTrue
     | KEYWORD_FALSE                                                     # localLiteralFalse
@@ -125,14 +107,17 @@ beliefFormula
     | OP_NOT beliefFormula                                       # beliefNot
     | beliefFormula OP_AND beliefFormula                         # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
+    | 'B' '[' groundableObject ']'  beliefFormula                # beliefBelieves
+    | 'P' '[' groundableObject ']'  beliefFormula                # beliefPossibly
+    | 'K' '[' groundableObject ']'  beliefFormula                # beliefKnows
     | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | 'B' '[' groundableObject ']'  beliefFormula          # beliefBelieves
-    | 'P' '[' groundableObject ']'  beliefFormula          # beliefPossibly
     ;
 
 inequality
     : '=='                # inequalityEq
+    | '='                 # inequalityEq2
     | '!='                # inequalityNe
+    | '~='                # inequalityNe2
     | '<'                 # inequalityLt
     | '<='                # inequalityLte
     | '>'                 # inequalityGt
@@ -150,17 +135,15 @@ timeFormula
     ;
 
 
-
-
 // INITIAL STATE DEFINITION
 
 initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
 
-startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
+//startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
 //startStateDef : '{' initiallyDef '}' ;
-//startStateDef : '{' kripkeModel '}' ;
+startStateDef : '{' kripkeModel '}' ;
 
-initiallyDef : (beliefFormula ',')* beliefFormula? ;
+//initiallyDef : (beliefFormula ',')* beliefFormula? ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
@@ -175,6 +158,7 @@ toWorld : LOWER_NAME;
 
 
 // OPTIONAL POST STATE
+
 postSection : 'post' startStateDef ;
 
 
@@ -184,15 +168,12 @@ goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
 goal : timeFormula ;
 
 
-
 // ACTION DEFINITIONS
 
 actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
-
 actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
-
 
 actionField
     : ownerActionField

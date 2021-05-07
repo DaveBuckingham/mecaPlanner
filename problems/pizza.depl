@@ -47,6 +47,8 @@ initially{
 
 goals{
     robot_charged(),
+    Timestep==5,
+    Timestep~=6,
 }
 
 actions{

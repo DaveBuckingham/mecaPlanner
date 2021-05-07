@@ -451,14 +451,14 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        Set<BeliefFormula> initiallyStatements = new HashSet<>();
-        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
-            BeliefFormula statement = (BeliefFormula) visit(statementContext);
-            initiallyStatements.add(statement);
-        }
-        return Construct.constructState(initiallyStatements, domain);
-    }
+//    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+//        Set<BeliefFormula> initiallyStatements = new HashSet<>();
+//        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
+//            BeliefFormula statement = (BeliefFormula) visit(statementContext);
+//            initiallyStatements.add(statement);
+//        }
+//        return Construct.constructState(initiallyStatements, domain);
+//    }
 
 
     @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
@@ -890,11 +890,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return (BeliefOrFormula.make(subFormulae));
     }
 
-    @Override public BeliefFormula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        return new BeliefCommonFormula(inner);
-    }
-
     @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
         BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
         String agentName = (String) visit(ctx.groundableObject());
@@ -913,6 +908,19 @@ public class DeplToProblem extends DeplBaseVisitor {
         return BeliefNotFormula.make(new BeliefBelievesFormula(agentName, BeliefNotFormula.make(inner)));
     }
 
+    @Override public BeliefFormula visitBeliefKnows(DeplParser.BeliefKnowsContext ctx) {
+        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+        String agentName = (String) visit(ctx.groundableObject());
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+        return new BeliefKnowsFormula(agentName, inner);
+    }
+
+    @Override public BeliefFormula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
+        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+        return new BeliefCommonFormula(inner);
+    }
 
 
     // TIME FORMULAE
@@ -957,7 +965,15 @@ public class DeplToProblem extends DeplBaseVisitor {
         return TimeFormulaConstraint.Inequality.EQ;
     }
 
+    @Override public TimeFormulaConstraint.Inequality visitInequalityEq2(DeplParser.InequalityEq2Context ctx) {
+        return TimeFormulaConstraint.Inequality.EQ;
+    }
+
     @Override public TimeFormulaConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
+        return TimeFormulaConstraint.Inequality.NE;
+    }
+
+    @Override public TimeFormulaConstraint.Inequality visitInequalityNe2(DeplParser.InequalityNe2Context ctx) {
         return TimeFormulaConstraint.Inequality.NE;
     }
 
