@@ -69,90 +69,90 @@ public class Construct {
 
 
     public static EpistemicState constructState(BeliefFormula formula) {
-        List<FormulaTree> formulaTree = parseFormula(formula);
+//        List<FormulaTree> formulaTree = parseFormula(formula);
         return null;
     }
 
-    private static List<FormulaTree> parseFormula(BeliefFormula formula) {
-        List<FormulaTree> result = new ArrayList<>();
-        if (formula instanceof Fluent) {
-            Set<Fluent> fluents = new HashSet<>();
-            fluents.add((Fluent) formula);
-            result.add(new FormulaTree(fluents, new HashMap<String, FormulaTree>(), new HashMap<String, FormulaTree>()));
-        }
-        else if (formula instanceof BeliefOrFormula) {
-            BeliefOrFormula orFormula = (BeliefOrFormula) formula;
-            for (BeliefFormula inner : orFormula.getFormulae()) {
-                result.addAll(parseFormula(inner));
-            }
-        }
-        else if (formula instanceof LocalOrFormula) {
-            LocalOrFormula orFormula = (LocalOrFormula) formula;
-            for (LocalFormula inner : orFormula.getFormulae()) {
-                result.addAll(parseFormula(inner));
-            }
-        }
-        else if (formula instanceof BeliefAndFormula || formula instanceof LocalAndFormula) {
-            List<List<FormulaTree>> parsedInners = new ArrayList<>();;
-
-            if (formula instanceof BeliefAndFormula) {
-                BeliefAndFormula andFormula = (BeliefAndFormula) formula;
-                for (BeliefFormula inner : andFormula.getFormulae()) {
-                    parsedInners.add(parseFormula(inner));
-                }
-            }
-            else {
-                LocalAndFormula andFormula = (LocalAndFormula) formula;
-                for (LocalFormula inner : andFormula.getFormulae()) {
-                    parsedInners.add(parseFormula(inner));
-                }
-            }
-            
-            List<List<FormulaTree>> product = cartesianProduct(parsedInners);
-
-
-            for (List<FormulaTree> option : product) {
-                Set<Fluent> fluents = new HashSet<>();
-                Map<String, FormulaTree> beliefs = new HashMap<>();
-                Map<String, FormulaTree> negatives = new HashMap<>();
-
-                for (FormulaTree t : option) {
-                    fluents.addAll(t.getFluents());
-                    for 
-                    for (Map.Entry<String, FormulaTree> entry : t.getBeliefs()) {
-                        if (beliefs.hasKey(entry.getKey())) {
-                            
-                        }
-                    }
-                    beliefs.addAll(t.getBeliefs());
-                    negatives.addAll(t.getNegatives());
-                }
-                result.add(new FormulaTree(fluents, beliefs, negatives));
-            }
-        }
-        else if (formula instanceof BeliefNotFormula || formula instanceof LocalNotFormula) {
-            BeliefFormulate negatedFormula;
-            if (formula instanceof BeliefNotFormula) {
-                negatedFormula = ((BeliefNotFormula)notFormula).getFormula();
-            }
-            else {
-                negatedFormula = ((LocalNotFormula)notFormula).getFormula();
-            }
-            for (FormulaTree tree : parseFormula(negatedFormula)) {
-                Set<Fluent> negatedFluents = new HashSet<>();
-                for (Fluent f : tree.getFluents()) {
-                    negatedFluents.add(f.negate());
-                }
-                result.add(new FormulaTree(negatedFluents, f.getNegatives(), f.getBeliefs());
-            }
-        }
-        else if (formula instanceof BeliefBelievesFormula) {
-            BeliefBelievesFormula beliefFormula = (BeliefBelievesFormula) formula;
-            ...
-        }
-        else {
-            throw new RuntimeException("Can't build state from formula: " + formula.toString());
-        }
-        return result;
-    }
+//    private static List<FormulaTree> parseFormula(BeliefFormula formula) {
+//        List<FormulaTree> result = new ArrayList<>();
+//        if (formula instanceof Fluent) {
+//            Set<Fluent> fluents = new HashSet<>();
+//            fluents.add((Fluent) formula);
+//            result.add(new FormulaTree(fluents, new HashMap<String, FormulaTree>(), new HashMap<String, FormulaTree>()));
+//        }
+//        else if (formula instanceof BeliefOrFormula) {
+//            BeliefOrFormula orFormula = (BeliefOrFormula) formula;
+//            for (BeliefFormula inner : orFormula.getFormulae()) {
+//                result.addAll(parseFormula(inner));
+//            }
+//        }
+//        else if (formula instanceof LocalOrFormula) {
+//            LocalOrFormula orFormula = (LocalOrFormula) formula;
+//            for (LocalFormula inner : orFormula.getFormulae()) {
+//                result.addAll(parseFormula(inner));
+//            }
+//        }
+//        else if (formula instanceof BeliefAndFormula || formula instanceof LocalAndFormula) {
+//            List<List<FormulaTree>> parsedInners = new ArrayList<>();;
+//
+//            if (formula instanceof BeliefAndFormula) {
+//                BeliefAndFormula andFormula = (BeliefAndFormula) formula;
+//                for (BeliefFormula inner : andFormula.getFormulae()) {
+//                    parsedInners.add(parseFormula(inner));
+//                }
+//            }
+//            else {
+//                LocalAndFormula andFormula = (LocalAndFormula) formula;
+//                for (LocalFormula inner : andFormula.getFormulae()) {
+//                    parsedInners.add(parseFormula(inner));
+//                }
+//            }
+//            
+//            List<List<FormulaTree>> product = cartesianProduct(parsedInners);
+//
+//
+//            for (List<FormulaTree> option : product) {
+//                Set<Fluent> fluents = new HashSet<>();
+//                Map<String, FormulaTree> beliefs = new HashMap<>();
+//                Map<String, FormulaTree> negatives = new HashMap<>();
+//
+//                for (FormulaTree t : option) {
+//                    fluents.addAll(t.getFluents());
+//                    for 
+//                    for (Map.Entry<String, FormulaTree> entry : t.getBeliefs()) {
+//                        if (beliefs.hasKey(entry.getKey())) {
+//                            
+//                        }
+//                    }
+//                    beliefs.addAll(t.getBeliefs());
+//                    negatives.addAll(t.getNegatives());
+//                }
+//                result.add(new FormulaTree(fluents, beliefs, negatives));
+//            }
+//        }
+//        else if (formula instanceof BeliefNotFormula || formula instanceof LocalNotFormula) {
+//            BeliefFormulate negatedFormula;
+//            if (formula instanceof BeliefNotFormula) {
+//                negatedFormula = ((BeliefNotFormula)notFormula).getFormula();
+//            }
+//            else {
+//                negatedFormula = ((LocalNotFormula)notFormula).getFormula();
+//            }
+//            for (FormulaTree tree : parseFormula(negatedFormula)) {
+//                Set<Fluent> negatedFluents = new HashSet<>();
+//                for (Fluent f : tree.getFluents()) {
+//                    negatedFluents.add(f.negate());
+//                }
+//                result.add(new FormulaTree(negatedFluents, f.getNegatives(), f.getBeliefs());
+//            }
+//        }
+//        else if (formula instanceof BeliefBelievesFormula) {
+//            BeliefBelievesFormula beliefFormula = (BeliefBelievesFormula) formula;
+//            ...
+//        }
+//        else {
+//            throw new RuntimeException("Can't build state from formula: " + formula.toString());
+//        }
+//        return result;
+//    }
 }
