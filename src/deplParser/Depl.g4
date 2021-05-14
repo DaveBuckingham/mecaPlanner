@@ -139,11 +139,12 @@ timeFormula
 
 initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
 
-//startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
+startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
 //startStateDef : '{' initiallyDef '}' ;
-startStateDef : '{' kripkeModel '}' ;
+//startStateDef : '{' kripkeModel '}' ;
 
 //initiallyDef : (beliefFormula ',')* beliefFormula? ;
+initiallyDef : beliefFormula ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 

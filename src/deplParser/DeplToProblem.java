@@ -437,8 +437,8 @@ public class DeplToProblem extends DeplBaseVisitor {
                 ndState = (NDState) visit(stateCtx.kripkeModel());
             }
             else {
-                throw new RuntimeException("state construction not supported");
-                //ndState = (NDState) visit(stateCtx.initiallyDef());
+                //throw new RuntimeException("state construction not supported");
+                ndState = (NDState) visit(stateCtx.initiallyDef());
             }
             startStates.addAll(ndState.getEpistemicStates());
         }
@@ -449,6 +449,14 @@ public class DeplToProblem extends DeplBaseVisitor {
         //EpistemicState e = (EpistemicState) visit(ctx.startStateDef().kripkeModel());
         //domain.setPostState(e);
         return null;
+    }
+
+    @Override public NDState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
+        EpistemicState state = Construct.constructState(formula);
+        System.out.println(state);
+        System.exit(1);
+        return state;
     }
 
 //    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
