@@ -452,11 +452,12 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public NDState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-        EpistemicState state = Construct.constructState(formula);
-        System.out.println(state);
-        System.exit(1);
-        return state;
+        //BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
+        //EpistemicState state = Construct.constructState(formula);
+        //System.out.println(state);
+        //System.exit(1);
+        //return state;
+        return null;
     }
 
 //    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
