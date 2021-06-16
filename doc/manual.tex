@@ -20,15 +20,15 @@
 \addbibresource{\jobname.bib}
 
 
-\begin{filecontents}{\jobname.bib}
-@inproceedings{buckingham2021multiagent,
-  title={A Multi-Agent Epistemic and Doxastic Action Language with Belief Revision and Local Dynamic Observability},
-  author={Buckingham, David and Sarathy, Vasanth and Scheutz, Matthias and Son, Tran Cao},
-  booktitle={Proceedings of the International Conference on Principles of Knowledge Representation and Reasoning},
-  volume={18},
-  year={2021}
-}
-\end{filecontents}
+%\begin{filecontents}{\jobname.bib}
+%@inproceedings{buckingham2021multiagent,
+%  title={A Multi-Agent Epistemic and Doxastic Action Language with Belief Revision and Local Dynamic Observability},
+%  author={Buckingham, David and Sarathy, Vasanth and Scheutz, Matthias and Son, Tran Cao},
+%  booktitle={Proceedings of the International Conference on Principles of Knowledge Representation and Reasoning},
+%  volume={18},
+%  year={2021}
+%}
+%\end{filecontents}
 
 
 \usepackage{hyperref}
@@ -77,15 +77,10 @@ dbucki01@tufts.edu
 \section{The MECA Planner}
 
 A planning problem includes a single system agent and zero or more environment
-agents. 
-
-We also admit so-called passive agents. Passive agents do not act, but the
-planner will maintain representations of their mental states within
-epistemic-doxastic states.
-
-We assume discrete turn-taking.
-
-Our search algorithm is described in detail in \ref{???}.
+agents.  We also admit so-called passive agents. Passive agents do not act, but
+the planner will maintain representations of their mental states within
+epistemic-doxastic states.  We assume discrete turn-taking.  Our search
+algorithm is described in detail in \ref{???}.
 
 
 \section{Building}
@@ -98,16 +93,19 @@ $ make
 \end{lstlisting}
 
 Intermediate generated files will be put into the \verb|/build| directory. 
-The compiled planner will be encapsulated within a \verb|mecaPlanner.jar|, which
-will be put into the top level directory, along with one or more executable scripts. 
+The planner planner will be compiled into \verb|mecaPlanner.jar|, which
+will be put into the top level directory. This will also generate two
+executable scripts, \verb|meca| and \verb|mecad|.
 The \verb|meca| executable takes a .depl planning problem file as its single
-argument and runs the planner.
+argument and runs the planner. The \verb|mecad| script is like \verb|meca| but
+also turns on java assertions: most of the planner's run-time error checking is
+in assertions.
 
 
 \section{Demo}
 
 \begin{lstlisting}
-$ meca problems/example.depl
+$ ./meca problems/example.depl
 \end{lstlisting}
 
 
@@ -116,8 +114,9 @@ $ meca problems/example.depl
 As the planner performs iterated depth first search, it prints out the current
 search depth limit. For the example problem, the planner searches to depth 1
 before finding a solution.
-
 The solution is a conditional plan.
+\textbf{We need to add a description of the output format.}
+
 
 \section{The depl planning language}
 
@@ -129,7 +128,6 @@ The grammar of depl is defined with the ANTLR meta-language in the file:
 
 We will use an example depl file, which is located at 
 \texttt{problems/example.depl}.
-
 This describes a planning domain involving two agents: a robot, whose behavior
 will be determined by the planner, and a human, whose behavior is
 estimated by a predictive model. There are two rooms and two hallways: each
@@ -176,7 +174,6 @@ Each section begins with the section name, followed by
 ``\verb|{|'', 
 then the section contents, and then
 ``\verb|}|''. 
-
 Whitespace and newlines are ignored,
 as are, C-style inline comments (anything
 following ``\texttt{//}'') and block comments (``\texttt{/*\ldots*/}'').
@@ -211,7 +208,7 @@ purposes. First, it will provide type checking of objects as a guard against err
 Second, it will automatically expand some
 statements that contain types into a set of statements instead containing
 objects of those types, providing a convenient short-hand. 
-The type heirarchy is a strictly parse-time entity: no type information will be
+The type heirarchy is a parse-time entity: no type information will be
 available to the planner.
 
 
@@ -230,11 +227,11 @@ boolean fluents (propositions).
 
 \subsection{agents}
 
-The MECA planner uses three types of \emph{agents}. The single
+The MECA planner uses three types of agents. A single
 \emph{system} agent and any number of \emph{environment} agents are specified in
 this section.  The third type, \emph{passive} agents, are specified in the next
 section. 
-An \emph{agent} must be an object that has been defined in the
+An agent must be an object that has been defined in the
 \emph{objects} section. An agent can have any type, but it is generally
 convenient to create a type for objects that will be agents, for example 
 as we do with the ``\texttt{actor}'' type in our running example.
@@ -260,15 +257,9 @@ act. thus \texttt{robot1} will act first, followed by
 \texttt{ExampleModel} to determine the predicted actions of \texttt{human1}, and
 will attempt to construct a plan that specifies the actions of \texttt{robot1}.
 
-The planner considers two main things with \emph{system} and \emph{environment}
-agents. First, as discussed above, it considers their actions (as specified by
-the planner for \emph{system} agents, as predicted by a model for
-\emph{environment} agents. Second, it models their beliefs and knowledge, which
-are represented as part of the states over which the planner searches.
-
 The depl parser and the Meca planner will use the information defined in this
 section for three
-purposes. First, agents will be associated with actions. Second, and the model
+purposes. First, agents will be associated with actions. Second, the model
 assigned to each environment agent will be queried to predict that agent's
 actions. Third, the epistemic and doxiastic state and action
 systems will maintain representations of agents' mental states.
@@ -287,10 +278,6 @@ agent definition: an agent name.
 
 
 \subsection{fluents}
-
-The \emph{fluents} section defines all fluent atoms that will be available to the planner. A
-fluent atom consists of a predicate and a (possibly empty) orderd list of
-arguments. Arguments are objects, as defined in the \emph{objects} section.
 
 This section contains a comma-delimited list of fluent definitions. A fluent
 definition taks the form \verb|name(p1,...,pn)|, where \verb|name| is the
@@ -360,7 +347,7 @@ between connected rooms.
 This section defines the start state or the set of start states.
 The state representations used by the planner are presented only in outline
 here. For a complete description of these state representations, please
-consult \fullcite{buckingham2021multiagent} (\emph{under review}). 
+consult \fullcite{??}.
 
 A state definition has two parts.
 If there are multiple start states, they represent
@@ -437,13 +424,13 @@ Each of \verb|f1,...,fn| is an action definition. An action definition
 takes the form \verb|name(p1,...,pn){f1,...,fm}|.
 
 For more information about action definitions, see
-\cite{buckingham2021multiagent}.
+\cite{??}.
  
 
 
 \section{Environment agent models}
 
-Our example environment agnet model is ExampleModel, which is located at
+Our example environment agnet model is ExampleModel, which is located at\\
 \texttt{/src/mecaplanner/models/ExampleModel.depl}.
 
 \lstinputlisting{../src/mecaPlanner/models/ExampleModel.java}
@@ -455,7 +442,6 @@ It allows you to display the start state, apply actions, and observe subsequent
 states.
 
 You can build \verb|test| with:
-
 \begin{lstlisting}
 $ make test
 \end{lstlisting}
