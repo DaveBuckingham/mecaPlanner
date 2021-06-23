@@ -1,0 +1,28 @@
+types{}
+
+objects{robot-Object}
+
+agents{robot}
+
+passive{}
+
+fluents{c()}
+
+initially{
+    *w1 <- {}
+    B[robot] <- {(w1,w1)},
+    K[robot] <- {(w1,w1)}
+}
+
+goals{c()}
+
+actions{
+    clean_room(){
+        owner{robot}
+        precondition{~c()},
+        observes{robot},
+        causes{c()}
+    }
+
+}
+

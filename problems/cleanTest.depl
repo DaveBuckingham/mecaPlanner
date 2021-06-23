@@ -1,0 +1,52 @@
+types{
+    Robot-Actor,
+    Actor-Locatable,
+    Location-Object,
+    Locatable-Object
+}
+
+objects{
+    robot-Robot,
+    room1-Location,
+    room2-Location,
+}
+
+agents{robot}
+
+passive{}
+
+fluents{
+    at(Locatable,Location),
+    clean(Location)}
+
+initially{
+    *w1 <- {
+        at(robot,room1)
+    }
+    *w2 <- {
+        at(robot, room2)
+    },
+    B[robot] <- {(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
+    K[robot] <- {(w1,w1),(w1,w2),(w2,w1),(w2,w2)}
+}
+
+goals{clean(room1) & clean(room2)}
+
+actions{
+    clean_room(?r-Location){
+        owner{robot},
+        precondition{~clean(?r)},
+        precondition{at(robot,?r)}
+        observes{robot},
+        causes{clean(?r)}
+    }
+    move(?f-Location, ?t-Location){
+        owner{robot},
+        precondition{at(robot, ?f)},
+        observes{robot if at(robot,?f) | at(robot,?t)}
+        causes{at(robot, ?t)},
+        causes{~(at(robot, ?f))},
+    }
+
+}
+
