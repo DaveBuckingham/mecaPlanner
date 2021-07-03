@@ -7,45 +7,140 @@ types{
 
 objects{
     robot-Robot,
+    roomba-Robot,
     room1-Location,
     room2-Location,
+    room3-Location
 }
 
-agents{robot}
+agents{
+    robot,
+    roomba{ExampleModel},
+}
 
 passive{}
 
 fluents{
     at(Locatable,Location),
-    clean(Location)}
+    clean(Location),
+    door_open(),
+    liquid(Location),
+    dirt(Location)
+}
+
+constants{
+    connected(room1, room2)
+}
+
 
 initially{
     *w1 <- {
+        at(robot,room1),
+        dirt(room1),
+        liquid(room2),
+        dirt(room3)
+    },
+    *w2 <- {
+        at(robot,room1),
+        dirt(room1),
+        dirt(room2)
+    },
+    *w3 <- {
+        at(robot,room1),
+        dirt(room1),
+        dirt(room3)
+    },
+    *w4 <- {
+        at(robot,room1),
+        dirt(room1),
+        liquid(room2)
+    },
+    *w5 <- {
+        at(robot,room1),
+        dirt(room1)
+    },
+    *w6 <- {
+        at(robot,room1),
+        dirt(room1),
+        dirt(room2),
+        dirt(room3)
+    },
+    *w7 <- {
+        at(robot,room1),
+        liquid(room2),
+        dirt(room3)
+    },
+    *w8 <- {
+        at(robot,room1),
+        dirt(room2)
+    },
+    *w9 <- {
+        at(robot,room1),
+        dirt(room3)
+    },
+    *w10 <- {
+        at(robot,room1),
+        liquid(room2)
+    },
+    *w11 <- {
+        at(robot,room1),
+    },
+    *w12 <- {
+        at(robot,room1),
+        dirt(room2),
+        dirt(room3)
+    },
+    w13 <- {
+        at(robot,room1),
+        dirt(room1)
+    },
+    w14 <- {
         at(robot,room1)
     }
-    *w2 <- {
-        at(robot, room2)
-    },
-    B[robot] <- {(w1,w1),(w1,w2),(w2,w1),(w2,w2)},
-    K[robot] <- {(w1,w1),(w1,w2),(w2,w1),(w2,w2)}
+    B[robot] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w3),(w3,w3),
+                (w3,w4),(w4,w4),(w4,w5),(w5,w5),(w5,w6),
+                (w6,w6),(w6,w7),(w7,w7),(w7,w8),(w8,w8),
+                (w8,w9),(w9,w9),(w9,w10),(w10,w10),(w10,w11),
+                (w11,w11),(w11,w12),(w12,w12),(w1,w13),(w2,w13),
+                (w3,w13),(w4,w13),(w5,w13),(w6,w13),(w13,w13),
+                (w7,w14),(w8,w14),(w9,w14),(w10,w14),(w11,w14),
+                (w12,w14),(w14,w14)},
+    K[robot] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w3),(w3,w3),
+                (w3,w4),(w4,w4),(w4,w5),(w5,w5),(w5,w6),
+                (w6,w6),(w6,w7),(w7,w7),(w7,w8),(w8,w8),
+                (w8,w9),(w9,w9),(w9,w10),(w10,w10),(w10,w11),
+                (w11,w11),(w11,w12),(w12,w12),(w1,w13),(w2,w13),
+                (w3,w13),(w4,w13),(w5,w13),(w6,w13),(w13,w13),
+                (w7,w14),(w8,w14),(w9,w14),(w10,w14),(w11,w14),
+                (w12,w14),(w14,w14)}
 }
 
-goals{clean(room1) & clean(room2)}
+goals{~dirt(room1) & ~dirt(room2) & ~liquid(room2) & ~dirt(room3)}
 
 actions{
-    clean_room(?r-Location){
-        owner{robot},
-        precondition{~clean(?r)},
-        precondition{at(robot,?r)}
+    vacuum(?a-Actor,?r-Location){
+        owner{?a},
+        precondition{dirt(?r)},
+        precondition{at(?a,?r)}
         observes{robot},
-        causes{clean(?r)}
+        causes{~dirt(?r)}
+        causes{at(?a,?r)}
     }
-    move(?f-Location, ?t-Location){
+    wipe(){
         owner{robot},
-        precondition{at(robot, ?f)},
-        observes{robot if at(robot,?f) | at(robot,?t)}
+        precondition{liquid(room2)},
+        precondition{at(robot,room2)}
+        observes{robot},
+        causes{~liquid(room2)},
+        causes{at(robot,room2)}
+    }
+    move(?a-Actor, ?f-Location, ?t-Location){
+        owner{?a},
+        precondition{at(?a, ?f)},
         causes{at(robot, ?t)},
         causes{~(at(robot, ?f))},
+        determines{liquid(?t)},
+        determines{dirt(?t)}
     }
 
 }
