@@ -1,13 +1,12 @@
 types{
-    Robot-Actor,
     Actor-Locatable,
     Location-Object,
     Locatable-Object
 }
 
 objects{
-    robot-Robot,
-    roomba-Robot,
+    robot-Actor,
+    roomba-Actor,
     livingR-Location,
     kitchen-Location,
     bedR-Location
@@ -24,7 +23,10 @@ fluents{
     at(Locatable,Location),
     blocked(),
     liquid(Location),
-    dirt(Location)
+    dirt(Location),
+    roomba_wet(),
+    blocked_kitchen(),
+    blocked_bedroom()
 }
 
 constants{
@@ -36,100 +38,188 @@ initially{
     *w1 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         liquid(kitchen),
         dirt(bedR)
     },
     *w2 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         dirt(kitchen)
     },
     *w3 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         dirt(bedR)
     },
     *w4 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         liquid(kitchen)
     },
     *w5 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR)
+        ~blocked_kitchen(),
+        ~blocked_bedroom()
     },
     *w6 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         dirt(kitchen),
         dirt(bedR)
     },
     *w7 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         dirt(kitchen),
         liquid(kitchen)
     }
     *w8 <- {
         at(robot,livingR),
         at(roomba,livingR),
-        dirt(livingR),
+        ~blocked_kitchen(),
+        ~blocked_bedroom(),
         dirt(kitchen),
         liquid(kitchen),
         dirt(bedR)
     }
     
-    B[robot] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w3),(w3,w3),
-                (w3,w4),(w4,w4),(w4,w5),(w5,w5),(w5,w6),
-                (w6,w6),(w6,w7),(w7,w7),(w7,w8),(w8,w8),
-                (w8,w9),(w9,w9),(w9,w10),(w10,w10),(w10,w11),
-                (w11,w11),(w11,w12),(w12,w12),(w1,w13),(w2,w13),
-                (w3,w13),(w4,w13),(w5,w13),(w6,w13),(w13,w13),
-                (w7,w14),(w8,w14),(w9,w14),(w10,w14),(w11,w14),
-                (w12,w14),(w14,w14)},
-    K[robot] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w3),(w3,w3),
-                (w3,w4),(w4,w4),(w4,w5),(w5,w5),(w5,w6),
-                (w6,w6),(w6,w7),(w7,w7),(w7,w8),(w8,w8),
-                (w8,w9),(w9,w9),(w9,w10),(w10,w10),(w10,w11),
-                (w11,w11),(w11,w12),(w12,w12),(w1,w13),(w2,w13),
-                (w3,w13),(w4,w13),(w5,w13),(w6,w13),(w13,w13),
-                (w7,w14),(w8,w14),(w9,w14),(w10,w14),(w11,w14),
-                (w12,w14),(w14,w14)}
+    B[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8),
+                
+    K[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8),
+                
+    B[roomba] <- {(w1,w1),(w2,w2),(w3,w3),(w4,w4),(w5,w5),(w6,w6),(w7,w7),(w8,w8)}
+    K[roomba] <- {(w1,w1),(w2,w2),(w3,w3),(w4,w4),(w5,w5),(w6,w6),(w7,w7),(w8,w8)}
+
 }
 
-goals{~dirt(livingR) & ~dirt(kitchen) & ~liquid(kitchen) & ~dirt(bedR)}
+goals{~dirt(livingR) & ~dirt(kitchen) & ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
 
 actions{
-    vacuum(?a-Actor,?r-Location){
-        owner{?a},
+    vacuum(?r-Location){
+        owner{Roomba},
         precondition{dirt(?r)},
-        precondition{at(?a,?r)}
-        observes{robot},
-        causes{~dirt(?r)}
-        causes{at(?a,?r)}
+        precondition{at(roomba,?r)},
+        causes{~dirt(?r)},
+        causes{at(roomba,?r)}
     }
     wipe(){
         owner{robot},
         precondition{liquid(kitchen)},
-        precondition{at(robot,kitchen)}
-        observes{robot},
+        precondition{at(robot,kitchen)},
         causes{~liquid(kitchen)},
         causes{at(robot,kitchen)}
     }
-    move(?a-Actor, ?f-Location, ?t-Location){
+    robot_livingR_to_kitchen(){
+        owner{robot},
+        precondition{at(robot,livingR)},
+        causes{at(robot,kitchen)},
+        causes{~(at(robot,livingR))},
+        determines{liquid(kitchen)},
+        determines{dirt(kitchen)},
+    }
+    robot_livingR_to_bedR(){
+        owner{robot},
+        precondition{at(robot,livingR)},
+        causes{at(robot,bedR)},
+        causes{~(at(robot,livingR))},
+        determines{dirt(bedR)}
+    }
+    robot_kitchen_to_livingR(){
+        owner{robot},
+        precondition{at(robot,kitchen)},
+        causes{at(robot,livingR)},
+        causes{~(at(robot,kitchen))}
+    }
+    robot_bedR_to_livingR(){
+        owner{robot},
+        precondition{at(robot,bedR)},
+        causes{at(robot,livingR)},
+        causes{~(at(robot,bedR))}
+    }
+    roomba_livingR_to_kitchen(){
+        owner{roomba},
+        precondition{at(roomba,livingR)},
+        precondition{~blocked_kitchen()},
+        causes{at(roomba,kitchen)},
+        causes{~(at(roomba,livingR))},
+        causes{roomba_wet if liquid(kitchen)}
+    }
+    roomba_livingR_to_bedR(){
+        owner{roomba},
+        precondition{at(roomba,livingR)},
+        precondition{~blocked_bedroom()},
+        causes{at(roomba,bedR)},
+        causes{~(at(roomba,livingR))}
+    }
+    roomba_kitchen_to_livingR(){
+        owner{roomba},
+        precondition{at(roomba,kitchen)},
+        precondition{~blocked_kitchen()}
+        causes{at(roomba,livingR)},
+        causes{~(at(roomba,kitchen))}
+    }
+    roomba_bedR_to_livingR(){
+        owner{roomba},
+        precondition{at(roomba,bedR)},
+        precondition{~blocked_bedroom()},
+        causes{at(roomba,livingR)},
+        causes{~(at(roomba,bedR))}
+    }
+    block_kitchen(){
+        owner{robot},
+        precondition{~blocked_kitchen()}
+        precondition{at(robot,livingR)},
+        causes{blocked_kitchen()}
+    }
+    unblock_kitchen(){
+        owner{robot},
+        precondition{blocked_kitchen()},
+        precondition{at(robot,livingR)},
+        precondition{~liquid(kitchen)},
+        causes{~blocked_kitchen()}
+    }
+    block_bedroom(){
+        owner{robot},
+        precondition{~blocked_bedroom()}
+        precondition{at(robot,livingR)},
+        causes{blocked_bedroom()}
+    }
+    unblock_bedroom(){
+        owner{robot},
+        precondition{blocked_bedroom()},
+        precondition{at(robot,livingR)},
+        causes{~blocked_bedroom()}
+    }
+    wait(?a - Actor) {
         owner{?a},
-        precondition{at(?a, ?f)},
-        causes{at(robot, ?t)},
-        causes{~(at(robot, ?f))},
-        determines{liquid(?t)},
-        determines{dirt(?t)}
+        observes(?o-Actor){?o},
     }
 
 }
