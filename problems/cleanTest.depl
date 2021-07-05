@@ -118,8 +118,8 @@ initially{
                 
 }
 
-goals{~dirt(livingR) & ~dirt(kitchen) & ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
-
+goals{~dirt(livingR) & ~dirt(kitchen) & B[robot]~dirt(kitc) ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
+~bedroom_dirty ^  B[r]~bedroom_dirty ^ ~kitchen_dirty ^ B[r]~kitchen_dirty ^ ~kitchen_wet ^ B[r] ~kitchen_wet
 actions{
     vacuum(?r-Location){
         owner{roomba},
