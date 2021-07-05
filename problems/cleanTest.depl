@@ -118,8 +118,8 @@ initially{
                 
 }
 
-goals{~dirt(livingR) & ~dirt(kitchen) & B[robot]~dirt(kitc) ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
-~bedroom_dirty ^  B[r]~bedroom_dirty ^ ~kitchen_dirty ^ B[r]~kitchen_dirty ^ ~kitchen_wet ^ B[r] ~kitchen_wet
+goals{~dirt(livingR) & ~dirt(kitchen) &  ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
+
 actions{
     vacuum(?r-Location){
         owner{roomba},
@@ -169,7 +169,7 @@ actions{
         precondition{~blocked_kitchen()},
         causes{at(roomba,kitchen)},
         causes{~(at(roomba,livingR))},
-        causes{roomba_wet if {liquid(kitchen)}},
+        causes{roomba_wet() if liquid(kitchen)},
         determines{dirt(kitchen)}
     }
     roomba_livingR_to_bedR(){
