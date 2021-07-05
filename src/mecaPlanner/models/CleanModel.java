@@ -60,7 +60,7 @@ public class CleanModel extends Model {
         // if in the bedroom: move living room 
         // if in the kitchen: move living room
 
-        prediction.add(getSafeActionBySignature("wait", ndState));
+        prediction.add(getSafeActionBySignature("wait(roomba,livingR)", ndState));
         return prediction;
 
         

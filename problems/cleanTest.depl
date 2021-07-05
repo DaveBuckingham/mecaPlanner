@@ -35,7 +35,7 @@ constants{
 
 
 initially{
-    *w8 <- {
+    *w1 <- {
         at(robot,livingR),
         at(roomba,livingR),
         dirt(kitchen),
