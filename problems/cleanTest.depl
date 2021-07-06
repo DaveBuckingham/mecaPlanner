@@ -123,20 +123,23 @@ goals{~dirt(livingR) & ~dirt(kitchen) &  ~liquid(kitchen) & ~dirt(bedR) & ~roomb
 actions{
     vacuum(?r-Location){
         owner{roomba},
+        observes(?o-Actor){?o if at(?o, ?r)},
         precondition{dirt(?r)},
         precondition{at(roomba,?r)},
         causes{~dirt(?r)},
-        causes{at(roomba,?r)}
+//        causes{at(roomba,?r)}
     }
     wipe(){
         owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen)},
         precondition{liquid(kitchen)},
         precondition{at(robot,kitchen)},
         causes{~liquid(kitchen)},
-        causes{at(robot,kitchen)}
+//        causes{at(robot,kitchen)}
     }
     robot_livingR_to_kitchen(){
         owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
         precondition{at(robot,livingR)},
         causes{at(robot,kitchen)},
         causes{~(at(robot,livingR))},
@@ -145,7 +148,7 @@ actions{
     }
     robot_livingR_to_bedR(){
         owner{robot},
-        observes{robot}
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, bedR)},
         precondition{at(robot,livingR)},
         causes{at(robot,bedR)},
         causes{~(at(robot,livingR))},
@@ -153,18 +156,21 @@ actions{
     }
     robot_kitchen_to_livingR(){
         owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
         precondition{at(robot,kitchen)},
         causes{at(robot,livingR)},
         causes{~(at(robot,kitchen))}
     }
     robot_bedR_to_livingR(){
         owner{robot},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
         precondition{at(robot,bedR)},
         causes{at(robot,livingR)},
         causes{~(at(robot,bedR))}
     }
     roomba_livingR_to_kitchen(){
         owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, kitchen)},
         precondition{at(roomba,livingR)},
         precondition{~blocked_kitchen()},
         causes{at(roomba,kitchen)},
@@ -174,6 +180,7 @@ actions{
     }
     roomba_livingR_to_bedR(){
         owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
         precondition{at(roomba,livingR)},
         precondition{~blocked_bedroom()},
         causes{at(roomba,bedR)},
@@ -182,6 +189,7 @@ actions{
     }
     roomba_kitchen_to_livingR(){
         owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, kitchen)},
         precondition{at(roomba,kitchen)},
         precondition{~blocked_kitchen()}
         causes{at(roomba,livingR)},
@@ -189,6 +197,7 @@ actions{
     }
     roomba_bedR_to_livingR(){
         owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
         precondition{at(roomba,bedR)},
         precondition{~blocked_bedroom()},
         causes{at(roomba,livingR)},
@@ -196,12 +205,14 @@ actions{
     }
     block_kitchen(){
         owner{robot},
+        observes(?o-Actor){?o},
         precondition{~blocked_kitchen()}
         precondition{at(robot,livingR)},
         causes{blocked_kitchen()}
     }
     unblock_kitchen(){
         owner{robot},
+        observes(?o-Actor){?o},
         precondition{blocked_kitchen()},
         precondition{at(robot,livingR)},
         precondition{~liquid(kitchen)},
@@ -209,19 +220,23 @@ actions{
     }
     block_bedroom(){
         owner{robot},
+        observes(?o-Actor){?o},
         precondition{~blocked_bedroom()}
         precondition{at(robot,livingR)},
         causes{blocked_bedroom()}
     }
     unblock_bedroom(){
         owner{robot},
+        observes(?o-Actor){?o},
         precondition{blocked_bedroom()},
         precondition{at(robot,livingR)},
         causes{~blocked_bedroom()}
     }
     wait(?a - Actor, ?l- Location) {
-        owner{?a},
-        observes(?o-Actor){?o if at(?o, ?l)},
+        //owner{?a},
+        owner{roomba},
+        //observes(?o-Actor){?o if at(?o, ?l)},
+        observes(?o-Actor){?o},
     }
 
 
