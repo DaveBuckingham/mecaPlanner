@@ -1,0 +1,123 @@
+types{
+    Actor-Locatable,
+    Location-Object,
+    Locatable-Object
+}
+
+objects{
+    robot-Actor,
+    roomba-Actor,
+    livingR-Location,
+    kitchen-Location,
+    bedR-Location
+}
+
+agents{
+    robot,
+    roomba{CleanModel},
+}
+
+passive{}
+
+fluents{
+    at(Locatable,Location),
+    blocked(),
+    dirt(Location),
+    roomba_wet(),
+    blocked_kitchen(),
+    blocked_bedroom()
+}
+
+constants{
+    connected(livingR, kitchen)
+}
+
+
+initially{
+    *w1 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen),
+        dirt(bedR)
+    },
+    w2 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen)
+    },
+    w3 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(bedR)
+    },
+    w4 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+    },
+    w5 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+    },
+    
+    B[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),
+                 (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),
+                 (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),
+                 (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),
+                 (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5)}
+                
+    K[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),
+                 (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),
+                 (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),
+                 (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),
+                 (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5)}
+                
+    B[roomba] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),
+                  (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),
+                  (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),
+                  (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),
+                  (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5)}
+                
+    K[roomba] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),
+                  (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),
+                  (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),
+                  (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),
+                  (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5)}
+                
+}
+
+goals{~dirt(livingR) & ~dirt(kitchen) &  ~dirt(bedR) & ~roomba_wet()}
+
+actions{
+    robot_livingR_to_kitchen(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
+        precondition{at(robot,livingR)},
+        causes{at(robot,kitchen)},
+        causes{~(at(robot,livingR))},
+        determines{dirt(kitchen)},
+    }
+    robot_livingR_to_bedR(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, bedR)},
+        precondition{at(robot,livingR)},
+        causes{at(robot,bedR)},
+        causes{~(at(robot,livingR))},
+        determines{dirt(bedR)}
+    }
+    robot_kitchen_to_livingR(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
+        precondition{at(robot,kitchen)},
+        causes{at(robot,livingR)},
+        causes{~(at(robot,kitchen))}
+    }
+    wait(?a - Actor, ?l- Location) {
+        owner{?a},
+        //owner{roomba},
+        observes(?o-Actor){?o if at(?o, ?l)},
+        //observes(?o-Actor){?o},
+    }
+
+
+}
+

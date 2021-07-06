@@ -233,10 +233,9 @@ actions{
         causes{~blocked_bedroom()}
     }
     wait(?a - Actor, ?l- Location) {
-        //owner{?a},
-        owner{roomba},
-        //observes(?o-Actor){?o if at(?o, ?l)},
-        observes(?o-Actor){?o},
+        owner{?a},
+        precondition{at(?a,?l)},
+        observes(?o-Actor){?o if at(?o, ?l)},
     }
 
 
