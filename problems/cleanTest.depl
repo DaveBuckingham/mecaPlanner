@@ -148,7 +148,7 @@ actions{
     }
     robot_livingR_to_bedR(){
         owner{robot},
-        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, bedR)},
+        observes(?o-Actor){?o if at(?o, bedR) | at(?o, bedR)},
         precondition{at(robot,livingR)},
         causes{at(robot,bedR)},
         causes{~(at(robot,livingR))},

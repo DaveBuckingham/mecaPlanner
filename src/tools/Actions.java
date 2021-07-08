@@ -92,10 +92,10 @@ public class Actions {
                 throw new RuntimeException("somehow failed to select an action");
             }
 
-            //Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            //currentState = transitionResult.getState();
+            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+            currentState = transitionResult.getState();
 
-            currentState = Transition.transition(currentState, action);
+            //currentState = Transition.transition(currentState, action);
 
         }
 

@@ -492,6 +492,10 @@ public class DeplToProblem extends DeplBaseVisitor {
             String relationType = relationCtx.relationType().getText();
             String agent = relationCtx.objectName().getText();
 
+            if (!domain.isAgent(agent)) {
+                throw new RuntimeException("agent not defined: " + agent);
+            }
+
             Relation relation = new Relation();
             List<String> fromWorlds = new ArrayList<>();
             List<String> toWorlds = new ArrayList<>();
