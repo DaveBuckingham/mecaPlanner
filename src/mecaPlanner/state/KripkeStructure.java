@@ -135,11 +135,12 @@ public class KripkeStructure implements java.io.Serializable {
         return knowledgeRelations;
     }
 
-    public Set<World> getChildren(World world) {
+    private Set<World> getChildren(World world) {
         Set<World> children = new HashSet<>();
         for (String agent : agents) {
             children.addAll(getBelievedWorlds(agent, world));
             children.addAll(getKnownWorlds(agent, world));
+            //children.retainAll(getKnownWorlds(agent, world));
         }
         return children;
     }
@@ -148,8 +149,12 @@ public class KripkeStructure implements java.io.Serializable {
         return this.beliefRelations;
     }
 
+    public Set<String> getAgents() {
+        return agents;
+    }
 
-    // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK WOULD BE FASTER?
+
+    // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
     private Set<Set<World>> getInitialPartition() {
         Set<Set<World>> partition = new HashSet<>();
         for (World w : worlds) {
@@ -172,27 +177,77 @@ public class KripkeStructure implements java.io.Serializable {
         return partition;
     }
 
+//    private Set<Set<World>> refinePartition(Set<Set<World>> partition, Set<World> splitter) {
+//        Set<Set<World>> refined= new HashSet<>();
+//        for (Set<World> block : partition) {
+//            Set<World> inPre = new HashSet<>();
+//            Set<World> notInPre = new HashSet<>();
+//            for (World w : block) {
+//                if (Collections.disjoint(getChildren(w), splitter)) {
+//                    inPre.add(w);
+//                }
+//                else {
+//                    notInPre.add(w);
+//                }
+//            }
+//            if (!inPre.isEmpty()) {
+//                refined.add(inPre);
+//            }
+//            if (!notInPre.isEmpty()) {
+//                refined.add(notInPre);
+//            }
+//        }
+//        return refined;
+//    }
+
+
     private Set<Set<World>> refinePartition(Set<Set<World>> partition, Set<World> splitter) {
-        Set<Set<World>> refined= new HashSet<>();
-        for (Set<World> block : partition) {
-            Set<World> inPre = new HashSet<>();
-            Set<World> notInPre = new HashSet<>();
-            for (World w : block) {
-                if (Collections.disjoint(getChildren(w), splitter)) {
-                    inPre.add(w);
+        Set<Set<World>> refinedBelief = new HashSet<>();
+        for (String agent : agents) {
+            //children.addAll(getBelievedWorlds(agent, world));
+            //children.addAll(getKnownWorlds(agent, world));
+            for (Set<World> block : partition) {
+                Set<World> inPre = new HashSet<>();
+                Set<World> notInPre = new HashSet<>();
+                for (World w : block) {
+                    if (Collections.disjoint(getBelievedWorlds(agent, w), splitter)) {
+                        inPre.add(w);
+                    }
+                    else {
+                        notInPre.add(w);
+                    }
                 }
-                else {
-                    notInPre.add(w);
+                if (!inPre.isEmpty()) {
+                    refinedBelief.add(inPre);
                 }
-            }
-            if (!inPre.isEmpty()) {
-                refined.add(inPre);
-            }
-            if (!notInPre.isEmpty()) {
-                refined.add(notInPre);
+                if (!notInPre.isEmpty()) {
+                    refinedBelief.add(notInPre);
+                }
             }
         }
-        return refined;
+        Set<Set<World>> refinedKnowledge = new HashSet<>();
+        for (String agent : agents) {
+            for (Set<World> block : refinedBelief) {
+                Set<World> inPre = new HashSet<>();
+                Set<World> notInPre = new HashSet<>();
+                for (World w : block) {
+                    if (Collections.disjoint(getKnownWorlds(agent, w), splitter)) {
+                        inPre.add(w);
+                    }
+                    else {
+                        notInPre.add(w);
+                    }
+                }
+                if (!inPre.isEmpty()) {
+                    refinedKnowledge.add(inPre);
+                }
+                if (!notInPre.isEmpty()) {
+                    refinedKnowledge.add(notInPre);
+                }
+            }
+        }
+
+        return refinedKnowledge;
     }
 
     // Baier and Katoen Alg.32 p.489
@@ -213,19 +268,16 @@ public class KripkeStructure implements java.io.Serializable {
         return partition;
     }
 
-    public Set<String> getAgents() {
-        return agents;
-    }
 
-    public void add(KripkeStructure other) {
-        assert (this != other);
-        assert (this.agents.equals(other.getAgents()));
-        this.worlds.addAll(other.getWorlds());
-        for (String agent : agents) {
-            beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
-            knowledgeRelations.get(agent).add(other.getKnowledgeRelations().get(agent));
-        }
-    }
+    //public void add(KripkeStructure other) {
+    //    assert (this != other);
+    //    assert (this.agents.equals(other.getAgents()));
+    //    this.worlds.addAll(other.getWorlds());
+    //    for (String agent : agents) {
+    //        beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
+    //        knowledgeRelations.get(agent).add(other.getKnowledgeRelations().get(agent));
+    //    }
+    //}
 
     public KripkeStructure union(KripkeStructure other) {
         assert (this != other);
@@ -302,8 +354,6 @@ public class KripkeStructure implements java.io.Serializable {
             System.exit(1);
         }
     }
-
-
 
     public boolean checkRelations() {
         for (String agent : agents) {
@@ -399,9 +449,6 @@ public class KripkeStructure implements java.io.Serializable {
         }
         return true;
     }
-
-
-
 
 
 

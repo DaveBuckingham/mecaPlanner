@@ -21,10 +21,10 @@ initially{
         phi(),
     },
     
-    B[robot] <- {(w1,w1)},
-    K[robot] <- {(w1,w1)},
-    B[roomba] <- {(w1,w1)},
-    K[roomba] <- {(w1,w1)},
+    B[agentA] <- {(w1,w1)},
+    K[agentA] <- {(w1,w1)},
+    B[agentB] <- {(w1,w1)},
+    K[agentB] <- {(w1,w1)},
                 
 }
 

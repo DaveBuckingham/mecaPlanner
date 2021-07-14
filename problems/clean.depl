@@ -1,28 +1,241 @@
-types{}
+types{
+    Actor-Locatable,
+    Location-Object,
+    Locatable-Object
+}
 
-objects{robot-Object}
+objects{
+    robot-Actor,
+    roomba-Actor,
+    livingR-Location,
+    kitchen-Location,
+    bedR-Location
+}
 
-agents{robot}
+agents{
+    robot,
+    roomba{CleanModel},
+}
 
 passive{}
 
-fluents{c()}
-
-initially{
-    *w1 <- {}
-    B[robot] <- {(w1,w1)},
-    K[robot] <- {(w1,w1)}
+fluents{
+    at(Locatable,Location),
+    liquid(Location),
+    dirt(Location),
+    roomba_wet(),
+    blocked_kitchen(),
+    blocked_bedroom()
 }
 
-goals{c()}
+constants{
+    connected(livingR, kitchen),
+    connected(livingR, bedroom)
+}
+
+
+initially{
+    *w1 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen),
+        liquid(kitchen),
+        dirt(bedR)
+    },
+    w2 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen)
+    },
+    w3 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(bedR)
+    },
+    w4 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        liquid(kitchen)
+    },
+    w5 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+    },
+    w6 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen),
+        dirt(bedR)
+    },
+    w7 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        dirt(kitchen),
+        liquid(kitchen)
+    }
+    w8 <- {
+        at(robot,livingR),
+        at(roomba,livingR),
+        liquid(kitchen),
+        dirt(bedR)
+    },
+    
+    B[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8)}
+                
+    K[robot] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8)}
+                
+    B[roomba] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8)}
+                
+    K[roomba] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),(w1,w8),
+                (w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),(w2,w8),
+                (w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),(w3,w8),
+                (w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),(w4,w8),
+                (w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),(w5,w8),
+                (w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),(w6,w8),
+                (w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7),(w7,w8),
+                (w8,w1),(w8,w2),(w8,w3),(w8,w4),(w8,w5),(w8,w6),(w8,w7),(w8,w8)}
+                
+}
+
+goals{~dirt(livingR) & ~dirt(kitchen) &  ~liquid(kitchen) & ~dirt(bedR) & ~roomba_wet()}
 
 actions{
-    clean_room(){
-        owner{robot}
-        precondition{~c()},
-        observes{robot},
-        causes{c()}
+    vacuum(?r-Location){
+        owner{roomba},
+        observes(?o-Actor){?o if at(?o, ?r)},
+        precondition{dirt(?r)},
+        precondition{at(roomba,?r)},
+        causes{~dirt(?r)},
     }
+    wipe(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen)},
+        precondition{liquid(kitchen)},
+        precondition{at(robot,kitchen)},
+        causes{~liquid(kitchen)},
+    }
+    robot_livingR_to_kitchen(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
+        precondition{at(robot,livingR)},
+        causes{at(robot,kitchen)},
+        causes{~(at(robot,livingR))},
+        determines{liquid(kitchen)},
+        determines{dirt(kitchen)},
+    }
+    robot_livingR_to_bedR(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, bedR) | at(?o, livingR)},
+        precondition{at(robot,livingR)},
+        causes{at(robot,bedR)},
+        causes{~(at(robot,livingR))},
+        determines{dirt(bedR)}
+    }
+    robot_kitchen_to_livingR(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, kitchen) | at(?o, livingR)},
+        precondition{at(robot,kitchen)},
+        causes{at(robot,livingR)},
+        causes{~(at(robot,kitchen))}
+    }
+    robot_bedR_to_livingR(){
+        owner{robot},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
+        precondition{at(robot,bedR)},
+        causes{at(robot,livingR)},
+        causes{~(at(robot,bedR))}
+    }
+    roomba_livingR_to_kitchen(){
+        owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, kitchen)},
+        precondition{at(roomba,livingR)},
+        precondition{~blocked_kitchen()},
+        causes{at(roomba,kitchen)},
+        causes{~(at(roomba,livingR))},
+        causes{roomba_wet() if liquid(kitchen)},
+        determines{dirt(kitchen)}
+    }
+    roomba_livingR_to_bedR(){
+        owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
+        precondition{at(roomba,livingR)},
+        precondition{~blocked_bedroom()},
+        causes{at(roomba,bedR)},
+        causes{~(at(roomba,livingR))}
+        determines{dirt(bedR)}
+    }
+    roomba_kitchen_to_livingR(){
+        owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, kitchen)},
+        precondition{at(roomba,kitchen)},
+        precondition{~blocked_kitchen()}
+        causes{at(roomba,livingR)},
+        causes{~(at(roomba,kitchen))}
+    }
+    roomba_bedR_to_livingR(){
+        owner{roomba},
+        observes(?o-Actor){?o if at(?o, livingR) | at(?o, bedR)},
+        precondition{at(roomba,bedR)},
+        precondition{~blocked_bedroom()},
+        causes{at(roomba,livingR)},
+        causes{~(at(roomba,bedR))}
+    }
+    block_kitchen(){
+        owner{robot},
+        observes(?o-Actor){?o},
+        precondition{~blocked_kitchen()}
+        precondition{at(robot,livingR)},
+        causes{blocked_kitchen()}
+    }
+    unblock_kitchen(){
+        owner{robot},
+        observes(?o-Actor){?o},
+        precondition{blocked_kitchen()},
+        precondition{at(robot,livingR)},
+        precondition{~liquid(kitchen)},
+        causes{~blocked_kitchen()}
+    }
+//    block_bedroom(){
+//        owner{robot},
+//        observes(?o-Actor){?o},
+//        precondition{~blocked_bedroom()}
+//        precondition{at(robot,livingR)},
+//        causes{blocked_bedroom()}
+//    }
+//    unblock_bedroom(){
+//        owner{robot},
+//        observes(?o-Actor){?o},
+//        precondition{blocked_bedroom()},
+//        precondition{at(robot,livingR)},
+//        causes{~blocked_bedroom()}
+//    }
+    wait(?a - Actor, ?l- Location) {
+        owner{?a},
+        precondition{at(?a,?l)},
+        observes(?o-Actor){?o if at(?o, ?l)},
+    }
+
 
 }
 

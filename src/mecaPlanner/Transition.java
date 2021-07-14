@@ -637,6 +637,9 @@ public class Transition {
         assert(newWorlds.contains(designatedAlpha));
 
         KripkeStructure newModel = new KripkeStructure(newWorlds, newBRelation, newKRelation);
+
+        newModel.reduce(designatedAlpha);
+
         EpistemicState newState = new EpistemicState(newModel, designatedAlpha);
 
         return newState;
