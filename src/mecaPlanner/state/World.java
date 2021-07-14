@@ -3,6 +3,7 @@ package mecaPlanner.state;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -29,6 +30,15 @@ public class World implements java.io.Serializable {
         this.fluents = fluents;
     }
 
+    public World(String name, Fluent ...fluents) {
+        this(name, new HashSet(Arrays.asList(fluents)));
+    }
+
+
+    public World(String name) {
+        this(name, new HashSet<Fluent>());
+    }
+
     public World(World toCopy) {
         id = World.idCounter++;
         name = toCopy.getName();
@@ -37,6 +47,10 @@ public class World implements java.io.Serializable {
 
     public World(Set<Fluent> fluents) {
         this(null, fluents);
+    }
+
+    public World(Fluent ...fluents) {
+        this(new HashSet(Arrays.asList(fluents)));
     }
 
     protected Set<Fluent> getFluents() {

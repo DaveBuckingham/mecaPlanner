@@ -69,6 +69,12 @@ actions: mecaPlanner.jar src/tools/Actions.java
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions "$$@"' >> ./actions
 	chmod +x ./actions
 
+bisimulations: mecaPlanner.jar src/tools/Bisimulations.java
+	$(java) src/tools/Bisimulations.java -d build/
+	echo '#!/bin/bash' > ./bisimulations
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Bisimulations "$$@"' >> ./bisimulations
+	chmod +x ./bisimulations
+
 kr2021: mecaPlanner.jar src/tools/KR2021.java
 	$(java) src/tools/KR2021.java -d build/
 	echo '#!/bin/bash' > ./kr2021

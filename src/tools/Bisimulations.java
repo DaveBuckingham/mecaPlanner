@@ -1,21 +1,26 @@
-package mecaPlanner;
+package tools;
 
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.KripkeStructure;
-import mecaPlanner.state.Relation;
-import mecaPlanner.state.World;
-import mecaPlanner.state.Initialize;
+import mecaPlanner.state.*;
+import mecaPlanner.models.Model;
 import mecaPlanner.Action;
-import mecaPlanner.formulae.FluentAtom;
-import mecaPlanner.models.*;
+import mecaPlanner.search.Perspective;
+import mecaPlanner.search.Search;
+import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.localFormulae.*;
+import mecaPlanner.Domain;
+import mecaPlanner.Solution;
+import mecaPlanner.Problem;
+import mecaPlanner.Log;
+import mecaPlanner.Transition;
+import java.util.Arrays;
 
-import java.util.Set;
-import java.util.HashSet;
+import java.util.Scanner;
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Set;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.HashMap;
-import java.util.Arrays;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -29,48 +34,14 @@ import depl.*;
 
 // TEST THE BISIMULATION CODE USING EXAMPLES FROM THE TEXTBOOK
 
-public class Test {
+public class Bisimulations {
 
 
     public static void main(String args[]) {
 
         Log.setThreshold(Log.Level.DEBUG);
 
-        if (args.length < 1) {
-            System.out.println("missing arg");
-            return;
-        }
-
-        if (args[0].equals("rss")) {
-            rss();
-        }
-        else if (args[0].equals("bisimulations")) {
-            testBisimulations();
-        }
-        else if (args[0].equals("show-actions")) {
-            if (args.length < 2) {
-                System.out.println("actions test requires a depl file");
-                return;
-            }
-            String deplFile = args[1];
-            showActions(deplFile);
-
-        }
-        else if (args[0].equals("run-actions")) {
-            if (args.length < 2) {
-                System.out.println("actions test requires a depl file");
-                return;
-            }
-            String deplFile = args[1];
-            List<String> actionNames = new ArrayList<>();
-            if (args.length > 2) {
-                actionNames.addAll(Arrays.asList(Arrays.copyOfRange(args, 2, args.length)));
-            }
-            runActions(deplFile, actionNames);
-        }
-        else {
-            System.out.println("unknown arg: " + args[0]);
-        }
+        testBisimulations();
     }
 
 
@@ -91,7 +62,7 @@ public class Test {
         System.out.println(vending_s.equivalent(vending_u));
 
 
-        //printers();
+        printers("agent");
 
     }
 
@@ -99,10 +70,10 @@ public class Test {
     // p. 452
     private static EpistemicState vendingS(String agent) {
 
-        World world_s0 = new World("s0", "pay");
+        World world_s0 = new World("s0", new Fluent("pay"));
         World world_s1 = new World("s1");
-        World world_s2 = new World("s2", "beer");
-        World world_s3 = new World("s3", "soda");
+        World world_s2 = new World("s2", new Fluent("beer"));
+        World world_s3 = new World("s3", new Fluent("soda"));
 
         Set<World> worlds1 = new HashSet<>(Arrays.asList(world_s0, world_s1, world_s2, world_s3));
 
@@ -120,11 +91,11 @@ public class Test {
     }
 
     private static EpistemicState vendingT(String agent) {
-        World world_t0 = new World("t0", "pay");
+        World world_t0 = new World("t0", new Fluent("pay"));
         World world_t1 = new World("t1");
-        World world_t2 = new World("t2", "beer");
-        World world_t3 = new World("t3", "beer");
-        World world_t4 = new World("t4", "soda");
+        World world_t2 = new World("t2", new Fluent("beer"));
+        World world_t3 = new World("t3", new Fluent("beer"));
+        World world_t4 = new World("t4", new Fluent("soda"));
 
         Set<World> worlds2 = new HashSet<>(Arrays.asList(world_t0, world_t1, world_t2, world_t3, world_t4));
 
@@ -148,11 +119,11 @@ public class Test {
     private static EpistemicState vendingU(String agent) {
 
 
-        World world_u0 = new World("u0", "pay");
+        World world_u0 = new World("u0", new Fluent("pay"));
         World world_u1 = new World("u1");
         World world_u2 = new World("u2");
-        World world_u3 = new World("u3", "beer");
-        World world_u4 = new World("u4", "soda");
+        World world_u3 = new World("u3", new Fluent("beer"));
+        World world_u4 = new World("u4", new Fluent("soda"));
 
         Set<World> worlds2 = new HashSet<>(Arrays.asList(world_u0, world_u1, world_u2, world_u3, world_u4));
 
@@ -178,14 +149,14 @@ public class Test {
 
     public static void printers(String agent) {
 
-        World world_rrr = new World("rrr", "3");
-        World world_prr = new World("prr", "2");
-        World world_rpr = new World("rpr", "2");
-        World world_rrp = new World("rrp", "2");
-        World world_ppr = new World("ppr", "1");
-        World world_ppp = new World("ppp", "0");
-        World world_rpp = new World("rpp", "1");
-        World world_prp = new World("prp", "1");
+        World world_rrr = new World("rrr", new Fluent("3"));
+        World world_prr = new World("prr", new Fluent("2"));
+        World world_rpr = new World("rpr", new Fluent("2"));
+        World world_rrp = new World("rrp", new Fluent("2"));
+        World world_ppr = new World("ppr", new Fluent("1"));
+        World world_ppp = new World("ppp", new Fluent("0"));
+        World world_rpp = new World("rpp", new Fluent("1"));
+        World world_prp = new World("prp", new Fluent("1"));
 
         Set<World> printerWorlds = new HashSet<>(Arrays.asList(world_rrr,
                                                                 world_prr,
@@ -220,7 +191,7 @@ public class Test {
 
         System.out.println(printerKripke);
 
-        printerKripke.reduce();
+        printerKripke.reduce(world_rrr);
 
         System.out.println(printerKripke);
     }
@@ -273,7 +244,7 @@ public class Test {
         System.out.println("START STATES:");
         for (EpistemicState s : problem.getStartStates()) {
             System.out.println(s);
-            System.out.println("Checking relation..." + checkRelations(domain, s));
+            System.out.println("Checking relation..." + s.getKripke().checkRelations());
         }
 
 
@@ -293,7 +264,7 @@ public class Test {
             }
 
             System.out.println(currentState);
-            //System.out.println("check relations: " + checkRelations(domain, currentState));
+            System.out.println("Checking relation..." + currentState.getKripke().checkRelations());
         }
 
     }
@@ -335,13 +306,9 @@ public class Test {
     }
 
     public static EpistemicState constructTestState() {
-        Set<FluentAtom> world1Atoms = new HashSet<>();
-        world1Atoms.add(new FluentAtom("atom1"));
-        World world1 = new World(world1Atoms);
+        World world1 = new World(new Fluent("atom1"));
 
-        Set<FluentAtom> world2Atoms = new HashSet<>();
-        world2Atoms.add(new FluentAtom("atom2"));
-        World world2 = new World(world2Atoms);
+        World world2= new World(new Fluent("atom2"));
 
         Set<World> worlds = new HashSet<>();
         worlds.add(world1);
@@ -388,17 +355,17 @@ public class Test {
 
 
     public static EpistemicState constructOnticExampleStart() {
-        Set<FluentAtom> world1Atoms = new HashSet<>();
-        world1Atoms.add(new FluentAtom("closed"));
-        world1Atoms.add(new FluentAtom("looking", "alice"));
-        world1Atoms.add(new FluentAtom("looking", "bob"));
+        Set<Fluent> world1Atoms = new HashSet<>();
+        world1Atoms.add(new Fluent("closed"));
+        world1Atoms.add(new Fluent("looking", "alice"));
+        world1Atoms.add(new Fluent("looking", "bob"));
         World world1 = new World(world1Atoms);
 
-        Set<FluentAtom> world2Atoms = new HashSet<>();
-        world2Atoms.add(new FluentAtom("closed"));
-        world2Atoms.add(new FluentAtom("looking", "alice"));
-        world2Atoms.add(new FluentAtom("looking", "bob"));
-        world2Atoms.add(new FluentAtom("locked"));
+        Set<Fluent> world2Atoms = new HashSet<>();
+        world2Atoms.add(new Fluent("closed"));
+        world2Atoms.add(new Fluent("looking", "alice"));
+        world2Atoms.add(new Fluent("looking", "bob"));
+        world2Atoms.add(new Fluent("locked"));
         World world2 = new World(world2Atoms);
 
         Set<World> worlds = new HashSet<>();
@@ -453,20 +420,20 @@ public class Test {
 
 
     private static EpistemicState constructSensingExampleStart() {
-        Set<FluentAtom> world1Atoms = new HashSet<>();
-        world1Atoms.add(new FluentAtom("tails"));
-        world1Atoms.add(new FluentAtom("key"));
+        Set<Fluent> world1Atoms = new HashSet<>();
+        world1Atoms.add(new Fluent("tails"));
+        world1Atoms.add(new Fluent("key"));
         World world1 = new World(world1Atoms);
 
-        Set<FluentAtom> world2Atoms = new HashSet<>();
-        world2Atoms.add(new FluentAtom("key"));
+        Set<Fluent> world2Atoms = new HashSet<>();
+        world2Atoms.add(new Fluent("key"));
         World world2 = new World(world2Atoms);
 
-        Set<FluentAtom> world3Atoms = new HashSet<>();
-        world3Atoms.add(new FluentAtom("tails"));
+        Set<Fluent> world3Atoms = new HashSet<>();
+        world3Atoms.add(new Fluent("tails"));
         World world3 = new World(world3Atoms);
 
-        World world4 = new World(new HashSet<FluentAtom>());
+        World world4 = new World(new HashSet<Fluent>());
 
         Set<World> worlds = new HashSet<>();
         worlds.add(world1);
@@ -543,10 +510,10 @@ public class Test {
 
 
     private static EpistemicState constructAnnouncementExampleStart() {
-        World world0 = new World(new HashSet<FluentAtom>());
+        World world0 = new World(new HashSet<Fluent>());
 
-        Set<FluentAtom> world1Atoms = new HashSet<>();
-        world1Atoms.add(new FluentAtom("raining"));
+        Set<Fluent> world1Atoms = new HashSet<>();
+        world1Atoms.add(new Fluent("raining"));
         World world1 = new World(world1Atoms);
 
 

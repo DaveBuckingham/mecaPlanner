@@ -692,21 +692,29 @@ public class Action implements java.io.Serializable {
             }
         }
 
+        if (!newKripke.checkRelations()) {
+            System.out.println("action broke kripke before reduction:");
+            System.out.println(oldKripke);
+            System.out.println(this);
+            System.out.println(newKripke);
+            System.exit(1);
+        }
+
+        String oldImage = newKripke.toString();
 
         newKripke.reduce(newDesignated);
 
-        EpistemicState newState = new EpistemicState(newKripke, newDesignated);
-
         if (!newKripke.checkRelations()) {
-            System.out.println("action broke kripke:");
-            System.out.println(beforeState);
-            System.out.println(this);
-            System.out.println(newState);
-            //for (World toWorld : obliviousKripke.getWorlds()) {
-            //    System.out.println(toWorld);
-            //}
+            System.out.println("reduction broke kripke:");
+            System.out.println(oldImage);
+            System.out.println(newKripke);
             System.exit(1);
         }
+
+
+        EpistemicState newState = new EpistemicState(newKripke, newDesignated);
+
+
         //assert(newKripke.checkRelations());
         //newKripke.forceCheck();
         //if (!newKripke.checkRelations()) {
