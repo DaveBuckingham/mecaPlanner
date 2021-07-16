@@ -530,8 +530,17 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
+        Log.debug("constructing start state kripke...");
         KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        return new NDState(kripke, designatedWorlds);
+        Log.debug("checking start state kripke...");
+        kripke.forceCheck();
+        Log.debug("constructing start state...");
+        NDState startState = new NDState(kripke, designatedWorlds);
+        Log.debug("reducint start state...");
+        startState.reduce();
+        Log.debug("checking reduced start state kripke...");
+        startState.getKripke().forceCheck();
+        return startState;
     }
 
 

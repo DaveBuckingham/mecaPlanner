@@ -109,6 +109,18 @@ public class NDState implements java.io.Serializable {
     }
 
 
+    public Void reduce() {
+        Map<World,World> oldWorldsToNew = kripkeStructure.reduce();
+        Set<World> newDesignated = new HashSet<World>();
+        for (World w : designatedWorlds) {
+            newDesignated.add(oldWorldsToNew.get(w));
+        }
+        this.designatedWorlds = newDesignated;
+        return null;
+    }
+
+
+
 //    public Set<Boolean> resolveBooleanPosibilities(Fluent f) {
 //        Set<Boolean> valsInWorlds = new HashSet<>();
 //        for (World w : designatedWorlds) {

@@ -638,9 +638,11 @@ public class Transition {
 
         KripkeStructure newModel = new KripkeStructure(newWorlds, newBRelation, newKRelation);
 
-        newModel.reduce(designatedAlpha);
+        //newModel.reduce(designatedAlpha);
 
         EpistemicState newState = new EpistemicState(newModel, designatedAlpha);
+
+        newState.reduce();
 
         return newState;
     }

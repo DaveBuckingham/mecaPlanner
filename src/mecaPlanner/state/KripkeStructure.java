@@ -295,26 +295,21 @@ public class KripkeStructure implements java.io.Serializable {
         return new KripkeStructure(unionWorlds, unionBelief, unionKnowledge);
     }
 
-    public boolean reduce(World designated) {
+
+    public Map<World,World> reduce() {
         Set<Set<World>> partition = refineSystem();
-        if (partition.size() == worlds.size()) {
-            return false;
-        }
 
         Map <World, World> oldWorldsToNew = new HashMap<>();
 
         for (Set<World> block : partition) {
-            //World newWorld = new World(block.iterator().next());
-            World newWorld = null;
-            if (block.contains(designated)) {
-                newWorld = designated;
-            }
-            else {
-                newWorld = block.iterator().next();
-            }
+            World newWorld = block.iterator().next();
             for (World oldWorld : block) {
                 oldWorldsToNew.put(oldWorld, newWorld);
             }
+        }
+
+        if (partition.size() == worlds.size()) {
+            return oldWorldsToNew;
         }
 
         this.worlds = new HashSet<World>(oldWorldsToNew.values());
@@ -344,7 +339,7 @@ public class KripkeStructure implements java.io.Serializable {
 
         this.beliefRelations = newBeliefRelations;
         this.knowledgeRelations = newKnowledgeRelations;
-        return true;
+        return oldWorldsToNew;
     }
 
     public void forceCheck() {

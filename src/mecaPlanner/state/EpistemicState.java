@@ -22,11 +22,11 @@ import java.util.Collections;
 
 public class EpistemicState extends NDState {
 
-    private World designatedWorld;
+    //private World designatedWorld;
 
     public EpistemicState(KripkeStructure kripkeStructure, World designatedWorld) {
         super(kripkeStructure, new HashSet<World>(Arrays.asList(designatedWorld)));
-        this.designatedWorld = designatedWorld;
+        //this.designatedWorld = designatedWorld;
     }
 
     public EpistemicState(EpistemicState toCopy) {
@@ -34,11 +34,12 @@ public class EpistemicState extends NDState {
     }
 
     public World getDesignatedWorld() {
-        return this.designatedWorld;
+        assert(getDesignatedWorlds().size() == 1);
+        return getDesignatedWorlds().iterator().next();
     }
 
     public Set<World> getBelievedWorlds(String agent) {
-        return kripkeStructure.getBelievedWorlds(agent, designatedWorld);
+        return kripkeStructure.getBelievedWorlds(agent, getDesignatedWorld());
     }
 
     public boolean perspectiveEquivalent(EpistemicState other, String agent) {
@@ -51,13 +52,13 @@ public class EpistemicState extends NDState {
     }
 
     public Set<World> getKnownWorlds(String agent) {
-        return kripkeStructure.getKnownWorlds(agent, designatedWorld);
+        return kripkeStructure.getKnownWorlds(agent, getDesignatedWorld());
     }
 
 
 
     public String toStringCompact() {
-        return designatedWorld.toString();
+        return getDesignatedWorld().toString();
     }
 
 //    public Boolean resolveBoolean(Fluent f) {

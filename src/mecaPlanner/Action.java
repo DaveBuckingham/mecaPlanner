@@ -700,19 +700,18 @@ public class Action implements java.io.Serializable {
             System.exit(1);
         }
 
-        String oldImage = newKripke.toString();
-
-        newKripke.reduce(newDesignated);
-
-        if (!newKripke.checkRelations()) {
-            System.out.println("reduction broke kripke:");
-            System.out.println(oldImage);
-            System.out.println(newKripke);
-            System.exit(1);
-        }
-
 
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
+
+        String oldImage = newState.toString();
+        newState.reduce();
+
+        if (!newState.getKripke().checkRelations()) {
+            System.out.println("reduction broke kripke:");
+            System.out.println(oldImage);
+            System.out.println(newState);
+            System.exit(1);
+        }
 
 
         //assert(newKripke.checkRelations());
