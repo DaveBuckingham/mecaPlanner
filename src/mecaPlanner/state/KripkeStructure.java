@@ -4,6 +4,7 @@ import mecaPlanner.Log;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -174,130 +175,58 @@ public class KripkeStructure implements java.io.Serializable {
                 partition.add(newPart);
             }
         }
-        return partition;
+        // ITS IMPORTANT NOT TO RETURN partition BECAUSE WE 
+        // MODIFIED IT'S ELEMENTS AFTER WE INSERTED THEM
+        // AND THOSE MODIFICATIONS CHANGED THEIR HASHCODES
+        // SO WE MAKE A NEW HASHSET, WHICH RECOMPUTES THE HASH CODES
+        return new HashSet<Set<World>>(partition);
     }
 
-//    private Set<Set<World>> refinePartition(Set<Set<World>> partition, Set<World> splitter) {
-//        Set<Set<World>> refined= new HashSet<>();
-//        for (Set<World> block : partition) {
-//            Set<World> inPre = new HashSet<>();
-//            Set<World> notInPre = new HashSet<>();
-//            for (World w : block) {
-//                if (Collections.disjoint(getChildren(w), splitter)) {
-//                    inPre.add(w);
-//                }
-//                else {
-//                    notInPre.add(w);
-//                }
-//            }
-//            if (!inPre.isEmpty()) {
-//                refined.add(inPre);
-//            }
-//            if (!notInPre.isEmpty()) {
-//                refined.add(notInPre);
-//            }
-//        }
-//        return refined;
-//    }
 
+    private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, Relation relation) {
+        Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
 
-    private Set<Set<World>> refinePartition(Set<Set<World>> partition, Set<World> splitter) {
-        Set<Set<World>> refinedBelief = new HashSet<>();
-        for (String agent : agents) {
-            //children.addAll(getBelievedWorlds(agent, world));
-            //children.addAll(getKnownWorlds(agent, world));
-            for (Set<World> block : partition) {
-                Set<World> inPre = new HashSet<>();
-                Set<World> notInPre = new HashSet<>();
-                for (World w : block) {
-                    if (Collections.disjoint(getBelievedWorlds(agent, w), splitter)) {
-                        inPre.add(w);
-                    }
-                    else {
-                        notInPre.add(w);
-                    }
+        for (Set<World> block : oldBlocks) {
+            Set<World> inPre = new HashSet<>();
+            Set<World> notInPre = new HashSet<>();
+            for (World w : block) {
+                if (Collections.disjoint(relation.getToWorlds(w), splitter)) {
+                    notInPre.add(w);
                 }
-                if (!inPre.isEmpty()) {
-                    refinedBelief.add(inPre);
-                }
-                if (!notInPre.isEmpty()) {
-                    refinedBelief.add(notInPre);
+                else {
+                    inPre.add(w);
                 }
             }
-        }
-        Set<Set<World>> refinedKnowledge = new HashSet<>();
-        for (String agent : agents) {
-            for (Set<World> block : refinedBelief) {
-                Set<World> inPre = new HashSet<>();
-                Set<World> notInPre = new HashSet<>();
-                for (World w : block) {
-                    if (Collections.disjoint(getKnownWorlds(agent, w), splitter)) {
-                        inPre.add(w);
-                    }
-                    else {
-                        notInPre.add(w);
-                    }
-                }
-                if (!inPre.isEmpty()) {
-                    refinedKnowledge.add(inPre);
-                }
-                if (!notInPre.isEmpty()) {
-                    refinedKnowledge.add(notInPre);
-                }
+            if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
+                assert(partition.remove(block));
+                partition.add(notInPre);
+                partition.add(inPre);
             }
         }
-
-        return refinedKnowledge;
+        return null;
     }
 
-    // Baier and Katoen Alg.32 p.489
-    public Set<Set<World>> refineSystem() {
-
+    public Set<Set<World>> refine() {
         Set<Set<World>> partition = getInitialPartition();
-
-        Set<Set<World>> oldPartition;
-
-        do {
-            oldPartition = new HashSet<Set<World>>(partition);
-            for (Set<World> block : oldPartition) {
-                partition = refinePartition(partition, block);
-            }
-
-        } while (partition.size() != oldPartition.size());
-
-        return partition;
-    }
-
-
-    //public void add(KripkeStructure other) {
-    //    assert (this != other);
-    //    assert (this.agents.equals(other.getAgents()));
-    //    this.worlds.addAll(other.getWorlds());
-    //    for (String agent : agents) {
-    //        beliefRelations.get(agent).add(other.getBeliefRelations().get(agent));
-    //        knowledgeRelations.get(agent).add(other.getKnowledgeRelations().get(agent));
-    //    }
-    //}
-
-    public KripkeStructure union(KripkeStructure other) {
-        assert (this != other);
-
-        Set<World> unionWorlds = new HashSet<World>(worlds);
-        unionWorlds.addAll(other.getWorlds());
-
-        Map<String, Relation> unionBelief = new HashMap<>();
-        Map<String, Relation> unionKnowledge = new HashMap<>();
-        for (String agent : agents) {
-            unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
-            unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
+        for (Set<World> s : partition) {
+            assert(partition.contains(s));
         }
-
-        return new KripkeStructure(unionWorlds, unionBelief, unionKnowledge);
+        Set<Set<World>> oldBlocks;
+        do {
+            oldBlocks = new HashSet<Set<World>>(partition);
+            for (Set<World> splitter : oldBlocks) {
+                for (String agent : agents) {
+                    splitBlocks(partition, splitter, beliefRelations.get(agent));
+                    splitBlocks(partition, splitter, knowledgeRelations.get(agent));
+                }
+            }
+        } while (partition.size() != oldBlocks.size());
+        return partition;
     }
 
 
     public Map<World,World> reduce() {
-        Set<Set<World>> partition = refineSystem();
+        Set<Set<World>> partition = refine();
 
         Map <World, World> oldWorldsToNew = new HashMap<>();
 
@@ -308,11 +237,10 @@ public class KripkeStructure implements java.io.Serializable {
             }
         }
 
-        if (partition.size() == worlds.size()) {
-            return oldWorldsToNew;
-        }
+        //if (partition.size() == worlds.size()) {
+        //    return oldWorldsToNew;
+        //}
 
-        this.worlds = new HashSet<World>(oldWorldsToNew.values());
 
         Map<String, Relation> newBeliefRelations = new HashMap<>();
         Map<String, Relation> newKnowledgeRelations = new HashMap<>();
@@ -337,10 +265,32 @@ public class KripkeStructure implements java.io.Serializable {
             }
         }
 
+
+        this.worlds = new HashSet<World>(oldWorldsToNew.values());
         this.beliefRelations = newBeliefRelations;
         this.knowledgeRelations = newKnowledgeRelations;
         return oldWorldsToNew;
     }
+
+
+
+    public KripkeStructure union(KripkeStructure other) {
+        assert (this != other);
+
+        Set<World> unionWorlds = new HashSet<World>(worlds);
+        unionWorlds.addAll(other.getWorlds());
+
+        Map<String, Relation> unionBelief = new HashMap<>();
+        Map<String, Relation> unionKnowledge = new HashMap<>();
+        for (String agent : agents) {
+            unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
+            unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
+        }
+
+        return new KripkeStructure(unionWorlds, unionBelief, unionKnowledge);
+    }
+
+
 
     public void forceCheck() {
         if (!checkRelations()) {

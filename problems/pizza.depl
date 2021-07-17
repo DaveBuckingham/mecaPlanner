@@ -31,23 +31,18 @@ fluents{
 
 
 initially{
-        at(human1, room1) &
-        at(robot1, room1) &
-        at(pizza,room1) &
-        at(hotdog,room2) &
-        human_hungry()
-//    *w1 <-
-//    {
-//        at(human1, room1),
-//        at(robot1, room1),
-//        at(pizza,room1),
-//        at(hotdog,room2),
-//        human_hungry(),
-//    }
-//    B[human1] <- {(w1,w1)},
-//    K[human1] <- {(w1,w1)},
-//    B[robot1] <- {(w1,w1)},
-//    K[robot1] <- {(w1,w1)},
+    *w1 <-
+    {
+        at(human1, room1),
+        at(robot1, room1),
+        at(pizza,room1),
+        at(hotdog,room2),
+        human_hungry(),
+    }
+    B[human1] <- {(w1,w1)},
+    K[human1] <- {(w1,w1)},
+    B[robot1] <- {(w1,w1)},
+    K[robot1] <- {(w1,w1)},
 }
 
 goals{

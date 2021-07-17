@@ -714,18 +714,6 @@ public class Action implements java.io.Serializable {
         }
 
 
-        //assert(newKripke.checkRelations());
-        //newKripke.forceCheck();
-        //if (!newKripke.checkRelations()) {
-        //    System.out.println("BEFORE:");
-        //    System.out.println(beforeState);
-        //    System.out.println("ACTION:");
-        //    System.out.println(this);
-        //    System.out.println("AFTER:");
-        //    System.out.println(newState);
-        //    System.exit(1);
-        //}
-
 
         return new Action.UpdatedStateAndModels(newState, newModels);
     }

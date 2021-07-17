@@ -191,7 +191,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.domain = new Domain();
         this.systemAgentIndex = null;
-        this.startStates = new HashSet<>();
+        this.startStates = new HashSet<EpistemicState>();
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
 
@@ -437,8 +437,8 @@ public class DeplToProblem extends DeplBaseVisitor {
                 ndState = (NDState) visit(stateCtx.kripkeModel());
             }
             else {
-                //throw new RuntimeException("state construction not supported");
-                ndState = (NDState) visit(stateCtx.initiallyDef());
+                throw new RuntimeException("state construction not supported");
+                //ndState = (NDState) visit(stateCtx.initiallyDef());
             }
             startStates.addAll(ndState.getEpistemicStates());
         }
@@ -536,7 +536,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         kripke.forceCheck();
         Log.debug("constructing start state...");
         NDState startState = new NDState(kripke, designatedWorlds);
-        Log.debug("reducint start state...");
+        Log.debug("reducing start state...");
         startState.reduce();
         Log.debug("checking reduced start state kripke...");
         startState.getKripke().forceCheck();

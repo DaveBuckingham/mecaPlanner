@@ -205,7 +205,7 @@ public class NDState implements java.io.Serializable {
 
         Set<World> otherInitials = other.getDesignatedWorlds();
 
-        for (Set<World> block : unionKripke.refineSystem()) {
+        for (Set<World> block : unionKripke.refine()) {
             if (Collections.disjoint(block, designatedWorlds) != Collections.disjoint(block, otherInitials)) {
                 return false;
             }
