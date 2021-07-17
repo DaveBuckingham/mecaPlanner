@@ -21,6 +21,7 @@ passive{}
 
 fluents{
     at(Locatable,Location),
+    blocked(),
     liquid(Location),
     dirt(Location),
     roomba_wet(),
@@ -29,8 +30,7 @@ fluents{
 }
 
 constants{
-    connected(livingR, kitchen),
-    connected(livingR, bedroom)
+    connected(livingR, kitchen)
 }
 
 
@@ -216,20 +216,20 @@ actions{
         precondition{~liquid(kitchen)},
         causes{~blocked_kitchen()}
     }
-//    block_bedroom(){
-//        owner{robot},
-//        observes(?o-Actor){?o},
-//        precondition{~blocked_bedroom()}
-//        precondition{at(robot,livingR)},
-//        causes{blocked_bedroom()}
-//    }
-//    unblock_bedroom(){
-//        owner{robot},
-//        observes(?o-Actor){?o},
-//        precondition{blocked_bedroom()},
-//        precondition{at(robot,livingR)},
-//        causes{~blocked_bedroom()}
-//    }
+    block_bedroom(){
+        owner{robot},
+        observes(?o-Actor){?o},
+        precondition{~blocked_bedroom()}
+        precondition{at(robot,livingR)},
+        causes{blocked_bedroom()}
+    }
+    unblock_bedroom(){
+        owner{robot},
+        observes(?o-Actor){?o},
+        precondition{blocked_bedroom()},
+        precondition{at(robot,livingR)},
+        causes{~blocked_bedroom()}
+    }
     wait(?a - Actor, ?l- Location) {
         owner{?a},
         precondition{at(?a,?l)},
