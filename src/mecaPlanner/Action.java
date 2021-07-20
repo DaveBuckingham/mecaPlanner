@@ -203,9 +203,7 @@ public class Action implements java.io.Serializable {
     
     public PartialResult partial(KripkeStructure oldKripke) {
 
-
         Set<World> oldWorlds = oldKripke.getWorlds();
-
 
         // FOR EACH OLD WORLD, FOR EACH AGENT, BUILD FORMULA
         // CONTAINING ALL KNOWLEDGE LEARNED
@@ -218,6 +216,7 @@ public class Action implements java.io.Serializable {
             learnedBeliefFormula.put(world, new HashMap<>());
         }
 
+        Map<World, LocalFormula> learnedEffects = new HashMap<>();
         Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
         Map<World, LocalFormula> learnedDetermined = new HashMap<>();
 
@@ -227,6 +226,48 @@ public class Action implements java.io.Serializable {
         }
 
         for (World oldWorld : oldWorlds) {
+
+//            // FULL AND PARTIAL OBSERVERS LEARN EFFECTS
+//            List<LocalFormula> learnedValues = new ArrayList<>();
+//            Map<Fluent, Boolean> learnedFluents = new HashMap<>();
+//            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+//                Assignment assignment = e.getKey();
+//                Fluent fluent = assignment.getFluent();
+//                Boolean value = assignment.getValue();
+//                LocalFormula condition = e.getValue();
+//                if (condition.evaluate(oldWorld)) {
+//                    if (learnedFluents.containsKey(fluent)) {
+//                        if (learnedFluents.get(fluent) != null && learnedFluents.get(fluent) != value) {
+//                            throw new RuntimeException("conflicting fluent assignments, this should have been caught at parse time!");
+//                        }
+//                    }
+//                    learnedFluents.put(fluent, value);
+//                }
+//                else {
+//                    if (!learnedFluents.containsKey(fluent)) {
+//                        learnedFluents.put(fluent, null);
+//                    }
+//                }
+//            }
+//            for (Map.Entry<Fluent, Boolean> e : learnedFluents.entrySet()) {
+//                Fluent fluent = e.getKey();
+//                Boolean value = e.getValue();
+//                if (value == null) {
+//                    if (fluent.evaluate(oldWorld)) {
+//                        learnedValues.add(fluent);
+//                    }
+//                    else {
+//                        learnedValues.add(fluent.negate());
+//                    }
+//                }
+//                else if (value) {
+//                    learnedValues.add(fluent);
+//                }
+//                else {
+//                    learnedValues.add(fluent.negate());
+//                }
+//            }
+//            learnedEffects.put(oldWorld, LocalAndFormula.make(learnedValues));
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Map<Fluent, Set<LocalFormula>> fluentsPossibleChangers = new HashMap<>();
@@ -308,16 +349,9 @@ public class Action implements java.io.Serializable {
                         learnedObserver.get(agent).get(oldWorld)));
                 }
                 else {
-                    //learnedKnowledgeFormula.get(oldWorld).put(agent, new Literal(true));
                     learnedKnowledgeFormula.get(oldWorld).put(agent, learnedObserver.get(agent).get(oldWorld));
                 }
-                //if(!learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld)) {
-                //    System.out.println(agent + " learned:");
-                //    System.out.println(learnedKnowledgeFormula.get(oldWorld).get(agent));
-                //    System.out.println("at world:");
-                //    System.out.println(oldWorld);
-                //    throw new RuntimeException("learned knowledge violates world");
-                //}
+                assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
             }
 
 
@@ -340,10 +374,6 @@ public class Action implements java.io.Serializable {
                 else {
                     learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
                 }
-                //System.out.println("------");
-                //System.out.println(agent);
-                //System.out.println(oldWorld);
-                //System.out.println(learnedBeliefFormula.get(oldWorld).get(agent));
             }
 
         }
@@ -430,16 +460,13 @@ public class Action implements java.io.Serializable {
         // NEW WORLDS
         Set<World> newWorlds = new HashSet<>();
         Map<World, World> newToOld = new HashMap<>();
-        //Map<World, Set<World>> oldToNew = new HashMap<>();
         Map<World, Map<String, Set<World>>> postAssignments = new HashMap<>();
         for (World oldWorld : oldWorlds) {
             if (precondition.evaluate(oldWorld)) {
-                //oldToNew.put(oldWorld, new HashSet<World>());
                 for (Map<String, Set<World>> assignment : assignments.get(oldWorld)) {
                     World newWorld = oldWorld.update(getApplicableEffects(oldWorld));
                     newWorlds.add(newWorld);
                     newToOld.put(newWorld, oldWorld);
-                    //oldToNew.get(oldWorld).add(newWorld);
                     postAssignments.put(newWorld, assignment);
                 }
             }
@@ -451,14 +478,12 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newKnowledge = new Relation();
             for (World fromWorld : newWorlds) {
-                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
-                    for (World toWorld : newWorlds) {
-                        if (postAssignments.get(fromWorld).get(agent).equals(
-                            postAssignments.get(toWorld).get(agent))){
-                            newKnowledge.connect(fromWorld, toWorld);
-                        }
+                for (World toWorld : newWorlds) {
+                    if (postAssignments.get(fromWorld).get(agent).equals(
+                        postAssignments.get(toWorld).get(agent))){
+                        newKnowledge.connect(fromWorld, toWorld);
                     }
-                //}
+                }
             }
             newKnowledges.put(agent, newKnowledge);
         }
@@ -471,49 +496,47 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
-                //if (isObservant(agent, fromWorld) || isAware(agent, fromWorld)) {
-                //if (isObservant(agent, newToOld.get(fromWorld)) || isAware(agent, newToOld.get(fromWorld))) {
-                    World oldFromWorld = newToOld.get(fromWorld);
-                    BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
+                World oldFromWorld = newToOld.get(fromWorld);
+                BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
 
-                    // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
+                // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
+                for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                    World oldToWorld = newToOld.get(toWorld);
+                    if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
+                        if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
+                            newBelief.connect(fromWorld, toWorld);
+                        }
+                    }
+                }
+
+                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() +
+                              " at " + fromWorld.toString());
                     for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
                         World oldToWorld = newToOld.get(toWorld);
-                        if (oldKripke.isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                            if (learnedBelief.evaluate(oldKripke, oldToWorld)) {
-                                newBelief.connect(fromWorld, toWorld);
-                            }
+                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
+                            newBelief.connect(fromWorld, toWorld);
                         }
                     }
+                }
 
-                    // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                    if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                        Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() + " at " + fromWorld.toString());
-                        for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                            World oldToWorld = newToOld.get(toWorld);
-                            if (learnedBelief.evaluate(oldKripke, oldToWorld)){
-                                newBelief.connect(fromWorld, toWorld);
-                            }
+                // SECOND BELIEF RESET
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                        World oldToWorld = newToOld.get(toWorld);
+                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
+                            newBelief.connect(fromWorld, toWorld);
                         }
                     }
+                }
 
-                    // SECOND BELIEF RESET
-                    if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                        Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
-                        for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                            World oldToWorld = newToOld.get(toWorld);
-                            if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
-                                newBelief.connect(fromWorld, toWorld);
-                            }
-                        }
-                    }
-                //}
             }
             newBeliefs.put(agent, newBelief);
         }
 
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
-        //KripkeStructure newKripke = new KripkeStructure(newWorlds, newKnowledges, newKnowledges);
 
         return new Action.PartialResult(newKripke, newToOld, learnedObserver);
     }
@@ -522,8 +545,6 @@ public class Action implements java.io.Serializable {
 
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
-
-        //Map<World,World> newToOld = new HashMap<>();
 
         // UPDATE THE MODELS
         Map<String, Model> newModels = new HashMap();
@@ -544,15 +565,12 @@ public class Action implements java.io.Serializable {
 
         Action.PartialResult actualPartial = this.partial(oldKripke);
 
-        //newToOld.addAll(actualPartial.map);
-
         submodels.add(actualPartial);
         for (String agent : domain.getAllAgents()) {
             agentSubmodels.put(agent, new HashSet<PartialResult>());
             agentSubmodels.get(agent).add(actualPartial);
             learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
-
 
         World newDesignated = null;
         for (World w : actualPartial.kripke.getWorlds()) {
@@ -584,7 +602,7 @@ public class Action implements java.io.Serializable {
         }
 
 
-        // BUILD NULL ACTION AND  USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
+        // BUILD NULL ACTION AND USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
         Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
         Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
@@ -607,9 +625,6 @@ public class Action implements java.io.Serializable {
         Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
         KripkeStructure obliviousKripke = obliviousPartial.kripke;
         submodels.add(obliviousPartial);
-        //newToOld.addAll(obliviousPartial.map);
-
-
 
         // BUILD HYPOTHETICAL MODELS
         for (String agent : domain.getAllAgents()) {

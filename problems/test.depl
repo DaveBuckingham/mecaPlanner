@@ -1,101 +1,44 @@
 types{
-    Robot-Actor,
-//    Human-Actor,
-    Actor-Locatable,
-//    Food-Locatable,
-    Locatable-Object,
-    Location-Object
 }
 
 objects{
-    robot1-Robot,
-//    human1-Human,
-//    pizza-Food,
-//    hotdog-Food,
-    room1 - Location,
-    room2 - Location,
+    a - Object,
 }
 
-agents{
-    robot1,
-//    human1{PizzaModel},
-}
+agents{ a }
 
 
 fluents{
-    at(Locatable, Location),
-//    human_hungry(),
-//    door_open(),
-    robot_charged(),
+    o(), l()
 }
 
 
 initially{
-    *w1 <-
-    {
-        //at(human1, room1),
-        at(robot1, room1),
-        //at(pizza,room1),
-        //at(hotdog,room2),
-        //human_hungry(),
+    *w1 <- {o(),l()},
+    w2 <- {o()},
+    w3 <- {l()},
+    w4 <- {},
+    B[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)
+            },
+    K[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)
     }
-    B[human1] <- {(w1,w1)},
-    K[human1] <- {(w1,w1)},
-    B[robot1] <- {(w1,w1)},
-    K[robot1] <- {(w1,w1)},
 }
 
 goals{
-    robot_charged(),
-    //at(robot1, room2)
+    false
 }
 
 actions{
-    move(?a-Actor,?f-Location,?t-Location){
-        owner{?a},
-        precondition{at(?a, ?f)},
-        precondition{~(at(?a, ?t))},
-//        precondition{door_open()},
-        observes(?o-Actor){?o},
-        causes{at(?a, ?t)},
-        causes{~(at(?a, ?f))},
+    open(){
+        owner{a},
+        observes(?x-Object){a},
+        causes{o() if ~l()},
     }
 
-//    open_door(){
-//        owner{human1},
-//        precondition{~door_open()},
-//        observes(?o-Actor){?o},
-//        causes{door_open()},
-//    }
-
-    charge(){
-        owner{robot1},
-        precondition{at(robot1,room2)},
-        observes(?o-Actor){?o},
-        observes{robot1},
-        causes{robot_charged()},
-    }
-
-
-//    eat(?f-Food,?l-Location,?r-Robot){
-//        owner{?r},
-//        precondition{at(?r, ?l)},
-//        precondition{at(?f, ?l)},
-//        observes(?o-Actor){?o},
-//        causes{~(at(?f, ?l))},
-//    }
-//
-//    eat(?f-Food,?l-Location,?h-Human){
-//        owner{?h},
-//        precondition{at(?h, ?l)},
-//        precondition{at(?f, ?l)},
-//        observes(?o-Actor){?o},
-//        causes{~(at(?f, ?l))},
-//        causes{~(human_hungry())},
-//    }
-
-//    wait(?a - Actor) {
-//        owner{?a},
-//        observes(?o-Actor){?o},
-//    }
 }
