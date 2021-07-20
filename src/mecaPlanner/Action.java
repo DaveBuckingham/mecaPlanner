@@ -382,6 +382,8 @@ public class Action implements java.io.Serializable {
 
         }
 
+        Set<World> designatedClass = new HashSet<>();
+
 
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
         Map<String, Set<Set<World>>> equivalenceClasses = new HashMap<>();
@@ -395,6 +397,9 @@ public class Action implements java.io.Serializable {
                     if (learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(toWorld)) {
                         equivalent.add(toWorld);
                     }
+                }
+                if (oldWorld == oldDesignated) {
+                    designatedClass = equivalent;
                 }
                 equivalenceClasses.get(agent).add(equivalent);
             }
@@ -415,6 +420,7 @@ public class Action implements java.io.Serializable {
                 assert(!containingClasses.get(agent).get(world).isEmpty());
             }
         }
+
 
 
         // MAP EACH AGENT x WORLD TO A LIST OF UNIQUE EQUIVALENCE CLASSES CONTAINING THAT WORLD
@@ -478,7 +484,7 @@ public class Action implements java.io.Serializable {
                     if (oldWorld == oldDesignated) {
                         Boolean isDesignated = true;
                         for (String agent : domain.getAllAgents()) {
-                            if (!assignment.get(agent).equals(oldKripke.getKnownWorlds(agent, oldWorld))) {
+                            if (!assignment.get(agent).equals(designatedClass)) {
                                isDesignated = false;
                                break;
                             }
