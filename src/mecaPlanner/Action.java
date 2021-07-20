@@ -229,48 +229,6 @@ public class Action implements java.io.Serializable {
 
         for (World oldWorld : oldWorlds) {
 
-//            // FULL AND PARTIAL OBSERVERS LEARN EFFECTS
-//            List<LocalFormula> learnedValues = new ArrayList<>();
-//            Map<Fluent, Boolean> learnedFluents = new HashMap<>();
-//            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
-//                Assignment assignment = e.getKey();
-//                Fluent fluent = assignment.getFluent();
-//                Boolean value = assignment.getValue();
-//                LocalFormula condition = e.getValue();
-//                if (condition.evaluate(oldWorld)) {
-//                    if (learnedFluents.containsKey(fluent)) {
-//                        if (learnedFluents.get(fluent) != null && learnedFluents.get(fluent) != value) {
-//                            throw new RuntimeException("conflicting fluent assignments, this should have been caught at parse time!");
-//                        }
-//                    }
-//                    learnedFluents.put(fluent, value);
-//                }
-//                else {
-//                    if (!learnedFluents.containsKey(fluent)) {
-//                        learnedFluents.put(fluent, null);
-//                    }
-//                }
-//            }
-//            for (Map.Entry<Fluent, Boolean> e : learnedFluents.entrySet()) {
-//                Fluent fluent = e.getKey();
-//                Boolean value = e.getValue();
-//                if (value == null) {
-//                    if (fluent.evaluate(oldWorld)) {
-//                        learnedValues.add(fluent);
-//                    }
-//                    else {
-//                        learnedValues.add(fluent.negate());
-//                    }
-//                }
-//                else if (value) {
-//                    learnedValues.add(fluent);
-//                }
-//                else {
-//                    learnedValues.add(fluent.negate());
-//                }
-//            }
-//            learnedEffects.put(oldWorld, LocalAndFormula.make(learnedValues));
-
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
             Map<Fluent, Set<LocalFormula>> fluentsPossibleChangers = new HashMap<>();
             for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
@@ -306,6 +264,15 @@ public class Action implements java.io.Serializable {
             // WHAT DO OBSERVERS SENSE
             Set<LocalFormula> groundDetermines = new HashSet<>();
             for (LocalFormula f : determines) {
+                if (f.evaluate(oldWorld)) {
+                    groundDetermines.add(f);
+                }
+                else {
+                    groundDetermines.add(f.negate());
+                }
+            }
+            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+                Fluent f = e.getKey().getFluent();
                 if (f.evaluate(oldWorld)) {
                     groundDetermines.add(f);
                 }
