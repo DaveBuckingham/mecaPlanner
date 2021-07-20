@@ -136,12 +136,11 @@ public class KripkeStructure implements java.io.Serializable {
         return knowledgeRelations;
     }
 
-    private Set<World> getChildren(World world) {
+    public Set<World> getChildren(World world) {
         Set<World> children = new HashSet<>();
         for (String agent : agents) {
             children.addAll(getBelievedWorlds(agent, world));
             children.addAll(getKnownWorlds(agent, world));
-            //children.retainAll(getKnownWorlds(agent, world));
         }
         return children;
     }

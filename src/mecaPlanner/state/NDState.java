@@ -111,11 +111,46 @@ public class NDState implements java.io.Serializable {
 
     public Void reduce() {
         Map<World,World> oldWorldsToNew = kripkeStructure.reduce();
+        assert(kripkeStructure.checkRelations());
         Set<World> newDesignated = new HashSet<World>();
         for (World w : designatedWorlds) {
             newDesignated.add(oldWorldsToNew.get(w));
         }
         this.designatedWorlds = newDesignated;
+        return null;
+    }
+
+    public Void trim() {
+        Set<World> keep = new HashSet<>(designatedWorlds);
+        Set<World> old;
+        do {
+            old = new HashSet<>(keep);
+            for (World w : old) {
+                keep.addAll(kripkeStructure.getChildren(w));
+            }
+        } while (old.size() != keep.size());
+        Map<String, Relation> newBeliefs = new HashMap<String,Relation>();
+        Map<String, Relation> newKnowledges = new HashMap<String,Relation>();
+        for (String agent : kripkeStructure.getBeliefRelations().keySet()) {
+            Relation oldBelief = kripkeStructure.getBeliefRelations().get(agent);
+            Relation newBelief = new Relation();
+            Relation oldKnowledge = kripkeStructure.getKnowledgeRelations().get(agent);
+            Relation newKnowledge = new Relation();
+            for (World from : keep) {
+                for (World to : keep) {
+                    if (oldBelief.isConnected(from, to)) {
+                        newBelief.connect(from, to);
+                    }
+                    if (oldKnowledge.isConnected(from, to)) {
+                        newKnowledge.connect(from, to);
+                    }
+                }
+            }
+            newBeliefs.put(agent, newBelief);
+            newKnowledges.put(agent, newKnowledge);
+        }
+        kripkeStructure = new KripkeStructure(keep, newBeliefs, newKnowledges);
+        assert(kripkeStructure.checkRelations());
         return null;
     }
 

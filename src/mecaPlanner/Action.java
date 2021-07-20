@@ -624,7 +624,10 @@ public class Action implements java.io.Serializable {
         }
         if (!anyOblivious) {
             assert(actualPartial.kripke.checkRelations());
-            return new Action.UpdatedStateAndModels(new EpistemicState(actualPartial.kripke, newDesignated), newModels);
+            EpistemicState newState = new EpistemicState(actualPartial.kripke, newDesignated);
+            newState.trim();
+            newState.reduce();
+            return new Action.UpdatedStateAndModels(newState, newModels);
         }
 
 
@@ -733,29 +736,10 @@ public class Action implements java.io.Serializable {
             }
         }
 
-        if (!newKripke.checkRelations()) {
-            System.out.println("action broke kripke before reduction:");
-            System.out.println(oldKripke);
-            System.out.println(this);
-            System.out.println(newKripke);
-            System.exit(1);
-        }
-
-
+        assert(newKripke.checkRelations());
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
-
-        String oldImage = newState.toString();
+        newState.trim();
         newState.reduce();
-
-        if (!newState.getKripke().checkRelations()) {
-            System.out.println("reduction broke kripke:");
-            System.out.println(oldImage);
-            System.out.println(newState);
-            System.exit(1);
-        }
-
-
-
         return new Action.UpdatedStateAndModels(newState, newModels);
     }
 
