@@ -108,10 +108,6 @@ public class Action implements java.io.Serializable {
                     applicableEffects.add(assignment);
                 }
             }
-        //System.out.println("APPLICABLE:");
-        //for (Assignment a : applicableEffects) {
-        //    System.out.println(a);
-        //}
         return applicableEffects;
     }
 
@@ -187,22 +183,28 @@ public class Action implements java.io.Serializable {
 
     private class PartialResult {
         public KripkeStructure kripke;
+        public World designated;
         public Map<World,World> map;
         public Map<String, Map<World, LocalFormula>> learnedObserver;
-        public PartialResult(KripkeStructure k, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
+        public PartialResult(KripkeStructure k, World d, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
             this.kripke = k;
+            this.designated = d;
             this.map = m;
             this.learnedObserver = l;
         }
         public Set<World> getWorlds() {
             return map.keySet();
         }
+        public World getDesignated() {
+            return designated;
+        }
     }
 
 
     
-    public PartialResult partial(KripkeStructure oldKripke) {
+    public PartialResult partial(KripkeStructure oldKripke, World oldDesignated) {
 
+        assert(oldKripke.containsWorld(oldDesignated));
         Set<World> oldWorlds = oldKripke.getWorlds();
 
         // FOR EACH OLD WORLD, FOR EACH AGENT, BUILD FORMULA
@@ -216,7 +218,7 @@ public class Action implements java.io.Serializable {
             learnedBeliefFormula.put(world, new HashMap<>());
         }
 
-        Map<World, LocalFormula> learnedEffects = new HashMap<>();
+        //Map<World, LocalFormula> learnedEffects = new HashMap<>();
         Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
         Map<World, LocalFormula> learnedDetermined = new HashMap<>();
 
@@ -296,6 +298,8 @@ public class Action implements java.io.Serializable {
                 }
             }
             learnedEffectConditions.put(oldWorld, LocalAndFormula.make(revealedConditions));
+            //System.out.print(oldWorld);
+            //System.out.println(learnedEffectConditions.get(oldWorld));
             assert(learnedEffectConditions.get(oldWorld).evaluate(oldWorld));
 
 
@@ -456,6 +460,8 @@ public class Action implements java.io.Serializable {
             }
             while (!carry);
         }
+ 
+        World newPartialDesignated = null;
 
         // NEW WORLDS
         Set<World> newWorlds = new HashSet<>();
@@ -468,9 +474,25 @@ public class Action implements java.io.Serializable {
                     newWorlds.add(newWorld);
                     newToOld.put(newWorld, oldWorld);
                     postAssignments.put(newWorld, assignment);
+
+                    if (oldWorld == oldDesignated) {
+                        Boolean isDesignated = true;
+                        for (String agent : domain.getAllAgents()) {
+                            if (!assignment.get(agent).equals(oldKripke.getKnownWorlds(agent, oldWorld))) {
+                               isDesignated = false;
+                               break;
+                            }
+                        }
+                        if (isDesignated) {
+                            assert(newPartialDesignated == null);
+                            newPartialDesignated = newWorld;
+                        }
+                    }
                 }
             }
         }
+
+        assert(newPartialDesignated != null);
 
         // KNOWLEDGE RELATIONS
         Map<String, Relation> newKnowledges = new HashMap<>();
@@ -538,7 +560,8 @@ public class Action implements java.io.Serializable {
 
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
 
-        return new Action.PartialResult(newKripke, newToOld, learnedObserver);
+        //System.out.println(newToOld);
+        return new Action.PartialResult(newKripke, newPartialDesignated, newToOld, learnedObserver);
     }
 
 
@@ -554,6 +577,7 @@ public class Action implements java.io.Serializable {
         }
 
         KripkeStructure oldKripke = beforeState.getKripke();
+        World oldDesignated = beforeState.getDesignatedWorld();
 
         Map<String, Set<PartialResult>> agentSubmodels = new HashMap<>();
         Set<PartialResult> submodels = new HashSet<>();
@@ -563,7 +587,7 @@ public class Action implements java.io.Serializable {
             learnedObserver.put(agent, new HashMap<World, LocalFormula>());
         }
 
-        Action.PartialResult actualPartial = this.partial(oldKripke);
+        Action.PartialResult actualPartial = this.partial(oldKripke, oldDesignated);
 
         submodels.add(actualPartial);
         for (String agent : domain.getAllAgents()) {
@@ -572,14 +596,16 @@ public class Action implements java.io.Serializable {
             learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
 
-        World newDesignated = null;
-        for (World w : actualPartial.kripke.getWorlds()) {
-            if (actualPartial.map.get(w).equals(beforeState.getDesignatedWorld())) {
-                newDesignated = w;
-                break;
-            }
-        }
-        assert(newDesignated != null);
+        World newDesignated = actualPartial.getDesignated();
+
+//        World newDesignated = null;
+//        for (World w : actualPartial.kripke.getWorlds()) {
+//            if (actualPartial.map.get(w).equals(beforeState.getDesignatedWorld())) {
+//                newDesignated = w;
+//                break;
+//            }
+//        }
+//        assert(newDesignated != null);
 
 
         // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
@@ -622,7 +648,7 @@ public class Action implements java.io.Serializable {
                                        new HashMap<Assignment, LocalFormula>(), // effects
                                        domain
                                       );
-        Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
+        Action.PartialResult obliviousPartial = nullAction.partial(oldKripke, oldDesignated);
         KripkeStructure obliviousKripke = obliviousPartial.kripke;
         submodels.add(obliviousPartial);
 
@@ -634,7 +660,7 @@ public class Action implements java.io.Serializable {
                     obliviousAnywhere = true;
                     for (Action a : possibleActions(agent, oldKripke, w)) {
                         if (!a.equals(this)) {
-                            Action.PartialResult hypotheticalPartial = a.partial(oldKripke);
+                            Action.PartialResult hypotheticalPartial = a.partial(oldKripke, oldDesignated);
                             agentSubmodels.get(agent).add(hypotheticalPartial);
                             submodels.add(hypotheticalPartial);
                             //newToOld.addAll(hypotheticalPartial.map);

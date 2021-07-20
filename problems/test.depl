@@ -39,6 +39,7 @@ actions{
         owner{a},
         observes(?x-Object){a},
         causes{o() if ~l()},
+        //determines{o()}
     }
 
 }
