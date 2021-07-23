@@ -17,6 +17,9 @@ import java.util.Comparator;
 import java.util.Collections;
 
 
+// NOTE: THE "TEXTBOOK" IS "PRINCIPLES OF MODEL CHECKING" BY BAIER AND KATOEN.
+
+
 public class KripkeStructure implements java.io.Serializable {
 
     private Map<String, Relation> beliefRelations;
@@ -103,15 +106,6 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
 
-
-//    public void addBeliefRelation(String agent, Relation relation) {
-//        beliefRelations.get(agent).add(relation);
-//    }
-//
-//    public void addKnowledgeRelation(String agent, Relation relation) {
-//        knowledgeRelations.get(agent).add(relation);
-//    }
-
     public Boolean isConnectedBelief(String agent, World from, World to) {
         return beliefRelations.get(agent).isConnected(from,to);
     }
@@ -182,6 +176,11 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
 
+    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
+    // THIS IS LIKE THE "REFINE" OPERATOR IN DEFINITION 7.35, EXCEPT THAT
+    // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
+    // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
+    // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
     private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, Relation relation) {
         Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
 
@@ -197,7 +196,9 @@ public class KripkeStructure implements java.io.Serializable {
                 }
             }
             if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
-                assert(partition.remove(block));
+                if (!partition.remove(block))) {
+                    Throw new RuntimeException("failed to remove a split block while computing bisimulation");
+                }
                 partition.add(notInPre);
                 partition.add(inPre);
             }
@@ -205,11 +206,12 @@ public class KripkeStructure implements java.io.Serializable {
         return null;
     }
 
-    public Set<Set<World>> refine() {
+    // HERE'S THE MAIN ALGORITHM, BASICALLY ALGORITHM 31 IN THE TEXTBOOK.
+    // UNLIKE THE TEXTBOOK WHERE THE TRANSITION SYSTEM HAS A SINGLE RELATION
+    // WE HAVE TWO SYSTEMS PER AGENT, AND POSSIBLY MANY AGENTS,
+    // SO WHEN WE REFINE THE SYSTEM WE NEED TO DO SO USING EACH RELATION.
+    public Set<Set<World>> refineSystem() {
         Set<Set<World>> partition = getInitialPartition();
-        for (Set<World> s : partition) {
-            assert(partition.contains(s));
-        }
         Set<Set<World>> oldBlocks;
         do {
             oldBlocks = new HashSet<Set<World>>(partition);
@@ -224,8 +226,17 @@ public class KripkeStructure implements java.io.Serializable {
     }
 
 
+    // THIS IS THE TOP-LEVEL FOR REDUCING THE KRIPKE STRUCTURE.
+    // WE START BY CALLING THE QUOTIENTING ALGORITHM FROM,
+    // WHICH GIVES US A PARTITIONING OF THE WORLDS THAT IS
+    // MAXIMALLY GRANULAR WHILE MAINTAINING BISIMILARITY.
+    // WE USE THE PARTITIONING TO DO THREE THINGS:
+    // 1. MAKE OUR NEW WORLDS, ONE FOR EACH PARTITION.
+    // 2. BUILD THE RELATIONS OVER OUR NEW WORLDS
+    // 3. MAKE AND RETURN A MAP FROM OUR OLD WORLDS TO THE NEW ONES,
+    //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
     public Map<World,World> reduce() {
-        Set<Set<World>> partition = refine();
+        Set<Set<World>> partition = refineSystem();
 
         Map <World, World> oldWorldsToNew = new HashMap<>();
 
@@ -235,11 +246,6 @@ public class KripkeStructure implements java.io.Serializable {
                 oldWorldsToNew.put(oldWorld, newWorld);
             }
         }
-
-        //if (partition.size() == worlds.size()) {
-        //    return oldWorldsToNew;
-        //}
-
 
         Map<String, Relation> newBeliefRelations = new HashMap<>();
         Map<String, Relation> newKnowledgeRelations = new HashMap<>();
@@ -263,7 +269,6 @@ public class KripkeStructure implements java.io.Serializable {
                 }
             }
         }
-
 
         this.worlds = new HashSet<World>(oldWorldsToNew.values());
         this.beliefRelations = newBeliefRelations;

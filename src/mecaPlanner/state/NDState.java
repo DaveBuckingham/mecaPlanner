@@ -120,6 +120,7 @@ public class NDState implements java.io.Serializable {
         return null;
     }
 
+    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
     public Void trim() {
         Set<World> keep = new HashSet<>(designatedWorlds);
         Set<World> old;

@@ -41,14 +41,14 @@ public class Bisimulations {
 
         Log.setThreshold(Log.Level.DEBUG);
 
-        testBisimulations();
+        vending();
+        printers();
     }
 
 
-    private static void testBisimulations() {
+    private static void vending() {
 
         String agent = "agent_name";
-        //Domain.addPassiveAgent(agent);
 
         EpistemicState vending_s = vendingS(agent);
         EpistemicState vending_t = vendingT(agent);
@@ -60,9 +60,6 @@ public class Bisimulations {
 
         System.out.println("is S equivalent to U? should be False:");
         System.out.println(vending_s.equivalent(vending_u));
-
-
-        printers("agent");
 
     }
 
@@ -147,7 +144,7 @@ public class Bisimulations {
 
         
 
-    public static void printers(String agent) {
+    public static void printers() {
 
         World world_rrr = new World("rrr", new Fluent("3"));
         World world_prr = new World("prr", new Fluent("2"));
@@ -185,393 +182,18 @@ public class Bisimulations {
         printerRelation.connectBack(world_ppp, world_prp);
 
         Map<String, Relation> printerBelief = new HashMap<>();
-        printerBelief.put(agent, printerRelation);
+        printerBelief.put("agent", printerRelation);
 
         KripkeStructure printerKripke = new KripkeStructure(printerWorlds, printerBelief, printerBelief);
 
+        System.out.println("BEFORE:");
         System.out.println(printerKripke);
 
-        printerKripke.reduce(world_rrr);
+        printerKripke.reduce();
 
+        System.out.println("AFTER:");
         System.out.println(printerKripke);
     }
-
-
-
-    private static void showActions(String deplFile) {
-        DeplToProblem visitor = new DeplToProblem();
-        Problem problem = visitor.buildProblem(deplFile);
-        Domain domain = problem.getDomain();
-        for (Action action : domain.getAllActions()) {
-            System.out.println(action);
-        }
-    }
-
-
-
-
-
-
-
-    private static void runActions(String deplFile, List<String> actionNames) {
-
-
-        DeplToProblem visitor = new DeplToProblem();
-        Problem problem = visitor.buildProblem(deplFile);
-        Domain domain = problem.getDomain();
-
-        List<Action> inputActions = new ArrayList<>();
-
-        for (String inputActionSignature : actionNames) {
-
-            boolean foundAction = false;
-            for (Action action : domain.getAllActions()) {
-                if (inputActionSignature.equals(action.getSignature()) ||
-                    inputActionSignature.equals(action.getSignatureWithActor())) {
-
-                    foundAction = true;
-                    inputActions.add(action);
-                    break;
-                }
-            }
-            if (!foundAction) {
-                System.out.println("action not found: " + inputActionSignature);
-                System.exit(1);
-            }
-        }
-
-
-        System.out.println("START STATES:");
-        for (EpistemicState s : problem.getStartStates()) {
-            System.out.println(s);
-            System.out.println("Checking relation..." + s.getKripke().checkRelations());
-        }
-
-
-
-        EpistemicState currentState = problem.getStartStates().iterator().next();
-
-        for (Action action : inputActions) {
-            System.out.print("ACTION: ");
-            System.out.println(action.getSignatureWithActor());
-            try {
-                Action.UpdatedStateAndModels result = action.transition(currentState, problem.getStartingModels());
-                currentState = result.getState();
-            }
-            catch (Exception ex) {
-                ex.printStackTrace();
-                System.exit(1);
-            }
-
-            System.out.println(currentState);
-            System.out.println("Checking relation..." + currentState.getKripke().checkRelations());
-        }
-
-    }
-
-
-    private static void rss() {
-
-        System.out.println("rss test not fully implemented");
-
-//        EpistemicState onticStartState = constructOnticExampleStart();
-//        Action onticAction = constructOnticExampleAction();
-//        EpistemicState onticResultState = onticAction.transition(onticStartState);
-//        System.out.println("ONTIC START STATE:");
-//        System.out.println(onticStartState);
-//        System.out.println("ONTIC ACTION:");
-//        System.out.println(onticAction);
-//        System.out.println("ONTIC RESULT STATE:");
-//        System.out.println(onticResultState);
-//
-//        EpistemicState sensingStartState = constructOnticExampleStart();
-//        Action sensingAction = constructOnticExampleAction();
-//        EpistemicState sensingResultState = sensingAction.transition(sensingStartState);
-//        System.out.println("SENSING START STATE:");
-//        System.out.println(sensingStartState);
-//        System.out.println("SENSING ACTION:");
-//        System.out.println(sensingAction);
-//        System.out.println("SENSING RESULT STATE:");
-//        System.out.println(sensingResultState);
-//
-//        EpistemicState announcementStartState = constructOnticExampleStart();
-//        Action announcementAction = constructOnticExampleAction();
-//        EpistemicState announcementResultState = announcementAction.transition(announcementStartState);
-//        System.out.println("ANNOUNCEMENT START STATE:");
-//        System.out.println(announcementStartState);
-//        System.out.println("ANNOUNCEMENT ACTION:");
-//        System.out.println(announcementAction);
-//        System.out.println("ANNOUNCEMENT RESULT STATE:");
-//        System.out.println(announcementResultState);
-    }
-
-    public static EpistemicState constructTestState() {
-        World world1 = new World(new Fluent("atom1"));
-
-        World world2= new World(new Fluent("atom2"));
-
-        Set<World> worlds = new HashSet<>();
-        worlds.add(world1);
-        worlds.add(world2);
-
-        String agent_r = "robot1";
-        String agent_h   = "human1";
-
-        Set<String> agents = new HashSet<>();
-        agents.add(agent_r);
-        agents.add(agent_h);
-
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        for (String a : agents) {
-            beliefRelations.put(a, new Relation());
-        }
-
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (String a : agents) {
-            knowledgeRelations.put(a, new Relation());
-        }
-
-        knowledgeRelations.get(agent_r).connect(world1, world1);
-        knowledgeRelations.get(agent_r).connect(world2, world2);
-
-        knowledgeRelations.get(agent_h).connect(world1, world1);
-        knowledgeRelations.get(agent_h).connect(world2, world2);
-        knowledgeRelations.get(agent_h).connect(world1, world2);
-        knowledgeRelations.get(agent_h).connect(world2, world1);
-
-        beliefRelations.get(agent_r).connect(world1, world1);
-        beliefRelations.get(agent_r).connect(world2, world2);
-
-        beliefRelations.get(agent_h).connect(world2, world2);
-        beliefRelations.get(agent_h).connect(world1, world2);
-
-        KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
-
-        return new EpistemicState(kripke, world1);
-    }
-
-
-
-
-
-    public static EpistemicState constructOnticExampleStart() {
-        Set<Fluent> world1Atoms = new HashSet<>();
-        world1Atoms.add(new Fluent("closed"));
-        world1Atoms.add(new Fluent("looking", "alice"));
-        world1Atoms.add(new Fluent("looking", "bob"));
-        World world1 = new World(world1Atoms);
-
-        Set<Fluent> world2Atoms = new HashSet<>();
-        world2Atoms.add(new Fluent("closed"));
-        world2Atoms.add(new Fluent("looking", "alice"));
-        world2Atoms.add(new Fluent("looking", "bob"));
-        world2Atoms.add(new Fluent("locked"));
-        World world2 = new World(world2Atoms);
-
-        Set<World> worlds = new HashSet<>();
-        worlds.add(world1);
-        worlds.add(world2);
-
-        String alice = "alice";
-        String bob   = "bob";
-        String carol = "carol";
-
-        Set<String> agents = new HashSet<>();
-        agents.add(alice);
-        agents.add(bob);
-        agents.add(carol);
-
-
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        for (String a : agents) {
-            beliefRelations.put(a, new Relation());
-        }
-
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (String a : agents) {
-            knowledgeRelations.put(a, new Relation());
-        }
-
-
-        knowledgeRelations.get(alice).connect(world1, world1);
-        knowledgeRelations.get(alice).connect(world2, world2);
-
-        knowledgeRelations.get(bob).connect(world1, world1);
-        knowledgeRelations.get(bob).connect(world2, world2);
-        knowledgeRelations.get(bob).connect(world1, world2);
-        knowledgeRelations.get(bob).connect(world2, world1);
-
-        knowledgeRelations.get(carol).connect(world1, world1);
-        knowledgeRelations.get(carol).connect(world2, world2);
-
-        beliefRelations.get(alice).connect(world1, world1);
-        beliefRelations.get(alice).connect(world2, world2);
-
-        beliefRelations.get(bob).connect(world2, world2);
-        beliefRelations.get(bob).connect(world1, world2);
-
-        beliefRelations.get(carol).connect(world1, world1);
-        beliefRelations.get(carol).connect(world2, world2);
-
-        KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
-
-        return new EpistemicState(kripke, world1);
-    }
-
-
-    private static EpistemicState constructSensingExampleStart() {
-        Set<Fluent> world1Atoms = new HashSet<>();
-        world1Atoms.add(new Fluent("tails"));
-        world1Atoms.add(new Fluent("key"));
-        World world1 = new World(world1Atoms);
-
-        Set<Fluent> world2Atoms = new HashSet<>();
-        world2Atoms.add(new Fluent("key"));
-        World world2 = new World(world2Atoms);
-
-        Set<Fluent> world3Atoms = new HashSet<>();
-        world3Atoms.add(new Fluent("tails"));
-        World world3 = new World(world3Atoms);
-
-        World world4 = new World(new HashSet<Fluent>());
-
-        Set<World> worlds = new HashSet<>();
-        worlds.add(world1);
-        worlds.add(world2);
-        worlds.add(world3);
-        worlds.add(world4);
-
-        String alice = "alice";
-        String bob   = "bob";
-
-        Set<String> agents = new HashSet<>();
-        agents.add(alice);
-        agents.add(bob);
-
-
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        for (String a : agents) {
-            beliefRelations.put(a, new Relation());
-        }
-
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (String a : agents) {
-            knowledgeRelations.put(a, new Relation());
-        }
-
-
-
-        knowledgeRelations.get(alice).connect(world1, world1);
-        knowledgeRelations.get(alice).connect(world1, world2);
-        knowledgeRelations.get(alice).connect(world2, world2);
-        knowledgeRelations.get(alice).connect(world2, world1);
-        knowledgeRelations.get(alice).connect(world3, world3);
-        knowledgeRelations.get(alice).connect(world3, world4);
-        knowledgeRelations.get(alice).connect(world4, world4);
-        knowledgeRelations.get(alice).connect(world4, world3);
-
-        knowledgeRelations.get(bob).connect(world1, world1);
-        knowledgeRelations.get(bob).connect(world1, world2);
-        knowledgeRelations.get(bob).connect(world1, world3);
-        knowledgeRelations.get(bob).connect(world1, world4);
-        knowledgeRelations.get(bob).connect(world2, world2);
-        knowledgeRelations.get(bob).connect(world2, world1);
-        knowledgeRelations.get(bob).connect(world2, world4);
-        knowledgeRelations.get(bob).connect(world2, world3);
-        knowledgeRelations.get(bob).connect(world3, world3);
-        knowledgeRelations.get(bob).connect(world3, world4);
-        knowledgeRelations.get(bob).connect(world3, world1);
-        knowledgeRelations.get(bob).connect(world3, world2);
-        knowledgeRelations.get(bob).connect(world4, world4);
-        knowledgeRelations.get(bob).connect(world4, world3);
-        knowledgeRelations.get(bob).connect(world4, world2);
-        knowledgeRelations.get(bob).connect(world4, world1);
-
-
-        beliefRelations.get(alice).connect(world1, world2);
-        beliefRelations.get(alice).connect(world2, world2);
-        beliefRelations.get(alice).connect(world3, world4);
-        beliefRelations.get(alice).connect(world4, world4);
-
-        beliefRelations.get(bob).connect(world1, world3);
-        beliefRelations.get(bob).connect(world1, world4);
-        beliefRelations.get(bob).connect(world2, world4);
-        beliefRelations.get(bob).connect(world2, world3);
-        beliefRelations.get(bob).connect(world3, world3);
-        beliefRelations.get(bob).connect(world3, world4);
-        beliefRelations.get(bob).connect(world4, world4);
-        beliefRelations.get(bob).connect(world4, world3);
-
-        KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
-
-
-        return new EpistemicState(kripke, world1);
-    }
-
-
-    private static EpistemicState constructAnnouncementExampleStart() {
-        World world0 = new World(new HashSet<Fluent>());
-
-        Set<Fluent> world1Atoms = new HashSet<>();
-        world1Atoms.add(new Fluent("raining"));
-        World world1 = new World(world1Atoms);
-
-
-        Set<World> worlds = new HashSet<>();
-        worlds.add(world0);
-        worlds.add(world1);
-
-        String alice = "alice";
-        String bob   = "bob";
-        String carol = "carol";
-
-        Set<String> agents = new HashSet<>();
-        agents.add(alice);
-        agents.add(bob);
-        agents.add(carol);
-
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        for (String a : agents) {
-            beliefRelations.put(a, new Relation());
-        }
-
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (String a : agents) {
-            knowledgeRelations.put(a, new Relation());
-        }
-
-
-        knowledgeRelations.get(alice).connect(world0, world0);
-        knowledgeRelations.get(bob).connect(world0, world0);
-        knowledgeRelations.get(carol).connect(world0, world0);
-
-        knowledgeRelations.get(alice).connect(world1, world1);
-        knowledgeRelations.get(bob).connect(world1, world1);
-        knowledgeRelations.get(carol).connect(world1, world1);
-
-        knowledgeRelations.get(carol).connect(world0, world1);
-        knowledgeRelations.get(carol).connect(world1, world0);
-
-        beliefRelations.get(alice).connect(world0, world0);
-        beliefRelations.get(bob).connect(world0, world0);
-        beliefRelations.get(carol).connect(world0, world0);
-
-        beliefRelations.get(alice).connect(world1, world1);
-        beliefRelations.get(bob).connect(world1, world1);
-        beliefRelations.get(carol).connect(world1, world1);
-
-        KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
-
-        return new EpistemicState(kripke, world0);
-    }
-
-
-
-
-
-
-
-
 
 
 
