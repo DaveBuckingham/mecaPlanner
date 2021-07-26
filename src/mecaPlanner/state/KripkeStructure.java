@@ -196,8 +196,8 @@ public class KripkeStructure implements java.io.Serializable {
                 }
             }
             if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
-                if (!partition.remove(block))) {
-                    Throw new RuntimeException("failed to remove a split block while computing bisimulation");
+                if (!partition.remove(block)) {
+                    throw new RuntimeException("failed to remove a split block while computing bisimulation");
                 }
                 partition.add(notInPre);
                 partition.add(inPre);
