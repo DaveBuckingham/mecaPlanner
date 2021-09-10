@@ -202,9 +202,12 @@ public class Action implements java.io.Serializable {
 
 
     
-    public PartialResult partial(KripkeStructure oldKripke, World oldDesignated) {
+    private PartialResult partial(KripkeStructure oldKripke, World oldDesignated) {
 
         assert(oldKripke.containsWorld(oldDesignated));
+        assert(precondition.evaluate(oldDesignated));
+
+
         Set<World> oldWorlds = oldKripke.getWorlds();
 
         // FOR EACH OLD WORLD, FOR EACH AGENT, BUILD FORMULA
@@ -349,8 +352,7 @@ public class Action implements java.io.Serializable {
 
         }
 
-        Set<World> designatedClass = new HashSet<>();
-
+        Map<String, Set<World>> designatedClasses = new HashMap<>();
 
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
         Map<String, Set<Set<World>>> equivalenceClasses = new HashMap<>();
@@ -366,7 +368,7 @@ public class Action implements java.io.Serializable {
                     }
                 }
                 if (oldWorld == oldDesignated) {
-                    designatedClass = equivalent;
+                    designatedClasses.put(agent, equivalent);
                 }
                 equivalenceClasses.get(agent).add(equivalent);
             }
@@ -436,6 +438,7 @@ public class Action implements java.io.Serializable {
  
         World newPartialDesignated = null;
 
+
         // NEW WORLDS
         Set<World> newWorlds = new HashSet<>();
         Map<World, World> newToOld = new HashMap<>();
@@ -448,10 +451,10 @@ public class Action implements java.io.Serializable {
                     newToOld.put(newWorld, oldWorld);
                     postAssignments.put(newWorld, assignment);
 
-                    if (oldWorld == oldDesignated) {
+                    if (oldWorld.equals(oldDesignated)) {
                         Boolean isDesignated = true;
                         for (String agent : domain.getAllAgents()) {
-                            if (!assignment.get(agent).equals(designatedClass)) {
+                            if (!assignment.get(agent).equals(designatedClasses.get(agent))) {
                                isDesignated = false;
                                break;
                             }
@@ -465,6 +468,10 @@ public class Action implements java.io.Serializable {
             }
         }
 
+        if (newPartialDesignated == null) {
+            System.out.println("no partial designated");
+            System.exit(1);
+        }
         assert(newPartialDesignated != null);
 
         // KNOWLEDGE RELATIONS
@@ -541,6 +548,8 @@ public class Action implements java.io.Serializable {
 
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
+
+        assert(precondition.evaluate(beforeState));
 
         // UPDATE THE MODELS
         Map<String, Model> newModels = new HashMap();
