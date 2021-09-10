@@ -185,12 +185,13 @@ public class Action implements java.io.Serializable {
         public KripkeStructure kripke;
         public World designated;
         public Map<World,World> map;
-        public Map<String, Map<World, LocalFormula>> learnedObserver;
-        public PartialResult(KripkeStructure k, World d, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
+        //public Map<String, Map<World, LocalFormula>> learnedObserver;
+        //public PartialResult(KripkeStructure k, World d, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
+        public PartialResult(KripkeStructure k, World d, Map<World,World> m){
             this.kripke = k;
             this.designated = d;
             this.map = m;
-            this.learnedObserver = l;
+            //this.learnedObserver = l;
         }
         public Set<World> getWorlds() {
             return map.keySet();
@@ -541,7 +542,9 @@ public class Action implements java.io.Serializable {
         KripkeStructure newKripke = new KripkeStructure(newWorlds, newBeliefs, newKnowledges);
 
         //System.out.println(newToOld);
-        return new Action.PartialResult(newKripke, newPartialDesignated, newToOld, learnedObserver);
+        //return new Action.PartialResult(newKripke, newPartialDesignated, newToOld, learnedObserver);
+        return new Action.PartialResult(newKripke, newPartialDesignated, newToOld);
+        
     }
 
 
@@ -564,10 +567,10 @@ public class Action implements java.io.Serializable {
         Map<String, Set<PartialResult>> agentSubmodels = new HashMap<>();
         Set<PartialResult> submodels = new HashSet<>();
 
-        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
-        for (String agent : domain.getAllAgents()) {
-            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
-        }
+        //Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        //for (String agent : domain.getAllAgents()) {
+        //    learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        //}
 
         Action.PartialResult actualPartial = this.partial(oldKripke, oldDesignated);
 
@@ -575,19 +578,10 @@ public class Action implements java.io.Serializable {
         for (String agent : domain.getAllAgents()) {
             agentSubmodels.put(agent, new HashSet<PartialResult>());
             agentSubmodels.get(agent).add(actualPartial);
-            learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
+            //learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
 
         World newDesignated = actualPartial.getDesignated();
-
-//        World newDesignated = null;
-//        for (World w : actualPartial.kripke.getWorlds()) {
-//            if (actualPartial.map.get(w).equals(beforeState.getDesignatedWorld())) {
-//                newDesignated = w;
-//                break;
-//            }
-//        }
-//        assert(newDesignated != null);
 
 
         // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
