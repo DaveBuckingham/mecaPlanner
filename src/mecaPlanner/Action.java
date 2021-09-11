@@ -183,30 +183,43 @@ public class Action implements java.io.Serializable {
 
     private class PartialResult {
         public KripkeStructure kripke;
-        public World designated;
-        public Map<World,World> map;
-        //public Map<String, Map<World, LocalFormula>> learnedObserver;
-        //public PartialResult(KripkeStructure k, World d, Map<World,World> m,  Map<String, Map<World, LocalFormula>> l){
-        public PartialResult(KripkeStructure k, World d, Map<World,World> m){
+        private Map<World,World> map;
+        // GIVEN A NEW WORLD, WHAT OLD CLASS IS IT ASSOCIATED WITH FOR EACH AGENT
+        private Map<World,Map<String, Set<World>>> postAssignments;
+        // GIVEN AN OLD WORLD, WHAT WAS THE EQUIVALENCE CLASS CREATED FROM THAT WORLD FOR EACH AGENT
+        private Map<String, Map<World,Set<World>>> roots;
+        public PartialResult(KripkeStructure k,
+                             Map<World,World> m,
+                             Map<World, Map<String, Set<World>>> p,
+                             Map<String, Map<World, Set<World>>> r
+                            ){
             this.kripke = k;
-            this.designated = d;
             this.map = m;
+            this.postAssignments = p;
+            this.roots = r;
             //this.learnedObserver = l;
         }
         public Set<World> getWorlds() {
             return map.keySet();
         }
-        public World getDesignated() {
-            return designated;
+        public Set<World> getClassFromRoot(String agent, World w) {
+            return roots.get(agent).get(w);
         }
+        public Set<World> getPostAssignment(World w, String agent) {
+            return postAssignments.get(w).get(agent);
+        }
+        public World getOldWorld(World w) {
+            return map.get(w);
+        }
+
     }
 
 
     
-    private PartialResult partial(KripkeStructure oldKripke, World oldDesignated) {
+    private PartialResult partial(KripkeStructure oldKripke) {
 
-        assert(oldKripke.containsWorld(oldDesignated));
-        assert(precondition.evaluate(oldDesignated));
+        //assert(oldKripke.containsWorld(oldDesignated));
+        //assert(precondition.evaluate(oldDesignated));
 
 
         Set<World> oldWorlds = oldKripke.getWorlds();
@@ -353,12 +366,13 @@ public class Action implements java.io.Serializable {
 
         }
 
-        Map<String, Set<World>> designatedClasses = new HashMap<>();
+        Map<String, Map<World,Set<World>>> roots = new HashMap<>();
 
         // GROUPED WORLDS (WITH POSSIBLE OVERLAPS) INTO NEW EQUIVALENCE CLASSES
         Map<String, Set<Set<World>>> equivalenceClasses = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
             equivalenceClasses.put(agent, new HashSet<Set<World>>());
+            roots.put(agent, new HashMap<World, Set<World>>());
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
                 assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
@@ -368,10 +382,8 @@ public class Action implements java.io.Serializable {
                         equivalent.add(toWorld);
                     }
                 }
-                if (oldWorld == oldDesignated) {
-                    designatedClasses.put(agent, equivalent);
-                }
                 equivalenceClasses.get(agent).add(equivalent);
+                roots.get(agent).put(oldWorld, equivalent);
             }
         }
 
@@ -437,7 +449,6 @@ public class Action implements java.io.Serializable {
             while (!carry);
         }
  
-        World newPartialDesignated = null;
 
 
         // NEW WORLDS
@@ -451,29 +462,10 @@ public class Action implements java.io.Serializable {
                     newWorlds.add(newWorld);
                     newToOld.put(newWorld, oldWorld);
                     postAssignments.put(newWorld, assignment);
-
-                    if (oldWorld.equals(oldDesignated)) {
-                        Boolean isDesignated = true;
-                        for (String agent : domain.getAllAgents()) {
-                            if (!assignment.get(agent).equals(designatedClasses.get(agent))) {
-                               isDesignated = false;
-                               break;
-                            }
-                        }
-                        if (isDesignated) {
-                            assert(newPartialDesignated == null);
-                            newPartialDesignated = newWorld;
-                        }
-                    }
                 }
             }
         }
 
-        if (newPartialDesignated == null) {
-            System.out.println("no partial designated");
-            System.exit(1);
-        }
-        assert(newPartialDesignated != null);
 
         // KNOWLEDGE RELATIONS
         Map<String, Relation> newKnowledges = new HashMap<>();
@@ -543,8 +535,7 @@ public class Action implements java.io.Serializable {
 
         //System.out.println(newToOld);
         //return new Action.PartialResult(newKripke, newPartialDesignated, newToOld, learnedObserver);
-        return new Action.PartialResult(newKripke, newPartialDesignated, newToOld);
-        
+        return new Action.PartialResult(newKripke, newToOld, postAssignments, roots);
     }
 
 
@@ -572,7 +563,7 @@ public class Action implements java.io.Serializable {
         //    learnedObserver.put(agent, new HashMap<World, LocalFormula>());
         //}
 
-        Action.PartialResult actualPartial = this.partial(oldKripke, oldDesignated);
+        Action.PartialResult actualPartial = this.partial(oldKripke);
 
         submodels.add(actualPartial);
         for (String agent : domain.getAllAgents()) {
@@ -581,7 +572,19 @@ public class Action implements java.io.Serializable {
             //learnedObserver.get(agent).putAll(actualPartial.learnedObserver.get(agent));
         }
 
-        World newDesignated = actualPartial.getDesignated();
+        World newDesignated = null;
+        for (World w : actualPartial.getWorlds()) {
+            if (actualPartial.getOldWorld(w) == oldDesignated) {
+                for (String agent : domain.getAllAgents()) {
+                    if (actualPartial.getPostAssignment(w, agent).equals(
+                        actualPartial.getClassFromRoot(agent, oldDesignated))) {
+                        newDesignated = w;
+                    }
+                }
+            }
+        }
+
+        assert(newDesignated != null);
 
 
         // IF NO OBLIVIOUS AGENTS IN WORLDS WHERE ACTION WAS APPLICABLE,
@@ -627,7 +630,7 @@ public class Action implements java.io.Serializable {
                                        new HashMap<Assignment, LocalFormula>(), // effects
                                        domain
                                       );
-        Action.PartialResult obliviousPartial = nullAction.partial(oldKripke, oldDesignated);
+        Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
         KripkeStructure obliviousKripke = obliviousPartial.kripke;
         submodels.add(obliviousPartial);
 
@@ -639,7 +642,7 @@ public class Action implements java.io.Serializable {
                     obliviousAnywhere = true;
                     for (Action a : possibleActions(agent, oldKripke, w)) {
                         if (!a.equals(this)) {
-                            Action.PartialResult hypotheticalPartial = a.partial(oldKripke, oldDesignated);
+                            Action.PartialResult hypotheticalPartial = a.partial(oldKripke);
                             agentSubmodels.get(agent).add(hypotheticalPartial);
                             submodels.add(hypotheticalPartial);
                             //newToOld.addAll(hypotheticalPartial.map);
