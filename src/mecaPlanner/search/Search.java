@@ -26,8 +26,9 @@ import java.util.HashMap;
 
 public class Search {
 
-    Domain domain;
-    Problem problem;
+    private Domain domain;
+    private Problem problem;
+    private int leavesPerDepth;
 
 
     public Search() {
@@ -50,6 +51,10 @@ public class Search {
         }
         // ADD OTHER CHECKS
 
+        leavesPerDepth = 0;
+        for (String agent : domain.getNonPassiveAgents()) {
+            leavesPerDepth += domain.getActions(agent).size();
+        }
 
 
 
@@ -69,13 +74,26 @@ public class Search {
         Set<OrNode> allStartOrNodes = new HashSet<>();
         if (time == systemAgentIndex) {
             for (EpistemicState eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, domain));
+                allStartOrNodes.add(new OrNode(eState,
+                                               goal, 
+                                               0, 
+                                               null, 
+                                               problem.getStartingModels(), 
+                                               systemAgentIndex, 
+                                               domain
+                                              ));
             }
         }
         else {
             for (EpistemicState eState : startStates) {
-                AndNode startAndNode = new AndNode(eState, goal, 0, null, problem.getStartingModels(), systemAgentIndex, domain);
-                //Set<OrNode> startOrNodes = startAndNode.descend();
+                AndNode startAndNode = new AndNode(eState,
+                                                   goal, 
+                                                   0, 
+                                                   null, 
+                                                   problem.getStartingModels(), 
+                                                   systemAgentIndex, 
+                                                   domain
+                                                  );
 
                 GroundSuccessors startOrNodesWithScore = startAndNode.descend();
 
@@ -93,7 +111,11 @@ public class Search {
         int maxDepth = 0;
         Solution solution = null;
         while (solution == null) {
-            System.out.println(maxDepth);
+            System.out.print(maxDepth);
+            System.out.print("\t");
+            System.out.print(Math.round(Math.pow(leavesPerDepth, maxDepth)));
+            System.out.print("\t");
+            System.out.print("\n");
             solution = searchToDepth(allStartOrNodes, time,  maxDepth);
             maxDepth += 1;
         }

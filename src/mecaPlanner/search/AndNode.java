@@ -24,6 +24,7 @@ public class AndNode extends GNode {
                 ) {
 
         super(estate, goal, time, parent, models, systemAgentIndex, domain);
+        // MAKE SURE ITS NOT THE SYSTEM AGENT'S TURN
         assert(systemAgentIndex != time % domain.getNonPassiveAgents().size());
     }
 
