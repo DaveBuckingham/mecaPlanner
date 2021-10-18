@@ -432,15 +432,20 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            NDState ndState;
             if (stateCtx.kripkeModel() != null) {
-                ndState = (NDState) visit(stateCtx.kripkeModel());
+                NDState ndState = (NDState) visit(stateCtx.kripkeModel());
+                startStates.addAll(ndState.getEpistemicStates());
             }
             else {
-                throw new RuntimeException("state construction not supported");
-                //ndState = (NDState) visit(stateCtx.initiallyDef());
+                //throw new RuntimeException("state construction not supported");
+                Set<EpistemicState> startStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
+                for (EpistemicState s : startStates) {
+                    System.out.println(s);
+                    System.out.println("~~~~~~~~~~~~~~~~");
+                }
+                startStates.addAll(startStates);
+                System.exit(1);
             }
-            startStates.addAll(ndState.getEpistemicStates());
         }
         return null;
     }
@@ -451,23 +456,12 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public NDState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        //BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-        //EpistemicState state = Construct.constructState(formula);
-        //System.out.println(state);
-        //System.exit(1);
-        //return state;
-        return null;
+    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
+        Set<EpistemicState> states = Construct.constructStates(formula);
+        return states;
     }
 
-//    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-//        Set<BeliefFormula> initiallyStatements = new HashSet<>();
-//        for (DeplParser.BeliefFormulaContext statementContext : ctx.beliefFormula()) {
-//            BeliefFormula statement = (BeliefFormula) visit(statementContext);
-//            initiallyStatements.add(statement);
-//        }
-//        return Construct.constructState(initiallyStatements, domain);
-//    }
 
 
     @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {

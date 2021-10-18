@@ -273,8 +273,6 @@ public class Action implements java.io.Serializable {
                 }
             }
             learnedEffectConditions.put(oldWorld, LocalAndFormula.make(revealedConditions));
-            //System.out.print(oldWorld);
-            //System.out.println(learnedEffectConditions.get(oldWorld));
             assert(learnedEffectConditions.get(oldWorld).evaluate(oldWorld));
 
 
