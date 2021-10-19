@@ -143,7 +143,6 @@ startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
 //startStateDef : '{' initiallyDef '}' ;
 //startStateDef : '{' kripkeModel '}' ;
 
-//initiallyDef : (beliefFormula ',')* beliefFormula? ;
 initiallyDef : beliefFormula ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;

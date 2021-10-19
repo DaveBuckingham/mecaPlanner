@@ -57,6 +57,24 @@ public class BeliefAndFormula extends BeliefFormula{
 
 
 
+    public boolean isBinary() {
+        return formulae.size() == 2;
+    }
+
+    public boolean binarize() {
+        assert (formulae.size() >= 2);
+        if (isBinary()) {
+            return false;
+        }
+        BeliefFormula lastFormula = formulae.get(formulae.size() - 1);
+        formulae.remove(formulae.size() - 1);
+        BeliefFormula theRest = BeliefAndFormula.make(formulae);
+        formulae.clear();
+        formulae.add(theRest);
+        formulae.add(lastFormula);
+        assert(isBinary());
+        return true;
+    }
 
 
 

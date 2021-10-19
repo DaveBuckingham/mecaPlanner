@@ -44,6 +44,25 @@ public class LocalAndFormula extends LocalFormula{
         return new LocalAndFormula(formulae);
     }
 
+    public boolean isBinary() {
+        return formulae.size() == 2;
+    }
+
+    public boolean binarize() {
+        assert (formulae.size() >= 2);
+        if (isBinary()) {
+            return false;
+        }
+        LocalFormula lastFormula = formulae.get(formulae.size() - 1);
+        formulae.remove(formulae.size() - 1);
+        LocalFormula theRest = LocalAndFormula.make(formulae);
+        formulae.clear();
+        formulae.add(theRest);
+        formulae.add(lastFormula);
+        assert(isBinary());
+        return true;
+    }
+
     public static LocalFormula make(Set<LocalFormula> inputFormulae) {
         return LocalAndFormula.make(new ArrayList(inputFormulae));
     }

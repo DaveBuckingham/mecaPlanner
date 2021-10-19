@@ -31,7 +31,9 @@ fluents{
 
 
 initially{
-at(human1, room1) & at(robot1, room1) & at(pizza,room1) & at(hotdog,room2) & human_hungry()
+{at(human1, room1) & at(robot1, room1) & at(pizza,room1) & at(hotdog,room2) & human_hungry()},
+
+{at(human1, room2) & at(robot1, room1) & at(pizza,room1) & at(hotdog,room2) & human_hungry()}
 
 
     // *w1 <-

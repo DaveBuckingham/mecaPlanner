@@ -458,7 +458,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
         BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-        Set<EpistemicState> states = Construct.constructStates(formula);
+        Set<EpistemicState> states = Construct.constructStates(domain, formula);
         return states;
     }
 
