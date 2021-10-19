@@ -126,6 +126,8 @@ public class LocalAndFormula extends LocalFormula{
                 str.append(" & ");
             }
             str.deleteCharAt(str.length() - 1);
+            str.deleteCharAt(str.length() - 1);
+            str.deleteCharAt(str.length() - 1);
         }
         str.append(")");
         return str.toString();

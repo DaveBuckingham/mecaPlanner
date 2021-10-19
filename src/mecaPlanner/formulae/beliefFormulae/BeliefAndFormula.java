@@ -134,6 +134,8 @@ public class BeliefAndFormula extends BeliefFormula{
                 str.append(" & ");
             }
             str.deleteCharAt(str.length() - 1);
+            str.deleteCharAt(str.length() - 1);
+            str.deleteCharAt(str.length() - 1);
         }
         str.append(")");
         return str.toString();

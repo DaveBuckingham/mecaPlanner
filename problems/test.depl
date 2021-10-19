@@ -18,7 +18,8 @@ fluents{
 
 
 initially{
-!x() & B[a](x())
+x()
+& !B[b](x()) & !B[b](!x())
 }
 
 goals{

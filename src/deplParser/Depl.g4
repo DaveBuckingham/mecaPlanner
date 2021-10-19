@@ -95,18 +95,18 @@ localFormula
     : fluent                                                            # localFluent
     | KEYWORD_TRUE                                                      # localLiteralTrue
     | KEYWORD_FALSE                                                     # localLiteralFalse
-    | OP_NOT localFormula                                               # localNot
     | '(' localFormula ')'                                              # localParens
-    | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
     | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
+    | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
+    | OP_NOT localFormula                                               # localNot
     ;
 
 beliefFormula 
     : localFormula                                               # beliefLocalFormula
     | '(' beliefFormula ')'                                      # beliefParens
-    | OP_NOT beliefFormula                                       # beliefNot
-    | beliefFormula OP_AND beliefFormula                         # beliefAnd
     | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
+    | beliefFormula OP_AND beliefFormula                         # beliefAnd
+    | OP_NOT beliefFormula                                       # beliefNot
     | 'B' '[' groundableObject ']'  beliefFormula                # beliefBelieves
     | 'P' '[' groundableObject ']'  beliefFormula                # beliefPossibly
     | 'K' '[' groundableObject ']'  beliefFormula                # beliefKnows

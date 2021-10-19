@@ -432,10 +432,13 @@ public class Construct {
         }
 
         KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
+        kripke.forceCheck();
         EpistemicState state = new EpistemicState(kripke, designated);
 
-        //state.reduce();
-        //state.trim();
+        state.reduce();
+        state.trim();
+
+        state.getKripke().forceCheck();
 
         return state;
 
