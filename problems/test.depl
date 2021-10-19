@@ -3,31 +3,22 @@ types{
 
 objects{
     a - Object,
+    b - Object,
+    c - Object,
 }
 
-agents{ a }
+agents{a}
+
+passive{b,c}
 
 
 fluents{
-    o(), l()
+    x(), y(), z()
 }
 
 
 initially{
-    *w1 <- {o(),l()},
-    w2 <- {o()},
-    w3 <- {l()},
-    w4 <- {},
-    B[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
-             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
-             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
-             (w4,w1),(w4,w2),(w4,w3),(w4,w4)
-            },
-    K[a] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
-             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
-             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
-             (w4,w1),(w4,w2),(w4,w3),(w4,w4)
-    }
+!x() & B[a](x())
 }
 
 goals{
@@ -35,10 +26,5 @@ goals{
 }
 
 actions{
-    open(){
-        owner{a},
-        observes(?x-Object){a},
-        causes{o() if ~l()},
-    }
 
 }

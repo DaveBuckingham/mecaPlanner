@@ -61,19 +61,15 @@ public class BeliefAndFormula extends BeliefFormula{
         return formulae.size() == 2;
     }
 
-    public boolean binarize() {
-        assert (formulae.size() >= 2);
-        if (isBinary()) {
-            return false;
-        }
-        BeliefFormula lastFormula = formulae.get(formulae.size() - 1);
-        formulae.remove(formulae.size() - 1);
-        BeliefFormula theRest = BeliefAndFormula.make(formulae);
-        formulae.clear();
-        formulae.add(theRest);
-        formulae.add(lastFormula);
-        assert(isBinary());
-        return true;
+    public BeliefAndFormula binarize() {
+        List<BeliefFormula> allFormulae = new ArrayList<>(formulae);
+        BeliefFormula lastFormula = allFormulae.get(allFormulae.size() - 1);
+        allFormulae.remove(allFormulae.size() - 1);
+        BeliefFormula theRest = BeliefAndFormula.make(allFormulae);
+        List<BeliefFormula> twoFormulae = new ArrayList<>();
+        twoFormulae.add(theRest);
+        twoFormulae.add(lastFormula);
+        return new BeliefAndFormula(twoFormulae);
     }
 
 
@@ -131,11 +127,11 @@ public class BeliefAndFormula extends BeliefFormula{
     @Override
     public String toString() {
         StringBuilder str = new StringBuilder();
-        str.append("and(");
+        str.append("(");
         if (formulae.size() > 0) {
             for (BeliefFormula formula : formulae) {
                 str.append(formula);
-                str.append(",");
+                str.append(" & ");
             }
             str.deleteCharAt(str.length() - 1);
         }

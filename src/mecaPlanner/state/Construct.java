@@ -223,13 +223,13 @@ public class Construct {
 
             if (formula instanceof BeliefAndFormula) {
                 BeliefAndFormula andFormula = (BeliefAndFormula) formula;
-                andFormula.binarize();
+                andFormula = andFormula.binarize();
                 parsedLeft.addAll(parseFormula(andFormula.getFormulae().get(0)));
                 parsedRight.addAll(parseFormula(andFormula.getFormulae().get(1)));
             }
             else {
                 LocalAndFormula andFormula = (LocalAndFormula) formula;
-                andFormula.binarize();
+                andFormula = andFormula.binarize();
                 parsedLeft.addAll(parseFormula(andFormula.getFormulae().get(0)));
                 parsedRight.addAll(parseFormula(andFormula.getFormulae().get(1)));
             }
@@ -434,8 +434,8 @@ public class Construct {
         KripkeStructure kripke = new KripkeStructure(worlds, beliefRelations, knowledgeRelations);
         EpistemicState state = new EpistemicState(kripke, designated);
 
-        state.reduce();
-        state.trim();
+        //state.reduce();
+        //state.trim();
 
         return state;
 

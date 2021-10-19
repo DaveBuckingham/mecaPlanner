@@ -137,20 +137,20 @@ timeFormula
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' (startStateDef | '{' (startStateDef ',')* startStateDef ','? '}') ;
+initiallySection : 'initially' '{' (startStateDef ',')* startStateDef ','? '}' ;
 
-startStateDef : '{' initiallyDef '}' | '{' kripkeModel '}' ;
+startStateDef : initiallyDef | kripkeModel ;
 //startStateDef : '{' initiallyDef '}' ;
 //startStateDef : '{' kripkeModel '}' ;
 
 initiallyDef : beliefFormula ;
 
-kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
+kripkeModel : '{' (kripkeWorld ','?)+ (kripkeRelation ','?)+ '}' ;
 
 kripkeWorld : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
 kripkeRelation : relationType '[' objectName ']' ASSIGN
-                 '{' ('('fromWorld','toWorld')'',')* ('('fromWorld','toWorld')')? '}' ;
+                 '{' ('('fromWorld','toWorld')')* '}' ;
 
 relationType : 'B' | 'K' ;
 fromWorld : LOWER_NAME;

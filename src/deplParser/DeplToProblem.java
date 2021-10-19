@@ -437,16 +437,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                 startStates.addAll(ndState.getEpistemicStates());
             }
             else {
-                //throw new RuntimeException("state construction not supported");
                 Set<EpistemicState> startStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
-                for (EpistemicState s : startStates) {
-                    System.out.println(s);
-                    System.out.println("~~~~~~~~~~~~~~~~");
-                }
                 startStates.addAll(startStates);
-                System.exit(1);
             }
         }
+        System.exit(1);
         return null;
     }
 
@@ -459,6 +454,15 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
         BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
         Set<EpistemicState> states = Construct.constructStates(domain, formula);
+        System.out.println("==================");
+        System.out.println(formula);
+        System.out.println("");
+        for (EpistemicState s : states) {
+            System.out.println(s);
+            System.out.print(">>>>>>>>>>>> ");
+            System.out.println(formula.evaluate(s));
+            assert(formula.evaluate(s));
+        }
         return states;
     }
 
