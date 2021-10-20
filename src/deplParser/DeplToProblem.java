@@ -437,11 +437,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                 startStates.addAll(ndState.getEpistemicStates());
             }
             else {
-                Set<EpistemicState> startStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
-                startStates.addAll(startStates);
+                Set<EpistemicState> constructedStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
+                startStates.addAll(constructedStates);
             }
         }
-        System.exit(1);
         return null;
     }
 

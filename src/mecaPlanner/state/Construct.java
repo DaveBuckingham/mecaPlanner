@@ -440,6 +440,8 @@ public class Construct {
 
         state.getKripke().forceCheck();
 
+        Log.debug("constructed state:\n" + state.toString());
+
         return state;
 
     }

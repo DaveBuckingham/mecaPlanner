@@ -19,7 +19,8 @@ fluents{
 
 initially{
 //B[a](x()) & B[a](B[a](!x())),
-!B[a](!x()) & !B[a](!B[a](!x())),
+//!B[a](!x()) & !B[a](!B[a](!x())),
+x()
 
 }
 

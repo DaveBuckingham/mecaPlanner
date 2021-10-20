@@ -107,8 +107,8 @@ public class Planner {
         // //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
         // Log.setOutput(prop.getProperty("logOutput", "stdout"));
 
-        Log.setThreshold("info");
-        //Log.setThreshold("debug");
+        //Log.setThreshold("info");
+        Log.setThreshold("debug");
 
 
         Log.info("loading domain");

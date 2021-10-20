@@ -140,12 +140,10 @@ timeFormula
 initiallySection : 'initially' '{' (startStateDef ',')* startStateDef ','? '}' ;
 
 startStateDef : initiallyDef | kripkeModel ;
-//startStateDef : '{' initiallyDef '}' ;
-//startStateDef : '{' kripkeModel '}' ;
 
 initiallyDef : beliefFormula ;
 
-kripkeModel : '{' (kripkeWorld ','?)+ (kripkeRelation ','?)+ '}' ;
+kripkeModel : '[' (kripkeWorld ','?)+ (kripkeRelation ','?)+ ']' ;
 
 kripkeWorld : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
