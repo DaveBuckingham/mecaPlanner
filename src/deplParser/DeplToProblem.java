@@ -454,14 +454,10 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
         BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
         Set<EpistemicState> states = Construct.constructStates(domain, formula);
-        System.out.println("==================");
-        System.out.println(formula);
-        System.out.println("");
         for (EpistemicState s : states) {
-            System.out.println(s);
-            System.out.print(">>>>>>>>>>>> ");
-            System.out.println(formula.evaluate(s));
-            assert(formula.evaluate(s));
+            if (!formula.evaluate(s)) {
+                throw new RuntimeException("model construction failed, does the formula satisfy KD45?: " + formula);
+            }
         }
         return states;
     }
