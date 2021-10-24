@@ -45,16 +45,16 @@ public class Example {
         }
 
 
-        //Set<Action> allActions = domain.getAllActions();
-        //if (allActions.size() != 1) {
-        //    System.out.println("depl must contain a single action");
-        //    return;
-        //}
-        //Action action = allActions.iterator().next();
+        Set<Action> allActions = domain.getAllActions();
+        if (allActions.size() != 1) {
+            System.out.println("depl must contain a single action");
+            return;
+        }
+        Action action = allActions.iterator().next();
 
-        //System.out.println(action);
+        System.out.println(action);
 
-        //EpistemicState endState = action.transition(startState);
-        //System.out.println(endState);
+        EpistemicState endState = action.transition(startState);
+        System.out.println(endState);
     }
 }

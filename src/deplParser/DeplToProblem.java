@@ -450,16 +450,32 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-        Set<EpistemicState> states = Construct.constructStates(domain, formula);
-        for (EpistemicState s : states) {
-            if (!formula.evaluate(s)) {
-                throw new RuntimeException("model construction failed, does the formula satisfy KD45?: " + formula);
+    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        Set<BeliefFormula> initialFormulae = new HashSet<>();
+        for (DeplParser.BeliefFormulaContext f : ctx.beliefFormula()) {
+            initialFormulae.add((BeliefFormula) visit(f));
+        }
+        EpistemicState state = Construct.constructState(domain, initialFormulae);
+        for (BeliefFormula f : initialFormulae) {
+            if (!f.evaluate(state)) {
+                throw new RuntimeException("model construction failed:" + f);
             }
         }
-        return states;
+        return state;
     }
+
+
+//    FOR MAKING MULTIPLE STATES FROM A SINGLE FORMULA
+//    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+//        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
+//        Set<EpistemicState> states = Construct.constructStates(domain, formula);
+//        for (EpistemicState s : states) {
+//            if (!formula.evaluate(s)) {
+//                throw new RuntimeException("model construction failed, does the formula satisfy KD45?: " + formula);
+//            }
+//        }
+//        return states;
+//    }
 
 
 
@@ -871,6 +887,13 @@ public class DeplToProblem extends DeplBaseVisitor {
             subFormulae.add((LocalFormula) visit(subFormula));
         }
         return (LocalOrFormula.make(subFormulae));
+    }
+
+    @Override public LocalFormula visitLocalImplies(DeplParser.LocalImpliesContext ctx) {
+        List<LocalFormula> subFormulae = new ArrayList<>();
+        LocalFormula leftFormula = (LocalFormula) visit(ctx.localFormula().get(0));
+        LocalFormula rightFormula = (LocalFormula) visit(ctx.localFormula().get(1));
+        return (LocalOrFormula.make(leftFormula.negate(), rightFormula));
     }
 
 

@@ -48,6 +48,14 @@ public class LocalOrFormula extends LocalFormula{
         return LocalOrFormula.make(new ArrayList(inputFormulae));
     }
 
+    public static LocalFormula make(LocalFormula ...inputFormulae) {
+        List<LocalFormula> l = new ArrayList<>();
+        for (LocalFormula f : inputFormulae) {
+            l.add(f);
+        }
+        return LocalOrFormula.make(l);
+    }
+
 
     public List<LocalFormula> getFormulae() {
         return formulae;

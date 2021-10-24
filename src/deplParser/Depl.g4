@@ -8,6 +8,7 @@ fragment DIGIT          :  [0-9];
 
 OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
+OP_IMPLIES              : '->';
 OP_NOT                  : '!'|'~' ;
 
 KEYWORD_TRUE            : 'true'|'True' ;
@@ -99,6 +100,7 @@ localFormula
     | OP_NOT localFormula                                               # localNot
     | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
     | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
+    | localFormula OP_IMPLIES localFormula                              # localImplies
     ;
 
 beliefFormula 
@@ -137,11 +139,11 @@ timeFormula
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' '{' (startStateDef ',')* startStateDef ','? '}' ;
+initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' ) ;
 
-startStateDef : initiallyDef | kripkeModel ;
+startStateDef : '{' (initiallyDef | kripkeModel) '}' ;
 
-initiallyDef : beliefFormula ;
+initiallyDef : (beliefFormula ',')* beliefFormula? ;
 
 kripkeModel : '[' (kripkeWorld ','?)+ (kripkeRelation ','?)+ ']' ;
 
