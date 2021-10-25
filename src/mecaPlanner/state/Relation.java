@@ -71,6 +71,17 @@ public class Relation implements java.io.Serializable {
         return edges.get(from);
     }
 
+    // OBVIOUSLY NOT THAT EFFICIENT
+    public Set<World> getFromWorlds(World to) {
+        Set<World> fromWorlds = new HashSet<>();
+        for (Map.Entry<World,Set<World>> entry : edges.entrySet()) {
+            if (entry.getValue().contains(to)) {
+                fromWorlds.add(entry.getKey());
+            }
+        }
+        return fromWorlds;
+    }
+
     // THERE ARE TWO WAYS TO HAVE A DEAD END AT WORLD U: U NOT IN KEYS, OR U MAPS TO EMPTY SET,
     // MAYBE WE SHOULD CHANGE THIS AND REQUIRE EVERY WORLD IN KEYS...
     public boolean deadEnd(World from) {

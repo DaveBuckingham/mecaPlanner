@@ -109,4 +109,5 @@ clean:
 	rm -f ./actions
 	rm -f ./kr2021
 	rm -f ./test
+	rm -f ./bisimulations
 	rm -f ./mecaPlanner*.jar

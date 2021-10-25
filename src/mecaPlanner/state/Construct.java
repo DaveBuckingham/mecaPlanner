@@ -17,18 +17,74 @@ import java.util.Stack;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+// ALGORITHM 5.1 FROM NGUYEN (2000) "Constructing the Least Models for Positive Modal Logic Programs" WITH L=KD45
 
 public class Construct {
+
+    static class FormulaWorld extends World {
+        Set<BeliefFormula> formulae;
+        public FormulaWorld(Set<BeliefFormula> formulae) {
+            super(new HashSet<Fluent>());
+            this.formulae = formulae;
+        }
+        public FormulaWorld() {
+            this(new HashSet<BeliefFormula>());
+        }
+    }
 
 
     private static Domain domain; // DO WE NEED THIS?
 
     private Construct() { }
 
-    public static EpistemicState constructState(Domain d, Set<BeliefFormula> formulae) {
+    private static Set<FormulaWorld> worlds;
+    private static FormulaWorld designated;
+    private static Map<String, Relation> relations;
+
+    public static EpistemicState constructState(Domain d, Set<BeliefFormula> initialFormulae) {
         domain = d;
+        worlds = new HashSet<FormulaWorld>();
+        FormulaWorld tau = new FormulaWorld(initialFormulae);
+        designated = tau;
+        worlds.add(designated);
+
+        FormulaWorld rho = new FormulaWorld();
+        FormulaWorld omega = new FormulaWorld();
+        worlds.add(rho);
+        worlds.add(omega);
+        for (String a : domain.getAllAgents()) {
+            Relation r = new Relation();
+            relations.put(a, new Relation());
+            r.connect(tau,rho);
+            r.connect(tau,omega);
+            r.connect(rho,tau);
+            r.connect(rho,omega);
+            r.connect(omega,tau);
+            r.connect(omega,rho);
+            relations.put(a, r);
+        }
         return null;
     }
+
+//    private static void createEmptyTail(FormulaWorld tau, String agent) {
+//        FormulaWorld rho = new FormulaWorld();
+//        FormulaWorld omega = new FormulaWorld();
+//        worlds.add(rho);
+//        worlds.add(omega);
+//        if (agent == null) {
+//            for (String a : domain.getAllAgents()) {
+//                relations.get(a).connect(tau,rho);
+//                relations.get(a).connect(rho,omega);
+//
+//                for (FormulaWorld fromWorld : relations.get(a).getFromWorlds(tau)) {
+//                }
+//
+//            }
+//        }
+//        else {
+//            relations.get(agent).connect(rho,omega);
+//        }
+//    }
 
 //    private static Set<ModalTree> parseFormula(BeliefFormula formula) {
 //        Set<ModalTree> result = new HashSet<>();
