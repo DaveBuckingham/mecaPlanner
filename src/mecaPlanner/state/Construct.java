@@ -21,7 +21,7 @@ import org.antlr.v4.runtime.tree.*;
 
 public class Construct {
 
-    static class FormulaWorld extends World {
+    static private class FormulaWorld extends World {
         Set<BeliefFormula> formulae;
         public FormulaWorld(Set<BeliefFormula> formulae) {
             super(new HashSet<Fluent>());
@@ -29,6 +29,59 @@ public class Construct {
         }
         public FormulaWorld() {
             this(new HashSet<BeliefFormula>());
+        }
+        public Set<BeliefFormula> getFormulae() {
+            return formulae;
+        }
+    }
+
+    static private class Mode {
+        private Boolean possibly;
+        public Mode (Boolean p) {
+            this.possibly = p;
+        }
+        public Boolean isPossibly() {
+            return possibly;
+        }
+        public Boolean isNecessarily() {
+            return !possibly;
+        }
+    }
+
+    static private class Horn {
+        List<Mode> modes;   // THIS IS "BACKWARDS", modes[0] IS THE THE RIGHT-MOST OPERATOR
+        BeliefFormula head;
+        Set<BeliefFormula> body;
+        public Horn(List<Mode> m, BeliefFormula h, Set<BeliefFormula> b) {
+            this.modes = m;
+            this.head = h;
+            this.body = b;
+        }
+        public Horn(BeliefFormula formula) {
+            BeliefFormula current = formula;
+            while (current != null) {
+                if (current instanceof BeliefBelievesFormula) {
+                    if (((BeliefBelievesFormula) f).getFormula() instanceof Fluent) {
+                        return true;
+                    }
+                }
+            }
+            Collections.reverse(modes);
+        }
+        public Boolean hasModes() {
+            return !modes.isEmtpy();
+        }
+        public Horn stripMode() {
+            if (!hasModes()) {
+                throw new RuntimeException("no mode to strip from Horn formula");
+            }
+            return new Horn(Arrays.copyOfRange(modes, 0, modes.length()-1), head, body);
+        }
+        public BeliefFormula getHead() {
+            return head;
+        }
+        public Set<BeliefFormula> getBody() {
+            return body;
         }
     }
 
@@ -63,8 +116,67 @@ public class Construct {
             r.connect(omega,rho);
             relations.put(a, r);
         }
+
+        Boolean changed = true;
+        while (changed) {
+            for (FormulaWorld w : worlds) {
+                for (BeliefFormula f : w.getFormulae()) {
+                    Horn horn = parseHorn(f);
+                    if (horn != null) {
+                        continue;
+                    }
+                    BeliefFormula inner = parseNecessarily(f);
+                    if (inner != null) {
+                        continue;
+                    }
+                    inner = parsePossibly(f);
+                    if (inner != null) {
+                        continue;
+                    }
+                    throw new RuntimeException("illegal initial formula: " + f);
+                }
+            }
+        }
+
         return null;
     }
+
+
+    private static BeliefFormula parseNecessarily(BeliefFormula f) {
+        return null;
+    }
+    private static BeliefFormula parsePossibly(BeliefFormula f) {
+        return null;
+    }
+
+    private static Boolean isLegalModalAtom(BeliefFormula f) {
+        if (f instanceof Fluent) {
+            return true;
+        }
+        if (f instanceof BeliefBelievesFormula) {
+            if (((BeliefBelievesFormula) f).getFormula() instanceof Fluent) {
+                return true;
+            }
+        }
+        if (f instanceof BeliefNotFormula) {
+            BeliefFormula inner = ((BeliefNotFormula) f).getFormula();
+            if (inner instanceof BeliefBelievesFormula) {
+                BeliefFormula innerInner = ((BeliefBelievesFormula) inner).getFormula();
+                if (innerInner instanceof BeliefNotFormula) {
+                    if (((BeliefNotFormula) innerInner).getFormula() instanceof Fluent) {
+                        return true;
+                    }
+                }
+                if (innerInner instanceof LocalNotFormula) {
+                    if (((LocalNotFormula) innerInner).getFormula() instanceof Fluent) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
 
 //    private static void createEmptyTail(FormulaWorld tau, String agent) {
 //        FormulaWorld rho = new FormulaWorld();
@@ -86,9 +198,6 @@ public class Construct {
 //        }
 //    }
 
-//    private static Set<ModalTree> parseFormula(BeliefFormula formula) {
-//        Set<ModalTree> result = new HashSet<>();
-//
 //        if (formula instanceof Fluent) {
 //            Set<Fluent> fluents = new HashSet<>();
 //            fluents.add((Fluent) formula);
@@ -182,71 +291,8 @@ public class Construct {
 //    }
 //
 //
-//    // HERE'S WHERE THE MAJIC (HOPEFULLY) HAPPENS:
-//    // WE CONFLATE MODAL NECESSITY DISJUNCTION WITH MODAL POSSIBILITY CONJUNCTION,
-//    // BOTH ARE REPRESENTED BY CHILD ARITY, AND WE COMBINE THEM
-//    private static PossibleTree mergeModes(ModalTree m) {
-//        Map<String, Set<PossibleTree>> mergedPossibilities = new HashMap<>();
-//        for (String a : domain.getAllAgents()) {
-//            Set<PossibleTree> merged = new HashSet<>();
-//            Set<ModalTree> possibly = new HashSet<>();
-//            for (ModalTree negativeBelief : m.getNegativeBeliefs(a)) {
-//                possibly.add(negate(negativeBelief));
-//            }
-//            if (m.getBeliefs(a).isEmpty()) {
-//                for (ModalTree p : possibly) {
-//                    merged.add(mergeModes(p));
-//                }
-//            }
-//            else if (possibly.isEmpty()) {
-//                for (ModalTree b : m.getBeliefs(a)) {
-//                    merged.add(mergeModes(b));
-//                }
-//            }
-//            else {
-//                for (ModalTree b : m.getBeliefs(a)) {
-//                    for (ModalTree p : possibly) {
-//                        merged.add(mergeModes(conjoin(b,p)));
-//                    }
-//                }
-//            }
-//            mergedPossibilities.put(a, merged);
-//        }
-//        return new PossibleTree(m.getTrueFluents(), m.getFalseFluents(), mergedPossibilities);
-//    }
-//
-//
-//    private static PossibleTree cascadeFluents(PossibleTree t, PossibleTree parent) {
-//        Set<Fluent> fluents = new HashSet();
-//        Map<String, Set<PossibleTree>> beliefs = new HashMap<>();
-//
-//        fluents.addAll(t.getTrueFluents());
-//
-//        if (parent != null) {
-//            for (Fluent f : parent.getTrueFluents()) {
-//                if (!t.getFalseFluents().contains(f)) {
-//                    fluents.add(f);
-//                }
-//            }
-//        }
-//
-//        for (String a : domain.getAllAgents()) {
-//            Set<PossibleTree> cascadedChildren = new HashSet<>();
-//            for (PossibleTree p : t.getBeliefs(a)) {
-//                cascadedChildren.add(cascadeFluents(p, t));
-//            }
-//            beliefs.put(a, cascadedChildren);
-//        }
-//
-//        return new PossibleTree(fluents, new HashSet<Fluent>(), beliefs);
-//    }
-//
-//
-//    private static EpistemicState makeState(PossibleTree p) {
-//
-//        // COPY INTO KRIPKE STRUCTURE
-//
-//        p = cascadeFluents(p, null);
+
+//    private static EpistemicState makeState() {
 //
 //        Set<World> worlds = new HashSet<>();
 //        Map<String, Relation> beliefRelations = new HashMap<>();
@@ -349,4 +395,6 @@ public class Construct {
  
 
 }
+
+// NEED TO COMPARE FORMULAE FOR IDNTITY EQUALITY!
 
