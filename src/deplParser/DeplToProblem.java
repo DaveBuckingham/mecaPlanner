@@ -450,32 +450,18 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    @Override public EpistemicState visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        Set<BeliefFormula> initialFormulae = new HashSet<>();
-        for (DeplParser.BeliefFormulaContext f : ctx.beliefFormula()) {
-            initialFormulae.add((BeliefFormula) visit(f));
-        }
-        EpistemicState state = Construct.constructState(domain, initialFormulae);
-        for (BeliefFormula f : initialFormulae) {
-            if (!f.evaluate(state)) {
-                throw new RuntimeException("model construction failed:" + f);
+
+    // FOR MAKING MULTIPLE STATES FROM A SINGLE FORMULA
+    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
+        Set<EpistemicState> states = Construct.constructStates(domain, formula);
+        for (EpistemicState s : states) {
+            if (!formula.evaluate(s)) {
+                throw new RuntimeException("model construction failed, does the formula satisfy KD45?: " + formula);
             }
         }
-        return state;
+        return states;
     }
-
-
-//    FOR MAKING MULTIPLE STATES FROM A SINGLE FORMULA
-//    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-//        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-//        Set<EpistemicState> states = Construct.constructStates(domain, formula);
-//        for (EpistemicState s : states) {
-//            if (!formula.evaluate(s)) {
-//                throw new RuntimeException("model construction failed, does the formula satisfy KD45?: " + formula);
-//            }
-//        }
-//        return states;
-//    }
 
 
 
