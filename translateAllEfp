@@ -1,3 +1,0 @@
-#!/bin/bash
-
-for f in ~/planners/efp/EpistemicPlanning/Experiment/*.txt; do echo $f; d=`echo $(basename $f) | sed "s/\.txt/\.depl/"`;./efp2depl $f > problems/efp/$d;done

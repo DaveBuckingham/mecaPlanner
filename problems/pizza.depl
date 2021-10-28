@@ -21,14 +21,12 @@ agents{
     human1{PizzaModel},
 }
 
-
 fluents{
     at(Locatable, Location),
     human_hungry(),
     door_open(),
     robot_charged(),
 }
-
 
 initially{at(human1, room1) & at(robot1, room1) & at(pizza,room1) & at(hotdog,room2) & human_hungry()}
 
@@ -62,7 +60,6 @@ actions{
         observes(?o-Actor){?o},
         causes{robot_charged()},
     }
-
 
     eat(?f-Food,?l-Location,?r-Robot){
         owner{?r},

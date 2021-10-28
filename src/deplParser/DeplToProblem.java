@@ -31,21 +31,21 @@ import java.io.IOException;
 
 public class DeplToProblem extends DeplBaseVisitor {
 
-    // GO IN PROBLEM
+    // THESE GO IN THE PROBLEM
     private Domain domain;
     private Integer systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
     private Set<TimeFormula> goals;
 
-    // USED FOR PARSE-TIME CHECKS, DON'T GO IN DOMAIN
+    // THESE ARE USED AT PARSE-TIME ONLY
     private Set<Fluent> allFluents;
     private Integer agentIndex;
-    private Map<String, String> allObjects;     // from object name to object type
+    private Map<String, String> allObjects;     // object name --> object type
 
     private Map<Fluent, Boolean> constants;
 
-    private Map<String, TypeNode> typeDefs;  // key is object type, TypeNode.getGroundings() gives objects
+    private Map<String, TypeNode> typeDefs;     // object type --> objects of that type (TypeNode.getGroundings())
     private Stack<Map<String, String>> variableStack;
 
 
@@ -58,8 +58,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     // READ A PARAMETER LIST AND GET A LIST OF MAPS
-    // EACH LIST ELEMENT MAPS FROM EACH VARIABLE NAME TO ONE GROUND OBJECT
-    // THE LIST GIVES THE CARTESIAN PRODUCT OF EACH POSSIBLE VARIABLE GROUNDING
+    // EACH MAP MAPS FROM EACH VARIABLE NAME TO ONE GROUND OBJECT
+    // THE LIST OF MAPS GIVES EACH COMBINATION OF POSSIBLE VARIABLE GROUNDINGS
 
     private List<LinkedHashMap<String, String>> getVariableMaps(DeplParser.VariableDefListContext ctx) {
         List<LinkedHashMap<String, String>> maps = new ArrayList<LinkedHashMap<String,String>>();
@@ -122,7 +122,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-
     // FOR STORING A TYPE DEFINITION, PARENT IS THE SUPERTYPE
     // GROUNDINGS ARE ALL OBJECTS OF THE TYPE
     // THE TYPE NAME ITSELF IS THE KEY TO THIS OBJECT IN A MAP
@@ -180,12 +179,16 @@ public class DeplToProblem extends DeplBaseVisitor {
         parser.addErrorListener (new BaseErrorListener ()
         {
             @Override
-            public void syntaxError (final Recognizer <?,?> recognizer, Object sym, int line, int pos, String msg, RecognitionException e)
+            public void syntaxError (final Recognizer <?,?> recognizer,
+                                     Object sym,
+                                     int line,
+                                     int pos,
+                                     String msg,
+                                     RecognitionException e)
             {
-                throw new AssertionError ("depl syntax error. Line:" + line + ", position:" + pos + ". " + msg);
+                throw new RuntimeException ("\nDEPL SYNTAX ERROR: line:" + line + ", Position:" + pos + ". " + msg);
             }
         });
-
 
         ParseTree tree           = parser.init();
 
@@ -205,13 +208,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.typeDefs = new HashMap<String, TypeNode>();
         this.typeDefs.put("Object", new TypeNode(null));
 
-
-
         visit(tree);
 
         return new Problem(domain, systemAgentIndex, startStates, startingModels, goals);
     }
-
 
 
 
@@ -312,26 +312,8 @@ public class DeplToProblem extends DeplBaseVisitor {
                 Model model = (Model) constructor.newInstance(agent, domain);
                 startingModels.put(agent, model);
             }
-            catch(ClassNotFoundException ex) {
+            catch(Exception ex) {
                 System.out.println(ex.toString());
-                System.exit(1);
-            }
-            catch(NoSuchMethodException ex) {
-                System.out.println(ex.toString());
-                System.exit(1);
-            }
-            catch(InstantiationException ex) {
-                System.out.println(ex.toString());
-                System.exit(1);
-            }
-            catch(IllegalAccessException ex) {
-                System.out.println(ex.toString());
-                System.exit(1);
-            }
-            catch(InvocationTargetException ex) {
-                System.out.println(ex.toString());
-                System.out.println("Exception while instantiating " + modelClassName);
-                System.out.println("The cause was: " + ex.getCause());
                 System.exit(1);
             }
         }
@@ -339,7 +321,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.agentIndex += 1;
         return null;
     }
-
 
     @Override public Void visitPassiveSection(DeplParser.PassiveSectionContext ctx) {
         visitChildren(ctx);
@@ -404,7 +385,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-
     // CONSTANTS
 
     @Override public Void visitConstantsSection(DeplParser.ConstantsSectionContext ctx) {
@@ -428,6 +408,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
+
     // INITIALLY
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
@@ -445,13 +426,11 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
-        //EpistemicState e = (EpistemicState) visit(ctx.startStateDef().kripkeModel());
-        //domain.setPostState(e);
+        Log.warning("Post-staet construction and checking not implemented");
         return null;
     }
 
-
-    // FOR MAKING MULTIPLE STATES FROM A SINGLE FORMULA
+    // BUILD POSSILBY MULTIPLE STATES FROM A SINGLE FORMULA
     @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
         BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
         Set<EpistemicState> states = Construct.constructStates(domain, formula);
@@ -463,8 +442,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
         return states;
     }
-
-
 
     @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
@@ -482,7 +459,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (designatedWorlds.isEmpty()) {
             throw new RuntimeException("an initial state has no designaged worlds");
         }
-
 
         for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
             String relationType = relationCtx.relationType().getText();
@@ -528,13 +504,11 @@ public class DeplToProblem extends DeplBaseVisitor {
         Set<World> worldSet = new HashSet<World>(worlds.values());
         Log.debug("constructing start state kripke...");
         KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        Log.debug("checking start state kripke...");
-        kripke.forceCheck();
         Log.debug("constructing start state...");
         NDState startState = new NDState(kripke, designatedWorlds);
         Log.debug("reducing start state...");
         startState.reduce();
-        Log.debug("checking reduced start state kripke...");
+        Log.debug("checking start state kripke...");
         startState.getKripke().forceCheck();
         return startState;
     }
@@ -555,7 +529,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         World world = new World(worldName, fluents);
         return world;
     }
-
 
 
 
@@ -636,7 +609,6 @@ public class DeplToProblem extends DeplBaseVisitor {
                     }
                 }
 
-
                 else if (fieldCtx.awareActionField() != null) {
                     DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
@@ -674,7 +646,6 @@ public class DeplToProblem extends DeplBaseVisitor {
                     }
                 }
 
-
                 else if (fieldCtx.causesActionField() != null) {
                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
@@ -695,7 +666,6 @@ public class DeplToProblem extends DeplBaseVisitor {
                     }
                 }
 
-
                 else {
                     throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
                 }
@@ -706,7 +676,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             if (owner == null) {
                 throw new RuntimeException("illegal action definition, no owner: " + actionName);
             }
-
 
             Map<String, LocalFormula> observes = new HashMap<>();
             Map<String, LocalFormula> aware = new HashMap<>();
@@ -751,26 +720,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-
-
-
-
-    //  ATOMIC
-
-//    @Override public BooleanFormula visitValueFalse(DeplParser.ValueFalseContext ctx) {
-//        return new BooleanAtom(false);
-//    }
-//    @Override public BooleanFormula visitValueTrue(DeplParser.ValueTrueContext ctx) {
-//        return new BooleanAtom(true);
-//    }
-//    @Override public IntegerFormula visitValueInteger(DeplParser.ValueIntegerContext ctx) {
-//        return new IntegerAtom(Integer.parseInt(ctx.INTEGER().getText()));
-//    }
-//    @Override public ObjectAtom visitValueObject(DeplParser.ValueObjectContext ctx) {
-//        return new ObjectAtom(ctx.objectName().getText());
-//    }
-
-
     @Override public String visitGroundableObject(DeplParser.GroundableObjectContext ctx) {
         if (ctx.objectName() != null) {
             String name = ctx.objectName().getText();
@@ -779,18 +728,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             return name;
         }
-
-//        if (ctx.fluent() != null) {
-//
-//            Fluent objectFluent = (Fluent) visit(ctx.fluent());
-//            if (objectConstants.containsKey(objectFluent)) {
-//                return objectConstants.get(objectFluent);
-//            }
-//            if (!allObjectFluents.containsKey(objectFluent)) {
-//                throw new RuntimeException("unknown object fluent: " + objectFluent);
-//            }
-//            return new ObjectAtom(objectFluent);
-//        }
 
         String variable = ctx.VARIABLE().getText();
         String grounding = null;
@@ -830,7 +767,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         Fluent fluent = new Fluent(fluentName, parameters);
         return fluent;
     }
-
 
     @Override public LocalFormula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
@@ -882,7 +818,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         LocalFormula rightFormula = (LocalFormula) visit(ctx.localFormula().get(1));
         return (LocalOrFormula.make(leftFormula.negate(), rightFormula));
     }
-
 
 
 
@@ -948,6 +883,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
+
     // TIME FORMULAE
 
     @Override public TimeFormula visitTimeBelief(DeplParser.TimeBeliefContext ctx) {
@@ -978,8 +914,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
         return (TimeOrFormula.make(subFormulae));
     }
-
-
 
     @Override public TimeFormulaConstraint visitTemporalConstraint(DeplParser.TemporalConstraintContext ctx) {
         return new TimeFormulaConstraint((TimeFormulaConstraint.Inequality) visit(ctx.inequality()),
@@ -1017,14 +951,5 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public TimeFormulaConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
         return TimeFormulaConstraint.Inequality.GTE;
     }
-
-
-
-
-
-
-
-
-
 
 }

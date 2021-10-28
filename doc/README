@@ -1,0 +1,7 @@
+I suggest the TeX Live package and the Latexmk tool.
+
+1. build the manual:
+$ latexmk manual
+
+2. clean up:
+$ latexmk -c manual

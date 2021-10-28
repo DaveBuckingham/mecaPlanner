@@ -23,9 +23,9 @@
 //              |               |              
 //              |      2|      1|              
 //              +-------+-------+
-// "some rooms contain boxes, you must reach the box that is in room 6
+// "some rooms contain Boxes, you must reach the Box that is in room 6
 //  within 6 timesteps. there is also a robot in room 6. if the robot 
-//  sees you, it will try to prevent you from reaching the box.
+//  sees you, it will try to prevent you from reaching the Box.
 //
 //                                      
 // 1 R: wait
@@ -41,37 +41,37 @@
 // 6 R: (look at human) move78
 //   H: move68
 //
-// Failed: human location: room 8, target box location: room 7
+// Failed: human Location: room 8, target Box Location: room 7
 //
 ////////////////////////////////////////
 
 
 types{
-    robot-actor,
-    human-actor,
-    actor-locatable,
-    box-holdable,
-    holdable-locatable,
-    locatable-object,
-    location-object
+    Robot     - Actor,
+    Human     - Actor,
+    Actor     - Locatable,
+    Box       - Holdable,
+    Holdable  - Locatable,
+    Locatable - Object,
+    Location  - Object
 }
 
 objects{
-    robot1-robot,
-    human1-human,
-    room1 - location,
-    room2 - location,
-    room3 - location,
-    room4 - location,
-    room5 - location,
-    room6 - location,
-    room7 - location,
-    room8 - location,
-    box1 - box,
-    box2 - box,
-    box3 - box,
-    box4 - box,
-    box5 - box,
+    robot1- Robot,
+    human1- Human,
+    room1 - Location,
+    room2 - Location,
+    room3 - Location,
+    room4 - Location,
+    room5 - Location,
+    room6 - Location,
+    room7 - Location,
+    room8 - Location,
+    box1  - Box,
+    box2  - Box,
+    box3  - Box,
+    box4  - Box,
+    box5  - Box,
 }
 
 agents{
@@ -79,10 +79,10 @@ agents{
     robot1,
 }
 
-atoms{
-    at[?a - locatable, ?b - location](?a,?b),
-    has[?a - actor, ?h - holdable](?a,?h),
-    loaded[?a - actor](?a),
+fluents{
+    at(Locatable, Location),
+    has(Actor, Holdable),
+    loaded(Actor),
     human_succeeded(),
 }
 
@@ -136,15 +136,13 @@ constants{
 }
 
 initially{
-    //at(human1, room1),
-    // FOR WITHOUT ROBOT WAIT
-    at(human1, room2),
-    at(robot1, room6),
-    at(box1, room3),
-    at(box2, room4),
-    at(box3, room4),
-    at(box4, room6),
-    at(box5, room7),
+    at(human1, room2) &
+    at(robot1, room6) &
+    at(box1, room3) &
+    at(box2, room4) &
+    at(box3, room4) &
+    at(box4, room6) &
+    at(box5, room7)
 }
 
 goals{
@@ -152,34 +150,34 @@ goals{
 }
 
 actions{
-    move[?f-location,?t-location](?f,?t){
+    move(?f-Location,?t-Location){
         owner{human1},
         precondition{at(human1, ?f)},
         precondition{adjacent(?f,?t)},
-        observesif[?l - location]{robot1, (at(robot1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        observes(?l - Location){robot1 if (at(robot1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
         observes{human1},
         causes{at(human1, ?t)},
         causes{~(at(human1, ?f))},
-        causesif{human_succeeded, at(box4, ?t)}
+        causes{human_succeeded() if at(box4, ?t)}
     }
 
-    move[?f-location,?t-location](?f,?t){
+    move(?f-Location,?t-Location) {
         owner{robot1},
         precondition{at(robot1, ?f)},
         precondition{adjacent(?f,?t)},
-        precondition[?b - box]{~has(robot1,?b)},
-        observesif[?l - location]{human1, (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        precondition(?b - Box){~has(robot1,?b)},
+        observes(?l - Location){human1 if (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
         observes{robot1},
         causes{at(robot1, ?t)},
         causes{~(at(robot1, ?f))},
     }
 
-    move_box[?f-location,?t-location,?b-box](?f,?t,?b){
+    move_box(?f-Location,?t-Location,?b-Box) {
         owner{robot1},
         precondition{at(robot1, ?f)},
         precondition{adjacent(?f,?t)},
         precondition{has(robot1, ?b)},
-        observesif[?l - location]{human1, (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
+        observes(?l - Location){human1 if (at(human1,?l) & (covisible(?l,?f) | covisible(?l,?t)))}
         observes{robot1},
         causes{at(robot1, ?t)},
         causes{at(?b, ?t)},
@@ -187,32 +185,32 @@ actions{
         causes{~(at(?b, ?f))},
     }
 
-    pickup_box[?l-location,?b-box](?l,?b){
+    pickup_box(?l-Location,?b-Box) {
         owner{robot1},
         precondition{at(robot1, ?l)},
         precondition{at(?b, ?l)},
         precondition{~loaded(robot1)}
-        observesif[?hl - location]{human1, (at(human1,?hl) & covisible(?hl,?l))},
+        observes(?hl - Location){human1 if (at(human1,?hl) & covisible(?hl,?l))},
         observes{robot1},
         causes{has(robot1, ?b)},
         causes{loaded(robot1)}
     }
 
-    drop_box[?l-location,?b-box](?l,?b){
+    drop_box(?l-Location,?b-Box) {
         owner{robot1},
         precondition{at(robot1, ?l)},
         precondition{has(robot1, ?b)},
-        observesif[?hl - location]{human1, (at(human1,?hl) & covisible(?hl,?l))},
+        observes(?hl - Location){human1 if (at(human1,?hl) & covisible(?hl,?l))},
         observes{robot1},
         causes{~has(robot1, ?b)},
         causes{~loaded(robot1)}
     }
 
-    wait[?a - actor,?l-location](?l) {
+    wait(?a - Actor,?l-Location) {
         owner{?a},
         precondition{at(?a, ?l)},
         observes{?a},
-        observesif[?o-actor,?ol - location]{?o, (at(?o,?ol) & covisible(?ol,?l))},
+        observes(?o-Actor,?ol - Location){?o if (at(?o,?ol) & covisible(?ol,?l))},
     }
 
 }

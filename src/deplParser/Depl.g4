@@ -4,7 +4,7 @@ fragment LOWER          : [a-z];
 fragment UPPER          : [A-Z];
 fragment LETTER         : LOWER | UPPER;
 fragment ANYCHAR        : LETTER | DIGIT | '_';
-fragment DIGIT          :  [0-9];
+fragment DIGIT          : [0-9];
 
 OP_AND                  : '&'|'&&';
 OP_OR                   : '|'|'||';
@@ -32,6 +32,8 @@ WS                      : [ \n\t\r]+ -> skip;
 objectName              : LOWER_NAME ;
 objectType              : UPPER_NAME ;
 
+
+// THE MAIN STRUCTURE OF A DEPL FILE
 
 init :
     typesSection
@@ -140,13 +142,10 @@ timeFormula
 // INITIAL STATE DEFINITION
 
 initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' ) ;
-//initiallySection : 'initially' startStateDef startStateDef? ;
 
 startStateDef : '{' (initiallyDef | kripkeModel) '}' ;
 
-//initiallyDef : (beliefFormula ',')* beliefFormula? ;
 initiallyDef : beliefFormula ;
-
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 

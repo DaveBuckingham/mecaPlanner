@@ -14,7 +14,6 @@ import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
 
-    //private Set<Fluent> allFluents;
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
 
@@ -29,7 +28,6 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
-        //allFluents = new HashSet<>();
         //constants = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
@@ -42,31 +40,6 @@ public class Domain implements java.io.Serializable {
 
     }
 
-//    public Domain(Domain d) {
-//        actions = new HashMap<>();
-//        actionsBySignature = new HashMap<>();;
-//
-//        for (Action a : d.getAllActions()) {
-//            addAction(a);
-//        }
-//
-//        allAgents = new HashSet<>(d.getAllAgents());
-//        nonPassiveAgents = new ArrayList<>(d.getNonPassiveAgents());
-//        passiveAgents = new HashSet<>(d.getPassiveAgents());
-//
-//        postState = d.getPostState();
-//
-//    }
-
-
-
-    //public Set<Fluent> getAllFluents() {
-    //    return allFluents;
-    //}
-
-    //public Set<FluentAtom> getConstants() {
-    //    return constants;
-    //}
 
 
     public Map<String,Set<Action>> getActionMap() {
@@ -147,18 +120,6 @@ public class Domain implements java.io.Serializable {
     public List<String> getAgents() {
         return allAgents;
     }
-
-    //public void addFluent(Fluent f) {
-    //    allFluents.add(f);
-    //}
-
-    //public void addFluents(Set<Fluent> f) {
-    //    allFluents.addAll(f);
-    //}
-
-    //public void addConstant(FluentAtom f) {
-    //    constants.add(f);
-    //}
 
 
     public void addAgent(String agent) {

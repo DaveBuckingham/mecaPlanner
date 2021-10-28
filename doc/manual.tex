@@ -16,19 +16,8 @@
 \usetikzlibrary{automata, positioning, arrows.meta}
 
 
-\usepackage[style=authoryear-comp]{biblatex}
-\addbibresource{\jobname.bib}
 
 
-%\begin{filecontents}{\jobname.bib}
-%@inproceedings{buckingham2021multiagent,
-%  title={A Multi-Agent Epistemic and Doxastic Action Language with Belief Revision and Local Dynamic Observability},
-%  author={Buckingham, David and Sarathy, Vasanth and Scheutz, Matthias and Son, Tran Cao},
-%  booktitle={Proceedings of the International Conference on Principles of Knowledge Representation and Reasoning},
-%  volume={18},
-%  year={2021}
-%}
-%\end{filecontents}
 
 
 \usepackage{hyperref}
@@ -79,8 +68,7 @@ dbucki01@tufts.edu
 A planning problem includes a single system agent and zero or more environment
 agents.  We also admit so-called passive agents. Passive agents do not act, but
 the planner will maintain representations of their mental states within
-epistemic-doxastic states.  We assume discrete turn-taking.  Our search
-algorithm is described in detail in \ref{???}.
+epistemic-doxastic states.  We assume discrete turn-taking.
 
 
 \section{Building}
@@ -346,8 +334,7 @@ between connected rooms.
 
 This section defines the start state or the set of start states.
 The state representations used by the planner are presented only in outline
-here. For a complete description of these state representations, please
-consult \fullcite{??}.
+here.
 
 A state definition has two parts.
 If there are multiple start states, they represent
@@ -423,8 +410,6 @@ assigning each action parameter to each object having its type.
 Each of \verb|f1,...,fn| is an action definition. An action definition
 takes the form \verb|name(p1,...,pn){f1,...,fm}|.
 
-For more information about action definitions, see
-\cite{??}.
  
 
 
@@ -446,8 +431,6 @@ You can build \verb|test| with:
 $ make test
 \end{lstlisting}
 
-
-%\printbibliography
 
 
 

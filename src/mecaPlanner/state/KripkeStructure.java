@@ -17,7 +17,7 @@ import java.util.Comparator;
 import java.util.Collections;
 
 
-// NOTE: THE "TEXTBOOK" IS "PRINCIPLES OF MODEL CHECKING" BY BAIER AND KATOEN.
+// THE BISIMULATION QUOTIENTING ALGORITHM IS FROM "PRINCIPLES OF MODEL CHECKING" BY BAIER AND KATOEN.
 
 
 public class KripkeStructure implements java.io.Serializable {
@@ -31,14 +31,11 @@ public class KripkeStructure implements java.io.Serializable {
     private Set<World> worlds;
 
 
-
-
     public KripkeStructure(Set<World> worlds, Map<String, Relation> belief, Map<String, Relation> knowledge) {
 
         assert(!worlds.isEmpty());
         assert(belief.keySet().equals(knowledge.keySet()));
 
-        //this.worlds = new HashSet<World>(worlds);
         this.worlds = worlds;
 
         this.beliefRelations = belief;
