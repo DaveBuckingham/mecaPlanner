@@ -17,9 +17,9 @@ import java.util.Stack;
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
+// STATIC METHODS TO BUILD A STATE FROM A SET OF FLUENTS
 
 public class Construct {
-
 
     private static Domain domain;
 
@@ -47,7 +47,6 @@ public class Construct {
             this.falseFluents = falseFluents;
             this.beliefs = beliefs;
             this.negativeBeliefs = negativeBeliefs;
-            //System.out.println(this);
         }
         public Set<Fluent> getTrueFluents() {
             return trueFluents;
@@ -161,7 +160,6 @@ public class Construct {
             }
             str.append("},{");
             for (Map.Entry<String, Set<PossibleTree>> entry : beliefs.entrySet()) {
-                //str.append(entry.getKey());
                 for (PossibleTree t : entry.getValue()) {
                     str.append(t);
                     str.append(",");
@@ -174,18 +172,11 @@ public class Construct {
     }
 
 
-
-
-
-
-
-
     private static ModalTree negate(ModalTree m) {
         return new ModalTree(m.getFalseFluents(), m.getTrueFluents(), m.getNegativeBeliefs(), m.getBeliefs());
     }
 
     private static ModalTree conjoin(ModalTree l, ModalTree r) {
-
 
         Set<Fluent> unionedTrueFluents = new HashSet<>();
         unionedTrueFluents.addAll(l.getTrueFluents());
@@ -294,6 +285,9 @@ public class Construct {
         else if (formula instanceof BeliefAndFormula || formula instanceof LocalAndFormula) {
             List<ModalTree> parsedLeft = new ArrayList<>();
             List<ModalTree> parsedRight = new ArrayList<>();
+
+            // WE SHOULD DO THIS TO WORK WITH N-ARY CONJUNCTION,
+            // THEN WE CAN DELETE THE BINARIZE METHOD
 
             if (formula instanceof BeliefAndFormula) {
                 BeliefAndFormula andFormula = (BeliefAndFormula) formula;
@@ -444,7 +438,6 @@ public class Construct {
 
 
     private static EpistemicState makeState(PossibleTree p) {
-        //System.out.println(p);
 
         // COPY INTO KRIPKE STRUCTURE
 

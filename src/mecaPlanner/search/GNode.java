@@ -48,8 +48,6 @@ public abstract class GNode  {
         this.systemAgentIndex = systemAgentIndex;
         this.domain = domain;
 
-        //System.out.println(domain);
-        //System.out.println("------");
         this.numAgents = domain.getNonPassiveAgents().size();
         this.agentIndex = this.time % this.numAgents;
         this.agent = domain.getNonPassiveAgents().get(agentIndex);

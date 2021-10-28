@@ -73,8 +73,6 @@ public class AndNode extends GNode {
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
 
-            //Set<OrNode> orSuccessors = successor.descend();
-
             GroundSuccessors successors = successor.descend();
 
             if (successors == null) {
@@ -87,7 +85,6 @@ public class AndNode extends GNode {
 
             allOrSuccessors.addAll(orSuccessors);
         }
-        //return allOrSuccessors;
         return new GroundSuccessors(bestCaseDepth, allOrSuccessors);
     }
 }

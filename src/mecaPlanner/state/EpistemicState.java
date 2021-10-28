@@ -22,11 +22,9 @@ import java.util.Collections;
 
 public class EpistemicState extends NDState {
 
-    //private World designatedWorld;
 
     public EpistemicState(KripkeStructure kripkeStructure, World designatedWorld) {
         super(kripkeStructure, new HashSet<World>(Arrays.asList(designatedWorld)));
-        //this.designatedWorld = designatedWorld;
     }
 
     public EpistemicState(EpistemicState toCopy) {
@@ -60,20 +58,6 @@ public class EpistemicState extends NDState {
     public String toStringCompact() {
         return getDesignatedWorld().toString();
     }
-
-//    public Boolean resolveBoolean(Fluent f) {
-//        return designatedWorld.resolveBoolean(f);
-//    }
-//
-//    public Integer resolveInteger(Fluent f) {
-//        return designatedWorld.resolveInteger(f);
-//    }
-//
-//    public String resolveObject(Fluent f) {
-//        return designatedWorld.resolveObject(f);
-//    }
-
-
 
 
 

@@ -157,59 +157,6 @@ public class NDState implements java.io.Serializable {
 
 
 
-//    public Set<Boolean> resolveBooleanPosibilities(Fluent f) {
-//        Set<Boolean> valsInWorlds = new HashSet<>();
-//        for (World w : designatedWorlds) {
-//            valsInWorlds.add(w.resolveBoolean(f));
-//        }
-//        return valsInWorlds;
-//    }
-//    public Boolean resolveBoolean(Fluent f) {
-//        Set<Boolean> valsInWorlds = this.resolveBooleanPosibilities(f);
-//        if (valsInWorlds.size() > 1) {
-//            return null;
-//        }
-//        return valsInWorlds.iterator().next();
-//    }
-//
-//    public Set<Integer> resolveIntegerPosibilities(Fluent f) {
-//        Set<Integer> valsInWorlds = new HashSet<>();
-//        for (World w : designatedWorlds) {
-//            valsInWorlds.add(w.resolveInteger(f));
-//        }
-//        return valsInWorlds;
-//    }
-//    public Integer resolveInteger(Fluent f) {
-//        Set<Integer> valsInWorlds = this.resolveIntegerPosibilities(f);
-//        if (valsInWorlds.size() > 1) {
-//            return null;
-//        }
-//        return valsInWorlds.iterator().next();
-//    }
-//
-//    public Set<String> resolveObjectPosibilities(Fluent f) {
-//        Set<String> valsInWorlds = new HashSet<>();
-//        for (World w : designatedWorlds) {
-//            valsInWorlds.add(w.resolveObject(f));
-//        }
-//        return valsInWorlds;
-//    }
-//    public String resolveObject(Fluent f) {
-//        Set<String> valsInWorlds = this.resolveObjectPosibilities(f);
-//        if (valsInWorlds.size() > 1) {
-//            return null;
-//        }
-//        return valsInWorlds.iterator().next();
-//    }
-
-
-
-
-
-
-
-
-
 
     @Override
     public boolean equals(Object obj) {
@@ -255,7 +202,7 @@ public class NDState implements java.io.Serializable {
 
     @Override
     public int hashCode() {
-        // MAYBE ROOM FOR IMPROEMENT HERE...
+        // THERE MAY BE SOME ROOM FOR IMPROVEMENT HERE...
         return 1;
     }
 

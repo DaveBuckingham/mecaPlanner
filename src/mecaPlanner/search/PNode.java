@@ -17,7 +17,7 @@ public class PNode extends RecursiveTask<Integer> {
     private Set<OrNode> grounds;
     private Set<PNode> successors;
     private Integer time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
-    private int depth;      // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
+    private int depth;          // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
     private int maxDepth;
     private Domain domain;
 
@@ -31,8 +31,6 @@ public class PNode extends RecursiveTask<Integer> {
         this.depth = depth;
         this.maxDepth = maxDepth;
         this.domain = domain;
-        //System.out.print("::: ");
-        //System.out.println(java.lang.Thread.activeCount());
     }
 
     public Perspective getPerspective() {
@@ -137,14 +135,12 @@ public class PNode extends RecursiveTask<Integer> {
         return (bestBestCaseDepth);
     }
 
-    // returns null if transition fails due to cycles or depth limit
-    // returns empty set if found goal
+    // RETURNS NULL IF TRANSITION FAILS DUE TO CYCLES OR DEPTH LIMIT
+    // RETURNS EMPTY SET IF FOUND GOAL
     private PerspectiveSuccessors pTransition(Action action) {
         Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
         Integer bestCaseDepth = Integer.MAX_VALUE;
         for (OrNode ground : grounds ){
-
-            //Set<OrNode> gSuccessors = ground.transition(action).descend();
 
             //assert(ground.getState().getKripke().checkRelations());
 

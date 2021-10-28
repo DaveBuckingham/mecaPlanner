@@ -3,6 +3,7 @@ package mecaPlanner.state;
 
 import mecaPlanner.formulae.localFormulae.*;
 
+// REPRESENTS THE ASSIGNMENT OF A VALUE TO A FLUENT BY AN ACTION'S ONTIC EFFECT
 
 public class Assignment {
     private Fluent fluent;

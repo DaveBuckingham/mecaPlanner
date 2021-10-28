@@ -21,9 +21,6 @@ import java.util.Map;
 import java.util.HashMap;
 
 
-
-
-
 public class Search {
 
     private Domain domain;
@@ -33,7 +30,6 @@ public class Search {
 
     public Search() {
     }
-
 
     public Solution findSolution(Problem problem) {
 
@@ -49,14 +45,13 @@ public class Search {
         if (problem.getGoals().isEmpty()) {
             throw new RuntimeException("no goals defined");
         }
-        // ADD OTHER CHECKS
+
+        // SHOULD ADD OTHER CHECKS
 
         leavesPerDepth = 0;
         for (String agent : domain.getNonPassiveAgents()) {
             leavesPerDepth += domain.getActions(agent).size();
         }
-
-
 
         Set<EpistemicState> startStates = problem.getStartStates();
 
