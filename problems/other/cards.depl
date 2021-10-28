@@ -1,0 +1,155 @@
+types{
+}
+
+objects{
+    a-Object,
+    b-Object,
+    c-Object,
+}
+
+agents{
+    a,
+    b{BobModel},
+    c{EveModel},
+}
+
+
+fluents{
+    a0(),
+    a1(),
+    a2(),
+    a3(),
+    a4(),
+    a5(),
+    a6(),
+    b0(),
+    b1(),
+    b2(),
+    b3(),
+    b4(),
+    b5(),
+    b6(),
+    c0(),
+    c1(),
+    c2(),
+    c3(),
+    c4(),
+    c5(),
+    c6(),
+}
+
+
+initially{
+// 1
+    {
+    w1 <- {a0(),a1(),a2(),b3(),b4(),b5(),c6()},
+    w2 <- {a0(),a1(),c2(),b3(),b4(),b5(),a6()},
+    w3 <- {a0(),c1(),a2(),b3(),b4(),b5(),a6()},
+    w4 <- {c0(),a1(),a2(),b3(),b4(),b5(),a6()},
+    B[a] <- {(w1,w1)},
+    K[a] <- {(w1,w1)},
+    B[b] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    K[c] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    B[c] <- {(w1,w1)},
+    K[c] <- {(w1,w1)},
+    }
+// 2
+    {
+    w1 <- {a0(),a1(),a2(),b3(),b4(),c5(),b6()},
+    w2 <- {a0(),a1(),c2(),b3(),b4(),a5(),b6()},
+    w3 <- {a0(),c1(),a2(),b3(),b4(),a5(),b6()},
+    w4 <- {c0(),a1(),a2(),b3(),b4(),a5(),b6()},
+    B[a] <- {(w1,w1)},
+    K[a] <- {(w1,w1)},
+    B[b] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    K[c] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    B[c] <- {(w1,w1)},
+    K[c] <- {(w1,w1)},
+    }
+// 3
+    {
+    w1 <- {a0(),a1(),a2(),b3(),c4(),b5(),b6()},
+    w2 <- {a0(),a1(),c2(),b3(),a4(),b5(),b6()},
+    w3 <- {a0(),c1(),a2(),b3(),a4(),b5(),b6()},
+    w4 <- {c0(),a1(),a2(),b3(),a4(),b5(),b6()},
+    B[a] <- {(w1,w1)},
+    K[a] <- {(w1,w1)},
+    B[b] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    K[c] <- {(w1,w1),(w1,w2),(w1,w3),(w1,w4),
+             (w2,w1),(w2,w2),(w2,w3),(w2,w4),
+             (w3,w1),(w3,w2),(w3,w3),(w3,w4),
+             (w4,w1),(w4,w2),(w4,w3),(w4,w4)}
+    B[c] <- {(w1,w1)},
+    K[c] <- {(w1,w1)},
+    }
+
+
+}
+
+goals{
+    robot_charged(),
+}
+
+actions{
+    move(?a-Actor,?f-Location,?t-Location){
+        owner{?a},
+        precondition{at(?a, ?f)},
+        precondition{~(at(?a, ?t))},
+        precondition{door_open()},
+        observes(?o-Actor){?o},
+        causes{at(?a, ?t)},
+        causes{~(at(?a, ?f))},
+    }
+
+    open_door(){
+        owner{human1},
+        precondition{~door_open()},
+        observes(?o-Actor){?o},
+        causes{door_open()},
+    }
+
+    charge(){
+        owner{robot1},
+        precondition{at(robot1,room2)},
+        observes(?o-Actor){?o},
+        causes{robot_charged()},
+    }
+
+
+    eat(?f-Food,?l-Location,?r-Robot){
+        owner{?r},
+        precondition{at(?r, ?l)},
+        precondition{at(?f, ?l)},
+        observes(?o-Actor){?o},
+        causes{~(at(?f, ?l))},
+    }
+
+    eat(?f-Food,?l-Location,?h-Human){
+        owner{?h},
+        precondition{at(?h, ?l)},
+        precondition{at(?f, ?l)},
+        observes(?o-Actor){?o},
+        causes{~(at(?f, ?l))},
+        causes{~(human_hungry())},
+    }
+
+    wait(?a - Actor) {
+        owner{?a},
+        observes(?o-Actor){?o},
+    }
+}

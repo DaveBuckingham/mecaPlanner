@@ -1,0 +1,191 @@
+types{
+    Locatable-Object,
+    Location-Object,
+    Tube-Location
+}
+
+objects{
+    robot1-Locatable,
+    robot2-Locatable,
+    center-Location,
+    tube1-Tube,
+    tube2-Tube,
+    tube3-Tube,
+    robots-Object,
+}
+
+agents{
+    robots,
+}
+
+fluents{
+    at(Locatable, Location),
+    online(Tube),
+}
+
+constants{
+    ~welder(robot1),
+    welder(robot2)
+}
+
+initially{
+    {
+        *w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2), online(tube3)}
+        *w1 <- { at(robot1, center), at(robot2, center), online(tube2), online(tube3)}
+        *w2 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube3)}
+        *w3 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
+        *w4 <- { at(robot1, center), at(robot2, center), online(tube1)}
+        *w5 <- { at(robot1, center), at(robot2, center), online(tube2)}
+        *w6 <- { at(robot1, center), at(robot2, center), online(tube3)}
+        *w7 <- { at(robot1, center), at(robot2, center)}
+        B[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),(w0,w4),(w0,w5),(w0,w6),(w0,w7),
+                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),
+                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),
+                      (w3,w0),(w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),
+                      (w4,w0),(w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),
+                      (w5,w0),(w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),
+                      (w6,w0),(w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),
+                      (w7,w0),(w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7)
+                     },
+        K[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),(w0,w4),(w0,w5),(w0,w6),(w0,w7),
+                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),(w1,w4),(w1,w5),(w1,w6),(w1,w7),
+                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),(w2,w4),(w2,w5),(w2,w6),(w2,w7),
+                      (w3,w0),(w3,w1),(w3,w2),(w3,w3),(w3,w4),(w3,w5),(w3,w6),(w3,w7),
+                      (w4,w0),(w4,w1),(w4,w2),(w4,w3),(w4,w4),(w4,w5),(w4,w6),(w4,w7),
+                      (w5,w0),(w5,w1),(w5,w2),(w5,w3),(w5,w4),(w5,w5),(w5,w6),(w5,w7),
+                      (w6,w0),(w6,w1),(w6,w2),(w6,w3),(w6,w4),(w6,w5),(w6,w6),(w6,w7),
+                      (w7,w0),(w7,w1),(w7,w2),(w7,w3),(w7,w4),(w7,w5),(w7,w6),(w7,w7)
+                     },
+    },
+
+//    {
+//        *w0 <- { at(robot1, center), at(robot2, center), online(tube1), online(tube2)}
+//        *w1 <- { at(robot1, center), at(robot2, center), online(tube1)}
+//        *w2 <- { at(robot1, center), at(robot2, center), online(tube2)}
+//        *w3 <- { at(robot1, center), at(robot2, center)}
+//        B[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),
+//                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),
+//                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),
+//                      (w3,w0),(w3,w1),(w3,w2),(w3,w3)
+//                     },
+//        K[robots] <- {(w0,w0),(w0,w1),(w0,w2),(w0,w3),
+//                      (w1,w0),(w1,w1),(w1,w2),(w1,w3),
+//                      (w2,w0),(w2,w1),(w2,w2),(w2,w3),
+//                      (w3,w0),(w3,w1),(w3,w2),(w3,w3)
+//                     },
+//    },
+
+}
+
+
+goals{
+    online(tube1) & B[robots](online(tube1)),
+    online(tube2) & B[robots](online(tube2)),
+    online(tube3) & B[robots](online(tube3)),
+}
+
+actions{
+
+
+
+    move_move(?f1-Location,?t1-Location,?f2-Location,?t2-Location){
+        owner{robots},
+        precondition{at(robot1, ?f1)},
+        precondition{~(at(robot1, ?t1))},
+        precondition{at(robot2, ?f2)},
+        precondition{~(at(robot2, ?t2))},
+        observes(){robots},
+        causes{at(robot1, ?t1)},
+        causes{~(at(robot1, ?f1))},
+        causes{at(robot2, ?t2)},
+        causes{~(at(robot2, ?f2))},
+    }
+
+    move_check(?f1-Location,?t1-Location,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?f1)},
+        precondition{~(at(robot1, ?t1))},
+        precondition{at(robot2, ?l2)},
+        observes(){robots},
+        causes{at(robot1, ?t1)},
+        causes{~(at(robot1, ?f1))},
+        determines{online(?l2)},
+    }
+
+    move_fix(?f1-Location,?t1-Location,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?f1)},
+        precondition{~(at(robot1, ?t1))},
+        precondition{at(robot2, ?l2)},
+        precondition{welder(robot2)},
+        observes(){robots},
+        causes{at(robot1, ?t1)},
+        causes{~(at(robot1, ?f1))},
+        causes{online(?l2)},
+    }
+
+    check_move(?l1-Tube,?f2-Location,?t2-Location){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{at(robot2, ?f2)},
+        precondition{~(at(robot2, ?t2))},
+        observes(){robots},
+        causes{at(robot2, ?t2)},
+        causes{~(at(robot2, ?f2))},
+        determines{online(?l1)},
+    }
+
+    check_check(?l1-Tube,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{at(robot2, ?l2)},
+        observes(){robots},
+        determines{online(?l1)},
+        determines{online(?l2)},
+    }
+
+    check_fix(?l1-Tube,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{at(robot2, ?l2)},
+        precondition{welder(robot2)},
+        observes(){robots},
+        determines{online(?l1)},
+        causes{online(?l2)},
+    }
+
+    fix_move(?l1-Tube,?f2-Location,?t2-Location){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{welder(robot1)},
+        precondition{at(robot2, ?f2)},
+        precondition{~(at(robot2, ?t2))},
+        observes(){robots},
+        causes{online(?l1)},
+        causes{at(robot2, ?t2)},
+        causes{~(at(robot2, ?f2))},
+    }
+
+    fix_check(?l1-Tube,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{welder(robot1)},
+        precondition{at(robot2, ?l2)},
+        observes(){robots},
+        causes{online(?l1)},
+        determines{online(?l2)},
+    }
+
+    fix_fix(?l1-Tube,?l2-Tube){
+        owner{robots},
+        precondition{at(robot1, ?l1)},
+        precondition{welder(robot1)},
+        precondition{at(robot2, ?l2)},
+        precondition{welder(robot2)},
+        observes(){robots},
+        causes{online(?l1)},
+        causes{online(?l2)},
+    }
+
+
+}
