@@ -61,6 +61,10 @@ public class BeliefOrFormula extends BeliefFormula{
         return formulae;
     }
 
+    public Set<BeliefFormula> asSet() {
+        return new HashSet(formulae);
+    }
+
     public Boolean evaluate(KripkeStructure kripke, World world) {
         for (BeliefFormula formula : formulae) {
             if (formula.evaluate(kripke, world)) {

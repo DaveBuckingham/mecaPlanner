@@ -35,6 +35,8 @@ public class Construct {
                            Map<String, Set<ModalTree>> beliefs,
                            Map<String, Set<ModalTree>> negativeBeliefs) {
 
+            // WE ARE CHECKING THIS BEFORE WE CONSTRUCT, SO THIS SHOULD NEVER HAPPEN
+            // UNLESS MAYBE ITS IN THE TOP LEVEL OF INPUT?
             Set<Fluent> intersection = new HashSet<Fluent>(trueFluents);
             intersection.retainAll(falseFluents);
             if (!intersection.isEmpty()) {
@@ -45,6 +47,7 @@ public class Construct {
             this.falseFluents = falseFluents;
             this.beliefs = beliefs;
             this.negativeBeliefs = negativeBeliefs;
+            //System.out.println(this);
         }
         public Set<Fluent> getTrueFluents() {
             return trueFluents;
@@ -63,6 +66,46 @@ public class Construct {
         }
         public Set<ModalTree> getNegativeBeliefs(String a) {
             return negativeBeliefs.get(a);
+        }
+
+        public String toString() {
+            StringBuilder str = new StringBuilder();
+            str.append("({");
+            for (Fluent f : trueFluents) {
+                str.append(f);
+                str.append(",");
+            }
+            if (!trueFluents.isEmpty()) {
+                str.deleteCharAt(str.length() - 1);
+            }
+            str.append("},{");
+            for (Fluent f : falseFluents) {
+                str.append(f);
+                str.append(",");
+            }
+            if (!falseFluents.isEmpty()) {
+                str.deleteCharAt(str.length() - 1);
+            }
+            str.append("},{");
+            for (Map.Entry<String, Set<ModalTree>> entry : beliefs.entrySet()) {
+                //str.append(entry.getKey());
+                for (ModalTree t : entry.getValue()) {
+                    str.append(t);
+                    str.append(",");
+                }
+            }
+            //str.deleteCharAt(str.length() - 1);
+            str.append("},{");
+            for (Map.Entry<String, Set<ModalTree>> entry : negativeBeliefs.entrySet()) {
+                //str.append(entry.getKey());
+                for (ModalTree t : entry.getValue()) {
+                    str.append(t);
+                    str.append(",");
+                }
+            }
+            //str.deleteCharAt(str.length() - 1);
+            str.append("})");
+            return str.toString();
         }
     }
 
@@ -97,6 +140,37 @@ public class Construct {
         public Set<PossibleTree> getBeliefs(String a) {
             return beliefs.get(a);
         }
+
+        public String toString() {
+            StringBuilder str = new StringBuilder();
+            str.append("({");
+            for (Fluent f : trueFluents) {
+                str.append(f);
+                str.append(",");
+            }
+            if (!trueFluents.isEmpty()) {
+                str.deleteCharAt(str.length() - 1);
+            }
+            str.append("},{");
+            for (Fluent f : falseFluents) {
+                str.append(f);
+                str.append(",");
+            }
+            if (!falseFluents.isEmpty()) {
+                str.deleteCharAt(str.length() - 1);
+            }
+            str.append("},{");
+            for (Map.Entry<String, Set<PossibleTree>> entry : beliefs.entrySet()) {
+                //str.append(entry.getKey());
+                for (PossibleTree t : entry.getValue()) {
+                    str.append(t);
+                    str.append(",");
+                }
+            }
+            str.append("})");
+            return str.toString();
+        }
+
     }
 
 
@@ -112,6 +186,7 @@ public class Construct {
 
     private static ModalTree conjoin(ModalTree l, ModalTree r) {
 
+
         Set<Fluent> unionedTrueFluents = new HashSet<>();
         unionedTrueFluents.addAll(l.getTrueFluents());
         unionedTrueFluents.addAll(r.getTrueFluents());
@@ -119,6 +194,12 @@ public class Construct {
         Set<Fluent> unionedFalseFluents = new HashSet<>();
         unionedFalseFluents.addAll(l.getFalseFluents());
         unionedFalseFluents.addAll(r.getFalseFluents());
+
+        Set<Fluent> intersection = new HashSet<Fluent>(unionedTrueFluents);
+        intersection.retainAll(unionedFalseFluents);
+        if (!intersection.isEmpty()) {
+            return null;
+        }
 
         Map<String, Set<ModalTree>> conjoinedBeliefs = new HashMap<>();
         for (String a : domain.getAllAgents()) {
@@ -132,7 +213,11 @@ public class Construct {
             else {
                 for (ModalTree leftBelief : l.getBeliefs(a)) {
                     for (ModalTree rightBelief : r.getBeliefs(a)) {
-                        joined.add(conjoin(leftBelief, rightBelief));
+                        ModalTree conjoined = conjoin(leftBelief, rightBelief);
+                        if (conjoined == null) {
+                            return null;
+                        }
+                        joined.add(conjoined);
                     }
                 }
             }
@@ -151,36 +236,17 @@ public class Construct {
     }
 
 
-    // THIS FUNCTION IS COPIED FROM PHILLIP MEISTER:
-    // https://stackoverflow.com/questions/714108/cartesian-product-of-arbitrary-sets-in-java
-    private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
-        List<List<T>> resultLists = new ArrayList<List<T>>();
-        if (lists.size() == 0) {
-            resultLists.add(new ArrayList<T>());
-            return resultLists;
-        } else {
-            List<T> firstList = lists.get(0);
-            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
-            for (T condition : firstList) {
-                for (List<T> remainingList : remainingLists) {
-                    ArrayList<T> resultList = new ArrayList<T>();
-                    resultList.add(condition);
-                    resultList.addAll(remainingList);
-                    resultLists.add(resultList);
-                }
-            }
-        }
-        return resultLists;
-    }
-
-
 
     public static Set<EpistemicState> constructStates(Domain d, BeliefFormula formula) {
         domain = d;
         Set<ModalTree> trees = parseFormula(formula);
         Set<EpistemicState> states = new HashSet<>();
         for (ModalTree t : trees) {
+            System.out.println("---");
+            System.out.println(t);
             PossibleTree p = mergeModes(t);
+            System.out.println(p);
+            System.exit(1);
             states.add(makeState(p));
         }
         return states;
@@ -207,19 +273,29 @@ public class Construct {
 
         else if (formula instanceof BeliefOrFormula) {
             BeliefOrFormula orFormula = (BeliefOrFormula) formula;
-            for (BeliefFormula inner : orFormula.getFormulae()) {
-                result.addAll(parseFormula(inner));
+            for (Set<BeliefFormula> inner : powerSet(orFormula.asSet())) {
+                if (inner.size() == 1) {
+                    result.addAll(parseFormula(inner.iterator().next()));
+                }
+                else if (inner.size() > 1) {
+                    result.addAll(parseFormula(BeliefAndFormula.make(inner)));
+                }
             }
         }
         else if (formula instanceof LocalOrFormula) {
             LocalOrFormula orFormula = (LocalOrFormula) formula;
-            for (LocalFormula inner : orFormula.getFormulae()) {
-                result.addAll(parseFormula(inner));
+            for (Set<LocalFormula> inner : powerSet(orFormula.asSet())) {
+                if (inner.size() == 1) {
+                    result.addAll(parseFormula(inner.iterator().next()));
+                }
+                else if (inner.size() > 1) {
+                    result.addAll(parseFormula(LocalAndFormula.make(inner)));
+                }
             }
         }
         else if (formula instanceof BeliefAndFormula || formula instanceof LocalAndFormula) {
-            List<ModalTree> parsedLeft = new ArrayList<>();;
-            List<ModalTree> parsedRight = new ArrayList<>();;
+            List<ModalTree> parsedLeft = new ArrayList<>();
+            List<ModalTree> parsedRight = new ArrayList<>();
 
             if (formula instanceof BeliefAndFormula) {
                 BeliefAndFormula andFormula = (BeliefAndFormula) formula;
@@ -236,7 +312,10 @@ public class Construct {
 
             for (ModalTree leftTree : parsedLeft) {
                 for (ModalTree rightTree : parsedRight) {
-                    result.add(conjoin(leftTree, rightTree));
+                    ModalTree conjoined = conjoin(leftTree, rightTree);
+                    if (conjoined != null) {
+                        result.add(conjoined);
+                    }
                 }
             }
         }
@@ -305,8 +384,19 @@ public class Construct {
             }
             else {
                 for (ModalTree b : m.getBeliefs(a)) {
+                    Set<PossibleTree> t = new HashSet<>();
+                    Boolean good = true;
                     for (ModalTree p : possibly) {
-                        merged.add(mergeModes(conjoin(b,p)));
+                        ModalTree conjoined = conjoin(b,p);
+                        if(conjoined == null) {
+                            good = false;
+                        }
+                        else {
+                            t.add(mergeModes(conjoined));
+                        }
+                    }
+                    if (good) {
+                        merged.addAll(t);
                     }
                 }
             }
@@ -343,6 +433,7 @@ public class Construct {
 
 
     private static EpistemicState makeState(PossibleTree p) {
+        //System.out.println(p);
 
         // COPY INTO KRIPKE STRUCTURE
 
@@ -444,6 +535,49 @@ public class Construct {
 
         return state;
 
+    }
+
+
+    // THIS FUNCTION IS COPIED FROM PHILLIP MEISTER:
+    // https://stackoverflow.com/questions/714108/cartesian-product-of-arbitrary-sets-in-java
+    private static <T> List<List<T>> cartesianProduct(List<List<T>> lists) {
+        List<List<T>> resultLists = new ArrayList<List<T>>();
+        if (lists.size() == 0) {
+            resultLists.add(new ArrayList<T>());
+            return resultLists;
+        } else {
+            List<T> firstList = lists.get(0);
+            List<List<T>> remainingLists = cartesianProduct(lists.subList(1, lists.size()));
+            for (T condition : firstList) {
+                for (List<T> remainingList : remainingLists) {
+                    ArrayList<T> resultList = new ArrayList<T>();
+                    resultList.add(condition);
+                    resultList.addAll(remainingList);
+                    resultLists.add(resultList);
+                }
+            }
+        }
+        return resultLists;
+    }
+
+
+    // THIS FUNCTION IS COPIED FROM MARKSPACE:
+    // https://codereview.stackexchange.com/questions/164647/powerset-all-subsets-of-a-set-in-java
+    static <T> Set<Set<T>> powerSet( Set<T> set ) {
+        T[] element = (T[]) set.toArray();
+        final int SET_LENGTH = 1 << element.length;
+        Set<Set<T>> powerSet = new HashSet<>();
+        for( int binarySet = 0; binarySet < SET_LENGTH; binarySet++ ) {
+            Set<T> subset = new HashSet<>();
+            for( int bit = 0; bit < element.length; bit++ ) {
+                int mask = 1 << bit;
+                if( (binarySet & mask) != 0 ) {
+                    subset.add( element[bit] );
+                }
+            }
+            powerSet.add( subset );
+        }
+        return powerSet;
     }
 
  

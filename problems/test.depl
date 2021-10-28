@@ -1,33 +1,26 @@
-types{
-}
+types{}
 
 objects{
     a - Object,
-    b - Object,
-    c - Object,
 }
 
 agents{a}
 
-passive{b,c}
-
+passive{}
 
 fluents{
-    x(), y(), z()
+    x(),
+    y()
 }
-
 
 initially{
-//B[a](x()) & B[a](B[a](!x())),
-//!B[a](!x()) & !B[a](!B[a](!x())),
-x()
-
+    B[a](~x() | y())
+    & ~B[a](~x())
+    & ~B[a](y())
 }
 
-goals{
-    false
-}
+
+goals{}
 
 actions{
-
 }

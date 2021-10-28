@@ -61,6 +61,10 @@ public class LocalOrFormula extends LocalFormula{
         return formulae;
     }
 
+    public Set<LocalFormula> asSet() {
+        return new HashSet(formulae);
+    }
+
     public Boolean evaluate(World world) {
         for (LocalFormula formula : formulae) {
             if (formula.evaluate(world)) {

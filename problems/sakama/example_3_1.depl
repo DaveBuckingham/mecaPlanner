@@ -17,7 +17,7 @@ fluents{
 initially{
     ~v() & ~p()                  // The investment is not promising and is not worth buying,
     & B[a](~v() & ~p())          // and the investor knows it.
-//    & B[b](~v() | p())           // The customer believes that if the investment is promising, then it is worth buying,
+    & B[b](~v() | p())           // The customer believes that if the investment is promising, then it is worth buying,
     & ~B[b](~v()) & ~B[b](v())   // but doesn't know whether it is promising
     & ~B[b](~p()) & ~B[b](p())   // or worth buying.
 }
