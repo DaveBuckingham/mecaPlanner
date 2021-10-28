@@ -242,12 +242,10 @@ public class Construct {
         Set<ModalTree> trees = parseFormula(formula);
         Set<EpistemicState> states = new HashSet<>();
         for (ModalTree t : trees) {
-            System.out.println("---");
-            System.out.println(t);
             PossibleTree p = mergeModes(t);
-            System.out.println(p);
-            System.exit(1);
-            states.add(makeState(p));
+            if (p != null) {
+                states.add(makeState(p));
+            }
         }
         return states;
     }
@@ -374,30 +372,43 @@ public class Construct {
             }
             if (m.getBeliefs(a).isEmpty()) {
                 for (ModalTree p : possibly) {
-                    merged.add(mergeModes(p));
+                    PossibleTree x = mergeModes(p);
+                    if(x == null) {
+                        return null;
+                    }
+                    merged.add(x);
                 }
             }
             else if (possibly.isEmpty()) {
+                Set<PossibleTree> t = new HashSet<>();
                 for (ModalTree b : m.getBeliefs(a)) {
                     merged.add(mergeModes(b));
+                    PossibleTree x = mergeModes(b);
+                    if(x != null) {
+                        t.add(x);
+                    }
                 }
+                if (t.size() == 0) {
+                    return null;
+                }
+                merged.addAll(t);
             }
             else {
-                for (ModalTree b : m.getBeliefs(a)) {
+                for (ModalTree p : possibly) {
                     Set<PossibleTree> t = new HashSet<>();
-                    Boolean good = true;
-                    for (ModalTree p : possibly) {
+                    for (ModalTree b : m.getBeliefs(a)) {
                         ModalTree conjoined = conjoin(b,p);
-                        if(conjoined == null) {
-                            good = false;
-                        }
-                        else {
-                            t.add(mergeModes(conjoined));
+                        if(conjoined != null) {
+                            PossibleTree x = mergeModes(conjoined);
+                            if(x != null) {
+                                t.add(x);
+                            }
                         }
                     }
-                    if (good) {
-                        merged.addAll(t);
+                    if (t.size() == 0) {
+                        return null;
                     }
+                    merged.addAll(t);
                 }
             }
             mergedPossibilities.put(a, merged);
