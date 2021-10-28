@@ -22,7 +22,9 @@ import java.util.HashMap;
 
 import depl.DeplToProblem;
 
-// INTERACT WITH USER, MODELED AS AN ENVIRONMENT AGENT
+// MAKE A PLAN FROM A DEPL FILE,
+// SIMULATE EXECUTING THE PLAN,
+// QUERY THE USER TO DECIDE E-AGENT ACTIONS
 
 public class Simulator {
 

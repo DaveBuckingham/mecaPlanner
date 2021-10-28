@@ -5,7 +5,6 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.formulae.timeFormulae.TimeFormula;
-import mecaPlanner.Transition;
 
 import mecaPlanner.Domain;
 
@@ -124,30 +123,6 @@ public abstract class GNode  {
         }
     }
  
-
-//    public GNode transition(Action action) {
-//        Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
-//        EpistemicState newState = Transition.transition(estate, action);
-//        int nextTime = time+1;
-//        if (nextTime % numAgents == systemAgentIndex) {
-//            return new OrNode(newState,
-//                              goal,
-//                              nextTime,
-//                              this,
-//                              models,                // NOT UPDATING MODELS
-//                              systemAgentIndex,
-//                              domain);
-//        }
-//        else {
-//            return new AndNode(newState,
-//                               goal,
-//                               nextTime,
-//                               this,
-//                               models,               // NOT UPDATING MODELS
-//                               systemAgentIndex,
-//                               domain);
-//        }
-//    }
 
     public abstract GroundSuccessors descend();
 

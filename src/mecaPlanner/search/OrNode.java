@@ -24,7 +24,7 @@ public class OrNode extends GNode {
         super(estate, goal, time, parent, models, systemAgentIndex, domain);
     }
 
-    // bottom out a recursive descent through and nodes
+    // BOTTOM OUT A RECURSIVE DESCENT THROUGH AND NODES
     public GroundSuccessors descend() {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
@@ -37,15 +37,6 @@ public class OrNode extends GNode {
         return new GroundSuccessors(Integer.MAX_VALUE, s);
     }
 
-    // follow the action, recursively descending through any and nodes, and return the resulting or node set
-    //public Set<OrNode> orTransition(Action action) {
-    //    GNode successor = transition(action);
-    //    Set<OrNode> nextOrLayer = successor.descend();
-    //    if (nextOrLayer == null) {
-    //        return null;
-    //    }
-    //    return nextOrLayer;
-    //}
 }
 
 

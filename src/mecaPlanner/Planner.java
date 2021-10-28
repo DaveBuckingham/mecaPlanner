@@ -35,33 +35,27 @@ import depl.*;
 public class Planner {
 
 
-    //static Boolean assumeCommonKnowledge = null;
-    //static Boolean reduceStates = null;
-    //static Boolean printSolution = null;
-
-
-
     public static void main(String args[]) {
 
         long startTime = System.currentTimeMillis();
 
+        Log.setThreshold("info");
+        //Log.setThreshold("debug");
+
+
+        // PROCESS COMMAND LINE ARGUMENTS
+        // WE EXECT A SINGLE .depl FILE WITH THE PROBLEM DESCRIPTION
+        // AND AN OPTIONAL .plan FILE NAME WHERE WE SHOULD WRITE THE SOLUTION
 
         String deplFileName = null;
-        String configFileName = null;
         String planFileName = null;
 
-        if (args.length < 1 || args.length > 3) {
-            throw new RuntimeException("expected 1 to 3 args: a .depl file, an optional .conf file, and an optional .plan file.");
+        if (args.length < 1 || args.length > 2) {
+            throw new RuntimeException("expected 1 or 2 args: a .depl file, and an optional .plan file.");
         }
 
         for (String arg : args) {
-            if (arg.matches(".*\\.conf")) {
-                if (configFileName != null) {
-                    throw new RuntimeException("expected a single config file or none.");
-                }
-                configFileName = arg;
-            }
-            else if (arg.matches(".*\\.depl")) {
+            if (arg.matches(".*\\.depl")) {
                 if (deplFileName != null) {
                     throw new RuntimeException("expected a single depl file.");
                 }
@@ -84,31 +78,7 @@ public class Planner {
         }
 
 
-        // Properties prop = new Properties();
 
-        // if (configFileName != null)  {
-        //     InputStream is = null;
-        //     try {
-        //         is = new FileInputStream(configFileName);
-        //     } catch (FileNotFoundException ex) {
-        //         throw new RuntimeException("config file not found: " + configFileName);
-        //     }
-        //     try {
-        //         prop.load(is);
-        //     } catch (IOException ex) {
-        //         System.out.println("failed to read config file...using defaults");
-        //     }
-        // }
-
-        // //Planner.assumeCommonKnowledge = Boolean.parseBoolean(prop.getProperty("assumeCommonKnowledge", "true"));
-        // //Planner.reduceStates = Boolean.parseBoolean(prop.getProperty("reduceStates", "false"));
-        // //Planner.printSolution = Boolean.parseBoolean(prop.getProperty("printSolution", "true"));
-        // Log.setThreshold(prop.getProperty("logThreshold", "info"));
-        // //Log.setThreshold(prop.getProperty("logThreshold", "debug"));
-        // Log.setOutput(prop.getProperty("logOutput", "stdout"));
-
-        Log.setThreshold("info");
-        //Log.setThreshold("debug");
 
 
         Log.info("loading domain");

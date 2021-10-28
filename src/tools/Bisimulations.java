@@ -11,7 +11,6 @@ import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
 import mecaPlanner.Log;
-import mecaPlanner.Transition;
 import java.util.Arrays;
 
 import java.util.Scanner;
@@ -194,8 +193,6 @@ public class Bisimulations {
         System.out.println("AFTER:");
         System.out.println(printerKripke);
     }
-
-
 
 
 }

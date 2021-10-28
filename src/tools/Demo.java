@@ -22,7 +22,7 @@ public class Demo {
     private static void onticExample() {
         System.out.println("ONTIC EXAMPLE:\n");
         DeplToProblem deplParser = new DeplToProblem();
-        Problem problem = deplParser.buildProblem("problems/kr/ontic.depl");
+        Problem problem = deplParser.buildProblem("problems/kr2020/ontic.depl");
         Domain domain = problem.getDomain();
 
         EpistemicState startState = problem.getStartState();
@@ -41,7 +41,7 @@ public class Demo {
     private static void sensingExample() {
         System.out.println("SENSING EXAMPLE:\n");
         DeplToProblem deplParser = new DeplToProblem();
-        Problem problem = deplParser.buildProblem("problems/kr/sensing.depl");
+        Problem problem = deplParser.buildProblem("problems/kr2020/sensing.depl");
         Domain domain = problem.getDomain();
 
         EpistemicState startState = problem.getStartState();
@@ -77,7 +77,7 @@ public class Demo {
     private static void announcementExample() {
         System.out.println("ANNOUNCEMENT EXAMPLE:\n");
         DeplToProblem deplParser = new DeplToProblem();
-        Problem problem = deplParser.buildProblem("problems/kr/announcement.depl");
+        Problem problem = deplParser.buildProblem("problems/kr2020/announcement.depl");
         Domain domain = problem.getDomain();
 
         EpistemicState startState = problem.getStartState();
@@ -95,8 +95,6 @@ public class Demo {
     }
 
 
-
-
     private static void pause() {
         try {
             System.in.read();
@@ -106,8 +104,6 @@ public class Demo {
         }
     }
 }
-
-
 
 
 
@@ -140,6 +136,7 @@ public class Demo {
 // that the action has occurred, so now knows that agent A has the key and that
 // agent A knows whether the coin lies tails-up. However, agent B still does not
 // know (or have any belief about) whether the coin is tails-up.
+
 
 // ANNOUNCEMENT SCENARIO
 // There are three agents, A, B, and C. It is not raining (¬r). Agents A and B know

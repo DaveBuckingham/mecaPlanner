@@ -14,7 +14,7 @@ import depl.*;
 // READ A DEPL WITH A SINGLE ACTION,
 // PRINT THE START STATE,
 // EXECUTE THE ACTION
-// AND PRINT THE RESULT
+// PRINT THE RESULT
 
 
 public class Example {
@@ -43,7 +43,6 @@ public class Example {
             System.out.println(startState);
             return;
         }
-
 
         Set<Action> allActions = domain.getAllActions();
         if (allActions.size() != 1) {

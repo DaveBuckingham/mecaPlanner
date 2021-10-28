@@ -4,14 +4,11 @@ import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.models.Model;
 import mecaPlanner.Action;
-import mecaPlanner.search.Perspective;
-import mecaPlanner.search.Search;
 import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
 import mecaPlanner.Log;
-import mecaPlanner.Transition;
 
 import java.util.Scanner;
 import java.util.List;
@@ -24,10 +21,8 @@ import java.util.HashMap;
 import depl.DeplToProblem;
 
 // LOAD A DEPL, ASK USER TO SELECT AN ACTION, SHOW TRANSITION, REPEAT
-// USES THE KR2021 TRANSITION IMPLEMENTATION
 
 public class Actions {
-
 
     public static void main(String args[]) {
 
@@ -44,9 +39,6 @@ public class Actions {
 
         // VARIABLES TO TRACK THE SYSTEM STATE
         EpistemicState currentState = problem.getStartState();
-
-
-
         Map<String, Model> models = problem.getStartingModels();
         int depth = 0;
 
@@ -65,7 +57,6 @@ public class Actions {
                     }
                 }
             }
-
 
 
             Scanner stdin = new Scanner(System.in);
@@ -95,12 +86,9 @@ public class Actions {
             Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
             currentState = transitionResult.getState();
 
-            //currentState = Transition.transition(currentState, action);
-
         }
 
     }
-
 
 }
 

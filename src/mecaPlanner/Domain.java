@@ -24,11 +24,7 @@ public class Domain implements java.io.Serializable {
     private EpistemicState postState;
 
 
-
-
-
     public Domain() {
-        //constants = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
@@ -39,7 +35,6 @@ public class Domain implements java.io.Serializable {
         postState = null;
 
     }
-
 
 
     public Map<String,Set<Action>> getActionMap() {
@@ -143,7 +138,6 @@ public class Domain implements java.io.Serializable {
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
     }
 
-
     public boolean isAgent(String s) {
         return allAgents.contains(s);
     }
@@ -151,8 +145,6 @@ public class Domain implements java.io.Serializable {
     public boolean isNonPassiveAgent(String s) {
         return nonPassiveAgents.contains(s);
     }
-
-
 
 
 
@@ -184,7 +176,6 @@ public class Domain implements java.io.Serializable {
         }
 
         return str.toString();
-        //System.out.println(str.toString());
     }
 
 

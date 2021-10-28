@@ -33,10 +33,6 @@ public class Action implements java.io.Serializable {
     private Map<Assignment, LocalFormula> effects;
 
 
-
-
-
-
     public Action(String name,
                   List<String> parameters,
                   String actor,
@@ -61,8 +57,6 @@ public class Action implements java.io.Serializable {
         this.announces = announces;
         this.effects = effects;
         this.domain = domain;
-
-
     }
 
     public String getName() {
@@ -97,7 +91,7 @@ public class Action implements java.io.Serializable {
         return this.domain;
     }
 
-    // DO THIS HERE INSTEAD OF IN WORLD IN CASE WE WANT TO SWITCH
+    // WE DO THIS HERE INSTEAD OF IN WORLD IN CASE WE DECIDE TO SWITCH
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {
         Set<Assignment> applicableEffects = new HashSet<>();
@@ -173,11 +167,6 @@ public class Action implements java.io.Serializable {
         public Map<String, Model> getModels() {
             return updatedModels;
         }
-    }
-
-    public EpistemicState transition(EpistemicState beforeState) {
-        Action.UpdatedStateAndModels result = transition(beforeState, new HashMap<String, Model>());
-        return result.getState();
     }
 
 
@@ -538,6 +527,7 @@ public class Action implements java.io.Serializable {
 
 
 
+
     public Action.UpdatedStateAndModels transition(EpistemicState beforeState, Map<String, Model> oldModels) {
         Log.debug("transition: " + getSignatureWithActor());
 
@@ -721,6 +711,14 @@ public class Action implements java.io.Serializable {
     }
 
 
+    // MOST OF THE TIME WE WON'T BE UPDATING AGENT MODELS
+    public EpistemicState transition(EpistemicState beforeState) {
+        Action.UpdatedStateAndModels result = transition(beforeState, new HashMap<String, Model>());
+        return result.getState();
+    }
+
+
+    // FOR COMPUTING HYPOTHETICAL ACTIONS FOR OBLIVIOUS AGENTS
     private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
         assert (!kripke.getKnownWorlds(agent, world).isEmpty());
         Set<Action> actions = new HashSet<>();

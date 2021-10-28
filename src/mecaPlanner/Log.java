@@ -7,6 +7,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.ArrayList;
 
+
+// BECAUSE I COULDN'T FIGURE OUT HOW TO USE THE JAVA LOGGER
+
 public class Log {
 
     public static class Level {
