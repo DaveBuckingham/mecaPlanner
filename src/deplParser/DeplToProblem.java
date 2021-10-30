@@ -635,7 +635,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         LocalFormula condition;
-                        if (detCtx.localFormula() == null)  {
+                        if (detCtx.condition() == null)  {
                             condition = new Literal(true);
                         }
                         else {
