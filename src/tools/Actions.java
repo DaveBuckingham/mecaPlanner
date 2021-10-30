@@ -26,8 +26,7 @@ public class Actions {
 
     public static void main(String args[]) {
 
-        Log.setThreshold("debug");
-        //Log.setThreshold("warning");
+        Log.setThreshold("warning");
 
         if (args.length != 1) {
             throw new RuntimeException("expected single depl file parameter.");

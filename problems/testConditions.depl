@@ -1,0 +1,34 @@
+types{ }
+
+objects{a-Object,b-Object}
+
+agents{a,b{TrivialModel}}
+
+fluents{x(),y(),z()}
+
+initially{
+x() &
+//y() &
+(~B[b](x())) &
+(~B[b](~x())) &
+(~B[a](z())) &
+(~B[a](~z()))
+}
+
+goals{ }
+
+actions{
+    ann(){
+        owner{a},
+        observes(){a},
+        observes(){b},
+        announces{x() if y()}
+    }
+
+    det(){
+        owner{a},
+        observes(){a},
+        observes(){b},
+        determines{z() if y()}
+    }
+}

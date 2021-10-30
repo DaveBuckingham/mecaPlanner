@@ -28,8 +28,10 @@ public class Action implements java.io.Serializable {
     private LocalFormula precondition;
     private Map<String, LocalFormula> observesIf;
     private Map<String, LocalFormula> awareIf;
-    private Set<LocalFormula> determines;
-    private Set<BeliefFormula> announces;
+    //private Set<LocalFormula> determines;
+    //private Set<BeliefFormula> announces;
+    private Map<LocalFormula, LocalFormula> determines;  // sensed formula --> condition
+    private Map<BeliefFormula, LocalFormula> announces;  // announcement --> condition
     private Map<Assignment, LocalFormula> effects;
 
 
@@ -40,8 +42,8 @@ public class Action implements java.io.Serializable {
                   LocalFormula precondition,
                   Map<String, LocalFormula> observesIf,
                   Map<String, LocalFormula> awareIf,
-                  Set<LocalFormula> determines,
-                  Set<BeliefFormula> announces,
+                  Map<LocalFormula, LocalFormula> determines,
+                  Map<BeliefFormula, LocalFormula> announces,
                   Map<Assignment, LocalFormula> effects,
                   Domain domain
                  ) {
@@ -110,11 +112,11 @@ public class Action implements java.io.Serializable {
         return this.cost;
     }
 
-    public Set<LocalFormula> getDetermines() {
+    public Map<LocalFormula, LocalFormula> getDetermines() {
         return this.determines;
     }
 
-    public Set<BeliefFormula> getAnnounces() {
+    public Map<BeliefFormula, LocalFormula> getAnnounces() {
         return this.announces;
     }
 
@@ -267,12 +269,17 @@ public class Action implements java.io.Serializable {
 
             // WHAT DO OBSERVERS SENSE
             Set<LocalFormula> groundDetermines = new HashSet<>();
-            for (LocalFormula f : determines) {
-                if (f.evaluate(oldWorld)) {
-                    groundDetermines.add(f);
-                }
-                else {
-                    groundDetermines.add(f.negate());
+
+            for (Map.Entry<LocalFormula, LocalFormula> e : determines.entrySet()) {
+                LocalFormula sensed = e.getKey();
+                LocalFormula condition = e.getValue();
+                if (condition.evaluate(oldWorld)) {
+                    if (sensed.evaluate(oldWorld)) {
+                        groundDetermines.add(sensed);
+                    }
+                    else {
+                        groundDetermines.add(sensed.negate());
+                    }
                 }
             }
             for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
@@ -332,15 +339,26 @@ public class Action implements java.io.Serializable {
 
 
             // PUT TOGETHER ALL SOURCES OF BELIEF
+
+            Set<BeliefFormula> actualAnnouncements = new HashSet<>();
+            for (Map.Entry<BeliefFormula, LocalFormula> e : announces.entrySet()) {
+                BeliefFormula announcement = e.getKey();
+                LocalFormula condition = e.getValue();
+                if (condition.evaluate(oldWorld)) {
+                    actualAnnouncements.add(announcement);
+                }
+            }
+            BeliefFormula unifiedAnnouncement = BeliefAndFormula.make(actualAnnouncements);
+
+
             for (String agent : domain.getAllAgents()) {
                 if (isObservant(agent, oldWorld)){
-                    BeliefFormula announcements = BeliefAndFormula.make(announces);
-                    BeliefFormula knowsNotAnnouncements = new BeliefKnowsFormula(agent, announcements.negate());
+                    BeliefFormula knowsNotAnnouncements = new BeliefKnowsFormula(agent, unifiedAnnouncement.negate());
                     if (knowsNotAnnouncements.evaluate(oldKripke, oldWorld)) {
                         learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
                     }
                     else {
-                        learnedBeliefFormula.get(oldWorld).put(agent, announcements);
+                        learnedBeliefFormula.get(oldWorld).put(agent, unifiedAnnouncement);
                     }
                 }
                 else if (isAware(agent, oldWorld)){
@@ -606,16 +624,16 @@ public class Action implements java.io.Serializable {
             nullAwareConditions.put(agent, new Literal(false));
         }
 
-        Action nullAction = new Action("nullAction",                            // name
-                                       new ArrayList<String>(),                 // parameters
-                                       "nullActor",                             // actor
-                                       1,                                       // cost
-                                       new Literal(true),                       // preconditions 
-                                       nullObserverConditions,                  // observesIf
-                                       nullAwareConditions,                     // awareIf
-                                       new HashSet<LocalFormula>(),             // determines
-                                       new HashSet<BeliefFormula>(),            // announces
-                                       new HashMap<Assignment, LocalFormula>(), // effects
+        Action nullAction = new Action("nullAction",                               // name
+                                       new ArrayList<String>(),                    // parameters
+                                       "nullActor",                                // actor
+                                       1,                                          // cost
+                                       new Literal(true),                          // preconditions 
+                                       nullObserverConditions,                     // observesIf
+                                       nullAwareConditions,                        // awareIf
+                                       new HashMap<LocalFormula, LocalFormula>(),  // determines
+                                       new HashMap<BeliefFormula, LocalFormula>(), // announces
+                                       new HashMap<Assignment, LocalFormula>(),    // effects
                                        domain
                                       );
         Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
@@ -825,17 +843,27 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tDetermines\n");
-        for (LocalFormula ff : determines) {
+        for (Map.Entry<LocalFormula, LocalFormula> e : determines.entrySet()) {
+            LocalFormula sensed = e.getKey();
+            LocalFormula condition = e.getValue();
             str.append("\t\t");
-            str.append(ff);
+            str.append(sensed);
+            str.append(" if ");
+            str.append(condition);
             str.append("\n");
+ 
         }
 
         str.append("\tAnnounces\n");
-        for (BeliefFormula bf : announces) {
+        for (Map.Entry<BeliefFormula, LocalFormula> e : announces.entrySet()) {
+            BeliefFormula announcement = e.getKey();
+            LocalFormula condition = e.getValue();
             str.append("\t\t");
-            str.append(bf);
+            str.append(announcement);
+            str.append(" if ");
+            str.append(condition);
             str.append("\n");
+ 
         }
 
         str.append("\tCauses\n");

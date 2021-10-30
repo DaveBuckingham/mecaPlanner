@@ -559,8 +559,10 @@ public class DeplToProblem extends DeplBaseVisitor {
                 awareLists.put(a, new ArrayList<LocalFormula>());
             }
 
-            Set<LocalFormula> determines = new HashSet<>();
-            Set<BeliefFormula> announces = new HashSet<>();
+            //Set<LocalFormula> determines = new HashSet<>();
+            //Set<BeliefFormula> announces = new HashSet<>();
+            Map<LocalFormula, LocalFormula> determines = new HashMap<>();
+            Map<BeliefFormula, LocalFormula> announces = new HashMap<>();
             Map<Assignment, LocalFormula> effects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
@@ -596,11 +598,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                             throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
                         }
                         LocalFormula condition;
-                        if (obsCtx.localFormula() == null) {
+                        if (obsCtx.condition() == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(obsCtx.localFormula());
+                            condition = (LocalFormula) visit(obsCtx.condition());
                         }
                         if (!condition.isFalse()) {
                             observesLists.get(agentName).add(condition);
@@ -615,11 +617,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(awaCtx.groundableObject());
                         LocalFormula condition;
-                        if (awaCtx.localFormula() == null) {
+                        if (awaCtx.condition() == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(awaCtx.localFormula());
+                            condition = (LocalFormula) visit(awaCtx.condition());
                         }
                         if (!condition.isFalse()) {
                             awareLists.get(agentName).add(condition);
@@ -632,7 +634,17 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        determines.add((LocalFormula) visit(detCtx.localFormula()));
+                        LocalFormula condition;
+                        if (detCtx.localFormula() == null)  {
+                            condition = new Literal(true);
+                        }
+                        else {
+                            condition = (LocalFormula) visit(detCtx.condition());
+                        }
+                        if (!(condition.isFalse())){
+                            LocalFormula sensed = (LocalFormula) visit(detCtx.localFormula());
+                            determines.put(sensed, condition);
+                        }
                         variableStack.pop();
                     }
                 }
@@ -641,7 +653,17 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.AnnouncesActionFieldContext annCtx = fieldCtx.announcesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        announces.add((BeliefFormula) visit(annCtx.beliefFormula()));
+                        LocalFormula condition;
+                        if (annCtx.condition() == null)  {
+                            condition = new Literal(true);
+                        }
+                        else {
+                            condition = (LocalFormula) visit(annCtx.condition());
+                        }
+                        if (!(condition.isFalse())){
+                            BeliefFormula announcement = (BeliefFormula) visit(annCtx.beliefFormula());
+                            announces.put(announcement, condition);
+                        }
                         variableStack.pop();
                     }
                 }
@@ -651,11 +673,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         LocalFormula condition;
-                        if (effCtx.localFormula() == null)  {
+                        if (effCtx.condition() == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(effCtx.localFormula());
+                            condition = (LocalFormula) visit(effCtx.condition());
                         }
                         if (!(condition.isFalse())){
                             Fluent fluent = (Fluent) visit(effCtx.fluent());
@@ -752,6 +774,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         else {
             return grounding;
         }
+    }
+
+    @Override public LocalFormula visitCondition(DeplParser.ConditionContext ctx) {
+        return (LocalFormula) visit(ctx.localFormula());
     }
 
 

@@ -191,9 +191,11 @@ actionField
 ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
 preconditionActionField : 'precondition' variableDefList '{' localFormula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' localFormula)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' localFormula)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' localFormula '}' ;
-announcesActionField    : 'announces'    variableDefList '{' beliefFormula '}' ;
-causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' localFormula)? '}' ;
+observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition)? '}' ;
+awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' localFormula ('if' condition)? '}' ;
+announcesActionField    : 'announces'    variableDefList '{' beliefFormula ('if' condition)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition)? '}' ;
+
+condition : localFormula ;
 
