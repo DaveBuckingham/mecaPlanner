@@ -608,7 +608,7 @@ public class Action implements java.io.Serializable {
             }
         }
         if (!anyOblivious) {
-            assert(actualPartial.kripke.checkRelations());
+            //assert(actualPartial.kripke.checkRelations());
             EpistemicState newState = new EpistemicState(actualPartial.kripke, newDesignated);
             newState.trim();
             newState.reduce();
@@ -721,7 +721,7 @@ public class Action implements java.io.Serializable {
             }
         }
 
-        assert(newKripke.checkRelations());
+        //assert(newKripke.checkRelations());
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
         newState.trim();
         newState.reduce();

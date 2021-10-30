@@ -45,7 +45,8 @@ public class Actions {
 
         while(cont) {
 
-            currentState.getKripke().forceCheck();
+            //currentState.getKripke().forceCheck();
+            currentState.getKripke().checkRelations();
             System.out.println(currentState);
 
             List<Action> applicable = new ArrayList<>();
