@@ -519,28 +519,28 @@ public class Action implements java.io.Serializable {
                     }
                 }
 
-//                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-//                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-//                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() +
-//                              " at " + fromWorld.toString());
-//                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-//                        World oldToWorld = newToOld.get(toWorld);
-//                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
-//                            newBelief.connect(fromWorld, toWorld);
-//                        }
-//                    }
-//                }
-//
-//                // SECOND BELIEF RESET
-//                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-//                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
-//                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-//                        World oldToWorld = newToOld.get(toWorld);
-//                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
-//                            newBelief.connect(fromWorld, toWorld);
-//                        }
-//                    }
-//                }
+                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() +
+                              " at " + fromWorld.toString());
+                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                        World oldToWorld = newToOld.get(toWorld);
+                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
+                            newBelief.connect(fromWorld, toWorld);
+                        }
+                    }
+                }
+
+                // SECOND BELIEF RESET
+                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+                        World oldToWorld = newToOld.get(toWorld);
+                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
+                            newBelief.connect(fromWorld, toWorld);
+                        }
+                    }
+                }
 
             }
             newBeliefs.put(agent, newBelief);
@@ -618,7 +618,7 @@ public class Action implements java.io.Serializable {
             }
         }
         if (!anyOblivious) {
-            //assert(actualPartial.kripke.checkRelations());
+            assert(actualPartial.kripke.checkRelations());
             EpistemicState newState = new EpistemicState(actualPartial.kripke, newDesignated);
             newState.trim();
             newState.reduce();
@@ -731,7 +731,7 @@ public class Action implements java.io.Serializable {
             }
         }
 
-        //assert(newKripke.checkRelations());
+        assert(newKripke.checkRelations());
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
         newState.trim();
         newState.reduce();
