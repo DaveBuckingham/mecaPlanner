@@ -111,7 +111,7 @@ public class NDState implements java.io.Serializable {
 
     public Void reduce() {
         Map<World,World> oldWorldsToNew = kripkeStructure.reduce();
-        assert(kripkeStructure.checkRelations());
+        //assert(kripkeStructure.checkRelations());
         Set<World> newDesignated = new HashSet<World>();
         for (World w : designatedWorlds) {
             newDesignated.add(oldWorldsToNew.get(w));
@@ -151,7 +151,7 @@ public class NDState implements java.io.Serializable {
             newKnowledges.put(agent, newKnowledge);
         }
         kripkeStructure = new KripkeStructure(keep, newBeliefs, newKnowledges);
-        assert(kripkeStructure.checkRelations());
+        //assert(kripkeStructure.checkRelations());
         return null;
     }
 

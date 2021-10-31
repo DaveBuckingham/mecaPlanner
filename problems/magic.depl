@@ -1,0 +1,46 @@
+types{
+}
+
+objects{
+    m - Object,  // magician
+    a - Object   // audience
+}
+
+agents{ m }
+
+passive{ a }
+
+fluents{
+    ball_in_cup()
+}
+
+initially{
+    ~ball_in_cup()
+}
+
+goals{B[a](False)}
+
+actions{
+
+    place_ball_in_cup(){
+        owner{m},
+        observes(){m},
+        observes(){a},
+        causes{ball_in_cup()}
+    }
+
+    sneak_ball_from_cup(){
+        owner{m},
+        precondition{ball_in_cup()}
+        observes(){m},
+        causes{~ball_in_cup()}
+    }
+
+    reveal(){
+        owner{m},
+        observes(){m},
+        observes(){a},
+        determines{ball_in_cup()}
+    }
+
+}

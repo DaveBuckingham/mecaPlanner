@@ -226,7 +226,7 @@ public class Action implements java.io.Serializable {
             learnedBeliefFormula.put(world, new HashMap<>());
         }
 
-        //Map<World, LocalFormula> learnedEffects = new HashMap<>();
+        Map<World, LocalFormula> learnedEffects = new HashMap<>();
         Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
         Map<World, LocalFormula> learnedDetermined = new HashMap<>();
 
@@ -269,7 +269,6 @@ public class Action implements java.io.Serializable {
 
             // WHAT DO OBSERVERS SENSE
             Set<LocalFormula> groundDetermines = new HashSet<>();
-
             for (Map.Entry<LocalFormula, LocalFormula> e : determines.entrySet()) {
                 LocalFormula sensed = e.getKey();
                 LocalFormula condition = e.getValue();
@@ -282,16 +281,25 @@ public class Action implements java.io.Serializable {
                     }
                 }
             }
+            learnedDetermined.put(oldWorld, LocalAndFormula.make(groundDetermines));
+            assert(learnedDetermined.get(oldWorld).evaluate(oldWorld));
+
+            Set<LocalFormula> allLearnedEffects = new HashSet<>();
             for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
-                Fluent f = e.getKey().getFluent();
-                if (f.evaluate(oldWorld)) {
-                    groundDetermines.add(f);
-                }
-                else {
-                    groundDetermines.add(f.negate());
+                Assignment a = e.getKey();
+                LocalFormula condition = e.getValue();
+                if ((!oldWorld.alteredByAssignment(a)) || (!condition.evaluate(oldWorld))) {  // NOT IN PAPER
+                    Fluent f = a.getFluent();
+                    Boolean value = a.getValue();
+                    if (value) {
+                        allLearnedEffects.add(f);
+                    }
+                    else {
+                        allLearnedEffects.add(f.negate());
+                    }
                 }
             }
-            learnedDetermined.put(oldWorld, LocalAndFormula.make(groundDetermines));
+            learnedEffects.put(oldWorld, LocalAndFormula.make(allLearnedEffects));
             assert(learnedDetermined.get(oldWorld).evaluate(oldWorld));
 
             // WHAT DO AGENTS LEARN BECAUSE THEY KNOW THEIR OBSERVER STATUS
@@ -380,6 +388,7 @@ public class Action implements java.io.Serializable {
             roots.put(agent, new HashMap<World, Set<World>>());
             for (World oldWorld : oldWorlds) {
                 Set<World> equivalent = new HashSet<>();
+                //System.out.println("LK[" + agent + "]=" + learnedKnowledgeFormula.get(oldWorld).get(agent));
                 assert(learnedKnowledgeFormula.get(oldWorld).get(agent).evaluate(oldWorld));
                 assert(oldKripke.getKnownWorlds(agent, oldWorld).contains(oldWorld));
                 for (World toWorld: oldKripke.getKnownWorlds(agent, oldWorld)) {
@@ -498,6 +507,7 @@ public class Action implements java.io.Serializable {
             for (World fromWorld: newWorlds) {
                 World oldFromWorld = newToOld.get(fromWorld);
                 BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
+                //System.out.println("LB[" + agent + "]=" + learnedBelief);
 
                 // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
                 for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
@@ -509,28 +519,28 @@ public class Action implements java.io.Serializable {
                     }
                 }
 
-                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
-                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() +
-                              " at " + fromWorld.toString());
-                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = newToOld.get(toWorld);
-                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
-                            newBelief.connect(fromWorld, toWorld);
-                        }
-                    }
-                }
-
-                // SECOND BELIEF RESET
-                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
-                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
-                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
-                        World oldToWorld = newToOld.get(toWorld);
-                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
-                            newBelief.connect(fromWorld, toWorld);
-                        }
-                    }
-                }
+//                // IF NO CONNECTIONS WERE COPIED, AGENT LEARNED SOMETHING BELIEVED IMPOSSIBLE: BELIEF RESET
+//                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+//                    Log.debug("observant agent " + agent + " reset by " + getSignatureWithActor() +
+//                              " at " + fromWorld.toString());
+//                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+//                        World oldToWorld = newToOld.get(toWorld);
+//                        if (learnedBelief.evaluate(oldKripke, oldToWorld)){
+//                            newBelief.connect(fromWorld, toWorld);
+//                        }
+//                    }
+//                }
+//
+//                // SECOND BELIEF RESET
+//                if (newBelief.getToWorlds(fromWorld).isEmpty()) {
+//                    Log.debug("observant agent " + agent + " hard reset by " + getSignatureWithActor());
+//                    for (World toWorld: newKnowledges.get(agent).getToWorlds(fromWorld)) {
+//                        World oldToWorld = newToOld.get(toWorld);
+//                        if (learnedKnowledgeFormula.get(oldFromWorld).get(agent).evaluate(oldKripke, oldToWorld)){
+//                            newBelief.connect(fromWorld, toWorld);
+//                        }
+//                    }
+//                }
 
             }
             newBeliefs.put(agent, newBelief);
@@ -608,7 +618,7 @@ public class Action implements java.io.Serializable {
             }
         }
         if (!anyOblivious) {
-            assert(actualPartial.kripke.checkRelations());
+            //assert(actualPartial.kripke.checkRelations());
             EpistemicState newState = new EpistemicState(actualPartial.kripke, newDesignated);
             newState.trim();
             newState.reduce();
@@ -721,7 +731,7 @@ public class Action implements java.io.Serializable {
             }
         }
 
-        assert(newKripke.checkRelations());
+        //assert(newKripke.checkRelations());
         EpistemicState newState = new EpistemicState(newKripke, newDesignated);
         newState.trim();
         newState.reduce();

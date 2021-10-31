@@ -62,6 +62,11 @@ actions: mecaPlanner.jar src/tools/Actions.java
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions $$@' >> ./actions
 	chmod +x ./actions
 
+belief: mecaPlanner.jar src/tools/ParseFormula.java
+	$(java) src/tools/ParseFormula.java -d build/
+	echo '#!/bin/bash' > ./belief
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.ParseFormula $$@' >> ./belief
+	chmod +x ./belief
 
 
 bisimulations: mecaPlanner.jar src/tools/Bisimulations.java
