@@ -39,8 +39,13 @@ public class ParseFormula {
             CommonTokenStream tokens = new CommonTokenStream(lexer);         // run the lexer, making stream of tokens
             DeplParser parser        = new DeplParser(tokens);               // instantiate a parser
             ParseTree tree           = parser.beliefFormula();               // run the parser, making a parse tree
-            BeliefFormula f          = (BeliefFormula) visitor.visit(tree);  // visit the parse tree, building a formula
-            System.out.println(f);
+            try {
+                BeliefFormula f      = (BeliefFormula) visitor.visit(tree);  // visit the parse tree, building a formula
+                System.out.println("success: " + f);
+            }
+            catch (Exception e){
+                System.out.println("failed to parse fromula.");
+            }
         }
 
     }
