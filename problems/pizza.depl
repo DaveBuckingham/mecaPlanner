@@ -51,6 +51,7 @@ actions{
         owner{human1},
         precondition{~door_open()},
         observes(?o-Actor){?o},
+        aware(?o-Actor){?o},
         causes{door_open()},
     }
 

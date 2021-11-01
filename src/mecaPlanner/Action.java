@@ -309,7 +309,12 @@ public class Action implements java.io.Serializable {
                 LocalFormula awareConditions = awareIf.get(agent);
 
                 if (isObservant(agent, oldWorld)){
-                    assert (!isAware(agent, oldWorld));  // THERE'S PROBABLY A BETTER PLACE FOR THIS CHECK
+                    // THERE'S PROBABLY A BETTER PLACE FOR THIS CHECK
+                    if (isAware(agent, oldWorld)) {
+                        throw new RuntimeException("Agent " + agent +
+                                                   " is both fully and partially observant of action " +
+                                                   getSignature());
+                    }
                     learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions,
                                                                                   awareConditions.negate()));
                 }
