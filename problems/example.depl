@@ -66,8 +66,8 @@ initially{
     K[human1] <- {(w1,w1),(w1,w3),(w3,w3),(w3,w1),(w2,w2),(w2,w4),(w4,w4),(w4,w2)},
 }
 
-goals{(B[robot1]heads() & !B[human1]B[robot1]heads()) |
-      (B[robot1]!heads() & !B[human1]B[robot1]!heads())}
+goals{(B[robot1](heads()) & !B[human1](B[robot1](heads()))) |
+      (B[robot1](!heads()) & !B[human1](B[robot1](!heads())))}
 
 actions{
     move(?a-Actor,?f-Location,?t-Location){
