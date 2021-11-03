@@ -44,20 +44,20 @@ public class LocalAndFormula extends LocalFormula{
         return new LocalAndFormula(formulae);
     }
 
-    public boolean isBinary() {
-        return formulae.size() == 2;
-    }
-
-    public LocalAndFormula binarize() {
-        List<LocalFormula> allFormulae = new ArrayList<>(formulae);
-        LocalFormula lastFormula = allFormulae.get(allFormulae.size() - 1);
-        allFormulae.remove(allFormulae.size() - 1);
-        LocalFormula theRest = LocalAndFormula.make(allFormulae);
-        List<LocalFormula> twoFormulae = new ArrayList<>();
-        twoFormulae.add(theRest);
-        twoFormulae.add(lastFormula);
-        return new LocalAndFormula(twoFormulae);
-    }
+//    public boolean isBinary() {
+//        return formulae.size() == 2;
+//    }
+//
+//    public LocalAndFormula binarize() {
+//        List<LocalFormula> allFormulae = new ArrayList<>(formulae);
+//        LocalFormula lastFormula = allFormulae.get(allFormulae.size() - 1);
+//        allFormulae.remove(allFormulae.size() - 1);
+//        LocalFormula theRest = LocalAndFormula.make(allFormulae);
+//        List<LocalFormula> twoFormulae = new ArrayList<>();
+//        twoFormulae.add(theRest);
+//        twoFormulae.add(lastFormula);
+//        return new LocalAndFormula(twoFormulae);
+//    }
 
     public static LocalFormula make(Set<LocalFormula> inputFormulae) {
         return LocalAndFormula.make(new ArrayList(inputFormulae));

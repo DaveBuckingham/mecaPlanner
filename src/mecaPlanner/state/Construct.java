@@ -48,6 +48,35 @@ public class Construct {
             this.beliefs = beliefs;
             this.negativeBeliefs = negativeBeliefs;
         }
+        public ModalTree(Set<Fluent> fluents) {
+            Map<String, Set<ModalTree>> modalBeliefs = new HashMap<>();
+            Map<String, Set<ModalTree>> modalNegativeBeliefs = new HashMap<>();
+            for (String a : domain.getAllAgents()) {
+                modalBeliefs.put(a, new HashSet<ModalTree>());
+                modalNegativeBeliefs.put(a, new HashSet<ModalTree>());
+            }
+            this(fluents, new HashSet<Fluent>(), modalBeliefs, modalNegativeBeliefs);
+        }
+        public ModalTree() {
+            this(new HashSet<Fluent>());
+        }
+
+        public Boolean isTrue() {
+            if (!(trueFluents.isEmpty() && falseFluents.isEmpty)) {
+                return false;
+            }
+            for (String a : domain.getAllAgents()) {
+                if (!beliefs.get(agent).isEmpty()) {
+                    return false;
+                }
+                if (!negativeBeliefs.get(agent).isEmpty()) {
+                    return false;
+                }
+            }
+        }
+
+
+        }
         public Set<Fluent> getTrueFluents() {
             return trueFluents;
         }
@@ -176,55 +205,6 @@ public class Construct {
         return new ModalTree(m.getFalseFluents(), m.getTrueFluents(), m.getNegativeBeliefs(), m.getBeliefs());
     }
 
-    private static ModalTree conjoin(ModalTree l, ModalTree r) {
-
-        Set<Fluent> unionedTrueFluents = new HashSet<>();
-        unionedTrueFluents.addAll(l.getTrueFluents());
-        unionedTrueFluents.addAll(r.getTrueFluents());
-
-        Set<Fluent> unionedFalseFluents = new HashSet<>();
-        unionedFalseFluents.addAll(l.getFalseFluents());
-        unionedFalseFluents.addAll(r.getFalseFluents());
-
-        Set<Fluent> intersection = new HashSet<Fluent>(unionedTrueFluents);
-        intersection.retainAll(unionedFalseFluents);
-        if (!intersection.isEmpty()) {
-            return null;
-        }
-
-        Map<String, Set<ModalTree>> conjoinedBeliefs = new HashMap<>();
-        for (String a : domain.getAllAgents()) {
-            Set<ModalTree> joined = new HashSet<ModalTree>();
-            if (l.getBeliefs(a).isEmpty()) {
-                joined.addAll(r.getBeliefs(a));
-            }
-            else if (r.getBeliefs(a).isEmpty()) {
-                joined.addAll(l.getBeliefs(a));
-            }
-            else {
-                for (ModalTree leftBelief : l.getBeliefs(a)) {
-                    for (ModalTree rightBelief : r.getBeliefs(a)) {
-                        ModalTree conjoined = conjoin(leftBelief, rightBelief);
-                        if (conjoined == null) {
-                            return null;
-                        }
-                        joined.add(conjoined);
-                    }
-                }
-            }
-            conjoinedBeliefs.put(a, joined);
-        }
-
-        Map<String, Set<ModalTree>> unionedNegativeBeliefs = new HashMap<>();
-        for (String a : domain.getAllAgents()) {
-            Set<ModalTree> perAgent = new HashSet<>();
-            perAgent.addAll(l.getNegativeBeliefs(a));
-            perAgent.addAll(r.getNegativeBeliefs(a));
-            unionedNegativeBeliefs.put(a, perAgent);
-        }
-
-        return new ModalTree(unionedTrueFluents, unionedFalseFluents, conjoinedBeliefs, unionedNegativeBeliefs);
-    }
 
 
 
@@ -241,88 +221,103 @@ public class Construct {
         return states;
     }
 
-    private static Set<ModalTree> parseFormula(BeliefFormula formula) {
-        Set<ModalTree> result = new HashSet<>();
+
+    private static ModalTree parseFormula(BeliefFormula formula) {
+
+        if (formula instanceof Literal) {
+            Literal l = (Literal) formula;
+            if (l.getVAlue()) {
+                return new ModalTree();
+            }
+            else {
+                return null;
+            }
+        }
 
         if (formula instanceof Fluent) {
             Set<Fluent> fluents = new HashSet<>();
             fluents.add((Fluent) formula);
-            Map<String, Set<ModalTree>> modalBeliefs = new HashMap<>();
-            Map<String, Set<ModalTree>> modalNegativeBeliefs = new HashMap<>();
-            for (String a : domain.getAllAgents()) {
-                modalBeliefs.put(a, new HashSet<ModalTree>());
-                modalNegativeBeliefs.put(a, new HashSet<ModalTree>());
-            }
-            result.add(new ModalTree(fluents,
-                                     new HashSet<Fluent>(),
-                                     modalBeliefs,
-                                     modalNegativeBeliefs
-                                    ));
+            return new ModalTree(fluents);
         }
 
-        else if (formula instanceof BeliefOrFormula) {
-            BeliefOrFormula orFormula = (BeliefOrFormula) formula;
-            for (Set<BeliefFormula> inner : powerSet(orFormula.asSet())) {
-                if (inner.size() == 1) {
-                    result.addAll(parseFormula(inner.iterator().next()));
-                }
-                else if (inner.size() > 1) {
-                    result.addAll(parseFormula(BeliefAndFormula.make(inner)));
-                }
-            }
-        }
-        else if (formula instanceof LocalOrFormula) {
-            LocalOrFormula orFormula = (LocalOrFormula) formula;
-            for (Set<LocalFormula> inner : powerSet(orFormula.asSet())) {
-                if (inner.size() == 1) {
-                    result.addAll(parseFormula(inner.iterator().next()));
-                }
-                else if (inner.size() > 1) {
-                    result.addAll(parseFormula(LocalAndFormula.make(inner)));
-                }
-            }
-        }
         else if (formula instanceof BeliefAndFormula || formula instanceof LocalAndFormula) {
-            List<ModalTree> parsedLeft = new ArrayList<>();
-            List<ModalTree> parsedRight = new ArrayList<>();
-
-            // WE SHOULD DO THIS TO WORK WITH N-ARY CONJUNCTION,
-            // THEN WE CAN DELETE THE BINARIZE METHOD
+            Set<ModalTree> inners = new ArrayList<>();
 
             if (formula instanceof BeliefAndFormula) {
-                BeliefAndFormula andFormula = (BeliefAndFormula) formula;
-                andFormula = andFormula.binarize();
-                parsedLeft.addAll(parseFormula(andFormula.getFormulae().get(0)));
-                parsedRight.addAll(parseFormula(andFormula.getFormulae().get(1)));
-            }
-            else {
-                LocalAndFormula andFormula = (LocalAndFormula) formula;
-                andFormula = andFormula.binarize();
-                parsedLeft.addAll(parseFormula(andFormula.getFormulae().get(0)));
-                parsedRight.addAll(parseFormula(andFormula.getFormulae().get(1)));
-            }
-
-            for (ModalTree leftTree : parsedLeft) {
-                for (ModalTree rightTree : parsedRight) {
-                    ModalTree conjoined = conjoin(leftTree, rightTree);
-                    if (conjoined != null) {
-                        result.add(conjoined);
-                    }
+                for (BeliefFormula f : ((BeliefAndFormula)formula).getFormula() {
+                    inners.add(parseFormula(f);
                 }
             }
+            else {
+                for (LocalFormula f : ((LocalAndFormula)formula).getFormula() {
+                    inners.add(parseFormula(f);
+                }
+            }
+
+            for (ModalTree t : inners) {
+                if (t == null) {
+                    return null;
+                }
+            }
+
+            Set<Fluent> unionedTrueFluents = new HashSet<>();;
+            Set<Fluent> unionedFalseFluents = new HashSet<>();;
+            for (ModalTree t : inners) {
+                unionedTrueFluents.addAll(t.getTrueFluents());
+                unionedFalseFluents.addAll(t.getFalseFluents());
+            }
+
+            Set<Fluent> intersection = new HashSet<Fluent>(unionedTrueFluents);
+            intersection.retainAll(unionedFalseFluents);
+            if (!intersection.isEmpty()) {
+                return null;
+            }
+
+
+            Map<String, Set<ModalTree>> crossedBeliefs = new HashMap<>();
+            for (String a : domain.getAllAgents()) {
+                Set<ModalTree> unionedBeliefs = new HashSet<>();
+                for (ModalTree t : inners) {
+                    unionedBeliefs.addAll(t.getBeliefs(a));
+                }
+
+                Set<ModalTree> crossed = new HashSet<>();
+                for (Set<ModalTree> possibility : powerSet(unionedBeliefs)) {
+                    crossed.add(parseFo
+                }
+                crossedBeliefs.put(a, crossed);
+            }
+
+
+            Map<String, Set<ModalTree>> unionedNegativeBeliefs = new HashMap<>();
+            for (String a : domain.getAllAgents()) {
+                Set<ModalTree> negativeBeliefs = new HashSet<>();
+                for (ModalTree t : inners) {
+                    negativeBeliefs.addAll(t.getNegativeBeliefs(a));
+                }
+                unionedNegativeBeliefs.put(a, negativeBeliefs);
+            }
+
+
+            return new ModalTree(unionedTrueFluents, unionedFalseFluents, crossedBeliefs, unionedNegativeBeliefs);
+
         }
 
         else if (formula instanceof BeliefNotFormula || formula instanceof LocalNotFormula) {
-            BeliefFormula innerFormula;
+            ModalTree inner;
             if (formula instanceof BeliefNotFormula) {
-                innerFormula = ((BeliefNotFormula)formula).getFormula();
+                inner = parseFormula(((BeliefNotFormula)formula).getFormula());
             }
             else {
-                innerFormula = ((LocalNotFormula)formula).getFormula();
+                inner = parseFormula(((LocalNotFormula)formula).getFormula());
             }
-            for (ModalTree tree : parseFormula(innerFormula)) {
-                result.add(negate(tree));
+            if (inner == null) {
+                return new ModalTree();
             }
+            if (inner.isTrue) {
+                return null;
+            }
+            return negate(inner);
         }
 
         else if (formula instanceof BeliefBelievesFormula) {
@@ -340,11 +335,11 @@ public class Construct {
                 }
                 modalNegativeBeliefs.put(a, new HashSet<ModalTree>());
             }
-            result.add(new ModalTree(new HashSet<Fluent>(),
-                                     new HashSet<Fluent>(),
-                                     modalBeliefs,
-                                     modalNegativeBeliefs
-                                    ));
+            return new ModalTree(new HashSet<Fluent>(),
+                                 new HashSet<Fluent>(),
+                                 modalBeliefs,
+                                 modalNegativeBeliefs
+                                );
         }
         else {
             throw new RuntimeException("Can't build state from formula: " + formula.toString());

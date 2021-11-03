@@ -57,20 +57,20 @@ public class BeliefAndFormula extends BeliefFormula{
 
 
 
-    public boolean isBinary() {
-        return formulae.size() == 2;
-    }
-
-    public BeliefAndFormula binarize() {
-        List<BeliefFormula> allFormulae = new ArrayList<>(formulae);
-        BeliefFormula lastFormula = allFormulae.get(allFormulae.size() - 1);
-        allFormulae.remove(allFormulae.size() - 1);
-        BeliefFormula theRest = BeliefAndFormula.make(allFormulae);
-        List<BeliefFormula> twoFormulae = new ArrayList<>();
-        twoFormulae.add(theRest);
-        twoFormulae.add(lastFormula);
-        return new BeliefAndFormula(twoFormulae);
-    }
+//    public boolean isBinary() {
+//        return formulae.size() == 2;
+//    }
+//
+//    public BeliefAndFormula binarize() {
+//        List<BeliefFormula> allFormulae = new ArrayList<>(formulae);
+//        BeliefFormula lastFormula = allFormulae.get(allFormulae.size() - 1);
+//        allFormulae.remove(allFormulae.size() - 1);
+//        BeliefFormula theRest = BeliefAndFormula.make(allFormulae);
+//        List<BeliefFormula> twoFormulae = new ArrayList<>();
+//        twoFormulae.add(theRest);
+//        twoFormulae.add(lastFormula);
+//        return new BeliefAndFormula(twoFormulae);
+//    }
 
 
 
