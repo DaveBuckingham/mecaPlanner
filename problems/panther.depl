@@ -10,9 +10,17 @@ fluents{v(),l(),r(),d()}
 
 initially{
 
-(r() | !r()) &
+{
+r() &
 !B[thief](r()) &
 !B[thief](!r())
+}
+
+{
+!r() &
+!B[thief](r()) &
+!B[thief](!r())
+}
 
 // *w1 <- {r()},
 // *w2 <- {},
