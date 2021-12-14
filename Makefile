@@ -62,11 +62,11 @@ actions: mecaPlanner.jar src/tools/Actions.java
 	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.Actions $$@' >> ./actions
 	chmod +x ./actions
 
-belief: mecaPlanner.jar src/tools/ParseFormula.java
+parseFormula: mecaPlanner.jar src/tools/ParseFormula.java
 	$(java) src/tools/ParseFormula.java -d build/
-	echo '#!/bin/bash' > ./belief
-	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.ParseFormula $$@' >> ./belief
-	chmod +x ./belief
+	echo '#!/bin/bash' > ./parseFormula
+	echo 'java -ea -cp "./mecaPlanner.jar:./lib/*:./build/" tools.ParseFormula $$@' >> ./parseFormula
+	chmod +x ./parseFormula
 
 
 bisimulations: mecaPlanner.jar src/tools/Bisimulations.java
@@ -130,4 +130,5 @@ clean:
 	rm -f ./translateAllMepk
 	rm -f ./test
 	rm -f ./bisimulations
+	rm -f ./parseFormula
 	rm -f ./mecaPlanner*.jar
