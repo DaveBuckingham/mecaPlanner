@@ -38,6 +38,10 @@ public class BelievesFormula extends Formula {
         return false;
     }
 
+    public Set<Fluent> getAllFluents() {
+        return formula.getAllFluents();
+    }
+
     public Boolean evaluate(KripkeStructure kripke, World world) {
         if (kripke == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");

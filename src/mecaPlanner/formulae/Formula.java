@@ -22,6 +22,7 @@ public abstract class Formula {
     public abstract Formula negate();
     public abstract Boolean isTrue();
     public abstract Boolean isFalse();
+    public abstract Set<Fluent> getAllFluents();
 
     public abstract Boolean evaluate(KripkeStructure kripke, World world);
 

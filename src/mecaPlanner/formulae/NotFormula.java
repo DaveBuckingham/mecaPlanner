@@ -38,6 +38,10 @@ public class NotFormula extends Formula{
         return formula;
     }
 
+    public Set<Fluent> getAllFluents() {
+        return formula.getAllFluents();
+    }
+
 
     public Boolean evaluate(KripkeStructure kripke, World world) {
         return (!formula.evaluate(kripke, world));

@@ -26,6 +26,21 @@ public class Construct {
 
 
     public static Set<EpistemicState> constructStates(Domain d, List<Formula> formulae) {
+        Set<Formula> canonicalFormulas = new HashSet<>();
+        Set<Fluent> allFluents = new HashSet<>();
+        for (Formula f : formulae) {
+            allFluents.addAll(f.getAllFluents());
+        }
+        for (Set<Fluent> subset : powerSet(allFluents)) {
+            Set<Formula> asFormulae = new HashSet<>();
+            asFormulae.addAll(subset);
+            canonicalFormulas.add(AndFormula.make(asFormulae));
+        }
+
+        for (Formula f : canonicalFormulas) {
+            System.out.println(f);
+        }
+
         throw new RuntimeException("State construction not implemented");
         //return null;
     }

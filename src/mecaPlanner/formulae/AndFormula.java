@@ -50,6 +50,14 @@ public class AndFormula extends Formula{
         return AndFormula.make(Arrays.asList(inputFormulae));
     }
 
+    public Set<Fluent> getAllFluents() {
+        Set<Fluent> allFluents = new HashSet<>();
+        for (Formula f : formulae) {
+            allFluents.addAll(f.getAllFluents());
+        }
+        return allFluents;
+    }
+
     public Integer getHeight() {
         Integer height = 0;
         for (Formula f : formulae) {

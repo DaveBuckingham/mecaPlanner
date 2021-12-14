@@ -46,6 +46,10 @@ public class CommonFormula extends Formula {
         return false;
     }
 
+    public Set<Fluent> getAllFluents() {
+        return formula.getAllFluents();
+    }
+
     // THIS IS WRONG, THIS IS THE SAME AS E()
     public Boolean evaluate(KripkeStructure kripke, World world) {
         //System.out.println("WARNING: incorrectly computing 'evaluate' for Common belief");

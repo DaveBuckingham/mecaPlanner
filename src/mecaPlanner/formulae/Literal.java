@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashSet;
 
 public class Literal extends Formula{
 
@@ -35,6 +36,10 @@ public class Literal extends Formula{
 
     public Boolean isTrue() {
         return (value);
+    }
+
+    public Set<Fluent> getAllFluents() {
+        return new HashSet<Fluent>();
     }
 
 

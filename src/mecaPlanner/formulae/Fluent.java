@@ -8,6 +8,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
+import java.util.HashSet;
 
 public class Fluent extends Formula{
 
@@ -34,6 +35,12 @@ public class Fluent extends Formula{
 
     public String getName() {
         return this.name;
+    }
+
+    public Set<Fluent> getAllFluents() {
+        Set<Fluent> allFluents = new HashSet<>();
+        allFluents.add(this);
+        return allFluents;
     }
 
     public List<String> getParameters() {
