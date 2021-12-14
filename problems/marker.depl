@@ -1,0 +1,92 @@
+//------------------//
+// 	USAR Domain  	//
+//------------------//
+
+types{AI-Actor,
+		Player-Actor,
+		Actor-Object}
+
+objects{bob-Player,ai-AI}
+
+agents{bob{TrivialModel},ai}
+
+// what does this mean?
+// Kripke agents, and track belief states.. but cannot act. Planner will not
+// include actions in its actions. 
+passive{}
+
+
+fluents{victim_present(),marker_placed(),in_room(Player)}
+
+initially{
+//near_room(bob)  // bob is near the the room 
+victim_present()  // There is a victim in the room 
+// & B[ai](victim_present()) // ai knows there is a victim present in the room
+& !B[bob](!(victim_present())) & !B[bob](victim_present()) // bob is ignorant about victim
+& !(marker_placed())	// There is  no  marker
+// & B[ai](!(marker_placed())) // ai knows there is a marker
+//& B[bob](marker_placed() -> victim_present()) // everyone knows that if  there is a marker present, then victim present
+}
+
+goals{marker_placed(), B[bob]victim_present()}
+
+actions{
+/**
+	enter_room(?a-Player){
+		owner{?a},
+		precondition{!(in_room(?a))},
+		causes{in_room(?a)},
+		observes(?x-Actor){?x} 
+		observes(){ai}
+	}
+
+	exit_room(?a-Player){
+		owner{?a},
+		precondition{in_room(?a)},
+		causes{!(in_room(?a))},
+		observes(?x-Actor){?x} 
+		observes(){ai}
+	}
+**/
+	leave(?a-Player){
+		owner{?a},
+		precondition{!(in_room(?a))},
+		causes{!(near_room(?a))},
+		observes(?x-AI){?x}
+	}
+
+	move(?a-Player){
+		owner{?a},
+		causes{in_room(?a) if !in_room(?a)}
+		causes{!in_room(?a) if in_room(?a)}
+		observes(?x-Actor){?x} 
+		observes(){ai}
+	}
+
+	look_around_room(?a-Player){
+		owner{?a},
+		precondition{in_room(?a)},
+		determines{victim_present()},
+		observes(?x-Player){?x if in_room(?x)},
+		observes(){ai}
+	}
+
+	look_around_outside(?a-Player){
+		owner{?a},
+		precondition{!(in_room(?a))},
+		determines{marker_placed()},
+		observes(?x-Player){?x if !(in_room(?x))},
+		observes(){ai}
+	}
+
+	place_marker_for(?a-Player){
+		owner{?a},
+		precondition{!(in_room(?a))},
+		causes{marker_placed()},
+		observes(?x-Player){?x if !in_room(?x)},
+		observes(){ai}
+	}
+}
+
+
+

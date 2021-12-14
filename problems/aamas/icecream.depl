@@ -1,0 +1,53 @@
+types{
+    Actor-Object,
+}
+
+objects{
+    a-Actor,
+    b-Actor,
+}
+
+agents{
+    a,
+    b{TrivialModel}
+}
+
+
+fluents{
+    bl(),
+    bp(),
+    ip(),
+}
+
+
+initially{
+    *w0 <- {bp(),ip()},
+    B[a] <- {(w0,w0)},
+    B[b] <- {(w0,w0)},
+    K[a] <- {(w0,w0)},
+    K[b] <- {(w0,w0)},
+}
+
+goals{
+}
+
+actions{
+    i_leave(){
+        owner{b},
+        observes(){a}
+        observes(){b if (bp() | bl())},
+        causes{~ip()},
+    }
+    b_leave(){
+        owner{b},
+        observes(){a},
+        observes(){b},
+        causes{~bp()},
+    }
+    look() {
+        owner{b},
+        observes(){b},
+        causes{bl()},
+    }
+
+}
