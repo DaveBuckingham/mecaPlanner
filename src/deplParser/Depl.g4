@@ -128,15 +128,7 @@ inequality
     | '>='                # inequalityGte
     ;
 
-temporalConstraint : KEYWORD_TIME inequality INTEGER;
-
-timeFormula
-    : beliefFormula                                              # timeBelief
-    | temporalConstraint                                         # timeConstraint
-    | OP_NOT timeFormula                                         # timeNot
-    | timeFormula OP_AND timeFormula (OP_AND timeFormula)*       # timeAnd
-    | timeFormula OP_OR timeFormula (OP_OR timeFormula)*         # timeOr
-    ;
+timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 
 // INITIAL STATE DEFINITION
@@ -145,7 +137,7 @@ initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' )
 
 startStateDef : '{' (initiallyDef | kripkeModel) '}' ;
 
-initiallyDef : beliefFormula ;
+initiallyDef : (beliefFormula ',')* beliefFormula ;
 
 kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
 
@@ -167,7 +159,7 @@ postSection : 'post' startStateDef ;
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
-goal : timeFormula ;
+goal : beliefFormula | timeConstraint ;
 
 
 // ACTION DEFINITIONS

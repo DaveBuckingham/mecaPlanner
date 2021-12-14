@@ -11,7 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Objects;
 
-import mecaPlanner.formulae.localFormulae.Fluent;
+import mecaPlanner.formulae.Fluent;
 
 
 public class World implements java.io.Serializable {

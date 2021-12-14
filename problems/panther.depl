@@ -10,22 +10,22 @@ fluents{v(),l(),r(),d()}
 
 initially{
 
-{
-r() &
-!B[thief](r()) &
-!B[thief](!r())
-}
+// {
+// r() &
+// !B[thief](r()) &
+// !B[thief](!r())
+// }
+// 
+// {
+// !r() &
+// !B[thief](r()) &
+// !B[thief](!r())
+// }
 
-{
-!r() &
-!B[thief](r()) &
-!B[thief](!r())
-}
-
-// *w1 <- {r()},
-// *w2 <- {},
-// B[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)},
-// K[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
+*w1 <- {r()},
+*w2 <- {},
+B[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)},
+K[thief] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
 
 }
 

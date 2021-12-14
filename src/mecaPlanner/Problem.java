@@ -1,9 +1,7 @@
 package mecaPlanner;
 
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.localFormulae.*;
-import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.timeFormulae.*;
+import mecaPlanner.formulae.*;
 import mecaPlanner.state.EpistemicState;
 
 import java.util.Map;
@@ -19,20 +17,23 @@ public class Problem implements java.io.Serializable {
     private int systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
-    private Set<TimeFormula> goals;
+    private Set<Formula> goals;
+    private Set<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
                    int systemAgentIndex,
                    Set<EpistemicState> startStates,
                    Map<String,Model> startingModels,
-                   Set<TimeFormula> goals
+                   Set<Formula> goals,
+                   Set<TimeConstraint> timeConstraints
                   ) {
         this.domain = domain;
         this.systemAgentIndex = systemAgentIndex;
         this.startStates = startStates;
         this.startingModels = startingModels;
         this.goals = goals;
+        this.timeConstraints = timeConstraints;
     }
 
 
@@ -51,15 +52,19 @@ public class Problem implements java.io.Serializable {
         return systemAgentIndex;
     }
 
-    public Set<TimeFormula> getGoals() {
+    public Set<Formula> getGoals() {
         return goals;
     }
 
-    public TimeFormula getGoal() {
+    public Set<TimeConstraint> getTimeConstraints() {
+        return timeConstraints;
+    }
+
+    public Formula getGoal() {
         if (goals.size() == 1) {
             return goals.iterator().next();
         }
-        return TimeAndFormula.make(goals);
+        return AndFormula.make(goals);
     }
 
     public Map<String, Model> getStartingModels() {
@@ -84,8 +89,12 @@ public class Problem implements java.io.Serializable {
         str.append("\n");
 
         str.append("GOALS:\n");
-        for (TimeFormula g : goals) {
+        for (Formula g : goals) {
             str.append(g.toString());
+            str.append("\n");
+        }
+        for (TimeConstraint t : timeConstraints) {
+            str.append(t.toString());
             str.append("\n");
         }
         str.append("\n");

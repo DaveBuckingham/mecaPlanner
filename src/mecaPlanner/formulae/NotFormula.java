@@ -1,8 +1,6 @@
-package mecaPlanner.formulae.beliefFormulae;
+package mecaPlanner.formulae;
 
 
-import mecaPlanner.formulae.localFormulae.Literal;
-import mecaPlanner.formulae.localFormulae.LocalNotFormula;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
@@ -14,32 +12,29 @@ import java.util.Objects;
 
 import java.util.Set;
 
-public class BeliefNotFormula extends BeliefFormula{
+public class NotFormula extends Formula{
 
-    private BeliefFormula formula;
+    private Formula formula;
 
 
-    private BeliefNotFormula(BeliefFormula formula) {
+    private NotFormula(Formula formula) {
         this.formula = formula;
     }
 
-    public static BeliefFormula make(BeliefFormula inputFormula) {
+    public static Formula make(Formula inputFormula) {
         if (inputFormula.isTrue()) {
             return new Literal(false);
         }
         if (inputFormula.isFalse()) {
             return new Literal(true);
         }
-        if (inputFormula instanceof BeliefNotFormula) {
-            return ((BeliefNotFormula) inputFormula).getFormula();
+        if (inputFormula instanceof NotFormula) {
+            return ((NotFormula) inputFormula).getFormula();
         }
-        if (inputFormula instanceof LocalNotFormula) {
-            return ((LocalNotFormula) inputFormula).getFormula();
-        }
-        return new BeliefNotFormula(inputFormula);
+        return new NotFormula(inputFormula);
     }
 
-    public BeliefFormula getFormula() {
+    public Formula getFormula() {
         return formula;
     }
 
@@ -48,13 +43,20 @@ public class BeliefNotFormula extends BeliefFormula{
         return (!formula.evaluate(kripke, world));
     }
 
-    //public Set<FluentAtom> getAllAtoms() {
-    //    return formula.getAllAtoms();
-    //}
+    public Integer getHeight() {
+        return formula.getHeight();
+    }
 
     @Override
-    public BeliefFormula negate() {
+    public Formula negate() {
         return formula;
+    }
+
+    public Boolean isFalse() {
+        return false;
+    }
+    public Boolean isTrue() {
+        return false;
     }
 
 
@@ -66,7 +68,7 @@ public class BeliefNotFormula extends BeliefFormula{
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefNotFormula other = (BeliefNotFormula) obj;
+        NotFormula other = (NotFormula) obj;
         return formula.equals(other.getFormula());
     }
 

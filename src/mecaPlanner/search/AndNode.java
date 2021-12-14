@@ -5,7 +5,8 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
 import mecaPlanner.Log;
-import mecaPlanner.formulae.timeFormulae.TimeFormula;
+import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
 
 import java.util.Set;
@@ -15,7 +16,8 @@ import java.util.Map;
 public class AndNode extends GNode {
 
     public AndNode(EpistemicState estate,
-                 TimeFormula goal,
+                 Formula goal,
+                 Set<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
                  Map<String, Model> models,
@@ -23,7 +25,7 @@ public class AndNode extends GNode {
                  Domain domain
                 ) {
 
-        super(estate, goal, time, parent, models, systemAgentIndex, domain);
+        super(estate, goal, timeConstraints, time, parent, models, systemAgentIndex, domain);
         // MAKE SURE ITS NOT THE SYSTEM AGENT'S TURN
         assert(systemAgentIndex != time % domain.getNonPassiveAgents().size());
     }

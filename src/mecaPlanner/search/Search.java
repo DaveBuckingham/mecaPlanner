@@ -4,7 +4,8 @@ import mecaPlanner.state.EpistemicState;
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.timeFormulae.TimeFormula;
+import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Solution;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
@@ -63,7 +64,8 @@ public class Search {
 
         int numAgents = domain.getNonPassiveAgents().size();
 
-        TimeFormula goal = problem.getGoal();
+        Formula goal = problem.getGoal();
+        Set<TimeConstraint> timeConstraints = problem.getTimeConstraints();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
@@ -71,6 +73,7 @@ public class Search {
             for (EpistemicState eState : startStates) {
                 allStartOrNodes.add(new OrNode(eState,
                                                goal, 
+                                               timeConstraints,
                                                0, 
                                                null, 
                                                problem.getStartingModels(), 
@@ -83,6 +86,7 @@ public class Search {
             for (EpistemicState eState : startStates) {
                 AndNode startAndNode = new AndNode(eState,
                                                    goal, 
+                                                   timeConstraints,
                                                    0, 
                                                    null, 
                                                    problem.getStartingModels(), 

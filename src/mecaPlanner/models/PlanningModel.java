@@ -2,7 +2,7 @@ package mecaPlanner.models;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.Formula;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
@@ -23,7 +23,7 @@ public abstract class PlanningModel extends Model {
 
     Map<String,Map<EpistemicState,Set<Action>>> memo = new HashMap<>();
 
-    private Set<Action> getPlannedActions(NDState ndState, String agent, BeliefFormula goal) {
+    private Set<Action> getPlannedActions(NDState ndState, String agent, Formula goal) {
         if (!memo.containsKey(agent)) {
             memo.put(agent, new HashMap<EpistemicState, Set<Action>>());
         }
@@ -35,7 +35,7 @@ public abstract class PlanningModel extends Model {
         return memo.get(agent).get(ndState);
     }
 
-    private Map<NDState, Set<Action>> search(NDState ndState, String agent, BeliefFormula goal) {
+    private Map<NDState, Set<Action>> search(NDState ndState, String agent, Formula goal) {
         HashMap<NDState, Set<Action>> policy = new HashMap<>();
         // IF WE USE 'NECESSARILY' HERE, MIGHT KEEP SEARCHING EVEN IF
         // AGENT KNOWS GOAL WILL BE REACHED OVER MULTIPLE STATES

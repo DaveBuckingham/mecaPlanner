@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.beliefFormulae;
+package mecaPlanner.formulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -9,12 +9,12 @@ import java.util.HashSet;
 
 
 
-public class BeliefCommonFormula extends BeliefFormula {
+public class CommonFormula extends Formula {
 
     private Set<String> commonAgents;
-    private BeliefFormula formula;
+    private Formula formula;
 
-    public BeliefCommonFormula(Set<String> commonAgents, BeliefFormula formula) {
+    public CommonFormula(Set<String> commonAgents, Formula formula) {
         this.commonAgents = commonAgents;
         this.formula = formula;
     }
@@ -22,29 +22,47 @@ public class BeliefCommonFormula extends BeliefFormula {
     // COMMON AGENTS NOT SPECIFIED, WE'LL ASSUME ITS ALL AGENTS
     // WHICH WE WILL PULL DYNAMICALLY FROM THE STATE AT EVALUATION,
     // SEE evaluate() BELOW.
-    public BeliefCommonFormula(BeliefFormula formula) {
+    public CommonFormula(Formula formula) {
         this.commonAgents = new HashSet<String>();
         this.formula = formula;
+    }
+
+    public Integer getHeight() {
+        return formula.getHeight() + 1;
     }
 
     public Set<String> getAgents() {
         return this.commonAgents;
     }
 
-    public BeliefFormula getFormula() {
+    public Formula getFormula() {
         return this.formula;
+    }
+
+    public Boolean isFalse() {
+        return false;
+    }
+    public Boolean isTrue() {
+        return false;
     }
 
     // THIS IS WRONG, THIS IS THE SAME AS E()
     public Boolean evaluate(KripkeStructure kripke, World world) {
         //System.out.println("WARNING: incorrectly computing 'evaluate' for Common belief");
+        if (kripke == null) {
+            throw new RuntimeException("Can't evaluate modal formula without a model");
+        }
         for (String agent : commonAgents) {
-            BeliefBelievesFormula believes = new BeliefBelievesFormula(agent, formula);
+            BelievesFormula believes = new BelievesFormula(agent, formula);
             if (!believes.evaluate(kripke, world)) {
                 return false;
             }
         }
         return true;
+    }
+
+    public Formula negate() {
+        return NotFormula.make(this);
     }
 
     //public Set<FluentAtom> getAllAtoms() {
@@ -59,7 +77,7 @@ public class BeliefCommonFormula extends BeliefFormula {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefCommonFormula otherFormula = (BeliefCommonFormula) obj;
+        CommonFormula otherFormula = (CommonFormula) obj;
         return (this.commonAgents.equals(otherFormula.getAgents()) && this.formula.equals(otherFormula.getFormula()));
     }
 

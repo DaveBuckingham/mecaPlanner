@@ -1,9 +1,7 @@
 package mecaPlanner;
 
 import mecaPlanner.state.EpistemicState;
-import mecaPlanner.formulae.localFormulae.*;
-import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.timeFormulae.*;
+import mecaPlanner.formulae.*;
 import mecaPlanner.models.*;
 import mecaPlanner.search.Search;
 

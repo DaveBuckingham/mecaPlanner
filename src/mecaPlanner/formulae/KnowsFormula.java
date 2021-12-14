@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.beliefFormulae;
+package mecaPlanner.formulae;
 
 import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
@@ -9,12 +9,12 @@ import java.util.Objects;
 import java.util.Set;
 
 
-public class BeliefKnowsFormula extends BeliefFormula {
+public class KnowsFormula extends Formula {
 
     private String agent;
-    private BeliefFormula formula;
+    private Formula formula;
 
-    public BeliefKnowsFormula(String agent, BeliefFormula formula) {
+    public KnowsFormula(String agent, Formula formula) {
         this.agent = agent;
         this.formula = formula;
     }
@@ -23,11 +23,18 @@ public class BeliefKnowsFormula extends BeliefFormula {
         return this.agent;
     }
 
-    public BeliefFormula getFormula() {
+    public Formula getFormula() {
         return this.formula;
     }
 
+    public Integer getHeight() {
+        return formula.getHeight() + 1;
+    }
+
     public Boolean evaluate(KripkeStructure kripke, World world) {
+        if (kripke == null) {
+            throw new RuntimeException("Can't evaluate modal formula without a model");
+        }
         for (World w : kripke.getKnownWorlds(agent, world)) {
             if (!formula.evaluate(kripke, w)){
                 return false;
@@ -36,9 +43,16 @@ public class BeliefKnowsFormula extends BeliefFormula {
         return true;
     }
 
-    //public Set<FluentAtom> getAllAtoms() {
-    //    return formula.getAllAtoms();
-    //}
+    public Formula negate() {
+        return NotFormula.make(this);
+    }
+
+    public Boolean isFalse() {
+        return false;
+    }
+    public Boolean isTrue() {
+        return false;
+    }
 
     @Override
     public boolean equals(Object obj) {
@@ -48,7 +62,7 @@ public class BeliefKnowsFormula extends BeliefFormula {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        BeliefKnowsFormula otherFormula = (BeliefKnowsFormula) obj;
+        KnowsFormula otherFormula = (KnowsFormula) obj;
         return (this.agent.equals(otherFormula.getAgent()) && this.formula.equals(otherFormula.getFormula()));
     }
 

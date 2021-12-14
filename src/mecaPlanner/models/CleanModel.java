@@ -1,7 +1,7 @@
 package mecaPlanner.models;
 
 import mecaPlanner.state.*;
-import mecaPlanner.formulae.localFormulae.Fluent;
+import mecaPlanner.formulae.Fluent;
 import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;

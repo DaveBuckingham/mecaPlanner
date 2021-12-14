@@ -3,7 +3,8 @@ package mecaPlanner.search;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.timeFormulae.TimeFormula;
+import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
 
 import java.util.Set;
@@ -13,7 +14,8 @@ import java.util.Map;
 public class OrNode extends GNode {
 
     public OrNode(EpistemicState estate,
-                 TimeFormula goal,
+                 Formula goal,
+                 Set<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
                  Map<String, Model> models,
@@ -21,7 +23,7 @@ public class OrNode extends GNode {
                  Domain domain
                 ) {
 
-        super(estate, goal, time, parent, models, systemAgentIndex, domain);
+        super(estate, goal, timeConstraints, time, parent, models, systemAgentIndex, domain);
     }
 
     // BOTTOM OUT A RECURSIVE DESCENT THROUGH AND NODES

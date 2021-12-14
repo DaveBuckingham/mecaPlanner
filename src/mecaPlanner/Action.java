@@ -1,7 +1,6 @@
 package mecaPlanner;
 
-import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.localFormulae.*;
+import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
 import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
@@ -25,26 +24,24 @@ public class Action implements java.io.Serializable {
     private List<String> parameters;
     private int cost;
     private String actor;
-    private LocalFormula precondition;
-    private Map<String, LocalFormula> observesIf;
-    private Map<String, LocalFormula> awareIf;
-    //private Set<LocalFormula> determines;
-    //private Set<BeliefFormula> announces;
-    private Map<LocalFormula, LocalFormula> determines;  // sensed formula --> condition
-    private Map<BeliefFormula, LocalFormula> announces;  // announcement --> condition
-    private Map<Assignment, LocalFormula> effects;
+    private Formula precondition;
+    private Map<String, Formula> observesIf;
+    private Map<String, Formula> awareIf;
+    private Map<Formula, Formula> determines;  // sensed formula --> condition
+    private Map<Formula, Formula> announces;  // announcement --> condition
+    private Map<Assignment, Formula> effects;
 
 
     public Action(String name,
                   List<String> parameters,
                   String actor,
                   int cost,
-                  LocalFormula precondition,
-                  Map<String, LocalFormula> observesIf,
-                  Map<String, LocalFormula> awareIf,
-                  Map<LocalFormula, LocalFormula> determines,
-                  Map<BeliefFormula, LocalFormula> announces,
-                  Map<Assignment, LocalFormula> effects,
+                  Formula precondition,
+                  Map<String, Formula> observesIf,
+                  Map<String, Formula> awareIf,
+                  Map<Formula, Formula> determines,
+                  Map<Formula, Formula> announces,
+                  Map<Assignment, Formula> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -73,19 +70,19 @@ public class Action implements java.io.Serializable {
         return this.parameters;
     }
 
-    public BeliefFormula getPrecondition() {
+    public Formula getPrecondition() {
         return this.precondition;
     }
 
-    public Map<Assignment, LocalFormula> getEffects() {
+    public Map<Assignment, Formula> getEffects() {
         return this.effects;
     }
 
-    public Map<String, LocalFormula> getObserves() {
+    public Map<String, Formula> getObserves() {
         return this.observesIf;
     }
 
-    public Map<String, LocalFormula> getAware() {
+    public Map<String, Formula> getAware() {
         return this.awareIf;
     }
 
@@ -97,9 +94,9 @@ public class Action implements java.io.Serializable {
     // TO BELIEF FORMULA EFFECT CONDITIONS
     public Set<Assignment> getApplicableEffects(World world) {
         Set<Assignment> applicableEffects = new HashSet<>();
-            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+            for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
                 Assignment assignment = e.getKey();
-                LocalFormula condition = e.getValue();
+                Formula condition = e.getValue();
                 if (condition.evaluate(world)) {
                     applicableEffects.add(assignment);
                 }
@@ -112,11 +109,11 @@ public class Action implements java.io.Serializable {
         return this.cost;
     }
 
-    public Map<LocalFormula, LocalFormula> getDetermines() {
+    public Map<Formula, Formula> getDetermines() {
         return this.determines;
     }
 
-    public Map<BeliefFormula, LocalFormula> getAnnounces() {
+    public Map<Formula, Formula> getAnnounces() {
         return this.announces;
     }
 
@@ -219,43 +216,43 @@ public class Action implements java.io.Serializable {
         // CONTAINING ALL KNOWLEDGE LEARNED
         // AND ONE FOR BLIEF
 
-        Map<World,Map<String, LocalFormula>> learnedKnowledgeFormula = new HashMap<>();
-        Map<World,Map<String, BeliefFormula>> learnedBeliefFormula = new HashMap<>();
+        Map<World,Map<String, Formula>> learnedKnowledgeFormula = new HashMap<>();
+        Map<World,Map<String, Formula>> learnedFormula = new HashMap<>();
         for (World world : oldWorlds) {
             learnedKnowledgeFormula.put(world, new HashMap<>());
-            learnedBeliefFormula.put(world, new HashMap<>());
+            learnedFormula.put(world, new HashMap<>());
         }
 
-        Map<World, LocalFormula> learnedEffects = new HashMap<>();
-        Map<World, LocalFormula> learnedEffectConditions = new HashMap<>();
-        Map<World, LocalFormula> learnedDetermined = new HashMap<>();
+        Map<World, Formula> learnedEffects = new HashMap<>();
+        Map<World, Formula> learnedEffectConditions = new HashMap<>();
+        Map<World, Formula> learnedDetermined = new HashMap<>();
 
-        Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        Map<String, Map<World, Formula>> learnedObserver = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
-            learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+            learnedObserver.put(agent, new HashMap<World, Formula>());
         }
 
         for (World oldWorld : oldWorlds) {
 
             // WHAT DO AWARE AND OBSERVERS LEARN FROM EFFECT PRECONDITINS
-            Map<Fluent, Set<LocalFormula>> fluentsPossibleChangers = new HashMap<>();
-            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+            Map<Fluent, Set<Formula>> fluentsPossibleChangers = new HashMap<>();
+            for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
                 Assignment assignment = e.getKey();
                 Fluent target = assignment.getFluent();
                 Boolean value = assignment.getValue();
-                LocalFormula condition = e.getValue();
+                Formula condition = e.getValue();
                 assert(!condition.isFalse());
                 if (!fluentsPossibleChangers.containsKey(target)) {
-                    fluentsPossibleChangers.put(target, new HashSet<LocalFormula>());
+                    fluentsPossibleChangers.put(target, new HashSet<Formula>());
                 }
                 if (oldWorld.alteredByAssignment(assignment) && !condition.isTrue()) {
                     // CONDITION WILL OFTEN BE "True", NO POINT IN STORING THAT
                     fluentsPossibleChangers.get(target).add(condition);
                 }
             }
-            Set<LocalFormula> revealedConditions = new HashSet<>();
+            Set<Formula> revealedConditions = new HashSet<>();
             for (Fluent fluent : fluentsPossibleChangers.keySet()) {
-                LocalFormula possibleChangersFormula = LocalOrFormula.make(fluentsPossibleChangers.get(fluent));
+                Formula possibleChangersFormula = Formula.makeDisjunction(fluentsPossibleChangers.get(fluent));
                 if (possibleChangersFormula.evaluate(oldWorld)) {
                     revealedConditions.add(possibleChangersFormula);
                 }
@@ -263,15 +260,15 @@ public class Action implements java.io.Serializable {
                     revealedConditions.add(possibleChangersFormula.negate());
                 }
             }
-            learnedEffectConditions.put(oldWorld, LocalAndFormula.make(revealedConditions));
+            learnedEffectConditions.put(oldWorld, AndFormula.make(revealedConditions));
             assert(learnedEffectConditions.get(oldWorld).evaluate(oldWorld));
 
 
             // WHAT DO OBSERVERS SENSE
-            Set<LocalFormula> groundDetermines = new HashSet<>();
-            for (Map.Entry<LocalFormula, LocalFormula> e : determines.entrySet()) {
-                LocalFormula sensed = e.getKey();
-                LocalFormula condition = e.getValue();
+            Set<Formula> groundDetermines = new HashSet<>();
+            for (Map.Entry<Formula, Formula> e : determines.entrySet()) {
+                Formula sensed = e.getKey();
+                Formula condition = e.getValue();
                 if (condition.evaluate(oldWorld)) {
                     if (sensed.evaluate(oldWorld)) {
                         groundDetermines.add(sensed);
@@ -281,13 +278,13 @@ public class Action implements java.io.Serializable {
                     }
                 }
             }
-            learnedDetermined.put(oldWorld, LocalAndFormula.make(groundDetermines));
+            learnedDetermined.put(oldWorld, AndFormula.make(groundDetermines));
             assert(learnedDetermined.get(oldWorld).evaluate(oldWorld));
 
-            Set<LocalFormula> allLearnedEffects = new HashSet<>();
-            for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+            Set<Formula> allLearnedEffects = new HashSet<>();
+            for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
                 Assignment a = e.getKey();
-                LocalFormula condition = e.getValue();
+                Formula condition = e.getValue();
                 if ((!oldWorld.alteredByAssignment(a)) || (!condition.evaluate(oldWorld))) {  // NOT IN PAPER
                     Fluent f = a.getFluent();
                     Boolean value = a.getValue();
@@ -299,14 +296,14 @@ public class Action implements java.io.Serializable {
                     }
                 }
             }
-            learnedEffects.put(oldWorld, LocalAndFormula.make(allLearnedEffects));
+            learnedEffects.put(oldWorld, AndFormula.make(allLearnedEffects));
             assert(learnedDetermined.get(oldWorld).evaluate(oldWorld));
 
             // WHAT DO AGENTS LEARN BECAUSE THEY KNOW THEIR OBSERVER STATUS
             for (String agent : domain.getAllAgents()) {
 
-                LocalFormula observerConditions = observesIf.get(agent);
-                LocalFormula awareConditions = awareIf.get(agent);
+                Formula observerConditions = observesIf.get(agent);
+                Formula awareConditions = awareIf.get(agent);
 
                 if (isObservant(agent, oldWorld)){
                     // THERE'S PROBABLY A BETTER PLACE FOR THIS CHECK
@@ -315,15 +312,15 @@ public class Action implements java.io.Serializable {
                                                    " is both fully and partially observant of action " +
                                                    getSignature());
                     }
-                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions,
+                    learnedObserver.get(agent).put(oldWorld, AndFormula.make(observerConditions,
                                                                                   awareConditions.negate()));
                 }
                 else if (isAware(agent, oldWorld)){
-                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions.negate(),
+                    learnedObserver.get(agent).put(oldWorld, AndFormula.make(observerConditions.negate(),
                                                                                   awareConditions));
                 }
                 else {
-                    learnedObserver.get(agent).put(oldWorld, LocalAndFormula.make(observerConditions.negate(),
+                    learnedObserver.get(agent).put(oldWorld, AndFormula.make(observerConditions.negate(),
                                                                                   awareConditions.negate()));
                 }
                 assert(learnedObserver.get(agent).get(oldWorld).evaluate(oldWorld));
@@ -333,13 +330,13 @@ public class Action implements java.io.Serializable {
             // PUT TOGETHER ALL SOURCES OF KNOWLEDGE
             for (String agent : domain.getAllAgents()) {
                 if (isObservant(agent, oldWorld)){
-                    learnedKnowledgeFormula.get(oldWorld).put(agent, LocalAndFormula.make(
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, AndFormula.make(
                         learnedDetermined.get(oldWorld),
                         learnedEffectConditions.get(oldWorld),
                         learnedObserver.get(agent).get(oldWorld)));
                 }
                 else if (isAware(agent, oldWorld)){
-                    learnedKnowledgeFormula.get(oldWorld).put(agent, LocalAndFormula.make(
+                    learnedKnowledgeFormula.get(oldWorld).put(agent, AndFormula.make(
                         learnedEffectConditions.get(oldWorld),
                         learnedObserver.get(agent).get(oldWorld)));
                 }
@@ -353,32 +350,32 @@ public class Action implements java.io.Serializable {
 
             // PUT TOGETHER ALL SOURCES OF BELIEF
 
-            Set<BeliefFormula> actualAnnouncements = new HashSet<>();
-            for (Map.Entry<BeliefFormula, LocalFormula> e : announces.entrySet()) {
-                BeliefFormula announcement = e.getKey();
-                LocalFormula condition = e.getValue();
+            Set<Formula> actualAnnouncements = new HashSet<>();
+            for (Map.Entry<Formula, Formula> e : announces.entrySet()) {
+                Formula announcement = e.getKey();
+                Formula condition = e.getValue();
                 if (condition.evaluate(oldWorld)) {
                     actualAnnouncements.add(announcement);
                 }
             }
-            BeliefFormula unifiedAnnouncement = BeliefAndFormula.make(actualAnnouncements);
+            Formula unifiedAnnouncement = AndFormula.make(actualAnnouncements);
 
 
             for (String agent : domain.getAllAgents()) {
                 if (isObservant(agent, oldWorld)){
-                    BeliefFormula knowsNotAnnouncements = new BeliefKnowsFormula(agent, unifiedAnnouncement.negate());
+                    Formula knowsNotAnnouncements = new KnowsFormula(agent, unifiedAnnouncement.negate());
                     if (knowsNotAnnouncements.evaluate(oldKripke, oldWorld)) {
-                        learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
+                        learnedFormula.get(oldWorld).put(agent, new Literal(true));
                     }
                     else {
-                        learnedBeliefFormula.get(oldWorld).put(agent, unifiedAnnouncement);
+                        learnedFormula.get(oldWorld).put(agent, unifiedAnnouncement);
                     }
                 }
                 else if (isAware(agent, oldWorld)){
-                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
+                    learnedFormula.get(oldWorld).put(agent, new Literal(true));
                 }
                 else {
-                    learnedBeliefFormula.get(oldWorld).put(agent, new Literal(true));
+                    learnedFormula.get(oldWorld).put(agent, new Literal(true));
                 }
             }
 
@@ -511,7 +508,7 @@ public class Action implements java.io.Serializable {
             Relation newBelief = new Relation();
             for (World fromWorld: newWorlds) {
                 World oldFromWorld = newToOld.get(fromWorld);
-                BeliefFormula learnedBelief = learnedBeliefFormula.get(oldFromWorld).get(agent);
+                Formula learnedBelief = learnedFormula.get(oldFromWorld).get(agent);
                 //System.out.println("LB[" + agent + "]=" + learnedBelief);
 
                 // COPY CONNECTIONS FROM OLD BELIEF RELATION UNLESS TO-WORLD CONTRADICTS LEARNED BELIEFS
@@ -579,9 +576,9 @@ public class Action implements java.io.Serializable {
         Map<String, Set<PartialResult>> agentSubmodels = new HashMap<>();
         Set<PartialResult> submodels = new HashSet<>();
 
-        //Map<String, Map<World, LocalFormula>> learnedObserver = new HashMap<>();
+        //Map<String, Map<World, Formula>> learnedObserver = new HashMap<>();
         //for (String agent : domain.getAllAgents()) {
-        //    learnedObserver.put(agent, new HashMap<World, LocalFormula>());
+        //    learnedObserver.put(agent, new HashMap<World, Formula>());
         //}
 
         Action.PartialResult actualPartial = this.partial(oldKripke);
@@ -632,8 +629,8 @@ public class Action implements java.io.Serializable {
 
 
         // BUILD NULL ACTION AND USE PARTIAL TO GET OBLIVIOUS SUB-MODEL
-        Map<String, LocalFormula> nullObserverConditions = new HashMap<>();
-        Map<String, LocalFormula> nullAwareConditions = new HashMap<>();
+        Map<String, Formula> nullObserverConditions = new HashMap<>();
+        Map<String, Formula> nullAwareConditions = new HashMap<>();
         for (String agent : domain.getAllAgents()) {
             nullObserverConditions.put(agent, new Literal(true));
             nullAwareConditions.put(agent, new Literal(false));
@@ -646,9 +643,9 @@ public class Action implements java.io.Serializable {
                                        new Literal(true),                          // preconditions 
                                        nullObserverConditions,                     // observesIf
                                        nullAwareConditions,                        // awareIf
-                                       new HashMap<LocalFormula, LocalFormula>(),  // determines
-                                       new HashMap<BeliefFormula, LocalFormula>(), // announces
-                                       new HashMap<Assignment, LocalFormula>(),    // effects
+                                       new HashMap<Formula, Formula>(),  // determines
+                                       new HashMap<Formula, Formula>(), // announces
+                                       new HashMap<Assignment, Formula>(),    // effects
                                        domain
                                       );
         Action.PartialResult obliviousPartial = nullAction.partial(oldKripke);
@@ -756,11 +753,11 @@ public class Action implements java.io.Serializable {
         assert (!kripke.getKnownWorlds(agent, world).isEmpty());
         Set<Action> actions = new HashSet<>();
         for (Action action : domain.getAllActions()) {
-            BeliefFormula possiblyPreconditioned = new BeliefKnowsFormula(agent,
+            Formula possiblyPreconditioned = new KnowsFormula(agent,
                 action.getPrecondition().negate()).negate();
-            BeliefFormula possiblyOblivious = BeliefAndFormula.make(
-                new BeliefKnowsFormula(agent, action.observesIf.get(agent)).negate(),
-                new BeliefKnowsFormula(agent, action.awareIf.get(agent)).negate());
+            Formula possiblyOblivious = AndFormula.make(
+                new KnowsFormula(agent, action.observesIf.get(agent)).negate(),
+                new KnowsFormula(agent, action.awareIf.get(agent)).negate());
             if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
                 actions.add(action);
             }
@@ -840,7 +837,7 @@ public class Action implements java.io.Serializable {
         str.append(precondition);
 
         str.append("\n\tObserves\n");
-        for (Map.Entry<String, LocalFormula> o : observesIf.entrySet()) {
+        for (Map.Entry<String, Formula> o : observesIf.entrySet()) {
             str.append("\t\t");
             str.append(o.getKey());
             str.append(" if ");
@@ -849,7 +846,7 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tAware\n");
-        for (Map.Entry<String, LocalFormula> a : awareIf.entrySet()) {
+        for (Map.Entry<String, Formula> a : awareIf.entrySet()) {
             str.append("\t\t");
             str.append(a.getKey());
             str.append(" if ");
@@ -858,9 +855,9 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tDetermines\n");
-        for (Map.Entry<LocalFormula, LocalFormula> e : determines.entrySet()) {
-            LocalFormula sensed = e.getKey();
-            LocalFormula condition = e.getValue();
+        for (Map.Entry<Formula, Formula> e : determines.entrySet()) {
+            Formula sensed = e.getKey();
+            Formula condition = e.getValue();
             str.append("\t\t");
             str.append(sensed);
             str.append(" if ");
@@ -870,9 +867,9 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tAnnounces\n");
-        for (Map.Entry<BeliefFormula, LocalFormula> e : announces.entrySet()) {
-            BeliefFormula announcement = e.getKey();
-            LocalFormula condition = e.getValue();
+        for (Map.Entry<Formula, Formula> e : announces.entrySet()) {
+            Formula announcement = e.getKey();
+            Formula condition = e.getValue();
             str.append("\t\t");
             str.append(announcement);
             str.append(" if ");
@@ -882,9 +879,9 @@ public class Action implements java.io.Serializable {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<Assignment, LocalFormula> e : effects.entrySet()) {
+        for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
             Assignment assignment = e.getKey();
-            LocalFormula condition = e.getValue();
+            Formula condition = e.getValue();
             str.append("\t\t");
             str.append(assignment);
             str.append(" if ");

@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import mecaPlanner.state.*;
-import mecaPlanner.formulae.localFormulae.Fluent;
+import mecaPlanner.formulae.Fluent;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
 

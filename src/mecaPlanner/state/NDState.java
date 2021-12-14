@@ -1,6 +1,6 @@
 package mecaPlanner.state;
 
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.Formula;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -90,7 +90,7 @@ public class NDState implements java.io.Serializable {
         return states;
     }
 
-    public Boolean possibly(BeliefFormula formula) {
+    public Boolean possibly(Formula formula) {
         for (World w : designatedWorlds) {
             if (formula.evaluate(this.kripkeStructure, w)) {
                 return true;
@@ -99,7 +99,7 @@ public class NDState implements java.io.Serializable {
         return false;
     }
 
-    public Boolean necessarily(BeliefFormula formula) {
+    public Boolean necessarily(Formula formula) {
         for (World w : designatedWorlds) {
             if (!formula.evaluate(this.kripkeStructure, w)) {
                 return false;

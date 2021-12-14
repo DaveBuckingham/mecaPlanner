@@ -4,7 +4,8 @@ package mecaPlanner.search;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.Action;
 import mecaPlanner.models.Model;
-import mecaPlanner.formulae.timeFormulae.TimeFormula;
+import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.TimeConstraint;
 
 import mecaPlanner.Domain;
 
@@ -15,7 +16,8 @@ import java.util.Map;
 
 public abstract class GNode  {
     protected EpistemicState estate;
-    protected TimeFormula goal;
+    protected Formula goal;
+    protected Set<TimeConstraint> timeConstraints;
     protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
@@ -32,7 +34,8 @@ public abstract class GNode  {
     private int systemAgentIndex;
 
     public GNode(EpistemicState estate,
-                 TimeFormula goal,
+                 Formula goal,
+                 Set<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
                  Map<String, Model> models,
@@ -41,6 +44,7 @@ public abstract class GNode  {
                 ) {
         this.estate = estate;
         this.goal = goal;
+        this.timeConstraints = timeConstraints;
         this.time = time;
         this.parent = parent;
         this.models = models;
@@ -75,7 +79,12 @@ public abstract class GNode  {
     }
 
     public boolean isGoal() {
-        return goal.evaluate(estate, time);
+        for (TimeConstraint c : timeConstraints) {
+            if (!c.holdsAt(time)) {
+                return false;
+            }
+        }
+        return goal.evaluate(estate);
     }
 
     public int getAgentIndex() {
@@ -104,6 +113,7 @@ public abstract class GNode  {
         if (nextTime % numAgents == systemAgentIndex) {
             return new OrNode(transitionResult.getState(),
                               goal,
+                              timeConstraints,
                               nextTime,
                               this,
                               transitionResult.getModels(),
@@ -113,6 +123,7 @@ public abstract class GNode  {
         else {
             return new AndNode(transitionResult.getState(),
                                goal,
+                               timeConstraints,
                                nextTime,
                                this,
                                transitionResult.getModels(),

@@ -1,5 +1,6 @@
-package mecaPlanner.formulae.localFormulae;
+package mecaPlanner.formulae;
 
+import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -8,7 +9,7 @@ import java.util.Arrays;
 import java.util.Objects;
 import java.util.Set;
 
-public class Fluent extends LocalFormula{
+public class Fluent extends Formula{
 
 
     private String name;
@@ -46,23 +47,24 @@ public class Fluent extends LocalFormula{
         return parameters.get(i);
     }
 
-    public LocalFormula negate() {
-        return LocalNotFormula.make(this);
+    public Formula negate() {
+        return NotFormula.make(this);
     }
 
     public Boolean isFalse() {
         return false;
     }
-
     public Boolean isTrue() {
         return false;
     }
 
-    public Boolean evaluate(World world) {
+    public Boolean evaluate(KripkeStructure kripke, World world) {
         return world.ground(this);
     }
-
-
+ 
+    public Integer getHeight() {
+        return 0;
+    }
 
 
     @Override

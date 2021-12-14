@@ -6,9 +6,7 @@ import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
 
 import mecaPlanner.*;
-import mecaPlanner.formulae.timeFormulae.*;
-import mecaPlanner.formulae.beliefFormulae.*;
-import mecaPlanner.formulae.localFormulae.*;
+import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
 
 import java.util.Set;
@@ -36,7 +34,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer systemAgentIndex;
     private Set<EpistemicState> startStates;
     private Map<String, Model> startingModels;
-    private Set<TimeFormula> goals;
+    private Set<Formula> goals;
+    private Set<TimeConstraint> timeConstraints;
 
     // THESE ARE USED AT PARSE-TIME ONLY
     private Set<Fluent> allFluents;
@@ -55,6 +54,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     // HELPER FUNCTIONS
+    
 
 
     // READ A PARAMETER LIST AND GET A LIST OF MAPS
@@ -197,6 +197,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.startStates = new HashSet<EpistemicState>();
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
+        this.timeConstraints = new HashSet<>();
 
         this.agentIndex = 0;
         this.allObjects = new HashMap<>();
@@ -210,7 +211,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        return new Problem(domain, systemAgentIndex, startStates, startingModels, goals);
+        return new Problem(domain, systemAgentIndex, startStates, startingModels, goals, timeConstraints);
     }
 
 
@@ -430,16 +431,21 @@ public class DeplToProblem extends DeplBaseVisitor {
         return null;
     }
 
-    // BUILD POSSILBY MULTIPLE STATES FROM A SINGLE FORMULA
     @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        BeliefFormula formula = (BeliefFormula) visit(ctx.beliefFormula());
-        Set<EpistemicState> states = Construct.constructStates(domain, formula);
+        List<Formula> initialFormulae = new ArrayList<>();
+        for (DeplParser.BeliefFormulaContext formulaCtx : ctx.beliefFormula()) {
+            Formula formula = (Formula) visit(formulaCtx);
+            initialFormulae.add(formula);
+        }
+        Set<EpistemicState> states = Construct.constructStates(domain, initialFormulae);
         if (states.isEmpty()) {
-            throw new RuntimeException("constructed model is null, is the initially theory false?");
+            throw new RuntimeException("constructed model is null...");
         }
         for (EpistemicState s : states) {
-            if (!formula.evaluate(s)) {
-                throw new RuntimeException("model construction failed, does the initial theory satisfy KD45?");
+            for (Formula f : initialFormulae) {
+                if (!f.evaluate(s)) {
+                    throw new RuntimeException("model construction failed.");
+                }
             }
         }
         return states;
@@ -536,8 +542,14 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        TimeFormula goal = (TimeFormula) visit(ctx.timeFormula());
-        goals.add(goal);
+        if (ctx.beliefFormula() == null) {
+            TimeConstraint constraint = (TimeConstraint) visit(ctx.timeConstraint());
+            timeConstraints.add(constraint);
+        }
+        else {
+            Formula goal = (Formula) visit(ctx.beliefFormula());
+            goals.add(goal);
+        }
         return null;
     }
 
@@ -553,19 +565,17 @@ public class DeplToProblem extends DeplBaseVisitor {
             String owner = null;
 
             int cost = 1;
-            List<LocalFormula> preconditionList = new ArrayList<>();
-            Map<String, List<LocalFormula>> observesLists = new HashMap<>();
-            Map<String, List<LocalFormula>> awareLists = new HashMap<>();
+            List<Formula> preconditionList = new ArrayList<>();
+            Map<String, List<Formula>> observesLists = new HashMap<>();
+            Map<String, List<Formula>> awareLists = new HashMap<>();
             for (String a : domain.getAgents()) {
-                observesLists.put(a, new ArrayList<LocalFormula>());
-                awareLists.put(a, new ArrayList<LocalFormula>());
+                observesLists.put(a, new ArrayList<Formula>());
+                awareLists.put(a, new ArrayList<Formula>());
             }
 
-            //Set<LocalFormula> determines = new HashSet<>();
-            //Set<BeliefFormula> announces = new HashSet<>();
-            Map<LocalFormula, LocalFormula> determines = new HashMap<>();
-            Map<BeliefFormula, LocalFormula> announces = new HashMap<>();
-            Map<Assignment, LocalFormula> effects = new HashMap<>();
+            Map<Formula, Formula> determines = new HashMap<>();
+            Map<Formula, Formula> announces = new HashMap<>();
+            Map<Assignment, Formula> effects = new HashMap<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -586,7 +596,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
                     for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        preconditionList.add((LocalFormula) visit(preCtx.localFormula()));
+                        preconditionList.add((Formula) visit(preCtx.localFormula()));
                         variableStack.pop();
                     }
                 }
@@ -599,12 +609,12 @@ public class DeplToProblem extends DeplBaseVisitor {
                         if (!domain.getAllAgents().contains(agentName)) {
                             throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
                         }
-                        LocalFormula condition;
+                        Formula condition;
                         if (obsCtx.condition() == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(obsCtx.condition());
+                            condition = (Formula) visit(obsCtx.condition());
                         }
                         if (!condition.isFalse()) {
                             observesLists.get(agentName).add(condition);
@@ -618,12 +628,12 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(awaCtx.groundableObject());
-                        LocalFormula condition;
+                        Formula condition;
                         if (awaCtx.condition() == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(awaCtx.condition());
+                            condition = (Formula) visit(awaCtx.condition());
                         }
                         if (!condition.isFalse()) {
                             awareLists.get(agentName).add(condition);
@@ -636,15 +646,15 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        LocalFormula condition;
+                        Formula condition;
                         if (detCtx.condition() == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(detCtx.condition());
+                            condition = (Formula) visit(detCtx.condition());
                         }
                         if (!(condition.isFalse())){
-                            LocalFormula sensed = (LocalFormula) visit(detCtx.localFormula());
+                            Formula sensed = (Formula) visit(detCtx.localFormula());
                             determines.put(sensed, condition);
                         }
                         variableStack.pop();
@@ -655,15 +665,15 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.AnnouncesActionFieldContext annCtx = fieldCtx.announcesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        LocalFormula condition;
+                        Formula condition;
                         if (annCtx.condition() == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(annCtx.condition());
+                            condition = (Formula) visit(annCtx.condition());
                         }
                         if (!(condition.isFalse())){
-                            BeliefFormula announcement = (BeliefFormula) visit(annCtx.beliefFormula());
+                            Formula announcement = (Formula) visit(annCtx.beliefFormula());
                             announces.put(announcement, condition);
                         }
                         variableStack.pop();
@@ -674,12 +684,12 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        LocalFormula condition;
+                        Formula condition;
                         if (effCtx.condition() == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (LocalFormula) visit(effCtx.condition());
+                            condition = (Formula) visit(effCtx.condition());
                         }
                         if (!(condition.isFalse())){
                             Fluent fluent = (Fluent) visit(effCtx.fluent());
@@ -695,17 +705,17 @@ public class DeplToProblem extends DeplBaseVisitor {
                 }
             }
 
-            LocalFormula precondition = LocalAndFormula.make(preconditionList);
+            Formula precondition = AndFormula.make(preconditionList);
 
             if (owner == null) {
                 throw new RuntimeException("illegal action definition, no owner: " + actionName);
             }
 
-            Map<String, LocalFormula> observes = new HashMap<>();
-            Map<String, LocalFormula> aware = new HashMap<>();
+            Map<String, Formula> observes = new HashMap<>();
+            Map<String, Formula> aware = new HashMap<>();
             for (String a : domain.getAgents()) {
-                observes.put(a, (LocalOrFormula.make(observesLists.get(a))));
-                aware.put(a, (LocalOrFormula.make(awareLists.get(a))));
+                observes.put(a, (Formula.makeDisjunction(observesLists.get(a))));
+                aware.put(a, (Formula.makeDisjunction(awareLists.get(a))));
             }
 
             assert (actionName != null);
@@ -778,8 +788,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
     }
 
-    @Override public LocalFormula visitCondition(DeplParser.ConditionContext ctx) {
-        return (LocalFormula) visit(ctx.localFormula());
+    @Override public Formula visitCondition(DeplParser.ConditionContext ctx) {
+        return (Formula) visit(ctx.localFormula());
     }
 
 
@@ -796,7 +806,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return fluent;
     }
 
-    @Override public LocalFormula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
+    @Override public Formula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
         if (constants.containsKey(fluent)) {
             return new Literal(constants.get(fluent));
@@ -807,177 +817,147 @@ public class DeplToProblem extends DeplBaseVisitor {
         return fluent;
     }
 
-    @Override public LocalFormula visitLocalLiteralTrue(DeplParser.LocalLiteralTrueContext ctx) {
+    @Override public Formula visitLocalLiteralTrue(DeplParser.LocalLiteralTrueContext ctx) {
         return new Literal(true);
     }
 
-    @Override public LocalFormula visitLocalLiteralFalse(DeplParser.LocalLiteralFalseContext ctx) {
+    @Override public Formula visitLocalLiteralFalse(DeplParser.LocalLiteralFalseContext ctx) {
         return new Literal(false);
     }
 
-    @Override public LocalFormula visitLocalParens(DeplParser.LocalParensContext ctx) {
-        return (LocalFormula) visit(ctx.localFormula());
+    @Override public Formula visitLocalParens(DeplParser.LocalParensContext ctx) {
+        return (Formula) visit(ctx.localFormula());
     }
 
-    @Override public LocalFormula visitLocalNot(DeplParser.LocalNotContext ctx) {
-        LocalFormula inner = (LocalFormula) visit(ctx.localFormula());
-        return (LocalNotFormula.make(inner));
+    @Override public Formula visitLocalNot(DeplParser.LocalNotContext ctx) {
+        Formula inner = (Formula) visit(ctx.localFormula());
+        return (NotFormula.make(inner));
     }
 
-    @Override public LocalFormula visitLocalAnd(DeplParser.LocalAndContext ctx) {
-        List<LocalFormula> subFormulae = new ArrayList<>();
+    @Override public Formula visitLocalAnd(DeplParser.LocalAndContext ctx) {
+        List<Formula> subFormulae = new ArrayList<>();
         for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
-            subFormulae.add((LocalFormula) visit(subFormula));
+            subFormulae.add((Formula) visit(subFormula));
         }
-        return (LocalAndFormula.make(subFormulae));
+        return (AndFormula.make(subFormulae));
     }
 
-    @Override public LocalFormula visitLocalOr(DeplParser.LocalOrContext ctx) {
-        List<LocalFormula> subFormulae = new ArrayList<>();
+    @Override public Formula visitLocalOr(DeplParser.LocalOrContext ctx) {
+        List<Formula> subFormulae = new ArrayList<>();
         for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
-            subFormulae.add((LocalFormula) visit(subFormula));
+            subFormulae.add((Formula) visit(subFormula));
         }
-        return (LocalOrFormula.make(subFormulae));
+        return Formula.makeDisjunction(subFormulae);
     }
 
-    @Override public LocalFormula visitLocalImplies(DeplParser.LocalImpliesContext ctx) {
-        List<LocalFormula> subFormulae = new ArrayList<>();
-        LocalFormula leftFormula = (LocalFormula) visit(ctx.localFormula().get(0));
-        LocalFormula rightFormula = (LocalFormula) visit(ctx.localFormula().get(1));
-        return (LocalOrFormula.make(leftFormula.negate(), rightFormula));
+    @Override public Formula visitLocalImplies(DeplParser.LocalImpliesContext ctx) {
+        List<Formula> subFormulae = new ArrayList<>();
+        Formula leftFormula = (Formula) visit(ctx.localFormula().get(0));
+        Formula rightFormula = (Formula) visit(ctx.localFormula().get(1));
+        return (Formula.makeDisjunction(Arrays.asList(leftFormula.negate(), rightFormula)));
     }
 
 
 
     // BELIEF FORMULAE
 
-    @Override public BeliefFormula visitBeliefLocalFormula(DeplParser.BeliefLocalFormulaContext ctx) {
-        return (LocalFormula) visit(ctx.localFormula());
+    @Override public Formula visitBeliefLocalFormula(DeplParser.BeliefLocalFormulaContext ctx) {
+        return (Formula) visit(ctx.localFormula());
     }
 
-    @Override public BeliefFormula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
-        return (BeliefFormula) visit(ctx.beliefFormula());
+    @Override public Formula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
+        return (Formula) visit(ctx.beliefFormula());
     }
 
-    @Override public BeliefFormula visitBeliefNot(DeplParser.BeliefNotContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        return (BeliefNotFormula.make(inner));
+    @Override public Formula visitBeliefNot(DeplParser.BeliefNotContext ctx) {
+        Formula inner = (Formula) visit(ctx.beliefFormula());
+        return (NotFormula.make(inner));
     }
 
-    @Override public BeliefFormula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
-        BeliefFormula left = (BeliefFormula) visit(ctx.beliefFormula().get(0));
-        BeliefFormula right = (BeliefFormula) visit(ctx.beliefFormula().get(1));
-        return (BeliefAndFormula.make(left, right));
+    @Override public Formula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
+        Formula left = (Formula) visit(ctx.beliefFormula().get(0));
+        Formula right = (Formula) visit(ctx.beliefFormula().get(1));
+        return (AndFormula.make(left, right));
     }
 
-    @Override public BeliefFormula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
-        List<BeliefFormula> subFormulae = new ArrayList<>();
+    @Override public Formula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
+        List<Formula> subFormulae = new ArrayList<>();
         for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
-            subFormulae.add((BeliefFormula) visit(subFormula));
+            subFormulae.add((Formula) visit(subFormula));
         }
-        return (BeliefOrFormula.make(subFormulae));
+        return Formula.makeDisjunction(subFormulae);
     }
 
-    @Override public BeliefFormula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+    @Override public Formula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
+        Formula inner = (Formula) visit(ctx.beliefFormula());
         String agentName = (String) visit(ctx.groundableObject());
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return new BeliefBelievesFormula(agentName, inner);
+        return new BelievesFormula(agentName, inner);
     }
 
-    @Override public BeliefFormula visitBeliefPossibly(DeplParser.BeliefPossiblyContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+    @Override public Formula visitBeliefPossibly(DeplParser.BeliefPossiblyContext ctx) {
+        Formula inner = (Formula) visit(ctx.beliefFormula());
         String agentName = (String) visit(ctx.groundableObject());
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return BeliefNotFormula.make(new BeliefBelievesFormula(agentName, BeliefNotFormula.make(inner)));
+        return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
     }
 
-    @Override public BeliefFormula visitBeliefKnows(DeplParser.BeliefKnowsContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
+    @Override public Formula visitBeliefKnows(DeplParser.BeliefKnowsContext ctx) {
+        Formula inner = (Formula) visit(ctx.beliefFormula());
         String agentName = (String) visit(ctx.groundableObject());
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return new BeliefKnowsFormula(agentName, inner);
+        return new KnowsFormula(agentName, inner);
     }
 
-    @Override public BeliefFormula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
-        BeliefFormula inner = (BeliefFormula) visit(ctx.beliefFormula());
-        return new BeliefCommonFormula(inner);
+    @Override public Formula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
+        Formula inner = (Formula) visit(ctx.beliefFormula());
+        return new CommonFormula(inner);
     }
-
 
 
     // TIME FORMULAE
 
-    @Override public TimeFormula visitTimeBelief(DeplParser.TimeBeliefContext ctx) {
-        return (BeliefFormula) visit(ctx.beliefFormula());
-    }
-
-    @Override public TimeFormula visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
-        return (TimeFormula) visit(ctx.temporalConstraint());
-    }
-
-    @Override public TimeFormula visitTimeNot(DeplParser.TimeNotContext ctx) {
-        TimeFormula inner = (TimeFormula) visit(ctx.timeFormula());
-        return (new TimeNotFormula(inner));
-    }
-
-    @Override public TimeFormula visitTimeAnd(DeplParser.TimeAndContext ctx) {
-        List<TimeFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.TimeFormulaContext subFormula : ctx.timeFormula()) {
-            subFormulae.add((TimeFormula) visit(subFormula));
-        }
-        return (TimeAndFormula.make(subFormulae));
-    }
-
-    @Override public TimeFormula visitTimeOr(DeplParser.TimeOrContext ctx) {
-        List<TimeFormula> subFormulae = new ArrayList<>();
-        for (DeplParser.TimeFormulaContext subFormula : ctx.timeFormula()) {
-            subFormulae.add((TimeFormula) visit(subFormula));
-        }
-        return (TimeOrFormula.make(subFormulae));
-    }
-
-    @Override public TimeFormulaConstraint visitTemporalConstraint(DeplParser.TemporalConstraintContext ctx) {
-        return new TimeFormulaConstraint((TimeFormulaConstraint.Inequality) visit(ctx.inequality()),
+    @Override public TimeConstraint visitTimeConstraint(DeplParser.TimeConstraintContext ctx) {
+        return new TimeConstraint((TimeConstraint.Inequality) visit(ctx.inequality()),
                                   Integer.parseInt(ctx.INTEGER().getText()));
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
-        return TimeFormulaConstraint.Inequality.EQ;
+    @Override public TimeConstraint.Inequality visitInequalityEq(DeplParser.InequalityEqContext ctx) {
+        return TimeConstraint.Inequality.EQ;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityEq2(DeplParser.InequalityEq2Context ctx) {
-        return TimeFormulaConstraint.Inequality.EQ;
+    @Override public TimeConstraint.Inequality visitInequalityEq2(DeplParser.InequalityEq2Context ctx) {
+        return TimeConstraint.Inequality.EQ;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
-        return TimeFormulaConstraint.Inequality.NE;
+    @Override public TimeConstraint.Inequality visitInequalityNe(DeplParser.InequalityNeContext ctx) {
+        return TimeConstraint.Inequality.NE;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityNe2(DeplParser.InequalityNe2Context ctx) {
-        return TimeFormulaConstraint.Inequality.NE;
+    @Override public TimeConstraint.Inequality visitInequalityNe2(DeplParser.InequalityNe2Context ctx) {
+        return TimeConstraint.Inequality.NE;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
-        return TimeFormulaConstraint.Inequality.LT;
+    @Override public TimeConstraint.Inequality visitInequalityLt(DeplParser.InequalityLtContext ctx) {
+        return TimeConstraint.Inequality.LT;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
-        return TimeFormulaConstraint.Inequality.LTE;
+    @Override public TimeConstraint.Inequality visitInequalityLte(DeplParser.InequalityLteContext ctx) {
+        return TimeConstraint.Inequality.LTE;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
-        return TimeFormulaConstraint.Inequality.GT;
+    @Override public TimeConstraint.Inequality visitInequalityGt(DeplParser.InequalityGtContext ctx) {
+        return TimeConstraint.Inequality.GT;
     }
 
-    @Override public TimeFormulaConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
-        return TimeFormulaConstraint.Inequality.GTE;
+    @Override public TimeConstraint.Inequality visitInequalityGte(DeplParser.InequalityGteContext ctx) {
+        return TimeConstraint.Inequality.GTE;
     }
 
 }

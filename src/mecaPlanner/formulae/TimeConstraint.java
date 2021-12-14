@@ -1,4 +1,4 @@
-package mecaPlanner.formulae.timeFormulae;
+package mecaPlanner.formulae;
 
 import mecaPlanner.state.*;
 
@@ -6,8 +6,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 
-
-public class TimeFormulaConstraint extends TimeFormula {
+public class TimeConstraint {
 
     public enum Inequality {
         EQ,            // equals
@@ -21,7 +20,7 @@ public class TimeFormulaConstraint extends TimeFormula {
     private Inequality inequality;
     private Integer value;
 
-    public TimeFormulaConstraint(Inequality inequality, Integer value) {
+    public TimeConstraint(Inequality inequality, Integer value) {
         this.inequality = inequality;
         this.value = value;
     }
@@ -34,11 +33,7 @@ public class TimeFormulaConstraint extends TimeFormula {
         return value;
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world, Integer timestep) {
-        return holds(timestep);
-    }
-
-    public Boolean holds(Integer timestep) {
+    public Boolean holdsAt(Integer timestep) {
         switch (this.inequality) {
             case EQ:
                 return timestep == this.value;
@@ -56,10 +51,6 @@ public class TimeFormulaConstraint extends TimeFormula {
                 throw new RuntimeException("invalide inequality: " + this.inequality);
         }
     }
-
-//    public Set<FluentAtom> getAllAtoms() {
-//        return new HashSet<FluentAtom>();
-//    }
 
     @Override
     public String toString() {
