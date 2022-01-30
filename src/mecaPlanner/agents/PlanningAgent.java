@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
@@ -15,9 +15,9 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 
-public abstract class PlanningModel extends Model {
+public abstract class PlanningAgent extends Agent {
 
-    public PlanningModel(String agent, Domain domain) {
+    public PlanningAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 

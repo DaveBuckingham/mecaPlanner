@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
 import mecaPlanner.formulae.Fluent;
@@ -16,9 +16,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-public class CleanModel extends Model {
+public class CleanAgent extends Agent {
 
-    public CleanModel(String agent, Domain domain) {
+    public CleanAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 

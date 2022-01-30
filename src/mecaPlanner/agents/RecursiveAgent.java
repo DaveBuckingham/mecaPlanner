@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
 import mecaPlanner.search.Perspective;
@@ -18,11 +18,11 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-public class RecursiveModel extends Model {
+public class RecursiveAgent extends Agent {
 
     Solution plan;
 
-    public RecursiveModel(String agent, Domain domain) {
+    public RecursiveAgent(String agent, Domain domain) {
         super(agent, domain);
         plan = null;
     }
@@ -52,7 +52,7 @@ public class RecursiveModel extends Model {
             Set<EpistemicState> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
 
             //Problem problem = new Problem(localDomain, systemAgentIndex, startStates, 
-            //Map<String,Model> 
+            //Map<String,Agent> 
         }
         assert (plan != null);
         assert (plan.hasPerspective(perspective));
@@ -63,7 +63,7 @@ public class RecursiveModel extends Model {
 //    public Problem(Domain domain,
 //                   int systemAgentIndex,
 //                   Set<EpistemicState> startStates,
-//                   Map<String,Model> startingModels,
+//                   Map<String,Agent> startingAgent,
 //                   Set<TimeFormula> goals
  
 

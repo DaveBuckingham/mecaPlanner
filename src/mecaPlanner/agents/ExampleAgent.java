@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -8,9 +8,9 @@ import mecaPlanner.formulae.Fluent;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
-public class ExampleModel extends Model {
+public class ExampleAgent extends Agent {
 
-    public ExampleModel(String agent, Domain domain) {
+    public ExampleAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 

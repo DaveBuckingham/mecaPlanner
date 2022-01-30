@@ -32,7 +32,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     // THESE GO IN THE PROBLEM
     private Domain domain;
     private Integer systemAgentIndex;
-    private Set<EpistemicState> startStates;
+    private Set<State> startStates;
     private Map<String, Model> startingModels;
     private Set<Formula> goals;
     private Set<TimeConstraint> timeConstraints;
@@ -40,10 +40,8 @@ public class DeplToProblem extends DeplBaseVisitor {
     // THESE ARE USED AT PARSE-TIME ONLY
     private Set<Fluent> allFluents;
     private Integer agentIndex;
-    private Map<String, String> allObjects;     // object name --> object type
-
     private Map<Fluent, Boolean> constants;
-
+    private Map<String, String> allObjects;     // object name --> object type
     private Map<String, TypeNode> typeDefs;     // object type --> objects of that type (TypeNode.getGroundings())
     private Stack<Map<String, String>> variableStack;
 
@@ -414,12 +412,12 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            if (stateCtx.kripkeModel() != null) {
+            if (stateCtx.model() != null) {
                 NDState ndState = (NDState) visit(stateCtx.kripkeModel());
-                startStates.addAll(ndState.getEpistemicStates());
+                startStates.addAll(ndState.getStates());
             }
             else {
-                Set<EpistemicState> constructedStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
+                Set<State> constructedStates = (Set<State>) visit(stateCtx.initiallyDef());
                 startStates.addAll(constructedStates);
             }
         }
@@ -427,36 +425,38 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
-        Log.warning("Post-staet construction and checking not implemented");
+        Log.warning("Post-state construction and checking not implemented");
         return null;
     }
 
-    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        List<Formula> initialFormulae = new ArrayList<>();
-        for (DeplParser.BeliefFormulaContext formulaCtx : ctx.beliefFormula()) {
-            Formula formula = (Formula) visit(formulaCtx);
-            initialFormulae.add(formula);
-        }
-        Set<EpistemicState> states = Construct.constructStates(domain, initialFormulae);
-        if (states.isEmpty()) {
-            throw new RuntimeException("constructed model is null...");
-        }
-        for (EpistemicState s : states) {
-            for (Formula f : initialFormulae) {
-                if (!f.evaluate(s)) {
-                    throw new RuntimeException("model construction failed.");
-                }
-            }
-        }
-        return states;
+    @Override public Set<State> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
+        Log.warning("State construction not implemented");
+        return null;
+        // List<Formula> initialFormulae = new ArrayList<>();
+        // for (DeplParser.BeliefFormulaContext formulaCtx : ctx.beliefFormula()) {
+        //     Formula formula = (Formula) visit(formulaCtx);
+        //     initialFormulae.add(formula);
+        // }
+        // Set<EpistemicState> states = Construct.constructStates(domain, initialFormulae);
+        // if (states.isEmpty()) {
+        //     throw new RuntimeException("constructed model is null...");
+        // }
+        // for (EpistemicState s : states) {
+        //     for (Formula f : initialFormulae) {
+        //         if (!f.evaluate(s)) {
+        //             throw new RuntimeException("model construction failed.");
+        //         }
+        //     }
+        // }
+        // return states;
     }
 
-    @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
+    @Override public NDState visitModel(DeplParser.ModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
         Set<World> designatedWorlds = new HashSet<>();;
         Map<String, Relation> beliefRelations = new HashMap<>();
         Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (DeplParser.KripkeWorldContext worldCtx : ctx.kripkeWorld()) {
+        for (DeplParser.WorldContext worldCtx : ctx.world()) {
             World world = (World) visit(worldCtx);
             worlds.put(world.getName(),world);
             if (worldCtx.STAR() != null) {
@@ -465,12 +465,11 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         if (designatedWorlds.isEmpty()) {
-            throw new RuntimeException("an initial state has no designaged worlds");
+            throw new RuntimeException("initial state has no designaged worlds");
         }
 
-        for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
-            String relationType = relationCtx.relationType().getText();
-            String agent = relationCtx.objectName().getText();
+        for (DeplParser.RelationContext relationCtx : ctx.relation()) {
+            String agent = relationCtx.agent().getText();
 
             if (!domain.isAgent(agent)) {
                 throw new RuntimeException("agent not defined: " + agent);
@@ -479,15 +478,15 @@ public class DeplToProblem extends DeplBaseVisitor {
             Relation relation = new Relation();
             List<String> fromWorlds = new ArrayList<>();
             List<String> toWorlds = new ArrayList<>();
-            for (DeplParser.FromWorldContext fromWorld : relationCtx.fromWorld()) {
-                String fromWorldName = fromWorld.getText();
+            for (DeplParser.LOWER_NAME t : relationCtx.from()) {
+                String fromWorldName = t.getText();
                 if (!worlds.containsKey(fromWorldName)) {
                     throw new RuntimeException("unknown world: " + fromWorldName);
                 }
                 fromWorlds.add(fromWorldName);
             }
-            for (DeplParser.ToWorldContext toWorld : relationCtx.toWorld()) {
-                String toWorldName = toWorld.getText();
+            for (DeplParser.LOWER_NAME t : relationCtx.to()) {
+                String toWorldName = t.getText();
                 if (!worlds.containsKey(toWorldName)) {
                     throw new RuntimeException("unknown world: " + toWorldName);
                 }
@@ -786,10 +785,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         else {
             return grounding;
         }
-    }
-
-    @Override public Formula visitCondition(DeplParser.ConditionContext ctx) {
-        return (Formula) visit(ctx.localFormula());
     }
 
 

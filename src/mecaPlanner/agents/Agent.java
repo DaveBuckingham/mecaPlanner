@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -9,12 +9,12 @@ import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 
-public abstract class Model implements java.io.Serializable {
+public abstract class Agent implements java.io.Serializable {
 
     protected String agent;
     protected Domain domain;
 
-    public Model(String agent, Domain domain) {
+    public Agent(String agent, Domain domain) {
         this.agent = agent;
         this.domain = domain;
     }
@@ -51,7 +51,7 @@ public abstract class Model implements java.io.Serializable {
 
     public abstract Set<Action> getPrediction(EpistemicState eState);
 
-    public Model update(EpistemicState eState, Action action) {
+    public Agent update(EpistemicState eState, Action action) {
         return this;
     }
 }

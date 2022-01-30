@@ -16,76 +16,47 @@ import java.util.Comparator;
 import java.util.Collections;
 
 
-// A NON-POINTED KRIPKE MODEL, I.E. POSSIBLY MORE THAN ONE DESIGNATED WORLD
+// A MULTI-POINTED KRIPKE MODEL
 
 
 public class NDState implements java.io.Serializable {
 
-    protected KripkeStructure kripkeStructure;
-    private Set<World> designatedWorlds;
+    protected Model<World> model;
+    private Set<World> designated;
 
-    public NDState(KripkeStructure kripkeStructure, Set<World> designatedWorlds) {
-        assert(kripkeStructure.containsWorlds(designatedWorlds));
+    public NDState(Model<World> model, Set<World> designated) {
+        assert(model.getPoints().containsAll(designated));
         for (World w : designatedWorlds) {
             assert (w != null);
         }
-        this.kripkeStructure = kripkeStructure;
-        this.designatedWorlds = designatedWorlds;
+        this.model = model;
+        this.designated = designated;
     }
 
     public NDState(NDState toCopy) {
-
-        KripkeStructure kripkeToCopy = toCopy.getKripke();
-        Map<World,World> originalToNew = new HashMap<>();
-        Set<World> originalWorlds = kripkeToCopy.getWorlds();
-        Set<World> newWorlds = new HashSet<World>();
-        for (World original : originalWorlds) {
-            World duplicate = new World(original);
-            newWorlds.add(duplicate);
-            originalToNew.put(original,duplicate);
-        }
-        beliefRelations = new HashMap<String,Relation>();
-        knowledgeRelations = new HashMap<String,Relation>();
-        for (String agent : kripkeToCopy.getBeliefRelations().keySet()) {
-            Relation oldBelief = kripkeToCopy.getBeliefRelations().get(agent);
-            Relation newBelief = new Relation();
-            Relation oldKnowledge = kripkeToCopy.getKnowledgeRelations().get(agent);
-            Relation newKnowledge = new Relation();
-            for (World originalFrom : originalWorlds) {
-                for (World originalTo : oldBelief.getToWorlds(originalFrom)) {
-                    newBelief.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
-                }
-                for (World originalTo : oldKnowledge.getToWorlds(originalFrom)) {
-                    newKnowledge.connect(originalToNew.get(originalFrom), originalToNew.get(originalTo));
-                }
-            }
-            beliefRelations.put(agent, newBelief);
-            knowledgeRelations.put(agent, newKnowledge);
-        }
-        kripkeStructure = new KripkeStructure(newWorlds, beliefRelations, knowledgeRelations);
+        model = new Model(toCopy.getModel());
         designatedWorlds = new HashSet<World>();
         for (World d : toCopy.getDesignatedWorlds()) {
-            designatedWorlds.add(originalToNew.get(d));
+            designatedWorlds.add(d.getChild());
         }
-        assert(kripkeStructure.containsWorlds(designatedWorlds));
     }
 
-    public KripkeStructure getKripke() {
-        return this.kripkeStructure;
+    public Model<World> getModel() {
+        return this.model;
     }
 
-    public Set<World> getDesignatedWorlds() {
-        return this.designatedWorlds;
+    public Set<World> getDesignated() {
+        return this.designated;
     }
 
     public Set<World> getWorlds() {
-        return kripkeStructure.getWorlds();
+        return model.getPoints();
     }
 
-    public Set<EpistemicState> getEpistemicStates() {
-        Set<EpistemicState> states = new HashSet<EpistemicState>();
+    public Set<State> getPointedStates() {
+        Set<State> states = new HashSet<State>();
         for (World w : designatedWorlds) {
-            states.add(new EpistemicState(new KripkeStructure(this.kripkeStructure), w));
+            states.add(new State(new Model(this.model), w));
         }
         return states;
     }
@@ -109,51 +80,50 @@ public class NDState implements java.io.Serializable {
     }
 
 
-    public Void reduce() {
-        Map<World,World> oldWorldsToNew = kripkeStructure.reduce();
-        //assert(kripkeStructure.checkRelations());
-        Set<World> newDesignated = new HashSet<World>();
-        for (World w : designatedWorlds) {
-            newDesignated.add(oldWorldsToNew.get(w));
-        }
-        this.designatedWorlds = newDesignated;
-        return null;
-    }
-
-    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
-    public Void trim() {
-        Set<World> keep = new HashSet<>(designatedWorlds);
-        Set<World> old;
-        do {
-            old = new HashSet<>(keep);
-            for (World w : old) {
-                keep.addAll(kripkeStructure.getChildren(w));
-            }
-        } while (old.size() != keep.size());
-        Map<String, Relation> newBeliefs = new HashMap<String,Relation>();
-        Map<String, Relation> newKnowledges = new HashMap<String,Relation>();
-        for (String agent : kripkeStructure.getBeliefRelations().keySet()) {
-            Relation oldBelief = kripkeStructure.getBeliefRelations().get(agent);
-            Relation newBelief = new Relation();
-            Relation oldKnowledge = kripkeStructure.getKnowledgeRelations().get(agent);
-            Relation newKnowledge = new Relation();
-            for (World from : keep) {
-                for (World to : keep) {
-                    if (oldBelief.isConnected(from, to)) {
-                        newBelief.connect(from, to);
-                    }
-                    if (oldKnowledge.isConnected(from, to)) {
-                        newKnowledge.connect(from, to);
-                    }
-                }
-            }
-            newBeliefs.put(agent, newBelief);
-            newKnowledges.put(agent, newKnowledge);
-        }
-        kripkeStructure = new KripkeStructure(keep, newBeliefs, newKnowledges);
-        //assert(kripkeStructure.checkRelations());
-        return null;
-    }
+//    public Void reduce() {
+//        Map<World,World> oldWorldsToNew = model.reduce();
+//        Set<World> newDesignated = new HashSet<World>();
+//        for (World w : designatedWorlds) {
+//            newDesignated.add(oldWorldsToNew.get(w));
+//        }
+//        this.designatedWorlds = newDesignated;
+//        return null;
+//    }
+//
+//    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
+//    public Void trim() {
+//        Set<World> keep = new HashSet<>(designatedWorlds);
+//        Set<World> old;
+//        do {
+//            old = new HashSet<>(keep);
+//            for (World w : old) {
+//                keep.addAll(kripkeStructure.getChildren(w));
+//            }
+//        } while (old.size() != keep.size());
+//        Map<String, Relation> newBeliefs = new HashMap<String,Relation>();
+//        Map<String, Relation> newKnowledges = new HashMap<String,Relation>();
+//        for (String agent : kripkeStructure.getBeliefRelations().keySet()) {
+//            Relation oldBelief = kripkeStructure.getBeliefRelations().get(agent);
+//            Relation newBelief = new Relation();
+//            Relation oldKnowledge = kripkeStructure.getKnowledgeRelations().get(agent);
+//            Relation newKnowledge = new Relation();
+//            for (World from : keep) {
+//                for (World to : keep) {
+//                    if (oldBelief.isConnected(from, to)) {
+//                        newBelief.connect(from, to);
+//                    }
+//                    if (oldKnowledge.isConnected(from, to)) {
+//                        newKnowledge.connect(from, to);
+//                    }
+//                }
+//            }
+//            newBeliefs.put(agent, newBelief);
+//            newKnowledges.put(agent, newKnowledge);
+//        }
+//        kripkeStructure = new KripkeStructure(keep, newBeliefs, newKnowledges);
+//        //assert(kripkeStructure.checkRelations());
+//        return null;
+//    }
 
 
 
@@ -180,16 +150,16 @@ public class NDState implements java.io.Serializable {
 
 
     public Boolean equivalent(NDState other) {
-        if (this.kripkeStructure == other.getKripke()) {
+        if (this.model == other.getModel()) {
             other = new NDState(other);
         }
 
-        KripkeStructure unionKripke = this.kripkeStructure.union(other.getKripke());
+        Model unionModel = this.model.union(other.getModel());
 
-        Set<World> otherInitials = other.getDesignatedWorlds();
+        Set<World> otherInitials = other.getDesignated();
 
-        for (Set<World> block : unionKripke.refineSystem()) {
-            if (Collections.disjoint(block, designatedWorlds) != Collections.disjoint(block, otherInitials)) {
+        for (Set<World> block : unionModel.refineSystem()) {
+            if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
                 return false;
             }
         }
@@ -206,14 +176,13 @@ public class NDState implements java.io.Serializable {
         return 1;
     }
 
-
     public String toStringCompact() {
         return toString();
     }
 
     @Override
     public String toString() {
-        return kripkeStructure.toString(designatedWorlds);
+        return model.toString(designatedWorlds);
     }
 
 

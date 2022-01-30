@@ -1,4 +1,4 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
 import mecaPlanner.formulae.Fluent;
@@ -16,9 +16,9 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-public class PizzaModel extends Model {
+public class PizzaAgent extends Agent {
 
-    public PizzaModel(String agent, Domain domain) {
+    public PizzaAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 
@@ -43,7 +43,7 @@ public class PizzaModel extends Model {
             prediction.add(getSafeActionBySignature("move(human1,room2,room1)", ndState));
         }
         else {
-            throw new RuntimeException("Pizza Model failed to determine state");
+            throw new RuntimeException("Pizza Agent failed to determine state");
         }
         return prediction;
 

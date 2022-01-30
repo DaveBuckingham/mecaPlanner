@@ -18,6 +18,8 @@ KEYWORD_TIME            : 'timestep'|'Timestep' ;
 INTEGER                 : DIGIT+;
 ASSIGN                  : '<-';
 
+ORDER                   : '>';
+
 VARIABLE                : '?' LOWER_NAME;
 
 LOWER_NAME              : LOWER ANYCHAR*;
@@ -94,27 +96,21 @@ fluent
     | '(' fluent ')'
     ;
 
-localFormula
-    : fluent                                                            # localFluent
-    | KEYWORD_TRUE                                                      # localLiteralTrue
-    | KEYWORD_FALSE                                                     # localLiteralFalse
-    | '(' localFormula ')'                                              # localParens
-    | OP_NOT localFormula                                               # localNot
-    | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
-    | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
-    | localFormula OP_IMPLIES localFormula                              # localImplies
-    ;
-
-beliefFormula 
-    : localFormula                                               # beliefLocalFormula
-    | '(' beliefFormula ')'                                      # beliefParens
-    | OP_NOT beliefFormula                                       # beliefNot
-    | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
-    | 'P' '[' groundableObject ']' '(' beliefFormula ')'         # beliefPossibly
-    | 'K' '[' groundableObject ']' '(' beliefFormula ')'         # beliefKnows
-    | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | beliefFormula OP_AND beliefFormula                         # beliefAnd
-    | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
+formula
+    : fluent                                                            # fluentFormula
+    | KEYWORD_TRUE                                                      # trueFormula
+    | KEYWORD_FALSE                                                     # falseFormula
+    | '(' formula ')'                                                   # parensFormula
+    | OP_NOT formula                                                    # notFormula
+    | formula OP_AND formula (OP_AND formula)*                          # andFormula
+    | formula OP_OR  formula (OP_OR formula)*                           # orFormula
+    | formula OP_IMPLIES formula                                        # impliesFormula
+    | 'K' '[' groundableObject ']' '(' formula ')'                      # knowsFormula
+    | 'S' '[' groundableObject ']' '(' formula ')'                      # safeFormula
+    | 'B' '[' groundableObject ']' '(' formula ')'                      # believesformula
+    | 'K\'' '[' groundableObject ']' '(' formula ')'                    # dualKnowsFormula
+    | 'S\'' '[' groundableObject ']' '(' formula ')'                    # dualSafeFormula
+    | 'B\'' '[' groundableObject ']' '(' formula ')'                    # dualBelievesFormula
     ;
 
 inequality
@@ -135,20 +131,16 @@ timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' ) ;
 
-startStateDef : '{' (initiallyDef | kripkeModel) '}' ;
+startStateDef : '{' (initiallyDef | model) '}' ;
 
-initiallyDef : (beliefFormula ',')* beliefFormula ;
+initiallyDef : (formula ',')* formula ;
 
-kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
+model : (world ','?)+ (relation ','?)+ ;
 
-kripkeWorld : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
+world : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
-kripkeRelation : relationType '[' objectName ']' ASSIGN
-                 '{' ( '(' fromWorld ',' toWorld ')' ','? )* '}' ;
+relation : agent=objectName ASSIGN '{' ( '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ','? )* '}' ;
 
-relationType : 'B' | 'K' ;
-fromWorld : LOWER_NAME;
-toWorld : LOWER_NAME;
 
 
 // OPTIONAL POST STATE
@@ -159,7 +151,7 @@ postSection : 'post' startStateDef ;
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
-goal : beliefFormula | timeConstraint ;
+goal : formula | timeConstraint ;
 
 
 // ACTION DEFINITIONS
@@ -182,12 +174,11 @@ actionField
 
 ownerActionField        : 'owner' '{' groundableObject '}' ;
 costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableDefList '{' localFormula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' localFormula ('if' condition)? '}' ;
-announcesActionField    : 'announces'    variableDefList '{' beliefFormula ('if' condition)? '}' ;
-causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition)? '}' ;
+preconditionActionField : 'precondition' variableDefList '{' formula '}' ;
+observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
+awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' formula ('if' condition=formula)? '}' ;
+announcesActionField    : 'announces'    variableDefList '{' formula ('if' condition=formula)? '}' ;
+causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
 
-condition : localFormula ;
 
