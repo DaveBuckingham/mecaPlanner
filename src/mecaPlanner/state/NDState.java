@@ -19,18 +19,10 @@ import java.util.Collections;
 // A MULTI-POINTED KRIPKE MODEL
 
 
-public class NDState implements java.io.Serializable {
+public class NDState extends Model<World> implements java.io.Serializable {
 
-    protected Model<World> model;
-    private Set<World> designated;
-
-    public NDState(Model<World> model, Set<World> designated) {
-        assert(model.getPoints().containsAll(designated));
-        for (World w : designatedWorlds) {
-            assert (w != null);
-        }
-        this.model = model;
-        this.designated = designated;
+    public NDState(Set<String> agents, Set<World> worlds, Set<World> designated) {
+        super(agents, worlds, designated);
     }
 
     public NDState(NDState toCopy) {
@@ -41,34 +33,14 @@ public class NDState implements java.io.Serializable {
         }
     }
 
-    public Model<World> getModel() {
-        return this.model;
-    }
-
-    public Set<World> getDesignated() {
-        return this.designated;
-    }
-
-    public Set<World> getWorlds() {
-        return model.getPoints();
-    }
-
     public Set<State> getPointedStates() {
         Set<State> states = new HashSet<State>();
-        for (World w : designatedWorlds) {
-            states.add(new State(new Model(this.model), w));
+        for (World w : designated) {
+            states.add(new State(agnets, points, w));
         }
         return states;
     }
 
-    public Boolean possibly(Formula formula) {
-        for (World w : designatedWorlds) {
-            if (formula.evaluate(this.kripkeStructure, w)) {
-                return true;
-            }
-        }
-        return false;
-    }
 
     public Boolean necessarily(Formula formula) {
         for (World w : designatedWorlds) {
@@ -166,9 +138,6 @@ public class NDState implements java.io.Serializable {
         return true;
     }
 
-    private Map<String, Relation> beliefRelations;
-
-    private Map<String, Relation> knowledgeRelations;
 
     @Override
     public int hashCode() {

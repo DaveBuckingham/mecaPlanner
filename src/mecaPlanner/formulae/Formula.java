@@ -24,14 +24,32 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(KripkeStructure kripke, World world);
+    public abstract Boolean evaluate(NDState kripke, World world);
 
     public Boolean evaluate(World world) {
         return this.evaluate(null, world);
     }
 
     public Boolean evaluate(EpistemicState state) {
-        return evaluate(state.getKripke(), state.getDesignatedWorld());
+        return evaluate(state, state.getDesignated());
+    }
+
+    public Boolean possibly(NDState n) {
+        for (World w : n.getDesignated()) {
+            if (evaluate(n, w)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Boolean necessarily(NDState n) {
+        for (World w : n.getDesignated()) {
+            if (!evaluate(n, w)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Formula makeDisjunction(List<Formula> disjuncts) {

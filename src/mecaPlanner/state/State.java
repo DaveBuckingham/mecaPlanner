@@ -20,46 +20,55 @@ import java.util.Collections;
 // A POINTED KRIPKE MODEL
 
 
-public class EpistemicState extends NDState {
+public class State extends NDState {
 
-
-    public EpistemicState(KripkeStructure kripkeStructure, World designatedWorld) {
-        super(kripkeStructure, new HashSet<World>(Arrays.asList(designatedWorld)));
+    public State(Set<String> agents, Set<Worlds> worlds, designated) {
+        super(agents, worlds, new HashSet<World>(Arrays.asList(designatedWorld)));
     }
 
-    public EpistemicState(EpistemicState toCopy) {
-        this(toCopy.getKripke(), toCopy.getDesignatedWorld());
-    }
+    //public State(EpistemicState toCopy) {
+    //    this(toCopy.getKripke(), toCopy.getDesignated());
+    //}
 
-    public World getDesignatedWorld() {
-        assert(getDesignatedWorlds().size() == 1);
-        return getDesignatedWorlds().iterator().next();
+    public World getDesignated() {
+        assert(getDesignated().size() == 1);
+        return getDesignated().iterator().next();
     }
 
     public Set<World> getBelievedWorlds(String agent) {
+        //TODO
         return kripkeStructure.getBelievedWorlds(agent, getDesignatedWorld());
     }
 
-    public boolean perspectiveEquivalent(EpistemicState other, String agent) {
-        return getBeliefPerspective(agent).equivalent(other.getBeliefPerspective(agent));
-    }
-
-    public NDState getBeliefPerspective(String agent) {
-        return new NDState(kripkeStructure, getBelievedWorlds(agent));
-        //return new NDState(new KirpkeStructure(kripkeStructure), getBelievedWorlds(agent));
+    public Set<World> getSafeBelievedWorlds(String agent) {
+        //TODO
+        return kripkeStructure.getBelievedWorlds(agent, getDesignatedWorld());
     }
 
     public Set<World> getKnownWorlds(String agent) {
+        //TODO
         return kripkeStructure.getKnownWorlds(agent, getDesignatedWorld());
     }
 
+    //public boolean perspectiveEquivalent(EpistemicState other, String agent) {
+    //    return getBeliefPerspective(agent).equivalent(other.getBeliefPerspective(agent));
+    //}
+
+    //public NDState getBeliefPerspective(String agent) {
+    //    return new NDState(kripkeStructure, getBelievedWorlds(agent));
+    //    //return new NDState(new KirpkeStructure(kripkeStructure), getBelievedWorlds(agent));
+    //}
 
 
+
+
+        //TODO
     public String toStringCompact() {
         return getDesignatedWorld().toString();
     }
 
 
+        //TODO
     @Override
     public String toString() {
         assert(kripkeStructure.containsWorlds(getDesignatedWorlds()));

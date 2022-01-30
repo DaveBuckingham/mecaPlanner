@@ -23,16 +23,21 @@ import java.util.Collections;
 public class Model<T> implements java.io.Serializable {
 
     private Set<String> agents;
+    private Set<T> designated;
 
     private Set<T> points;
 
     private Map<String, Map<T, Set<T>>> lessToMorePlausible;
     private Map<String, Map<T, Set<T>>> moreToLessPlausible;
 
-    public Model(Set<String> agents, Set<T> points) {
+    public Model(Set<String> agents, Set<T> points, Set<T> designated) {
         assert(!points.isEmpty());
-        this.points = points;
+        assert(points.containsAll(designated));
         assert(!agents.isEmpty());
+        for (World w : designatedWorlds) {
+            assert (w != null);
+        }
+        this.points = points;
         this.agents = agents;
         this.morePlausible = new HashMap<>();
         this.lessPlausible = new HashMap<>();
@@ -58,6 +63,10 @@ public class Model<T> implements java.io.Serializable {
     }
     public Set<T> getPointsCopy() {
         return points;
+    }
+
+    public Set<World> getDesignated() {
+        return this.designated;
     }
 
     public void setMorePlausible(String agent, T morePlausible, T lessPlausible) {
@@ -129,7 +138,7 @@ public class Model<T> implements java.io.Serializable {
             Set<T> inPre = new HashSet<>();
             Set<T> notInPre = new HashSet<>();
             for (T w : block) {
-                if (Collections.disjoint(relation.getToPoints(w), splitter)) {
+                if (Collections.disjoint(relation.get(w), splitter)) {
                     notInPre.add(w);
                 }
                 else {
@@ -158,8 +167,7 @@ public class Model<T> implements java.io.Serializable {
             oldBlocks = new HashSet<Set<T>>(partition);
             for (Set<T> splitter : oldBlocks) {
                 for (String agent : agents) {
-                    splitBlocks(partition, splitter, beliefRelations.get(agent));
-                    splitBlocks(partition, splitter, knowledgeRelations.get(agent));
+                    splitBlocks(partition, splitter, lessToMorePlausible.get(agent));
                 }
             }
         } while (partition.size() != oldBlocks.size());
@@ -176,45 +184,42 @@ public class Model<T> implements java.io.Serializable {
     // 2. BUILD THE RELATIONS OVER OUR NEW WORLDS
     // 3. MAKE AND RETURN A MAP FROM OUR OLD WORLDS TO THE NEW ONES,
     //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
-    public Map<T,T> reduce() {
+    // 3. INSTEAD, SET OUR NEW DESIGNATED WORLDS ACCORDING TO THE OLD ONES
+    public Model reduce() {
         Set<Set<T>> partition = refineSystem();
 
-        Map <T, T> oldTsToNew = new HashMap<>();
+        Map <T, T> oldToNew = new HashMap<>();
+
+        Set<T> newPoints = new HashSet<>();
 
         for (Set<T> block : partition) {
-            T newT = block.iterator().next();
-            for (T oldT : block) {
-                oldTsToNew.put(oldT, newT);
+            T newPoint = block.iterator().next();
+            newPoints.add(newPoint);
+            for (T oldPoint : block) {
+                oldToNew.put(oldPoint, newPoint);
             }
         }
 
-        Map<String, Relation> newBeliefRelations = new HashMap<>();
-        Map<String, Relation> newKnowledgeRelations = new HashMap<>();
+        Set<T> newDesignated = new HashSet<>();
 
-        for (String agent : agents) {
-            newBeliefRelations.put(agent, new Relation());
-            newKnowledgeRelations.put(agent, new Relation());
+        for (T d : designated) {
+            newDesignated.add(oldToNew.get(d));
         }
 
-        for (Map.Entry<T, T> entry : oldTsToNew.entrySet()) {
+        Model reduced = new Model(agents, newPoints, newDesignated) {
+
+        for (Map.Entry<T, T> entry : oldToNew.entrySet()) {
             T oldSource = entry.getKey();
             T newSource = entry.getValue();
             for (String agent : agents) {
-                for (T oldDestination : beliefRelations.get(agent).getToPoints(oldSource)) {
-                    T newDestination = oldTsToNew.get(oldDestination);
-                    newBeliefRelations.get(agent).connect(newSource, newDestination);
-                }
-                for (T oldDestination : knowledgeRelations.get(agent).getToPoints(oldSource)) {
-                    T newDestination = oldTsToNew.get(oldDestination);
-                    newKnowledgeRelations.get(agent).connect(newSource, newDestination);
+                for (T oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
+                    T newMorePlausible = oldToNew.get(oldMorePlausible);
+                    reduced.setMorePlausible(agent,newMorePlausible,newSource); 
                 }
             }
         }
 
-        this.points = new HashSet<T>(oldTsToNew.values());
-        this.beliefRelations = newBeliefRelations;
-        this.knowledgeRelations = newKnowledgeRelations;
-        return oldTsToNew;
+        return reduced;
     }
 
 
