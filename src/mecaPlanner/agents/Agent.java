@@ -4,7 +4,7 @@ import java.util.Set;
 import java.util.HashSet;
 
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
@@ -49,9 +49,9 @@ public abstract class Agent implements java.io.Serializable {
     //     return singleton;
     // }
 
-    public abstract Set<Action> getPrediction(EpistemicState eState);
+    public abstract Set<Action> getPrediction(State eState);
 
-    public Agent update(EpistemicState eState, Action action) {
+    public Agent update(State eState, Action action) {
         return this;
     }
 }

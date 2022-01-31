@@ -27,7 +27,7 @@ public class RecursiveAgent extends Agent {
         plan = null;
     }
 
-    public Set<Action> getPrediction(EpistemicState eState) {
+    public Set<Action> getPrediction(State eState) {
         Perspective perspective = new Perspective(eState, agent);
 
         if (plan == null || !plan.hasPerspective(perspective)) {
@@ -49,7 +49,7 @@ public class RecursiveAgent extends Agent {
                 localDomain.addPassive(p);
             }
 
-            Set<EpistemicState> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
+            Set<State> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
 
             //Problem problem = new Problem(localDomain, systemAgentIndex, startStates, 
             //Map<String,Agent> 
@@ -62,7 +62,7 @@ public class RecursiveAgent extends Agent {
 
 //    public Problem(Domain domain,
 //                   int systemAgentIndex,
-//                   Set<EpistemicState> startStates,
+//                   Set<State> startStates,
 //                   Map<String,Agent> startingAgent,
 //                   Set<TimeFormula> goals
  
@@ -70,8 +70,8 @@ public class RecursiveAgent extends Agent {
 
 
 
-//            Set<EpistemicState> robotPerspectiveStates =
-//                currentState.getBeliefPerspective(currentAgent).getEpistemicStates();
+//            Set<State> robotPerspectiveStates =
+//                currentState.getBeliefPerspective(currentAgent).getStates();
 //
 //            Search search = new Search();
 //            Problem newProblem = new Problem(problem.getDomain(),

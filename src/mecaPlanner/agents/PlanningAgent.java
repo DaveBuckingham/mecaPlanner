@@ -1,7 +1,7 @@
 package mecaPlanner.agents;
 
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
@@ -21,13 +21,13 @@ public abstract class PlanningAgent extends Agent {
         super(agent, domain);
     }
 
-    Map<String,Map<EpistemicState,Set<Action>>> memo = new HashMap<>();
+    Map<String,Map<State,Set<Action>>> memo = new HashMap<>();
 
     private Set<Action> getPlannedActions(NDState ndState, String agent, Formula goal) {
         if (!memo.containsKey(agent)) {
-            memo.put(agent, new HashMap<EpistemicState, Set<Action>>());
+            memo.put(agent, new HashMap<State, Set<Action>>());
         }
-        Set<EpistemicState> possibleStates = ndState.getEpistemicStates();
+        Set<State> possibleStates = ndState.getEpistemicStates();
         if (!memo.get(agent).containsKey(ndState)) {
             Set<Action> succesfulActions = new HashSet<>();
             //memo.get(agent).addAll(search(ndState, agent, goal));

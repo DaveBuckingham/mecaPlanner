@@ -22,7 +22,7 @@ import java.util.Collections;
 
 public class State extends NDState {
 
-    public State(Set<String> agents, Set<Worlds> worlds, designated) {
+    public State(Set<String> agents, Set<World> worlds, World designated) {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designatedWorld)));
     }
 

@@ -78,6 +78,7 @@ passiveDef : objectName ;
 // FLUENTS DEFINITIONS
 
 groundableObject : objectName | VARIABLE ;
+groundableAgent :  groundableObject;
 expandableObject : objectName | objectType;
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
 fluentsSection   : 'fluents' '{' (expandableFluent ',')* expandableFluent? '}' ;
@@ -105,12 +106,12 @@ formula
     | formula OP_AND formula (OP_AND formula)*                          # andFormula
     | formula OP_OR  formula (OP_OR formula)*                           # orFormula
     | formula OP_IMPLIES formula                                        # impliesFormula
-    | 'K' '[' groundableObject ']' '(' formula ')'                      # knowsFormula
-    | 'S' '[' groundableObject ']' '(' formula ')'                      # safeFormula
-    | 'B' '[' groundableObject ']' '(' formula ')'                      # believesformula
-    | 'K\'' '[' groundableObject ']' '(' formula ')'                    # dualKnowsFormula
-    | 'S\'' '[' groundableObject ']' '(' formula ')'                    # dualSafeFormula
-    | 'B\'' '[' groundableObject ']' '(' formula ')'                    # dualBelievesFormula
+    | 'K' '[' groundableAgent ']' '(' formula ')'                       # knowsFormula
+    | 'S' '[' groundableAgent ']' '(' formula ')'                       # safeFormula
+    | 'B' '[' groundableAgent ']' '(' formula ')'                       # believesFormula
+    | 'K\'' '[' groundableAgent ']' '(' formula ')'                     # knowsDualFormula
+    | 'S\'' '[' groundableAgent ']' '(' formula ')'                     # safeDualFormula
+    | 'B\'' '[' groundableAgent ']' '(' formula ')'                     # believesDualFormula
     ;
 
 inequality

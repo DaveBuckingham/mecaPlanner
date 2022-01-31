@@ -1,7 +1,7 @@
 package mecaPlanner.agents;
 
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
@@ -23,7 +23,7 @@ public class TrivialAgent extends Agent {
     private Action waitAction;
 
 
-    public Set<Action> getPrediction(EpistemicState eState) {
+    public Set<Action> getPrediction(State eState) {
 
         return getSafeActions(eState.getBeliefPerspective(agent));
 

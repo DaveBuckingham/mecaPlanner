@@ -14,7 +14,7 @@ public class ExampleAgent extends Agent {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(EpistemicState eState) {
+    public Set<Action> getPrediction(State eState) {
         NDState ndState = eState.getBeliefPerspective(agent);
         Set<Action> allActions = getSafeActions(ndState);
         Set<Action> prediction = new HashSet<>();

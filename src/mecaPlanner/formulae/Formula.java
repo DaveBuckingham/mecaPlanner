@@ -4,8 +4,9 @@ import java.util.List;
 import java.util.ArrayList;
 
 import mecaPlanner.state.World;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.Model;
+import mecaPlanner.state.NDState;
+import mecaPlanner.state.State;
 
 import mecaPlanner.*;
 
@@ -24,13 +25,9 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(NDState kripke, World world);
+    public abstract Boolean evaluate(Model<World> model, World world);
 
-    public Boolean evaluate(World world) {
-        return this.evaluate(null, world);
-    }
-
-    public Boolean evaluate(EpistemicState state) {
+    public Boolean evaluate(State state) {
         return evaluate(state, state.getDesignated());
     }
 

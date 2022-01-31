@@ -521,7 +521,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-    @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
+    @Override public World visitWorld(DeplParser.WorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
         Set<Fluent> fluents = new HashSet<>();
 
@@ -787,6 +787,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
     }
 
+    @Override public String visitGroundableAgent(DeplParser.GroundableAgentContext ctx) {
+        String agentName = (String) visit(ctx.groundableObject());
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+    }
+
 
     @Override public Fluent visitFluent(DeplParser.FluentContext ctx) {
         if (ctx.fluent() != null) {
@@ -801,7 +808,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return fluent;
     }
 
-    @Override public Formula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
+    @Override public Formula visitFluentFormula(DeplParser.FluentFormulaContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
         if (constants.containsKey(fluent)) {
             return new Literal(constants.get(fluent));
@@ -812,24 +819,24 @@ public class DeplToProblem extends DeplBaseVisitor {
         return fluent;
     }
 
-    @Override public Formula visitLocalLiteralTrue(DeplParser.LocalLiteralTrueContext ctx) {
+    @Override public Formula visitTrueFormula(DeplParser.TrueFormulaContext ctx) {
         return new Literal(true);
     }
 
-    @Override public Formula visitLocalLiteralFalse(DeplParser.LocalLiteralFalseContext ctx) {
+    @Override public Formula visitFalseFormula(DeplParser.FalseFormulaContext ctx) {
         return new Literal(false);
     }
 
-    @Override public Formula visitLocalParens(DeplParser.LocalParensContext ctx) {
+    @Override public Formula visitParensFormula(DeplParser.ParensFormulaContext ctx) {
         return (Formula) visit(ctx.localFormula());
     }
 
-    @Override public Formula visitLocalNot(DeplParser.LocalNotContext ctx) {
+    @Override public Formula visitNotFormula(DeplParser.NotFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.localFormula());
         return (NotFormula.make(inner));
     }
 
-    @Override public Formula visitLocalAnd(DeplParser.LocalAndContext ctx) {
+    @Override public Formula visitAndFormula(DeplParser.AndFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
         for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
             subFormulae.add((Formula) visit(subFormula));
@@ -837,7 +844,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return (AndFormula.make(subFormulae));
     }
 
-    @Override public Formula visitLocalOr(DeplParser.LocalOrContext ctx) {
+    @Override public Formula visitOrFormula(DeplParser.OrFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
         for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
             subFormulae.add((Formula) visit(subFormula));
@@ -845,75 +852,49 @@ public class DeplToProblem extends DeplBaseVisitor {
         return Formula.makeDisjunction(subFormulae);
     }
 
-    @Override public Formula visitLocalImplies(DeplParser.LocalImpliesContext ctx) {
+    @Override public Formula visitImpliesFormula(DeplParser.ImpliesFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
         Formula leftFormula = (Formula) visit(ctx.localFormula().get(0));
         Formula rightFormula = (Formula) visit(ctx.localFormula().get(1));
         return (Formula.makeDisjunction(Arrays.asList(leftFormula.negate(), rightFormula)));
     }
 
-
-
-    // BELIEF FORMULAE
-
-    @Override public Formula visitBeliefLocalFormula(DeplParser.BeliefLocalFormulaContext ctx) {
-        return (Formula) visit(ctx.localFormula());
-    }
-
-    @Override public Formula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
-        return (Formula) visit(ctx.beliefFormula());
-    }
-
-    @Override public Formula visitBeliefNot(DeplParser.BeliefNotContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        return (NotFormula.make(inner));
-    }
-
-    @Override public Formula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
-        Formula left = (Formula) visit(ctx.beliefFormula().get(0));
-        Formula right = (Formula) visit(ctx.beliefFormula().get(1));
-        return (AndFormula.make(left, right));
-    }
-
-    @Override public Formula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
-        List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
-            subFormulae.add((Formula) visit(subFormula));
-        }
-        return Formula.makeDisjunction(subFormulae);
-    }
-
-    @Override public Formula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
+    @Override public Formula visitKnowsFormula(DeplParser.KnowsFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
         String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
-        return new BelievesFormula(agentName, inner);
-    }
-
-    @Override public Formula visitBeliefPossibly(DeplParser.BeliefPossiblyContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
-        return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
-    }
-
-    @Override public Formula visitBeliefKnows(DeplParser.BeliefKnowsContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
         return new KnowsFormula(agentName, inner);
     }
 
-    @Override public Formula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        return new CommonFormula(inner);
+    @Override public Formula visitSafeFormula(DeplParser.SafeFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableObject());
+        return new SafeFormula(agentName, inner);
     }
+
+    @Override public Formula visitBelievesFormula(DeplParser.BelievesFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableObject());
+        return new BelievesFormula(agentName, inner);
+    }
+
+    @Override public Formula visitKnowsDualFormula(DeplParser.KnowsDualFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableObject());
+        return NotFormula.make(new KnowsFormula(agentName, NotFormula.make(inner)));
+    }
+
+    @Override public Formula visitSafeDualFormula(DeplParser.SafeDualFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableObject());
+        return NotFormula.make(new SafeFormula(agentName, NotFormula.make(inner)));
+    }
+
+    @Override public Formula visitBelievesDualFormula(DeplParser.BelievesDualFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableObject());
+        return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
+    }
+
 
 
     // TIME FORMULAE

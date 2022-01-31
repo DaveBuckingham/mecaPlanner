@@ -35,10 +35,11 @@ public class KnowsFormula extends Formula {
         return formula.getAllFluents();
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
-        if (kripke == null) {
+    public Boolean evaluate(Model<World> model, World world) {
+        if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
+        assert(model.getWorlds().containsWorld(world));
         for (World w : kripke.getKnownWorlds(agent, world)) {
             if (!formula.evaluate(kripke, w)){
                 return false;

@@ -1,7 +1,7 @@
 package mecaPlanner;
 
 //import mecaPlanner.agents.Agents;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -19,7 +19,7 @@ public class Domain implements java.io.Serializable {
     private List<String> nonPassiveAgents;
     private List<String> passiveAgents;
 
-    private EpistemicState postState;
+    private State postState;
 
 
     public Domain() {
@@ -68,11 +68,11 @@ public class Domain implements java.io.Serializable {
 
     }
 
-    public void setPostState(EpistemicState e) {
+    public void setPostState(State e) {
         this.postState = e;
     }
 
-    public EpistemicState getPostState() {
+    public State getPostState() {
         return this.postState;
     }
 

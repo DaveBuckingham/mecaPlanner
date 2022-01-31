@@ -51,12 +51,11 @@ public class Model<T> implements java.io.Serializable {
         }
     }
 
-    public Model(Model toCopy) {
-        this(
-        this(new HashSet<String>(toCopy.getAgents(), new HashSet<T>(toCopy.getPoints());
-        this.morePlausible = new HashMap<String, Relation>(toCopy.getMorePlausible());
-        this.lessPlausible = new HashMap<String, Relation>(toCopy.lessPlausible());
-    }
+    //public Model(Model toCopy) {
+    //    this(new HashSet<String>(toCopy.getAgents(), new HashSet<T>(toCopy.getPoints());
+    //    this.morePlausible = new HashMap<String, Relation>(toCopy.getMorePlausible());
+    //    this.lessPlausible = new HashMap<String, Relation>(toCopy.lessPlausible());
+    //}
 
     public Set<T> getPoints() {
         return points;
@@ -74,7 +73,6 @@ public class Model<T> implements java.io.Serializable {
         moreToLessPlausible.get(agent).get(morePlausible).add(lessPlausible);
     }
 
-
     public boolean isMorePlausible(String agent, T morePlausible, T lessPlausible) {
         return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
     }
@@ -84,13 +82,20 @@ public class Model<T> implements java.io.Serializable {
     }
 
     public Set<T> getMostPlausible(String agent, T lessPlausible) {
-        Set<T> morePlausible = lessToMorePlausible.get(agent).get(lessPlausible);
+        Set<T> morePlausible = getMorePlausible(agent, lessPlausible);
         Set<T> mostPlausible = new HashSet<>();
         for (T t : morePlausible) {
             if (lessToMorePlausible.get(agent).get(t).isEmpty()) {
                 mostPlausible.add(t);
             }
         }
+        return mostPlausible;
+    }
+
+    public Set<T> getPossible(String agent, T root) {
+        Set<T> accessible = lessToMorePlausible.get(agent).get(root);
+        accessible.add(moreToLessPlausible(get(agent).get(root)));
+        return accessible;
     }
 
     public Set<String> getAgents() {
@@ -206,7 +211,7 @@ public class Model<T> implements java.io.Serializable {
             newDesignated.add(oldToNew.get(d));
         }
 
-        Model reduced = new Model(agents, newPoints, newDesignated) {
+        Model reduced = new Model(agents, newPoints, newDesignated);
 
         for (Map.Entry<T, T> entry : oldToNew.entrySet()) {
             T oldSource = entry.getKey();
@@ -224,21 +229,21 @@ public class Model<T> implements java.io.Serializable {
 
 
 
-    public KripkeStructure union(KripkeStructure other) {
-        assert (this != other);
+    //public KripkeStructure union(KripkeStructure other) {
+    //    assert (this != other);
 
-        Set<T> unionTs = new HashSet<T>(points);
-        unionTs.addAll(other.getPoints());
+    //    Set<T> unionTs = new HashSet<T>(points);
+    //    unionTs.addAll(other.getPoints());
 
-        Map<String, Relation> unionBelief = new HashMap<>();
-        Map<String, Relation> unionKnowledge = new HashMap<>();
-        for (String agent : agents) {
-            unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
-            unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
-        }
+    //    Map<String, Relation> unionBelief = new HashMap<>();
+    //    Map<String, Relation> unionKnowledge = new HashMap<>();
+    //    for (String agent : agents) {
+    //        unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
+    //        unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
+    //    }
 
-        return new KripkeStructure(unionTs, unionBelief, unionKnowledge);
-    }
+    //    return new KripkeStructure(unionTs, unionBelief, unionKnowledge);
+    //}
 
 
 
@@ -271,10 +276,10 @@ public class Model<T> implements java.io.Serializable {
             str.append("\n");
             for (String agent : agents) {
                 str.append(agent + "=(");
-                    for (T t : points) {
-                        str.append(t + "->{");
-                        for (T o : lessToMorePlausible.get(agent).get(t)) {
-                            str.append(o,);
+                    for (T root : points) {
+                        str.append(root + "->{");
+                        for (T morePlausible : lessToMorePlausible.get(agent).get(t)) {
+                            str.append("o,");
                         }
                         str.deleteCharAt(str.length() - 1);
                         str.append("} ");

@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.State;
 import mecaPlanner.state.World;
 
 import java.util.List;

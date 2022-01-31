@@ -1,8 +1,8 @@
 package mecaPlanner;
 
-import mecaPlanner.models.Model;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.*;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -15,16 +15,16 @@ public class Problem implements java.io.Serializable {
 
     private Domain domain;
     private int systemAgentIndex;
-    private Set<EpistemicState> startStates;
-    private Map<String, Model> startingModels;
+    private Set<State> startStates;
+    private Map<String, Agent> startingModels;
     private Set<Formula> goals;
     private Set<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
                    int systemAgentIndex,
-                   Set<EpistemicState> startStates,
-                   Map<String,Model> startingModels,
+                   Set<State> startStates,
+                   Map<String,Agent> startingModels,
                    Set<Formula> goals,
                    Set<TimeConstraint> timeConstraints
                   ) {
@@ -37,11 +37,11 @@ public class Problem implements java.io.Serializable {
     }
 
 
-    public Set<EpistemicState> getStartStates() {
+    public Set<State> getStartStates() {
         return startStates;
     }
 
-    public EpistemicState getStartState() {
+    public State getStartState() {
         if (startStates.size() != 1) {
             throw new RuntimeException("problem contains " + startStates.size() + " start states.");
         }
@@ -67,7 +67,7 @@ public class Problem implements java.io.Serializable {
         return AndFormula.make(goals);
     }
 
-    public Map<String, Model> getStartingModels() {
+    public Map<String, Agent> getStartingModels() {
         return startingModels;
     }
 
@@ -83,7 +83,7 @@ public class Problem implements java.io.Serializable {
         //str.append(domain);
 
         str.append("INITIALLY:\n");
-        for (EpistemicState s : startStates) {
+        for (State s : startStates) {
             str.append(s.toString());
         }
         str.append("\n");
