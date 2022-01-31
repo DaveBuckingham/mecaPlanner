@@ -472,25 +472,16 @@ public class DeplToProblem extends DeplBaseVisitor {
         for (DeplParser.RelationContext relationCtx : ctx.relation()) {
             String agent = (String) visit(relationCtx.agent());
 
-            List<World> fromWorlds = new ArrayList<>();
-            List<World> toWorlds = new ArrayList<>();
-            for (DeplParser.LOWER_NAME t : relationCtx.from) {
-                String fromWorldName = t.getText();
+            for (DeplParser.RelateContext relateCtx : relationCtx.relate()) {
+                String fromWorldName = relateCtx.from.getText();
                 if (!worlds.containsKey(fromWorldName)) {
                     throw new RuntimeException("unknown world: " + fromWorldName);
                 }
-                fromWorlds.add(worlds.get(fromWorldName));
-            }
-            for (DeplParser.LOWER_NAME t : relationCtx.to) {
-                String toWorldName = t.getText();
-                if (!world.containsKey(toWorldName)) {
+                String toWorldName = relateCtx.to.getText();
+                if (!worlds.containsKey(toWorldName)) {
                     throw new RuntimeException("unknown world: " + toWorldName);
                 }
-                toWorlds.add(worlds.get(toWorldName));
-            }
-            assert(fromWorlds.size() == toWorlds.size());
-            for (int i = 0; i < fromWorlds.size(); i++) {
-                starState.addMorePlausibleTransitive(agent, fromWorlds.get(i), toWorlds.get(i));
+                startState.addMorePlausibleTransitive(agent, worlds.get(fromWorldName), worlds.get(toWorldName));
             }
 
         }
@@ -590,11 +581,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                             throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
                         }
                         Formula condition;
-                        if (obsCtx.condition() == null) {
+                        if (obsCtx.condition == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (Formula) visit(obsCtx.condition());
+                            condition = (Formula) visit(obsCtx.condition);
                         }
                         if (!condition.isFalse()) {
                             observesLists.get(agentName).add(condition);
@@ -609,11 +600,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                         variableStack.push(variableMap);
                         String agentName = (String) visit(awaCtx.groundableObject());
                         Formula condition;
-                        if (awaCtx.condition() == null) {
+                        if (awaCtx.condition == null) {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (Formula) visit(awaCtx.condition());
+                            condition = (Formula) visit(awaCtx.condition);
                         }
                         if (!condition.isFalse()) {
                             awareLists.get(agentName).add(condition);
@@ -627,14 +618,14 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         Formula condition;
-                        if (detCtx.condition() == null)  {
+                        if (detCtx.condition == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (Formula) visit(detCtx.condition());
+                            condition = (Formula) visit(detCtx.condition);
                         }
                         if (!(condition.isFalse())){
-                            Formula sensed = (Formula) visit(detCtx.formula());
+                            Formula sensed = (Formula) visit(detCtx.determined);
                             determines.put(sensed, condition);
                         }
                         variableStack.pop();
@@ -646,14 +637,14 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         Formula condition;
-                        if (annCtx.condition() == null)  {
+                        if (annCtx.condition == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (Formula) visit(annCtx.condition());
+                            condition = (Formula) visit(annCtx.condition);
                         }
                         if (!(condition.isFalse())){
-                            Formula announcement = (Formula) visit(annCtx.formula());
+                            Formula announcement = (Formula) visit(annCtx.announced);
                             announces.put(announcement, condition);
                         }
                         variableStack.pop();
@@ -665,11 +656,11 @@ public class DeplToProblem extends DeplBaseVisitor {
                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                         variableStack.push(variableMap);
                         Formula condition;
-                        if (effCtx.condition() == null)  {
+                        if (effCtx.condition == null)  {
                             condition = new Literal(true);
                         }
                         else {
-                            condition = (Formula) visit(effCtx.condition());
+                            condition = (Formula) visit(effCtx.condition);
                         }
                         if (!(condition.isFalse())){
                             Fluent fluent = (Fluent) visit(effCtx.fluent());
@@ -773,7 +764,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return agentname;
+        return agentName;
     }
 
     @Override public String visitGroundableAgent(DeplParser.GroundableAgentContext ctx) {
@@ -781,7 +772,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
-        return agentname;
+        return agentName;
     }
 
 
@@ -828,7 +819,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Formula visitAndFormula(DeplParser.AndFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.formula()) {
+        for (DeplParser.FormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return (AndFormula.make(subFormulae));
@@ -836,7 +827,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Formula visitOrFormula(DeplParser.OrFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.formula()) {
+        for (DeplParser.FormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return Formula.makeDisjunction(subFormulae);
@@ -851,37 +842,37 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Formula visitKnowsFormula(DeplParser.KnowsFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return new KnowsFormula(agentName, inner);
     }
 
     @Override public Formula visitSafeFormula(DeplParser.SafeFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return new SafeFormula(agentName, inner);
     }
 
     @Override public Formula visitBelievesFormula(DeplParser.BelievesFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return new BelievesFormula(agentName, inner);
     }
 
     @Override public Formula visitKnowsDualFormula(DeplParser.KnowsDualFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return NotFormula.make(new KnowsFormula(agentName, NotFormula.make(inner)));
     }
 
     @Override public Formula visitSafeDualFormula(DeplParser.SafeDualFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return NotFormula.make(new SafeFormula(agentName, NotFormula.make(inner)));
     }
 
     @Override public Formula visitBelievesDualFormula(DeplParser.BelievesDualFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableObject());
+        String agentName = (String) visit(ctx.groundableAgent());
         return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
     }
 

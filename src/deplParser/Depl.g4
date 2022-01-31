@@ -142,7 +142,9 @@ model : (world ','?)+ (relation ','?)+ ;
 
 world : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
-relation : agent ASSIGN '{' ( '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ','? )* '}' ;
+relation : agent ASSIGN '{' ( relate ','? )* '}' ;
+
+relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 
 
 
@@ -180,8 +182,8 @@ costActionField         : 'cost'  '{' INTEGER '}' ;
 preconditionActionField : 'precondition' variableDefList '{' formula '}' ;
 observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
 awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' formula ('if' condition=formula)? '}' ;
-announcesActionField    : 'announces'    variableDefList '{' formula ('if' condition=formula)? '}' ;
+determinesActionField   : 'determines'   variableDefList '{' determined=formula ('if' condition=formula)? '}' ;
+announcesActionField    : 'announces'    variableDefList '{' announced=formula ('if' condition=formula)? '}' ;
 causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
 
 

@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 
@@ -40,8 +40,8 @@ public class KnowsFormula extends Formula {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
         assert(model.getWorlds().containsWorld(world));
-        for (World w : kripke.getKnownWorlds(agent, world)) {
-            if (!formula.evaluate(kripke, w)){
+        for (World w : model.getPossible(agent, world)) {
+            if (!formula.evaluate(model, w)){
                 return false;
             }
         }

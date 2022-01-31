@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 
-import mecaPlanner.state.State;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -98,9 +98,9 @@ public class AndFormula extends Formula{
         return formulae;
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
+    public Boolean evaluate(Model<World> model, World world) {
         for (Formula formula : formulae) {
-            if (!formula.evaluate(kripke, world)) {
+            if (!formula.evaluate(model, world)) {
                 return false;
             }
         }

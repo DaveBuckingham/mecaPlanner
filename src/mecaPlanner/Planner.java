@@ -1,8 +1,8 @@
 package mecaPlanner;
 
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.formulae.*;
-import mecaPlanner.models.*;
+import mecaPlanner.agents.*;
 import mecaPlanner.search.Search;
 
 import java.util.Set;

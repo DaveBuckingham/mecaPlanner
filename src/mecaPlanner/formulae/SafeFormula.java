@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 
@@ -42,13 +42,14 @@ public class SafeFormula extends Formula {
         return formula.getAllFluents();
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
-        if (kripke == null) {
+
+    public Boolean evaluate(Model<World> model, World world) {
+        if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
-        assert(kripke.containsWorld(world));
-        for (World w : kripke.getBelievedWorlds(agent, world)) {
-            if (!formula.evaluate(kripke, w)){
+        assert(model.getWorlds().containsWorld(world));
+        for (World w : model.getMorePlausible(agent, world)) {
+            if (!formula.evaluate(model, w)){
                 return false;
             }
         }

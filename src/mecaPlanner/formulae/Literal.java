@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -22,7 +22,7 @@ public class Literal extends Formula{
         return value;
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
+    public Boolean evaluate(Model<World> model, World world) {
         return value;
     }
 

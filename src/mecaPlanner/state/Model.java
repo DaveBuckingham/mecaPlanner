@@ -22,33 +22,33 @@ import java.util.Collections;
 
 public class Model<T> implements java.io.Serializable {
 
-    private Set<String> agents;
-    private Set<T> designated;
+    protected Set<String> agents;
+    protected Set<T> designated;
 
-    private Set<T> points;
+    protected Set<T> points;
 
-    private Map<String, Map<T, Set<T>>> lessToMorePlausible;
-    private Map<String, Map<T, Set<T>>> moreToLessPlausible;
+    protected Map<String, Map<T, Set<T>>> lessToMorePlausible;
+    protected Map<String, Map<T, Set<T>>> moreToLessPlausible;
 
     public Model(Set<String> agents, Set<T> points, Set<T> designated) {
         assert(!points.isEmpty());
         assert(points.containsAll(designated));
         assert(!agents.isEmpty());
-        for (World w : designatedWorlds) {
-            assert (w != null);
+        for (T p : designated) {
+            assert (p != null);
         }
         this.points = points;
         this.agents = agents;
-        this.morePlausible = new HashMap<>();
-        this.lessPlausible = new HashMap<>();
+        this.lessToMorePlausible = new HashMap<>();
+        this.moreToLessPlausible = new HashMap<>();
         for (String agent : agents) {
-            morePlausible.put(agent, new HashMap<>());
-            lessPlausible.put(agent, new HashMap<>());
+            lessToMorePlausible.put(agent, new HashMap<>());
+            moreToLessPlausible.put(agent, new HashMap<>());
             for (T t : points) {
-                morePlausible.get(agent).put(t, new HashSet<>());
-                morePlausible.get(agent).get(t).add(t);
-                lessPlausible.get(agent).put(t, new HashSet<>());
-                lessPlausible.get(agent).get(t).add(t);
+                lessToMorePlausible.get(agent).put(t, new HashSet<>());
+                lessToMorePlausible.get(agent).get(t).add(t);
+                moreToLessPlausible.get(agent).put(t, new HashSet<>());
+                moreToLessPlausible.get(agent).get(t).add(t);
             }
         }
     }
@@ -66,7 +66,7 @@ public class Model<T> implements java.io.Serializable {
         return points;
     }
 
-    public Set<World> getDesignated() {
+    public Set<T> getDesignated() {
         return this.designated;
     }
 
@@ -107,7 +107,7 @@ public class Model<T> implements java.io.Serializable {
 
     public Set<T> getPossible(String agent, T root) {
         Set<T> accessible = lessToMorePlausible.get(agent).get(root);
-        accessible.add(moreToLessPlausible(get(agent).get(root)));
+        accessible.addAll(moreToLessPlausible.get(agent).get(root));
         return accessible;
     }
 
@@ -124,7 +124,7 @@ public class Model<T> implements java.io.Serializable {
             for (Set<T> part : partition) {
                 assert(!part.isEmpty());
                 T sample = part.iterator().next();
-                if (sample.equivalent(w)) {
+                if (sample.equals(w)) {
                     part.add(w);
                     foundPart = true;
                     break;
@@ -156,7 +156,7 @@ public class Model<T> implements java.io.Serializable {
             Set<T> inPre = new HashSet<>();
             Set<T> notInPre = new HashSet<>();
             for (T w : block) {
-                if (Collections.disjoint(lessToMorePlausible.get(w), splitter)) {
+                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
                     notInPre.add(w);
                 }
                 else {
@@ -185,7 +185,7 @@ public class Model<T> implements java.io.Serializable {
             oldBlocks = new HashSet<Set<T>>(partition);
             for (Set<T> splitter : oldBlocks) {
                 for (String agent : agents) {
-                    splitBlocks(partition, splitter, lessToMorePlausible.get(agent));
+                    splitBlocks(partition, splitter, agent);
                 }
             }
         } while (partition.size() != oldBlocks.size());
@@ -232,7 +232,7 @@ public class Model<T> implements java.io.Serializable {
             for (String agent : agents) {
                 for (T oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
                     T newMorePlausible = oldToNew.get(oldMorePlausible);
-                    reduced.setMorePlausible(agent,newMorePlausible,newSource); 
+                    reduced.addMorePlausible(agent,newSource,newMorePlausible); 
                 }
             }
         }
@@ -242,21 +242,26 @@ public class Model<T> implements java.io.Serializable {
 
 
 
-    //public KripkeStructure union(KripkeStructure other) {
-    //    assert (this != other);
-
-    //    Set<T> unionTs = new HashSet<T>(points);
-    //    unionTs.addAll(other.getPoints());
-
-    //    Map<String, Relation> unionBelief = new HashMap<>();
-    //    Map<String, Relation> unionKnowledge = new HashMap<>();
-    //    for (String agent : agents) {
-    //        unionBelief.put(agent, beliefRelations.get(agent).union(other.getBeliefRelations().get(agent)));
-    //        unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
-    //    }
-
-    //    return new KripkeStructure(unionTs, unionBelief, unionKnowledge);
-    //}
+//    public Model union(Model other) {
+//        assert (this != other);
+//
+//        Set<T> unionPoints = new HashSet<T>(points);
+//        unionPoints.addAll(other.getPoints());
+//
+//        Set<T> unionDesignated = new HashSet<T>(designated);
+//        unionDesignated.addAll(other.getDesignated());
+//
+//        Model unionModel = new Model(agents, unionPoints, unionDesignated);
+//
+//        for (String agent : agents) {
+//            for (T p : unionPoints) {
+//            }
+//            HERE
+//            unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
+//        }
+//
+//        return new KripkeStructure(unionTs, unionBelief, unionKnowledge);
+//    }
 
 
 
@@ -271,6 +276,42 @@ public class Model<T> implements java.io.Serializable {
     public boolean checkRelations() {
         return true;
     }
+
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj == this) {
+            return true;
+        }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        Model other = (Model) obj;
+
+        //return equivalent(other);
+        return false;
+    }
+
+    //private Boolean equivalent(Model other) {
+    //    Model unioned = union(other);
+
+    //    Set<T> otherInitials = other.getDesignated();
+
+    //    for (Set<T> block : union.refineSystem()) {
+    //        if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
+    //            return false;
+    //        }
+    //    }
+    //    return true;
+    //}
+
+
+    @Override
+    public int hashCode() {
+        // THERE MAY BE SOME ROOM FOR IMPROVEMENT HERE...
+        return 1;
+    }
+
 
 
     public String toString(Set<T> designated) {

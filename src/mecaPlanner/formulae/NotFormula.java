@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 
@@ -43,8 +43,8 @@ public class NotFormula extends Formula{
     }
 
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
-        return (!formula.evaluate(kripke, world));
+    public Boolean evaluate(Model<World> model, World world) {
+        return (!formula.evaluate(model, world));
     }
 
     public Integer getHeight() {

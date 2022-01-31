@@ -16,7 +16,6 @@ import java.util.Comparator;
 import java.util.Collections;
 
 
-// A MULTI-POINTED KRIPKE MODEL
 
 
 public class NDState extends Model<World> implements java.io.Serializable {
@@ -25,46 +24,46 @@ public class NDState extends Model<World> implements java.io.Serializable {
         super(agents, worlds, designated);
     }
 
-    public NDState(NDState toCopy) {
-        model = new Model(toCopy.getModel());
-        designatedWorlds = new HashSet<World>();
-        for (World d : toCopy.getDesignatedWorlds()) {
-            designatedWorlds.add(d.getChild());
-        }
-    }
+    //public NDState(NDState toCopy) {
+    //    model = new Model(toCopy.getModel());
+    //    designated = new HashSet<World>();
+    //    for (World d : toCopy.getDesignatedWorlds()) {
+    //        designated.add(d.getChild());
+    //    }
+    //}
 
     public Set<State> getStates() {
         Set<State> states = new HashSet<State>();
         for (World w : designated) {
-            states.add(new State(agnets, points, w));
+            states.add(new State(agents, points, w));
         }
         return states;
     }
 
 
-    public Boolean necessarily(Formula formula) {
-        for (World w : designatedWorlds) {
-            if (!formula.evaluate(this.kripkeStructure, w)) {
-                return false;
-            }
-        }
-        return true;
-    }
+    //public Boolean necessarily(Formula formula) {
+    //    for (World w : designated) {
+    //        if (!formula.evaluate(this.kripkeStructure, w)) {
+    //            return false;
+    //        }
+    //    }
+    //    return true;
+    //}
 
 
 //    public Void reduce() {
 //        Map<World,World> oldWorldsToNew = model.reduce();
 //        Set<World> newDesignated = new HashSet<World>();
-//        for (World w : designatedWorlds) {
+//        for (World w : designated) {
 //            newDesignated.add(oldWorldsToNew.get(w));
 //        }
-//        this.designatedWorlds = newDesignated;
+//        this.designated= newDesignated;
 //        return null;
 //    }
 //
 //    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
 //    public Void trim() {
-//        Set<World> keep = new HashSet<>(designatedWorlds);
+//        Set<World> keep = new HashSet<>(designated);
 //        Set<World> old;
 //        do {
 //            old = new HashSet<>(keep);
@@ -100,59 +99,10 @@ public class NDState extends Model<World> implements java.io.Serializable {
 
 
 
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != this.getClass()) {
-            return false;
-        }
-        NDState other = (NDState) obj;
-
-        assert (this.kripkeStructure != other.getKripke());
-        // IF THE KRIPKES ARE THE SAME OBJECT BUT THE DESIGNATED WORLDS DIFFER,
-        // WE'LL PROCEDE TO equivalent(other), THAT'S OK, BECUASE KripkeStructure.union()
-        // WILL DUPLICATE THE KRIPKE STRUCTURE.
-        if (this.kripkeStructure == other.getKripke() && this.designatedWorlds == other.getDesignatedWorlds()) {
-            return true;
-        }
-        return equivalent(other);
-    }
-
-
-    public Boolean equivalent(NDState other) {
-        if (this.model == other.getModel()) {
-            other = new NDState(other);
-        }
-
-        Model unionModel = this.model.union(other.getModel());
-
-        Set<World> otherInitials = other.getDesignated();
-
-        for (Set<World> block : unionModel.refineSystem()) {
-            if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
-                return false;
-            }
-        }
-        return true;
-    }
-
-
-    @Override
-    public int hashCode() {
-        // THERE MAY BE SOME ROOM FOR IMPROVEMENT HERE...
-        return 1;
-    }
-
     public String toStringCompact() {
         return toString();
     }
 
-    @Override
-    public String toString() {
-        return model.toString(designatedWorlds);
-    }
 
 
 }

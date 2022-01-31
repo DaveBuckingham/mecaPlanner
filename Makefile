@@ -1,7 +1,7 @@
 
 antlr   := java -jar $(PWD)/lib/antlr-4.7.1-complete.jar
 visitor := -no-listener -visitor
-java    = javac -g -Xmaxerrs 2 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
+java    = javac -g -Xmaxerrs 5 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
 jarname := mecaPlanner-`cat VERSION`.jar
 
 builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)

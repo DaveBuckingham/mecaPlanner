@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.NDState;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
 
 
