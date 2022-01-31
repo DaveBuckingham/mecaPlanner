@@ -1,6 +1,6 @@
 package depl;
 
-import mecaPlanner.models.*;
+import mecaPlanner.agents.*;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -33,7 +33,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Domain domain;
     private Integer systemAgentIndex;
     private Set<State> startStates;
-    private Map<String, Model> startingModels;
+    private Map<String, Agent> startingModels;
     private Set<Formula> goals;
     private Set<TimeConstraint> timeConstraints;
 
@@ -192,7 +192,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         this.domain = new Domain();
         this.systemAgentIndex = null;
-        this.startStates = new HashSet<EpistemicState>();
+        this.startStates = new HashSet<State>();
         this.startingModels = new HashMap<>();
         this.goals = new HashSet<>();
         this.timeConstraints = new HashSet<>();
@@ -308,8 +308,8 @@ public class DeplToProblem extends DeplBaseVisitor {
             String modelClassName = "mecaPlanner.models." + ctx.UPPER_NAME().getText();
             try {
                 Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
-                Model model = (Model) constructor.newInstance(agent, domain);
-                startingModels.put(agent, model);
+                Agent eAgentModel = (Agent) constructor.newInstance(agent, domain);
+                startingModels.put(agent, eAgentModel);
             }
             catch(Exception ex) {
                 System.out.println(ex.toString());
@@ -413,7 +413,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
             if (stateCtx.model() != null) {
-                NDState ndState = (NDState) visit(stateCtx.kripkeModel());
+                NDState ndState = (NDState) visit(stateCtx.model());
                 startStates.addAll(ndState.getStates());
             }
             else {
@@ -433,7 +433,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         Log.warning("State construction not implemented");
         return null;
         // List<Formula> initialFormulae = new ArrayList<>();
-        // for (DeplParser.BeliefFormulaContext formulaCtx : ctx.beliefFormula()) {
+        // for (DeplParser.BeliefFormulaContext formulaCtx : ctx.formula()) {
         //     Formula formula = (Formula) visit(formulaCtx);
         //     initialFormulae.add(formula);
         // }
@@ -454,8 +454,6 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public NDState visitModel(DeplParser.ModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
         Set<World> designatedWorlds = new HashSet<>();;
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
         for (DeplParser.WorldContext worldCtx : ctx.world()) {
             World world = (World) visit(worldCtx);
             worlds.put(world.getName(),world);
@@ -468,55 +466,38 @@ public class DeplToProblem extends DeplBaseVisitor {
             throw new RuntimeException("initial state has no designaged worlds");
         }
 
+        Set<World> worldSet = new HashSet<World>(worlds.values());
+        NDState startState = new NDState(new HashSet<String>(domain.getAllAgents()), worldSet, designatedWorlds);
+
         for (DeplParser.RelationContext relationCtx : ctx.relation()) {
-            String agent = relationCtx.agent().getText();
+            String agent = (String) visit(relationCtx.agent());
 
-            if (!domain.isAgent(agent)) {
-                throw new RuntimeException("agent not defined: " + agent);
-            }
-
-            Relation relation = new Relation();
-            List<String> fromWorlds = new ArrayList<>();
-            List<String> toWorlds = new ArrayList<>();
-            for (DeplParser.LOWER_NAME t : relationCtx.from()) {
+            List<World> fromWorlds = new ArrayList<>();
+            List<World> toWorlds = new ArrayList<>();
+            for (DeplParser.LOWER_NAME t : relationCtx.from) {
                 String fromWorldName = t.getText();
                 if (!worlds.containsKey(fromWorldName)) {
                     throw new RuntimeException("unknown world: " + fromWorldName);
                 }
-                fromWorlds.add(fromWorldName);
+                fromWorlds.add(worlds.get(fromWorldName));
             }
-            for (DeplParser.LOWER_NAME t : relationCtx.to()) {
+            for (DeplParser.LOWER_NAME t : relationCtx.to) {
                 String toWorldName = t.getText();
-                if (!worlds.containsKey(toWorldName)) {
+                if (!world.containsKey(toWorldName)) {
                     throw new RuntimeException("unknown world: " + toWorldName);
                 }
-                toWorlds.add(toWorldName);
+                toWorlds.add(worlds.get(toWorldName));
             }
             assert(fromWorlds.size() == toWorlds.size());
             for (int i = 0; i < fromWorlds.size(); i++) {
-                relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
+                starState.addMorePlausibleTransitive(agent, fromWorlds.get(i), toWorlds.get(i));
             }
 
-            if (relationType.equals("B")) {
-                beliefRelations.put(agent, relation);
-            }
-            else if (relationType.equals("K")) {
-                knowledgeRelations.put(agent, relation);
-            }
-            else {
-                throw new RuntimeException("unknow relation specifier: " + relationType);
-            }
         }
 
-        Set<World> worldSet = new HashSet<World>(worlds.values());
-        Log.debug("constructing start state kripke...");
-        KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        Log.debug("constructing start state...");
-        NDState startState = new NDState(kripke, designatedWorlds);
-        Log.debug("reducing start state...");
-        startState.reduce();
-        Log.debug("checking start state kripke...");
-        startState.getKripke().forceCheck();
+        // Log.debug("reducing start state...");
+        // startState.reduce();
+        // startState.getKripke().forceCheck();
         return startState;
     }
 
@@ -541,12 +522,12 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        if (ctx.beliefFormula() == null) {
+        if (ctx.formula() == null) {
             TimeConstraint constraint = (TimeConstraint) visit(ctx.timeConstraint());
             timeConstraints.add(constraint);
         }
         else {
-            Formula goal = (Formula) visit(ctx.beliefFormula());
+            Formula goal = (Formula) visit(ctx.formula());
             goals.add(goal);
         }
         return null;
@@ -595,7 +576,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                     DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
                     for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
                         variableStack.push(variableMap);
-                        preconditionList.add((Formula) visit(preCtx.localFormula()));
+                        preconditionList.add((Formula) visit(preCtx.formula()));
                         variableStack.pop();
                     }
                 }
@@ -653,7 +634,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                             condition = (Formula) visit(detCtx.condition());
                         }
                         if (!(condition.isFalse())){
-                            Formula sensed = (Formula) visit(detCtx.localFormula());
+                            Formula sensed = (Formula) visit(detCtx.formula());
                             determines.put(sensed, condition);
                         }
                         variableStack.pop();
@@ -672,7 +653,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                             condition = (Formula) visit(annCtx.condition());
                         }
                         if (!(condition.isFalse())){
-                            Formula announcement = (Formula) visit(annCtx.beliefFormula());
+                            Formula announcement = (Formula) visit(annCtx.formula());
                             announces.put(announcement, condition);
                         }
                         variableStack.pop();
@@ -787,11 +768,20 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
     }
 
+    @Override public String visitAgent(DeplParser.AgentContext ctx) {
+        String agentName = ctx.getText();
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+        return agentname;
+    }
+
     @Override public String visitGroundableAgent(DeplParser.GroundableAgentContext ctx) {
         String agentName = (String) visit(ctx.groundableObject());
         if (!domain.isAgent(agentName)) {
             throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
         }
+        return agentname;
     }
 
 
@@ -828,17 +818,17 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Formula visitParensFormula(DeplParser.ParensFormulaContext ctx) {
-        return (Formula) visit(ctx.localFormula());
+        return (Formula) visit(ctx.formula());
     }
 
     @Override public Formula visitNotFormula(DeplParser.NotFormulaContext ctx) {
-        Formula inner = (Formula) visit(ctx.localFormula());
+        Formula inner = (Formula) visit(ctx.formula());
         return (NotFormula.make(inner));
     }
 
     @Override public Formula visitAndFormula(DeplParser.AndFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+        for (DeplParser.LocalFormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return (AndFormula.make(subFormulae));
@@ -846,7 +836,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Formula visitOrFormula(DeplParser.OrFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+        for (DeplParser.LocalFormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return Formula.makeDisjunction(subFormulae);
@@ -854,8 +844,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Formula visitImpliesFormula(DeplParser.ImpliesFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        Formula leftFormula = (Formula) visit(ctx.localFormula().get(0));
-        Formula rightFormula = (Formula) visit(ctx.localFormula().get(1));
+        Formula leftFormula = (Formula) visit(ctx.formula().get(0));
+        Formula rightFormula = (Formula) visit(ctx.formula().get(1));
         return (Formula.makeDisjunction(Arrays.asList(leftFormula.negate(), rightFormula)));
     }
 

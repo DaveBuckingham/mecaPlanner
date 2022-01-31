@@ -46,7 +46,9 @@ public class Model<T> implements java.io.Serializable {
             lessPlausible.put(agent, new HashMap<>());
             for (T t : points) {
                 morePlausible.get(agent).put(t, new HashSet<>());
+                morePlausible.get(agent).get(t).add(t);
                 lessPlausible.get(agent).put(t, new HashSet<>());
+                lessPlausible.get(agent).get(t).add(t);
             }
         }
     }
@@ -68,9 +70,20 @@ public class Model<T> implements java.io.Serializable {
         return this.designated;
     }
 
-    public void setMorePlausible(String agent, T morePlausible, T lessPlausible) {
+
+    public void addMorePlausible(String agent, T lessPlausible, T morePlausible) {
         lessToMorePlausible.get(agent).get(lessPlausible).add(morePlausible);
         moreToLessPlausible.get(agent).get(morePlausible).add(lessPlausible);
+    }
+
+    public void addMorePlausible(String agent, T lessPlausible, Set<T> morePlausible) {
+        for (T t : morePlausible) {
+            addMorePlausible(agent, lessPlausible, t);
+        }
+    }
+
+    public void addMorePlausibleTransitive(String agent, T lessPlausible, T morePlausible) {
+        addMorePlausible(agent, lessPlausible, lessToMorePlausible.get(agent).get(morePlausible));
     }
 
     public boolean isMorePlausible(String agent, T morePlausible, T lessPlausible) {
@@ -136,14 +149,14 @@ public class Model<T> implements java.io.Serializable {
     // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
     // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
     // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
-    private Void splitBlocks(Set<Set<T>> partition, Set<T> splitter, Relation relation) {
+    private Void splitBlocks(Set<Set<T>> partition, Set<T> splitter, String agent) {
         Set<Set<T>> oldBlocks = new HashSet<Set<T>>(partition);
 
         for (Set<T> block : oldBlocks) {
             Set<T> inPre = new HashSet<>();
             Set<T> notInPre = new HashSet<>();
             for (T w : block) {
-                if (Collections.disjoint(relation.get(w), splitter)) {
+                if (Collections.disjoint(lessToMorePlausible.get(w), splitter)) {
                     notInPre.add(w);
                 }
                 else {

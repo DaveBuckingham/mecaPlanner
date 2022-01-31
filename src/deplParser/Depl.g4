@@ -77,6 +77,8 @@ passiveDef : objectName ;
 
 // FLUENTS DEFINITIONS
 
+agent :  objectName;
+
 groundableObject : objectName | VARIABLE ;
 groundableAgent :  groundableObject;
 expandableObject : objectName | objectType;
@@ -140,7 +142,7 @@ model : (world ','?)+ (relation ','?)+ ;
 
 world : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
 
-relation : agent=objectName ASSIGN '{' ( '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ','? )* '}' ;
+relation : agent ASSIGN '{' ( '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ','? )* '}' ;
 
 
 

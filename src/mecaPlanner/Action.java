@@ -169,38 +169,6 @@ public class Action implements java.io.Serializable {
     }
 
 
-    private class PartialResult {
-        public KripkeStructure kripke;
-        private Map<World,World> map;
-        // GIVEN A NEW WORLD, WHAT OLD CLASS IS IT ASSOCIATED WITH FOR EACH AGENT
-        private Map<World,Map<String, Set<World>>> postAssignments;
-        // GIVEN AN OLD WORLD, WHAT WAS THE EQUIVALENCE CLASS CREATED FROM THAT WORLD FOR EACH AGENT
-        private Map<String, Map<World,Set<World>>> roots;
-        public PartialResult(KripkeStructure k,
-                             Map<World,World> m,
-                             Map<World, Map<String, Set<World>>> p,
-                             Map<String, Map<World, Set<World>>> r
-                            ){
-            this.kripke = k;
-            this.map = m;
-            this.postAssignments = p;
-            this.roots = r;
-            //this.learnedObserver = l;
-        }
-        public Set<World> getWorlds() {
-            return map.keySet();
-        }
-        public Set<World> getClassFromRoot(String agent, World w) {
-            return roots.get(agent).get(w);
-        }
-        public Set<World> getPostAssignment(World w, String agent) {
-            return postAssignments.get(w).get(agent);
-        }
-        public World getOldWorld(World w) {
-            return map.get(w);
-        }
-
-    }
 
 
     

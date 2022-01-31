@@ -111,8 +111,9 @@ public class Domain implements java.io.Serializable {
     }
 
     public List<String> getAgents() {
-        return allAgents;
+        return getAllAgents();
     }
+
 
 
     public void addAgent(String agent) {

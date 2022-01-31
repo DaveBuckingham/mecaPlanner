@@ -33,7 +33,7 @@ public class NDState extends Model<World> implements java.io.Serializable {
         }
     }
 
-    public Set<State> getPointedStates() {
+    public Set<State> getStates() {
         Set<State> states = new HashSet<State>();
         for (World w : designated) {
             states.add(new State(agnets, points, w));
