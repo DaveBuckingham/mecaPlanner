@@ -161,7 +161,10 @@ goal : formula | timeConstraint ;
 
 // ACTION DEFINITIONS
 
-actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
+
+actionsSection : 'initially' ( eventDef | '{' (eventDef ','?)* '}' ) ;
+eventDef : '{' (actionDefinition | eventModelDef) '}' ;
+
 actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
 variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
 variableDef : VARIABLE '-' objectType ;
@@ -185,5 +188,16 @@ awareActionField        : 'aware'        variableDefList '{' groundableObject ('
 determinesActionField   : 'determines'   variableDefList '{' determined=formula ('if' condition=formula)? '}' ;
 announcesActionField    : 'announces'    variableDefList '{' announced=formula ('if' condition=formula)? '}' ;
 causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
+
+
+HERE
+
+eventModelDef : (event ','?)+ (relation ','?)+ ;
+
+event : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
+
+relation : agent ASSIGN '{' ( relate ','? )* '}' ;
+
+relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 
 

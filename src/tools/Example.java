@@ -7,7 +7,7 @@ import mecaPlanner.Action;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import depl.*;
 
 
@@ -32,9 +32,9 @@ public class Example {
         Problem problem = deplParser.buildProblem(deplFile);
         Domain domain = problem.getDomain();
 
-        EpistemicState startState = problem.getStartState();
+        State startState = problem.getStartState();
 
-        if (startState.getKripke().checkRelations()) {
+        if (startState.checkRelations()) {
             System.out.println("VALID START STATE:");
             System.out.println(startState);
         }
@@ -53,7 +53,7 @@ public class Example {
 
         System.out.println(action);
 
-        EpistemicState endState = action.transition(startState);
+        State endState = action.transition(startState);
         System.out.println(endState);
     }
 }

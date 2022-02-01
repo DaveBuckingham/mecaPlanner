@@ -18,8 +18,7 @@ import mecaPlanner.formulae.Formula;
 public class Event {
 
     private Formula precondition;
-    private Set<Fluent> positiveEffects;
-    private Set<Fluent> negativeEffects;
+    private Set<Assignment> effects;
 
     public Event() {
     }
@@ -28,12 +27,8 @@ public class Event {
         return precondition;
     }
 
-    protected Set<Fluent> getPositiveEffects() {
-        return positiveEffects;
-    }
-
-    protected Set<Fluent> getNegativeEffects() {
-        return negativeEffects;
+    public Set<Assignment> getEffects() {
+        return this.effects;
     }
 
 }

@@ -15,61 +15,33 @@ import mecaPlanner.formulae.Fluent;
 import mecaPlanner.formulae.Formula;
 
 
-public class EventModel {
+public class EventModel implements Transformer extends Model<Event> {
 
-    Set<Event> events;
-    Event designated;
-    private Map<String, Map<Event, Map<Event, Formula>>> edges;
 
-    public EventModel(Set<Event> events) {
-        this.events = events;
+    public EventModel(Set<String> agents, Set<Event> events, Set<Event> designated) {
+        super(agents, events, designated);
     }
 
-    public EventModel() {
-        this(new HashSet<Event>());
-    }
-
-    public Set<Event> getEvents() {
-        return events;
-    }
-
-    public Boolean addEvent(Event e) {
-        if (events.contains(e)) {
-            return false;
+    public State transition(State beforeState) {
+        assert(agents.equals(beforeState.getAgents()));
+        Set<World> newWorlds = new HashSet<>();
+        Set<World> newDesignated = new HashSet<>();
+        for (Event event : getPoints()) {
+            for (World world : beforeState.getPoints()) {
+                if (event.getPrecondition().evaluate(world)) {
+                    World newWorld = world.update(event.getEffects());
+                    newWorlds.add(newWorld);
+                    if (world == beforeState.getDesignatedWorld()) {
+                         newDesignated.add(newWorld);
+                    }
+                }
+            }
         }
-        events.add(e);
-        return true;
-    }
+        State newState = new State(agents, newWorlds, newDesignated);
 
-    public void setDesignated(Event e) {
-        assert(events.contains(e));
-        designated = e;
-    }
+        HERE: NEW EDGES...
 
-    public Event getDesignated() {
-        return designated;
-    }
-
-    public void connect(String agent, Event from, Event to, Formula condition) {
-        assert (from != null);
-        assert (events.contains(from));
-        assert (to != null);
-        assert (events.contains(to));
-        if (!edges.containsKey(agent)) {
-            edges.put(agent, new HashMap<Event, Map<Event,Formula>>());
-        }
-        if (!edges.get(agent).containsKey(from)) {
-            edges.get(agent).put(from, new HashMap<Event,Formula>());
-        }
-        edges.get(agent).get(from).put(to, condition);
-    }
-
-    public Map<Event, Formula> getConnectedEvents(String agent, Event origin) {
-        return edges.get(agent).get(origin);
-    }
-
-    public State apply(State startState) {
-        return startState;
+        return newState;
     }
 }
 

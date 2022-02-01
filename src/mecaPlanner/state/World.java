@@ -71,19 +71,21 @@ public class World implements java.io.Serializable {
         World world = new World(this);
         Set<Fluent> newFluents = new HashSet<Fluent>(fluents);
         for (Assignment assignment : assignments) {
-            if (assignment.getValue()) {
-                newFluents.add(assignment.getFluent());
-            }
-            else {
-                newFluents.remove(assignment.getFluent());
+            if (assignment.getCondition().evlauate(this)) {
+                if (assignment.getValue()) {
+                    newFluents.add(assignment.getFluent());
+                }
+                else {
+                    newFluents.remove(assignment.getFluent());
+                }
             }
         }
         return new World(null, newFluents);
     }
 
-    public Boolean alteredByAssignment(Assignment assignment) {
-        return (fluents.contains(assignment.getFluent()) ^ assignment.getValue());
-    }
+    // public Boolean alteredByAssignment(Assignment assignment) {
+    //     return (fluents.contains(assignment.getFluent()) ^ assignment.getValue());
+    // }
 
     public int getId() {
         return this.id;

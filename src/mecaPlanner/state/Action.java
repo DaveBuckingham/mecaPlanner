@@ -1,4 +1,4 @@
-package mecaPlanner;
+package mecaPlanner.state;
 
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
@@ -16,7 +16,7 @@ import java.util.Objects;
 
 
 
-public class Action implements java.io.Serializable {
+public class Action implements Transformer {
 
     private Domain domain;
 
@@ -29,7 +29,7 @@ public class Action implements java.io.Serializable {
     private Map<String, Formula> awareIf;
     private Map<Formula, Formula> determines;  // sensed formula --> condition
     private Map<Formula, Formula> announces;  // announcement --> condition
-    private Map<Assignment, Formula> effects;
+    private Set<Assignment> effects;
 
 
     public Action(String name,
@@ -41,7 +41,7 @@ public class Action implements java.io.Serializable {
                   Map<String, Formula> awareIf,
                   Map<Formula, Formula> determines,
                   Map<Formula, Formula> announces,
-                  Map<Assignment, Formula> effects,
+                  Set<Assignment> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -74,7 +74,7 @@ public class Action implements java.io.Serializable {
         return this.precondition;
     }
 
-    public Map<Assignment, Formula> getEffects() {
+    public Set<Assignment> getEffects() {
         return this.effects;
     }
 
@@ -88,20 +88,6 @@ public class Action implements java.io.Serializable {
 
     public Domain getDomain() {
         return this.domain;
-    }
-
-    // WE DO THIS HERE INSTEAD OF IN WORLD IN CASE WE DECIDE TO SWITCH
-    // TO BELIEF FORMULA EFFECT CONDITIONS
-    public Set<Assignment> getApplicableEffects(Model<World> model, World world) {
-        Set<Assignment> applicableEffects = new HashSet<>();
-            for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
-                Assignment assignment = e.getKey();
-                Formula condition = e.getValue();
-                if (condition.evaluate(model, world)) {
-                    applicableEffects.add(assignment);
-                }
-            }
-        return applicableEffects;
     }
 
 
@@ -169,8 +155,6 @@ public class Action implements java.io.Serializable {
     }
 
 
-
-
     
     public Action.UpdatedStateAndEAgents transition(State beforeState, Map<String, Agent> oldAgents) {
         Log.debug("transition: " + getSignatureWithActor());
@@ -195,23 +179,6 @@ public class Action implements java.io.Serializable {
         return result.getState();
     }
 
-
-//    // FOR COMPUTING HYPOTHETICAL ACTIONS FOR OBLIVIOUS AGENTS
-//    private Set<Action> possibleActions(String agent, KripkeStructure kripke, World world) {
-//        assert (!kripke.getKnownWorlds(agent, world).isEmpty());
-//        Set<Action> actions = new HashSet<>();
-//        for (Action action : domain.getAllActions()) {
-//            Formula possiblyPreconditioned = new KnowsFormula(agent,
-//                action.getPrecondition().negate()).negate();
-//            Formula possiblyOblivious = AndFormula.make(
-//                new KnowsFormula(agent, action.observesIf.get(agent)).negate(),
-//                new KnowsFormula(agent, action.awareIf.get(agent)).negate());
-//            if (possiblyPreconditioned.evaluate(kripke, world) && possiblyOblivious.evaluate(kripke, world)) {
-//                actions.add(action);
-//            }
-//        }
-//        return actions;
-//    }
 
 
 
