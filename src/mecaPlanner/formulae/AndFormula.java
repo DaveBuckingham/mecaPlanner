@@ -98,6 +98,15 @@ public class AndFormula extends Formula{
         return formulae;
     }
 
+    public Boolean evaluate(World world) {
+        for (Formula formula : formulae) {
+            if (!formula.evaluate(world)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
     public Boolean evaluate(Model<World> model, World world) {
         for (Formula formula : formulae) {
             if (!formula.evaluate(model, world)) {

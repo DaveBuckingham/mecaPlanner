@@ -25,7 +25,7 @@ public class Construct {
 
 
 
-    public static Set<EpistemicState> constructStates(Domain d, List<Formula> formulae) {
+    public static Set<State> constructStates(Domain d, List<Formula> formulae) {
         Set<Formula> canonicalFormulas = new HashSet<>();
         Set<Fluent> allFluents = new HashSet<>();
         for (Formula f : formulae) {

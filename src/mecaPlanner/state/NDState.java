@@ -41,14 +41,13 @@ public class NDState extends Model<World> implements java.io.Serializable {
     }
 
 
-    //public Boolean necessarily(Formula formula) {
-    //    for (World w : designated) {
-    //        if (!formula.evaluate(this.kripkeStructure, w)) {
-    //            return false;
-    //        }
-    //    }
-    //    return true;
-    //}
+    // SHOULD GET RID OF THESE
+    public Boolean necessarily(Formula formula) {
+        return formula.necessarily(this);
+    }
+    public Boolean possibly(Formula formula) {
+        return formula.possibly(this);
+    }
 
 
 //    public Void reduce() {

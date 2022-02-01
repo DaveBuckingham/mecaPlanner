@@ -1,8 +1,8 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.Action;
-import mecaPlanner.models.Model;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
@@ -13,12 +13,12 @@ import java.util.Map;
 
 public class OrNode extends GNode {
 
-    public OrNode(EpistemicState estate,
+    public OrNode(State estate,
                  Formula goal,
                  Set<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Map<String, Model> models,
+                 Map<String, Agent> models,
                  int systemAgentIndex,
                  Domain domain
                 ) {

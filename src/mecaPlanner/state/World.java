@@ -24,7 +24,7 @@ public class World implements java.io.Serializable {
 
     private String name;
 
-    private World child;
+    //private World child;
 
     public World(String name, Set<Fluent> fluents) {
         this.id = World.idCounter++;
@@ -55,13 +55,13 @@ public class World implements java.io.Serializable {
         fluents = new HashSet<Fluent>(toCopy.getFluents());
     }
 
-    private World setChild(World child) {
-        this.child = child;
-    }
+//    private World setChild(World child) {
+//        this.child = child;
+//    }
 
-    private World getChild(){
-        return this.child;
-    }
+//    private World getChild(){
+//        return this.child;
+//    }
 
     protected Set<Fluent> getFluents() {
         return fluents;

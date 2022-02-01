@@ -22,6 +22,10 @@ public class Literal extends Formula{
         return value;
     }
 
+    public Boolean evaluate(World world) {
+        return value;
+    }
+
     public Boolean evaluate(Model<World> model, World world) {
         return value;
     }

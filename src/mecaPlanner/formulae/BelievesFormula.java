@@ -42,11 +42,15 @@ public class BelievesFormula extends Formula {
         return formula.getAllFluents();
     }
 
+    public Boolean evaluate(World world) {
+        throw new RuntimeException("Can't evaluate modal formula without a model");
+    }
+
     public Boolean evaluate(Model<World> model, World world) {
         if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
-        assert(model.getWorlds().containsWorld(world));
+        assert(model.getPoints().contains(world));
         for (World w : model.getMostPlausible(agent, world)) {
             if (!formula.evaluate(model, w)){
                 return false;

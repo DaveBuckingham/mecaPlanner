@@ -26,28 +26,30 @@ public abstract class Formula {
     public abstract Set<Fluent> getAllFluents();
 
     public abstract Boolean evaluate(Model<World> model, World world);
+    public abstract Boolean evaluate(World world);
 
     public Boolean evaluate(State state) {
-        return evaluate(state, state.getDesignated());
+        return evaluate(state, state.getDesignatedWorld());
     }
 
-    public Boolean possibly(NDState n) {
-        for (World w : n.getDesignated()) {
-            if (evaluate(n, w)) {
+    public Boolean possibly(NDState state) {
+        for (World w : state.getDesignated()) {
+            if (evaluate(state, w)) {
                 return true;
             }
         }
         return false;
     }
 
-    public Boolean necessarily(NDState n) {
-        for (World w : n.getDesignated()) {
-            if (!evaluate(n, w)) {
+    public Boolean necessarily(NDState state) {
+        for (World w : state.getDesignated()) {
+            if (!evaluate(state, w)) {
                 return false;
             }
         }
         return true;
     }
+
 
     public static Formula makeDisjunction(List<Formula> disjuncts) {
         List<Formula> negated = new ArrayList<>();

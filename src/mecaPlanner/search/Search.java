@@ -1,9 +1,8 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.State;
+import mecaPlanner.state.Model;
 import mecaPlanner.state.World;
-import mecaPlanner.models.Model;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Solution;
@@ -54,10 +53,10 @@ public class Search {
             leavesPerDepth += domain.getActions(agent).size();
         }
 
-        Set<EpistemicState> startStates = problem.getStartStates();
+        Set<State> startStates = problem.getStartStates();
 
-        for (EpistemicState eState : startStates) {
-            eState.getKripke().forceCheck();
+        for (State eState : startStates) {
+            eState.forceCheck();
         }
 
         int systemAgentIndex = problem.getSystemAgentIndex();
@@ -70,7 +69,7 @@ public class Search {
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
         if (time == systemAgentIndex) {
-            for (EpistemicState eState : startStates) {
+            for (State eState : startStates) {
                 allStartOrNodes.add(new OrNode(eState,
                                                goal, 
                                                timeConstraints,
@@ -83,7 +82,7 @@ public class Search {
             }
         }
         else {
-            for (EpistemicState eState : startStates) {
+            for (State eState : startStates) {
                 AndNode startAndNode = new AndNode(eState,
                                                    goal, 
                                                    timeConstraints,

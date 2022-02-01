@@ -68,51 +68,8 @@ public class EventModel {
         return edges.get(agent).get(origin);
     }
 
-    public EpistemicState apply(EpistemicState startState) {
-        Map<World, Event> newWorldsToEvents = new HashMap();
-        Map<World, World> newWorldsToOld = new HashMap();
-        Set<World> newWorlds = new HashSet<>();
-        World newDesignated = null;
-        Map<String, Relation> newRelations = new HashMap<>();
-        for (Event event : events) {
-            for (World oldWorld : startState.getWorlds()) {
-                if (event.getPrecondition().evaluate(oldWorld)) {
-                    Set<Fluent> fluents = oldWorld.getFluents();
-                    fluents.removeAll(event.getNegativeEffects());
-                    fluents.addAll(event.getPositiveEffects());
-                    World newWorld = new World(fluents);
-                    newWorlds.add(newWorld);
-                    newWorldsToEvents.put(newWorld, event);
-                    newWorldsToOld.put(newWorld, oldWorld);
-                    if (event == designated && oldWorld == startState.getDesignatedWorld()) {
-                        newDesignated = newWorld;
-                    }
-                }
-            }
-        }
-        assert(newDesignated != null);
-        for (String agent : startState.getKripke().getAgents()) {
-            Relation relation = new Relation();
-            for (World fromWorld : newWorlds) {
-                Event fromEvent = newWorldsToEvents.get(fromWorld);
-                World oldFromWorld = newWorldsToOld.get(fromWorld);
-                for (World toWorld : newWorlds) {
-                    Event toEvent = newWorldsToEvents.get(toWorld);
-                    World oldToWorld = newWorldsToOld.get(toWorld);
-                    if (startState.getKripke().isConnectedBelief(agent, oldFromWorld, oldToWorld)) {
-                        if (edges.get(agent).get(fromEvent).containsKey(toEvent)) {
-                            Formula edgeCondition = edges.get(agent).get(fromEvent).get(toEvent);
-                            if (edgeCondition.evaluate(startState.getKripke(), newWorldsToOld.get(fromWorld))) {
-                                relation.connect(fromWorld, toWorld);
-                            }
-                        }
-                    }
-                }
-            }
-            newRelations.put(agent, relation);
-        }
-        KripkeStructure newKripke = new KripkeStructure(newWorlds, newRelations, newRelations);
-        return new EpistemicState(newKripke, newDesignated);
+    public State apply(State startState) {
+        return startState;
     }
 }
 

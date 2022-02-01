@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 import mecaPlanner.state.World;
-import mecaPlanner.state.NDState;
+import mecaPlanner.state.Model;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -68,8 +68,8 @@ public class Fluent extends Formula{
     public Boolean evaluate(World world) {
         return world.ground(this);
     }
-    public Boolean evaluate(NDState ndState, World world) {
-        return evaluate(world);
+    public Boolean evaluate(Model<World> model, World world) {
+        return world.ground(this);
     }
  
     public Integer getHeight() {

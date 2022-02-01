@@ -92,12 +92,12 @@ public class Action implements java.io.Serializable {
 
     // WE DO THIS HERE INSTEAD OF IN WORLD IN CASE WE DECIDE TO SWITCH
     // TO BELIEF FORMULA EFFECT CONDITIONS
-    public Set<Assignment> getApplicableEffects(World world) {
+    public Set<Assignment> getApplicableEffects(Model<World> model, World world) {
         Set<Assignment> applicableEffects = new HashSet<>();
             for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
                 Assignment assignment = e.getKey();
                 Formula condition = e.getValue();
-                if (condition.evaluate(world)) {
+                if (condition.evaluate(model, world)) {
                     applicableEffects.add(assignment);
                 }
             }
@@ -117,18 +117,18 @@ public class Action implements java.io.Serializable {
         return this.announces;
     }
 
-    public boolean executable(State state) {
-        return executable(state.getDesignatedWorld());
+    public boolean executable(Model<World> model, World w) {
+        return precondition.evaluate(model, w);
     }
 
-    protected boolean executable(World world) {
-        return precondition.evaluate(world);
+    public boolean executable(State state) {
+        return executable(state, state.getDesignatedWorld());
     }
 
     public Boolean necessarilyExecutable(NDState state) {
-        for (World w : state.getDesignatedWorlds()) {
+        for (World w : state.getDesignated()) {
             assert (w != null);
-            if (!executable(w)) {
+            if (!executable(state, w)) {
                 return false;
             }
         }
@@ -155,7 +155,7 @@ public class Action implements java.io.Serializable {
         private State updatedState;
         private Map<String, Agent> updatedAgents ;
 
-        public UpdatedStateAndEAgents(State updatedState, Map<String, Model> updatedAgents) {
+        public UpdatedStateAndEAgents(State updatedState, Map<String, Agent> updatedAgents) {
             this.updatedState = updatedState;
             this.updatedAgents = updatedAgents;
         }
@@ -191,7 +191,7 @@ public class Action implements java.io.Serializable {
 
     // MOST OF THE TIME WE WON'T BE UPDATING AGENT MODELS
     public State transition(State beforeState) {
-        Action.UpdatedStateAndEAgents result = transition(beforeState, new HashMap<String, Model>());
+        Action.UpdatedStateAndEAgents result = transition(beforeState, new HashMap<String, Agent>());
         return result.getState();
     }
 

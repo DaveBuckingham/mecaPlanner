@@ -42,6 +42,9 @@ public class NotFormula extends Formula{
         return formula.getAllFluents();
     }
 
+    public Boolean evaluate(World world) {
+        return (!formula.evaluate(world));
+    }
 
     public Boolean evaluate(Model<World> model, World world) {
         return (!formula.evaluate(model, world));

@@ -3,7 +3,7 @@ package mecaPlanner.search;
 import mecaPlanner.search.GNode;
 import mecaPlanner.state.State;
 import mecaPlanner.Action;
-import mecaPlanner.models.Model;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
@@ -20,7 +20,7 @@ public class AndNode extends GNode {
                  Set<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Map<String, Model> models,
+                 Map<String, Agent> models,
                  int systemAgentIndex,
                  Domain domain
                 ) {

@@ -1,9 +1,9 @@
 
 package mecaPlanner.search;
 
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.State;
 import mecaPlanner.Action;
-import mecaPlanner.models.Model;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 
@@ -15,13 +15,13 @@ import java.util.Map;
 
 
 public abstract class GNode  {
-    protected EpistemicState estate;
+    protected State estate;
     protected Formula goal;
     protected Set<TimeConstraint> timeConstraints;
     protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
-    protected Map<String, Model> models;
+    protected Map<String, Agent> models;
     protected Domain domain;
 
     protected String agent;
@@ -33,12 +33,12 @@ public abstract class GNode  {
 
     private int systemAgentIndex;
 
-    public GNode(EpistemicState estate,
+    public GNode(State estate,
                  Formula goal,
                  Set<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
-                 Map<String, Model> models,
+                 Map<String, Agent> models,
                  int systemAgentIndex,
                  Domain domain
                 ) {
@@ -62,7 +62,7 @@ public abstract class GNode  {
         return successors;
     }
 
-    public EpistemicState getState() {
+    public State getState() {
         return estate;
     }
 
@@ -74,7 +74,7 @@ public abstract class GNode  {
         return time;
     }
 
-    public Map<String, Model> getModels() {
+    public Map<String, Agent> getModels() {
         return models;
     }
 
@@ -98,7 +98,7 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equivalent(ancestor.getState())) {
+            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equals(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();
@@ -108,7 +108,7 @@ public abstract class GNode  {
 
 
     public GNode transition(Action action) {
-        Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
+        Action.UpdatedStateAndEAgents transitionResult = action.transition(estate, models);
         int nextTime = time+1;
         if (nextTime % numAgents == systemAgentIndex) {
             return new OrNode(transitionResult.getState(),
@@ -116,7 +116,7 @@ public abstract class GNode  {
                               timeConstraints,
                               nextTime,
                               this,
-                              transitionResult.getModels(),
+                              transitionResult.getAgents(),
                               systemAgentIndex,
                               domain);
         }
@@ -126,7 +126,7 @@ public abstract class GNode  {
                                timeConstraints,
                                nextTime,
                                this,
-                               transitionResult.getModels(),
+                               transitionResult.getAgents(),
                                systemAgentIndex,
                                domain);
         }
