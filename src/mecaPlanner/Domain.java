@@ -2,6 +2,8 @@ package mecaPlanner;
 
 //import mecaPlanner.agents.Agents;
 import mecaPlanner.state.State;
+import mecaPlanner.state.EventModel;
+import mecaPlanner.state.Action;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -11,6 +13,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
+
+    private Map<String,EventModel> events;
 
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
@@ -23,6 +27,7 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
+        events = new HashMap<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
@@ -128,6 +133,10 @@ public class Domain implements java.io.Serializable {
         assert (!allAgents.contains(agent));
         passiveAgents.add(agent);
         allAgents.add(agent);
+    }
+
+    public void addEvent(String name, EventModel e) {
+        events.put(name, e);
     }
 
     public void addAction(Action newAction) {

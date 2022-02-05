@@ -190,14 +190,18 @@ announcesActionField    : 'announces'    variableDefList '{' announced=formula (
 causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
 
 
-HERE
 
-eventModelDef : (event ','?)+ (relation ','?)+ ;
+//action_name( { *e1({p},{q},{r,s}), e2({},{p},{}), eventName3({},{},{q}) }, agent1{(e1,e2),(e3,e1)}, agent2{(e1,e1)} ):
 
-event : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
+eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
+event         : STAR? LOWER_NAME '(' preconditions=atoms ',' deletes=atoms ',' adds=atoms ')' ;
+atoms         : '{' (fluent ',')* fluent? '}' ;
+eventRelation : agent '{' (eventPair ',')* eventPair? '}' ;
+eventPair     : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 
-relation : agent ASSIGN '{' ( relate ','? )* '}' ;
 
-relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
+
+
+
 
 

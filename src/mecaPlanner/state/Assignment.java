@@ -2,6 +2,7 @@
 package mecaPlanner.state;
 
 import mecaPlanner.formulae.Fluent;
+import mecaPlanner.formulae.Formula;
 
 // REPRESENTS THE ASSIGNMENT OF A VALUE TO A FLUENT BY AN ACTION'S ONTIC EFFECT
 

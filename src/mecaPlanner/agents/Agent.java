@@ -5,7 +5,7 @@ import java.util.HashSet;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.State;
-import mecaPlanner.Action;
+import mecaPlanner.state.Action;
 import mecaPlanner.Domain;
 
 

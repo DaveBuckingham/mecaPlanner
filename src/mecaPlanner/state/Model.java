@@ -86,7 +86,7 @@ public class Model<T> implements java.io.Serializable {
         addMorePlausible(agent, lessPlausible, lessToMorePlausible.get(agent).get(morePlausible));
     }
 
-    public boolean isMorePlausible(String agent, T morePlausible, T lessPlausible) {
+    public boolean isConnected(String agent, T lessPlausible, T morePlausible) {
         return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
     }
 
