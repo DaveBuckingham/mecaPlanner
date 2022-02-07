@@ -1,10 +1,8 @@
 package tools;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.models.Model;
-import mecaPlanner.Action;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.state.*;
+import mecaPlanner.state.State;
+//import mecaPlanner.models.Model;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
@@ -37,8 +35,8 @@ public class Actions {
         Domain domain = problem.getDomain();
 
         // VARIABLES TO TRACK THE SYSTEM STATE
-        EpistemicState currentState = problem.getStartState();
-        Map<String, Model> models = problem.getStartingModels();
+        State currentState = problem.getStartState();
+        //Map<String, Model> models = problem.getStartingModels();
         int depth = 0;
 
         boolean cont = true;
@@ -46,16 +44,19 @@ public class Actions {
         while(cont) {
 
             //currentState.getKripke().forceCheck();
-            currentState.getKripke().checkRelations();
+            //currentState.getKripke().checkRelations();
             System.out.println(currentState);
 
-            List<Action> applicable = new ArrayList<>();
+            List<Transformer> applicable = new ArrayList<>();
             for (Set<Action> agentActions : domain.getActionMap().values()) {
                 for (Action a : agentActions) {
                     if (a.getPrecondition().evaluate(currentState)){
                         applicable.add(a);
                     }
                 }
+            }
+            for (EventModel e : domain.getEventModels()) {
+                applicable.add(e);
             }
 
 
@@ -77,14 +78,13 @@ public class Actions {
                 continue;
             }
 
-            Action action = applicable.get(selection);
+            Transformer action = applicable.get(selection);
 
             if (action == null) {
                 throw new RuntimeException("somehow failed to select an action");
             }
 
-            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            currentState = transitionResult.getState();
+            currentState = action.transition(currentState);
 
         }
 

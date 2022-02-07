@@ -3,7 +3,6 @@ package mecaPlanner.agents;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.State;
 import mecaPlanner.formulae.Formula;
-import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 import java.util.Objects;

@@ -2,7 +2,6 @@ package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
 import mecaPlanner.formulae.Fluent;
-import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 

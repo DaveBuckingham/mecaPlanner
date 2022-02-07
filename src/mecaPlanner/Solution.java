@@ -2,6 +2,7 @@
 package mecaPlanner;
 
 import mecaPlanner.search.Perspective;
+import mecaPlanner.state.Action;
 
 
 import java.util.List;

@@ -194,8 +194,8 @@ causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if
 //action_name( { *e1({p},{q},{r,s}), e2({},{p},{}), eventName3({},{},{q}) }, agent1{(e1,e2),(e3,e1)}, agent2{(e1,e1)} ):
 
 eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
-event         : STAR? LOWER_NAME '(' preconditions=atoms ',' deletes=atoms ',' adds=atoms ')' ;
 atoms         : '{' (fluent ',')* fluent? '}' ;
+event         : STAR? LOWER_NAME '(' atoms ',' atoms ',' atoms ')' ;
 eventRelation : agent '{' (eventPair ',')* eventPair? '}' ;
 eventPair     : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 

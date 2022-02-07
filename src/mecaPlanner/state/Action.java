@@ -4,6 +4,7 @@ import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.Domain;
+import mecaPlanner.Log;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -294,13 +295,8 @@ public class Action implements Transformer {
         }
 
         str.append("\tCauses\n");
-        for (Map.Entry<Assignment, Formula> e : effects.entrySet()) {
-            Assignment assignment = e.getKey();
-            Formula condition = e.getValue();
-            str.append("\t\t");
+        for (Assignment assignment : effects) {
             str.append(assignment);
-            str.append(" if ");
-            str.append(condition);
             str.append("\n");
         }
  

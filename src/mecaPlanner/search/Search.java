@@ -1,14 +1,11 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.State;
-import mecaPlanner.state.Model;
-import mecaPlanner.state.World;
+import mecaPlanner.state.*;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Solution;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
-import mecaPlanner.Action;
 
 import java.util.List;
 import java.util.ArrayList;

@@ -17,9 +17,11 @@ import mecaPlanner.formulae.Formula;
 
 public class EventModel extends Model<Event> implements Transformer {
 
+    private String name;
 
-    public EventModel(Set<String> agents, Set<Event> events, Set<Event> designated) {
+    public EventModel(String name, Set<String> agents, Set<Event> events, Set<Event> designated) {
         super(agents, events, designated);
+        this.name = name;
     }
 
     public State transition(State beforeState) {
@@ -41,20 +43,27 @@ public class EventModel extends Model<Event> implements Transformer {
                 }
             }
         }
-        State newState = new State(agents, newWorlds, newDesignated);
+        if (newDesignated.size() != 1) {
+            throw new RuntimeException("too many designated");
+        }
+        State newState = new State(agents, newWorlds, newDesignated.iterator().next());
 
         for (String agent : agents) {
             for (World from : newWorlds) {
                 for (World to : newWorlds) {
                     if (beforeState.isConnected(agent, toParentWorld.get(from), toParentWorld.get(to))
                     && this.isConnected(agent, toParentEvent.get(from), toParentEvent.get(to))) {
-                        addMorePlausible(agent, from,to);
+                        newState.addMorePlausible(agent, from, to);
                     }
                 }
             }
         }
 
         return newState;
+    }
+
+    public String getSignature() {
+        return name;
     }
 }
 

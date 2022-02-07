@@ -546,7 +546,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
             Map<Formula, Formula> determines = new HashMap<>();
             Map<Formula, Formula> announces = new HashMap<>();
-            Map<Assignment, Formula> effects = new HashMap<>();
+            Set<Assignment> effects = new HashSet<>();
 
             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
 
@@ -665,7 +665,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                         if (!(condition.isFalse())){
                             Fluent fluent = (Fluent) visit(effCtx.fluent());
                             boolean isAddEffect = (effCtx.OP_NOT() == null);
-                            effects.put(new Assignment(fluent, isAddEffect), condition);
+                            effects.add(new Assignment(condition, fluent, isAddEffect));
                         }
                         variableStack.pop();
                     }
@@ -722,6 +722,61 @@ public class DeplToProblem extends DeplBaseVisitor {
             variableStack.pop();
         }
         return null;
+    }
+
+
+    @Override public Void visitEventModelDef(DeplParser.EventModelDefContext ctx) {
+        Map<String,Event> events = new HashMap<>();   // EVENT NAMES TO EVENTS, WE USE THE NAMES FOR DEFINING RELATIONS
+        Set<Event> designated = new HashSet<>();
+
+        for (DeplParser.EventContext eventCtx : ctx.event()) {
+            Event e = (Event) visit(eventCtx);
+            String eventName = eventCtx.LOWER_NAME().getText();
+            if (events.containsKey(eventName)) {
+                throw new RuntimeException("multiple events named " + eventName);
+            }
+            events.put(eventName, e);
+            if (eventCtx.STAR() != null) {
+                designated.add(e);
+            }
+        }
+
+        String name = ctx.LOWER_NAME().getText();
+
+        EventModel eventModel =  new EventModel(name, new HashSet<String>(domain.getAllAgents()), new HashSet<Event>(events.values()), designated);
+
+        for (DeplParser.EventRelationContext relationCtx : ctx.eventRelation()) {
+            String agent = (String) visit(relationCtx.agent());
+            for (DeplParser.EventPairContext pairCtx : relationCtx.eventPair()) {
+                String from = pairCtx.from.getText();
+                String to = pairCtx.to.getText();
+                if (!events.containsKey(from)) {
+                    throw new RuntimeException("undefined event: " + from);
+                }
+                if (!events.containsKey(to)) {
+                    throw new RuntimeException("undefined event: " + to);
+                }
+                eventModel.addMorePlausible(agent, events.get(from), events.get(to));
+            }
+        }
+
+        domain.addEventModel(eventModel);
+        return null;
+    }
+
+    @Override public Event visitEvent(DeplParser.EventContext ctx) {
+        Set<Fluent> preconditions = (Set<Fluent>) visit(ctx.atoms().get(0));
+        Set<Fluent> deletes = (Set<Fluent>) visit(ctx.atoms().get(1));
+        Set<Fluent> adds = (Set<Fluent>) visit(ctx.atoms().get(2));
+        return new Event(AndFormula.make(new HashSet<Formula>(preconditions)), deletes, adds);
+    }
+
+    @Override public Set<Fluent> visitAtoms(DeplParser.AtomsContext ctx) {
+        Set<Fluent> atoms = new HashSet<>();
+        for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
+            atoms.add((Fluent) visit(fluentCtx));
+        }
+        return atoms;
     }
 
 

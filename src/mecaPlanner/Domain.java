@@ -14,7 +14,7 @@ import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
 
-    private Map<String,EventModel> events;
+    private Set<EventModel> eventModels;
 
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
@@ -27,7 +27,7 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
-        events = new HashMap<>();
+        eventModels = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();;
 
@@ -135,8 +135,12 @@ public class Domain implements java.io.Serializable {
         allAgents.add(agent);
     }
 
-    public void addEvent(String name, EventModel e) {
-        events.put(name, e);
+    public void addEventModel(EventModel e) {
+        eventModels.add(e);
+    }
+
+    public Set<EventModel> getEventModels() {
+        return eventModels;
     }
 
     public void addAction(Action newAction) {

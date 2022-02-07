@@ -1,8 +1,6 @@
 package mecaPlanner.agents;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.State;
-import mecaPlanner.Action;
+import mecaPlanner.state.*;
 import mecaPlanner.Domain;
 
 import java.util.Objects;

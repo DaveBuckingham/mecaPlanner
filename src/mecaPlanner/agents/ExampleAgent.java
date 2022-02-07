@@ -5,7 +5,6 @@ import java.util.HashSet;
 
 import mecaPlanner.state.*;
 import mecaPlanner.formulae.Fluent;
-import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 public class ExampleAgent extends Agent {

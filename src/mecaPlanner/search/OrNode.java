@@ -1,7 +1,7 @@
 package mecaPlanner.search;
 
 import mecaPlanner.state.State;
-import mecaPlanner.Action;
+import mecaPlanner.state.Action;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
