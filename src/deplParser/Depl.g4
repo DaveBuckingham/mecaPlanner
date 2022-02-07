@@ -162,7 +162,7 @@ goal : formula | timeConstraint ;
 // ACTION DEFINITIONS
 
 
-actionsSection : 'initially' ( eventDef | '{' (eventDef ','?)* '}' ) ;
+actionsSection : 'actions' ( eventDef | '{' (eventDef ','?)* '}' ) ;
 eventDef : '{' (actionDefinition | eventModelDef) '}' ;
 
 actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
