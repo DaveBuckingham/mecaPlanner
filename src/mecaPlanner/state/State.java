@@ -26,13 +26,13 @@ public class State extends NDState {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designated)));
     }
 
+
     //public State(EpistemicState toCopy) {
     //    this(toCopy.getKripke(), toCopy.getDesignated());
     //}
 
     public World getDesignatedWorld() {
-        assert(getDesignated().size() == 1);
-        return getDesignated().iterator().next();
+        return getDesignatedPoint();
     }
 
 //    public Set<World> getBelievedWorlds(String agent) {

@@ -195,7 +195,7 @@ causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if
 
 eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
 atoms         : '{' (fluent ',')* fluent? '}' ;
-event         : STAR? LOWER_NAME '(' atoms ',' atoms ',' atoms ')' ;
+event         : STAR? LOWER_NAME '(' formula ',' atoms ',' atoms ')' ;
 eventRelation : agent '{' (eventPair ',')* eventPair? '}' ;
 eventPair     : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 

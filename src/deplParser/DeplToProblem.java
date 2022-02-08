@@ -765,10 +765,10 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Event visitEvent(DeplParser.EventContext ctx) {
-        Set<Fluent> preconditions = (Set<Fluent>) visit(ctx.atoms().get(0));
-        Set<Fluent> deletes = (Set<Fluent>) visit(ctx.atoms().get(1));
-        Set<Fluent> adds = (Set<Fluent>) visit(ctx.atoms().get(2));
-        return new Event(AndFormula.make(new HashSet<Formula>(preconditions)), deletes, adds);
+        Formula precondition = (Formula) visit(ctx.formula());
+        Set<Fluent> deletes = (Set<Fluent>) visit(ctx.atoms().get(0));
+        Set<Fluent> adds = (Set<Fluent>) visit(ctx.atoms().get(1));
+        return new Event(precondition, deletes, adds);
     }
 
     @Override public Set<Fluent> visitAtoms(DeplParser.AtomsContext ctx) {

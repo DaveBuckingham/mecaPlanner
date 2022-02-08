@@ -37,14 +37,17 @@ public class EventModel extends Model<Event> implements Transformer {
                     newWorlds.add(newWorld);
                     toParentWorld.put(newWorld, world);
                     toParentEvent.put(newWorld, event);
-                    if (world == beforeState.getDesignatedWorld()) {
+                    if (world == beforeState.getDesignatedPoint() && event == getDesignatedPoint()){
                          newDesignated.add(newWorld);
                     }
                 }
             }
         }
+        if (newDesignated.isEmpty()) {
+            throw new RuntimeException("event model has no designated event");
+        }
         if (newDesignated.size() != 1) {
-            throw new RuntimeException("too many designated");
+            throw new RuntimeException("event model has multiple designated events: " + newDesignated);
         }
         State newState = new State(agents, newWorlds, newDesignated.iterator().next());
 
@@ -53,6 +56,10 @@ public class EventModel extends Model<Event> implements Transformer {
                 for (World to : newWorlds) {
                     if (beforeState.isConnected(agent, toParentWorld.get(from), toParentWorld.get(to))
                     && this.isConnected(agent, toParentEvent.get(from), toParentEvent.get(to))) {
+                        newState.addMorePlausible(agent, from, to);
+                    }
+                    else if (this.isConnected(agent, toParentEvent.get(from), toParentEvent.get(to))
+                    && toParentEvent.get(from) != toParentEvent.get(to)) {
                         newState.addMorePlausible(agent, from, to);
                     }
                 }

@@ -37,8 +37,9 @@ public class Model<T> implements java.io.Serializable {
         for (T p : designated) {
             assert (p != null);
         }
-        this.points = points;
         this.agents = agents;
+        this.points = points;
+        this.designated = designated;
         this.lessToMorePlausible = new HashMap<>();
         this.moreToLessPlausible = new HashMap<>();
         for (String agent : agents) {
@@ -52,6 +53,7 @@ public class Model<T> implements java.io.Serializable {
             }
         }
     }
+
 
     //public Model(Model toCopy) {
     //    this(new HashSet<String>(toCopy.getAgents(), new HashSet<T>(toCopy.getPoints());
@@ -68,6 +70,11 @@ public class Model<T> implements java.io.Serializable {
 
     public Set<T> getDesignated() {
         return this.designated;
+    }
+
+    public T getDesignatedPoint() {
+        assert(getDesignated().size() == 1);
+        return getDesignated().iterator().next();
     }
 
 
@@ -314,8 +321,7 @@ public class Model<T> implements java.io.Serializable {
 
 
 
-    public String toString(Set<T> designated) {
-
+    public String toString() {
         assert(points.containsAll(designated));
         StringBuilder str = new StringBuilder();
 
@@ -327,27 +333,20 @@ public class Model<T> implements java.io.Serializable {
                 str.append("*");
             }
             str.append(t);
-            str.append("\n");
             for (String agent : agents) {
-                str.append(agent + "=(");
-                    for (T root : points) {
-                        str.append(root + "->{");
-                        for (T morePlausible : lessToMorePlausible.get(agent).get(t)) {
-                            str.append("o,");
-                        }
-                        str.deleteCharAt(str.length() - 1);
-                        str.append("} ");
-                    }
-                str.append(")");
+                str.append(" " + agent + "{");
+                for (T morePlausible : lessToMorePlausible.get(agent).get(t)) {
+                    str.append(morePlausible + ",");
+                }
+                str.deleteCharAt(str.length() - 1);
+                str.append("}");
             }
+            str.append("\n");
  
         }
         return str.toString();
     }
 
-    public String toString() {
-        return this.toString(new HashSet<T>());
-    }
 
 }
 

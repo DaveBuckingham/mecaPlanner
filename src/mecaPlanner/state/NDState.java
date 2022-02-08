@@ -35,7 +35,15 @@ public class NDState extends Model<World> implements java.io.Serializable {
     public Set<State> getStates() {
         Set<State> states = new HashSet<State>();
         for (World w : designated) {
-            states.add(new State(agents, points, w));
+            State subState = new State(agents, points, w);
+            for (String agent : agents) {
+                for (World f : getPoints()) {
+                    for (World t : getMorePlausible(agent, f)) {
+                        subState.addMorePlausible(agent, f, t);
+                    }
+                }
+            }
+            states.add(subState);
         }
         return states;
     }
