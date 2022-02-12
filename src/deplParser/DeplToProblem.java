@@ -34,6 +34,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer systemAgentIndex;
     private Set<State> startStates;
     private Map<String, Agent> startingModels;
+    private Set<Formula> initially;
     private Set<Formula> goals;
     private Set<TimeConstraint> timeConstraints;
 
@@ -209,7 +210,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        return new Problem(domain, systemAgentIndex, startStates, startingModels, goals, timeConstraints);
+        return new Problem(domain, systemAgentIndex, startStates, startingModels, initially, goals, timeConstraints);
     }
 
 
@@ -223,8 +224,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (ctx.passiveSection() != null) {visit(ctx.passiveSection());}
         visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
+        visit(ctx.startStateSection());
         visit(ctx.initiallySection());
-        if (ctx.postSection() != null) {visit(ctx.postSection());}
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
 
@@ -408,47 +409,14 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    // INITIALLY
+    // START STATE
 
-    @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
-        for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            if (stateCtx.model() != null) {
-                NDState ndState = (NDState) visit(stateCtx.model());
-                startStates.addAll(ndState.getStates());
-            }
-            else {
-                Set<State> constructedStates = (Set<State>) visit(stateCtx.initiallyDef());
-                startStates.addAll(constructedStates);
-            }
+    @Override public Void visitStartStateSection(DeplParser.StartStateSectionContext ctx) {
+        for (DeplParser.ModelContext modelCtx : ctx.model()) {
+            NDState ndState = (NDState) visit(modelCtx);
+            startStates.addAll(ndState.getStates());
         }
         return null;
-    }
-
-    @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
-        Log.warning("Post-state construction and checking not implemented");
-        return null;
-    }
-
-    @Override public Set<State> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        Log.warning("State construction not implemented");
-        return null;
-        // List<Formula> initialFormulae = new ArrayList<>();
-        // for (DeplParser.BeliefFormulaContext formulaCtx : ctx.formula()) {
-        //     Formula formula = (Formula) visit(formulaCtx);
-        //     initialFormulae.add(formula);
-        // }
-        // Set<EpistemicState> states = Construct.constructStates(domain, initialFormulae);
-        // if (states.isEmpty()) {
-        //     throw new RuntimeException("constructed model is null...");
-        // }
-        // for (EpistemicState s : states) {
-        //     for (Formula f : initialFormulae) {
-        //         if (!f.evaluate(s)) {
-        //             throw new RuntimeException("model construction failed.");
-        //         }
-        //     }
-        // }
-        // return states;
     }
 
     @Override public NDState visitModel(DeplParser.ModelContext ctx) {
@@ -509,6 +477,13 @@ public class DeplToProblem extends DeplBaseVisitor {
         return world;
     }
 
+
+    @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
+        for (DeplParser.FormulaContext formulaCtx : ctx.formula()) {
+            initially.add((Formula) visit(formulaCtx));
+        }
+        return null;
+    }
 
 
     // GOALS

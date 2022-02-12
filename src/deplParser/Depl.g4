@@ -44,8 +44,8 @@ init :
     passiveSection?
     fluentsSection
     constantsSection?
-    initiallySection
-    postSection?
+    startStateSection?
+    initiallySection?
     goalsSection
     actionsSection
 ;
@@ -132,25 +132,19 @@ timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' ) ;
-
-startStateDef : '{' (initiallyDef | model) '}' ;
-
-initiallyDef : (formula ',')* formula ;
-
+startStateSection : 'start' ( model | '{' (model ','?)* '}' ) ;
 model : (world ','?)+ (relation ','?)+ ;
-
 world : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
-
 relation : agent ASSIGN '{' ( relate ','? )* '}' ;
-
 relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
 
 
 
-// OPTIONAL POST STATE
+// INITIAL FORMULAE
 
-postSection : 'post' startStateDef ;
+initiallySection : 'initially' '{' (formula ',')* formula? '}' ;
+
+
 
 
 // GOALS DEFINITION

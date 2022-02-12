@@ -23,7 +23,6 @@ public class Domain implements java.io.Serializable {
     private List<String> nonPassiveAgents;
     private List<String> passiveAgents;
 
-    private State postState;
 
 
     public Domain() {
@@ -34,8 +33,6 @@ public class Domain implements java.io.Serializable {
         allAgents = new ArrayList<>();
         nonPassiveAgents = new ArrayList<>();
         passiveAgents = new ArrayList<>();
-
-        postState = null;
 
     }
 
@@ -71,14 +68,6 @@ public class Domain implements java.io.Serializable {
         }
         return actionsBySignature.get(agent).get(signature);
 
-    }
-
-    public void setPostState(State e) {
-        this.postState = e;
-    }
-
-    public State getPostState() {
-        return this.postState;
     }
 
     public List<String> getPassiveAgents() {

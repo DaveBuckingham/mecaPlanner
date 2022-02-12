@@ -296,7 +296,7 @@ public class Model<T> implements java.io.Serializable {
         return isTransitive() && isReflexive() && isWell();
     }
 
-    private boolean isTransitive() {
+    public boolean isTransitive() {
         for (String a : agents) {
             for (T u : points) {
                 for (T v : getMorePlausible(a,u)) {
@@ -311,7 +311,7 @@ public class Model<T> implements java.io.Serializable {
         return true;
     }
 
-    private boolean isReflexive() {
+    public boolean isReflexive() {
         for (String a : agents) {
             for (T u : points) {
                 if (!isConnected(a,u,u)) {
@@ -322,7 +322,7 @@ public class Model<T> implements java.io.Serializable {
         return true;
     }
 
-    private boolean isWell() {
+    public boolean isWell() {
         for (String a : agents) {
             for (T u : points) {
                 for (T v : getMorePlausible(a,u)) {
@@ -341,6 +341,7 @@ public class Model<T> implements java.io.Serializable {
                 }
             }
         }
+        return true;
     }
 
 

@@ -17,6 +17,7 @@ public class Problem implements java.io.Serializable {
     private int systemAgentIndex;
     private Set<State> startStates;
     private Map<String, Agent> startingModels;
+    private Set<Formula> initially;
     private Set<Formula> goals;
     private Set<TimeConstraint> timeConstraints;
 
@@ -25,6 +26,7 @@ public class Problem implements java.io.Serializable {
                    int systemAgentIndex,
                    Set<State> startStates,
                    Map<String,Agent> startingModels,
+                   Set<Formula> initially,
                    Set<Formula> goals,
                    Set<TimeConstraint> timeConstraints
                   ) {
@@ -32,6 +34,7 @@ public class Problem implements java.io.Serializable {
         this.systemAgentIndex = systemAgentIndex;
         this.startStates = startStates;
         this.startingModels = startingModels;
+        this.initially = initially;
         this.goals = goals;
         this.timeConstraints = timeConstraints;
     }
@@ -50,6 +53,10 @@ public class Problem implements java.io.Serializable {
 
     public Integer getSystemAgentIndex() {
         return systemAgentIndex;
+    }
+
+    public Set<Formula> getInitially() {
+        return initially;
     }
 
     public Set<Formula> getGoals() {

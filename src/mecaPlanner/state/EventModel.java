@@ -53,6 +53,10 @@ public class EventModel implements Transformer {
         edges.put(new Triplet(agent, from, to), f);
     }
 
+    private Set<Event> getEvents() {
+        return events;
+    }
+
     private Formula getEdge(String agent, Event from, Event to) {
         return edges.get(new Triplet(agent,from,to));
     }
@@ -72,13 +76,13 @@ public class EventModel implements Transformer {
         Map<World, World> toParentWorld = new HashMap<>();
         Map<World, Event> toParentEvent = new HashMap<>();
         for (Event event : getEvents()) {
-            for (World world : beforeState.getEvents()) {
+            for (World world : beforeState.getPoints()) {
                 if (event.getPrecondition().evaluate(world)) {
                     World newWorld = world.update(event.getEffects());
                     newWorlds.add(newWorld);
                     toParentWorld.put(newWorld, world);
                     toParentEvent.put(newWorld, event);
-                    if (world == beforeState.getDesignatedPoint() && event == getDesignatedPoint()){
+                    if (world == beforeState.getDesignatedPoint() && designated.contains(event)) {
                          newDesignated.add(newWorld);
                     }
                 }
@@ -114,14 +118,14 @@ public class EventModel implements Transformer {
     }
 
     public boolean checkRelations() {
-        return isTransitive() && isReflexive() && isConnected();
+        return isTransitive() && isReflexive() && isWell();
     }
 
     private boolean isTransitive() {
         for (String a : agents) {
-            for (Event u : points) {
-                for (Event v : points) {
-                    for (Event w : points) {
+            for (Event u : events) {
+                for (Event v : events) {
+                    for (Event w : events) {
                         if (isConnected(a,u,v) && isConnected(a,v,w) && !isConnected(a,u,w)) {
                             return false;
                         }
@@ -134,7 +138,7 @@ public class EventModel implements Transformer {
 
     private boolean isReflexive() {
         for (String a : agents) {
-            for (Point u : points) {
+            for (Event u : events) {
                 if (!isConnected(a,u,u)) {
                     return false;
                 }
@@ -145,10 +149,10 @@ public class EventModel implements Transformer {
 
     private boolean isWell() {
         for (String a : agents) {
-            for (Point v : events) {
-                for (Point w : events) {
+            for (Event v : events) {
+                for (Event w : events) {
                     if (!isConnected(a,v,w) && !isConnected(a,w,v)) {
-                        for (Point u : events) {
+                        for (Event u : events) {
                             if (isConnected(a,u,v) &&
                                 isConnected(a,u,w) &&
                                !isConnected(a,v,w) && 
@@ -166,6 +170,7 @@ public class EventModel implements Transformer {
                 }
             }
         }
+        return true;
     }
 
 
