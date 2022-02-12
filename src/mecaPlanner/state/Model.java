@@ -16,6 +16,9 @@ import java.util.stream.Collectors;
 import java.util.Comparator;
 import java.util.Collections;
 
+import org.javatuples.Triplet;
+
+
 
 // THE BISIMULATION QUOTIENTING ALGORITHM IS FROM "PRINCIPLES OF MODEL CHECKING" BY BAIER AND KATOEN.
 
@@ -97,8 +100,17 @@ public class Model<T> implements java.io.Serializable {
         return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
     }
 
+    public boolean isConnectedStrict(String agent, T lessPlausible, T morePlausible) {
+        return  (lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible) && 
+                 !lessToMorePlausible.get(agent).get(morePlausible).contains(lessPlausible));
+    }
+
     public Set<T> getMorePlausible(String agent, T lessPlausible) {
         return lessToMorePlausible.get(agent).get(lessPlausible);
+    }
+
+    public Set<T> getLessPlausible(String agent, T morePlausible) {
+        return moreToLessPlausible.get(agent).get(morePlausible);
     }
 
     public Set<T> getMostPlausible(String agent, T lessPlausible) {
@@ -281,7 +293,54 @@ public class Model<T> implements java.io.Serializable {
     }
 
     public boolean checkRelations() {
+        return isTransitive() && isReflexive() && isWell();
+    }
+
+    private boolean isTransitive() {
+        for (String a : agents) {
+            for (T u : points) {
+                for (T v : getMorePlausible(a,u)) {
+                    for (T w : getMorePlausible(a,v)) {
+                        if (!isConnected(a,u,w)) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
         return true;
+    }
+
+    private boolean isReflexive() {
+        for (String a : agents) {
+            for (T u : points) {
+                if (!isConnected(a,u,u)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean isWell() {
+        for (String a : agents) {
+            for (T u : points) {
+                for (T v : getMorePlausible(a,u)) {
+                    for (T w : getMorePlausible(a,u)) {
+                        if ((!isConnected(a,v,w)) && (!isConnected(a,w,v))) {
+                            return false;
+                        }
+                    }
+                }
+                for (T v : getLessPlausible(a,u)) {
+                    for (T w : getLessPlausible(a,u)) {
+                        if ((!isConnected(a,v,w)) && (!isConnected(a,w,v))) {
+                            return false;
+                        }
+                    }
+                }
+            }
+        }
     }
 
 

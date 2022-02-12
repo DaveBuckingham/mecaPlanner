@@ -747,16 +747,17 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         for (DeplParser.EventRelationContext relationCtx : ctx.eventRelation()) {
             String agent = (String) visit(relationCtx.agent());
-            for (DeplParser.EventPairContext pairCtx : relationCtx.eventPair()) {
-                String from = pairCtx.from.getText();
-                String to = pairCtx.to.getText();
+            for (DeplParser.EdgeContext edgeCtx : relationCtx.edge()) {
+                String from = edgeCtx.from.getText();
+                String to = edgeCtx.to.getText();
                 if (!events.containsKey(from)) {
                     throw new RuntimeException("undefined event: " + from);
                 }
                 if (!events.containsKey(to)) {
                     throw new RuntimeException("undefined event: " + to);
                 }
-                eventModel.addMorePlausible(agent, events.get(from), events.get(to));
+                Formula condition = edgeCtx.formula() == null ? new Literal(true) : (Formula) visit(edgeCtx.formula());
+                eventModel.addEdge(agent, events.get(from), events.get(to), condition);
             }
         }
 
