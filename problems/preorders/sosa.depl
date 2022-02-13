@@ -1,0 +1,58 @@
+// SECOND ORDER SALLY ANNE TASK
+
+types{}
+
+objects{
+    sally - Object,
+    anne - Object,
+}
+
+agents{
+    sally,
+    anne{TrivialAgent}
+}
+
+passive{}
+
+fluents{
+    inRoom(Object),
+    watching(Object),
+    marbleInBasket(),
+}
+
+start{
+    *w1 <- {inRoom(sally),inRoom(anne), watching(sally), watching(anne)},
+    sally   <- {(w1,w1)}
+    anne   <- {(w1,w1)}
+}
+
+initially{
+    inRoom(sally) & inRoom(anne) & !marbleInBasket()
+}
+
+
+goals{
+    K[sally](marbleInBasket()),
+//    K[sally](!marbleInBasket()),
+//    K[anne](!marbleInBasket()),
+//    B[sally](!marbleInBasket()),
+//    B[anne](!marbleInBasket()),
+//    B[anne]B[sally](marbleInBasket())
+}
+
+actions{
+
+place_marble( {*e1(!marbleInBasket()&inRoom(sally),marbleInBasket()<-true)},
+               sally{(e1,e1)},
+               anne{(e1,e1)}
+            )
+
+//leave_room 
+//
+//watch
+//
+//remove_marble
+//
+//enter_room
+
+}
