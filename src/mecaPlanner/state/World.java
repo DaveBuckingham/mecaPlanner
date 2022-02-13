@@ -72,12 +72,10 @@ public class World implements java.io.Serializable {
         Set<Fluent> newFluents = new HashSet<Fluent>(fluents);
         for (Assignment assignment : assignments) {
             if (assignment.getCondition().evaluate(this)) {
-                if (assignment.getValue()) {
-                    newFluents.add(assignment.getFluent());
-                }
-                else {
-                    newFluents.remove(assignment.getFluent());
-                }
+                newFluents.add(assignment.getFluent());
+            }
+            else {
+                newFluents.remove(assignment.getFluent());
             }
         }
         return new World(null, newFluents);

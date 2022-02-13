@@ -4,6 +4,7 @@ package mecaPlanner;
 import mecaPlanner.state.State;
 import mecaPlanner.state.EventModel;
 import mecaPlanner.state.Action;
+import mecaPlanner.state.Transformer;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -13,6 +14,8 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
+
+    private List<Transformer> transformerList;
 
     private Set<EventModel> eventModels;
 
@@ -28,7 +31,8 @@ public class Domain implements java.io.Serializable {
     public Domain() {
         eventModels = new HashSet<>();
         actions = new HashMap<>();
-        actionsBySignature = new HashMap<>();;
+        actionsBySignature = new HashMap<>();
+        transformerList = new ArrayList<>();
 
         allAgents = new ArrayList<>();
         nonPassiveAgents = new ArrayList<>();
@@ -126,6 +130,7 @@ public class Domain implements java.io.Serializable {
 
     public void addEventModel(EventModel e) {
         eventModels.add(e);
+        transformerList.add(e);
     }
 
     public Set<EventModel> getEventModels() {
@@ -137,6 +142,11 @@ public class Domain implements java.io.Serializable {
         assert(actions.containsKey(agent));
         actions.get(agent).add(newAction);
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
+        transformerList.add(newAction);
+    }
+
+    public List<Transformer> getTransformerList() {
+        return transformerList;
     }
 
     public boolean isAgent(String s) {

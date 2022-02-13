@@ -4,7 +4,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import mecaPlanner.state.World;
-import mecaPlanner.state.Model;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.State;
 
@@ -25,7 +24,7 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(Model<World> model, World world);
+    public abstract Boolean evaluate(NDState model, World world);
     public abstract Boolean evaluate(World world);
 
     public Boolean evaluate(State state) {

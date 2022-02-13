@@ -104,7 +104,7 @@ public class Action implements Transformer {
         return this.announces;
     }
 
-    public boolean executable(Model<World> model, World w) {
+    public boolean executable(NDState model, World w) {
         return precondition.evaluate(model, w);
     }
 

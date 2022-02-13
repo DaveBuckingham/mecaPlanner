@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.Model;
+import mecaPlanner.state.NDState;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -26,7 +26,7 @@ public class Literal extends Formula{
         return value;
     }
 
-    public Boolean evaluate(Model<World> model, World world) {
+    public Boolean evaluate(NDState model, World world) {
         return value;
     }
 

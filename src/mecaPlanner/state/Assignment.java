@@ -3,29 +3,29 @@ package mecaPlanner.state;
 
 import mecaPlanner.formulae.Fluent;
 import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.Literal;
 
 // REPRESENTS THE ASSIGNMENT OF A VALUE TO A FLUENT BY AN ACTION'S ONTIC EFFECT
 
 public class Assignment {
     private Formula condition;
     private Fluent fluent;
-    private Boolean value;
-    public Assignment(Formula condition, Fluent fluent, Boolean value) {
+    public Assignment(Fluent fluent, Formula condition) {
         this.condition = condition;
         this.fluent = fluent;
-        this.value = value;
     }
+    public Assignment(Fluent fluent, Boolean val) {
+        this(fluent, new Literal(val));
+    }
+
     public Formula getCondition() {
         return condition;
     }
     public Fluent getFluent() {
         return fluent;
     }
-    public Boolean getValue() {
-        return value;
-    }
 
     public String toString()  {
-        return (fluent.toString() + "<-" + value.toString() + " if " + condition.toString());
+        return (fluent.toString() + "<-" + condition.toString());
     }
 }

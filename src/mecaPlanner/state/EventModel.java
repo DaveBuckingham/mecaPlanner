@@ -34,6 +34,8 @@ public class EventModel implements Transformer {
         this.designated = designated;
         assert (events.containsAll(designated));
 
+        this.edges = new HashMap<>();
+
         for (String agent : agents) {
             for (Event from : events) {
                 for (Event to : events) {
@@ -50,7 +52,11 @@ public class EventModel implements Transformer {
     }
 
     public void addEdge(String agent, Event from, Event to, Formula f) {
-        edges.put(new Triplet(agent, from, to), f);
+                        assert(from != null);
+                        assert(to != null);
+                        assert(agent != null);
+                        assert(f != null);
+        edges.put(new Triplet<String,Event,Event>(agent, from, to), f);
     }
 
     private Set<Event> getEvents() {
@@ -76,13 +82,13 @@ public class EventModel implements Transformer {
         Map<World, World> toParentWorld = new HashMap<>();
         Map<World, Event> toParentEvent = new HashMap<>();
         for (Event event : getEvents()) {
-            for (World world : beforeState.getPoints()) {
+            for (World world : beforeState.getWorlds()) {
                 if (event.getPrecondition().evaluate(world)) {
                     World newWorld = world.update(event.getEffects());
                     newWorlds.add(newWorld);
                     toParentWorld.put(newWorld, world);
                     toParentEvent.put(newWorld, event);
-                    if (world == beforeState.getDesignatedPoint() && designated.contains(event)) {
+                    if (world == beforeState.getDesignatedWorld() && designated.contains(event)) {
                          newDesignated.add(newWorld);
                     }
                 }

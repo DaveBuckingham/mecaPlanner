@@ -25,17 +25,17 @@ public class ExampleAgent extends Agent {
             }
         }
 
-        if (ndState.necessarily(new Fluent("at", "pizza", "roomB"))) {
-            if (ndState.necessarily(new Fluent("at", "human1", "roomA"))) {
+        if ((new Fluent("at", "pizza", "roomB")).necessarily(ndState)) {
+            if ((new Fluent("at", "human1", "roomA")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,roomA, hall1)", ndState));
                 prediction.add(getSafeActionBySignature("move(human1,roomA, hall2)", ndState));
                 return prediction;
             }
-            else if (ndState.necessarily(new Fluent("at", "human1", "hall1"))) {
+            else if ((new Fluent("at", "human1", "hall1")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,hall1, roomB)", ndState));
                 return prediction;
             }
-            else if (ndState.necessarily(new Fluent("at", "human1", "hall2"))) {
+            else if ((new Fluent("at", "human1", "hall2")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,hall2, roomB)", ndState));
                 return prediction;
             }

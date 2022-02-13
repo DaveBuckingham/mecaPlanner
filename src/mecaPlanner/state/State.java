@@ -31,8 +31,10 @@ public class State extends NDState {
     //    this(toCopy.getKripke(), toCopy.getDesignated());
     //}
 
+
     public World getDesignatedWorld() {
-        return getDesignatedPoint();
+        assert(getDesignated().size() == 1);
+        return getDesignated().iterator().next();
     }
 
 //    public Set<World> getBelievedWorlds(String agent) {
@@ -56,7 +58,7 @@ public class State extends NDState {
 
     public NDState getBeliefPerspective(String agent) {
         return new NDState(new HashSet<String>(agents),
-                           new HashSet<World>(points),
+                           new HashSet<World>(worlds),
                            getMostPlausible(agent, getDesignatedWorld()));
     }
 

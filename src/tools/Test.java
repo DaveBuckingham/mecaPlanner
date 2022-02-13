@@ -18,9 +18,10 @@ import depl.*;
 // 1. Read an starting preorder state
 // 2. Check start state structure
 // 3. Check if all initial formulae hold in the state
-// 4. Apply the single action
-// 5. Check the new state structure
-// 6. Check if all goal formulae hold in the new state
+// 4. For each action defined
+//     a. Apply the single action
+//     b. Check the state structure
+// 5. Check if all goal formulae hold in the final state
 
 
 
@@ -37,47 +38,37 @@ public class Test {
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
 
-        State startState = problem.getStartState();
+        State state = problem.getStartState();
 
         System.out.println("START STATE:");
-        System.out.println(startState);
+        System.out.println(state);
 
-        System.out.println("TRANSITIVE: " + startState.isTransitive());
-        System.out.println("REFLEXIVE: " + startState.isReflexive());
-        System.out.println("WELL: " + startState.isWell());
+        System.out.println("TRANSITIVE: " + state.isTransitive());
+        System.out.println("REFLEXIVE: " + state.isReflexive());
+        System.out.println("WELL: " + state.isWell());
 
         System.out.println("INIITIALLY:");
         for (Formula f : problem.getInitially()) {
-            System.out.println(f + ": " + f.evaluate(startState));
+            System.out.println(f + ": " + f.evaluate(state));
         }
 
-        Set<Transformer> allActions = new HashSet<Transformer>(domain.getAllActions());
-        allActions.addAll(domain.getEventModels());
-        if (allActions.isEmpty()) {
-            System.out.println("NO ACTION...ABORTING");
-            return;
+        List<Transformer> allActions = domain.getTransformerList();
+
+        for (Transformer action : allActions) {
+            System.out.println("ACTION: " + action.getSignature());
+            state = action.transition(state);
+
+            System.out.println("NEW STATE:");
+            System.out.println(state);
+
+            System.out.println("TRANSITIVE: " + state.isTransitive());
+            System.out.println("REFLEXIVE: " + state.isReflexive());
+            System.out.println("WELL: " + state.isWell());
         }
-        if (allActions.size() > 1) {
-            System.out.println("MULTIPLE ACTIONS...ABORTING");
-            return;
-        }
-
-        Transformer action = allActions.iterator().next();
-        System.out.println("ACTION:");
-        System.out.println(action);
-
-        State newState = action.transition(startState);
-
-        System.out.println("NEW STATE:");
-        System.out.println(newState);
-
-        System.out.println("TRANSITIVE: " + newState.isTransitive());
-        System.out.println("REFLEXIVE: " + newState.isReflexive());
-        System.out.println("WELL: " + newState.isWell());
 
         System.out.println("GOALS:");
         for (Formula f : problem.getGoals()) {
-            System.out.println(f + ": " + f.evaluate(newState));
+            System.out.println(f + ": " + f.evaluate(state));
         }
 
     }

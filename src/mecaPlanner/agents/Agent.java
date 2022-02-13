@@ -2,10 +2,12 @@ package mecaPlanner.agents;
 
 import java.util.Set;
 import java.util.HashSet;
+import java.util.Arrays;
 
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.State;
 import mecaPlanner.state.Action;
+import mecaPlanner.formulae.Fluent;
 import mecaPlanner.Domain;
 
 
@@ -48,6 +50,10 @@ public abstract class Agent implements java.io.Serializable {
     //     singleton.add(getSafeActionBySignature(signature, eState, agent));
     //     return singleton;
     // }
+
+    public Boolean necessarily(NDState ndState, String fluentName, String ...fluentParameters) {
+        return (new Fluent(fluentName, Arrays.asList(fluentParameters)).necessarily(ndState));
+    }
 
     public abstract Set<Action> getPrediction(State eState);
 

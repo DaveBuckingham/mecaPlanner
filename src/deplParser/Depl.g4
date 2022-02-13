@@ -157,39 +157,43 @@ goal : formula | timeConstraint ;
 
 
 actionsSection : 'actions' ( eventDef | '{' (eventDef ','?)* '}' ) ;
-eventDef : '{' (actionDefinition | eventModelDef) '}' ;
+eventDef : '{' eventModelDef '}' ;
+//eventDef : '{' (actionDefinition | eventModelDef) '}' ;
 
-actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
-variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
-variableDef : VARIABLE '-' objectType ;
-
-actionField
-    : ownerActionField
-    | costActionField
-    | preconditionActionField
-    | observesActionField
-    | awareActionField
-    | causesActionField
-    | determinesActionField
-    | announcesActionField
-    ;
-
-ownerActionField        : 'owner' '{' groundableObject '}' ;
-costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableDefList '{' formula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' determined=formula ('if' condition=formula)? '}' ;
-announcesActionField    : 'announces'    variableDefList '{' announced=formula ('if' condition=formula)? '}' ;
-causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
+// actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
+ variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
+ variableDef : VARIABLE '-' objectType ;
+// 
+// actionField
+//     : ownerActionField
+//     | costActionField
+//     | preconditionActionField
+//     | observesActionField
+//     | awareActionField
+//     | causesActionField
+//     | determinesActionField
+//     | announcesActionField
+//     ;
+// 
+// ownerActionField        : 'owner' '{' groundableObject '}' ;
+// costActionField         : 'cost'  '{' INTEGER '}' ;
+// preconditionActionField : 'precondition' variableDefList '{' formula '}' ;
+// observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
+// awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
+// determinesActionField   : 'determines'   variableDefList '{' determined=formula ('if' condition=formula)? '}' ;
+// announcesActionField    : 'announces'    variableDefList '{' announced=formula ('if' condition=formula)? '}' ;
+// causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
 
 
 
 //action_name( { *e1({p},{q},{r,s}), e2({},{p},{}), eventName3({},{},{q}) }, agent1{(e1,e2),(e3,e1)}, agent2{(e1,e1)} ):
 
 eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
+event         : STAR? LOWER_NAME '(' formula ',' (assignment ',')* assignment? ')'
+              | STAR? LOWER_NAME '(' formula ',' deletes=atoms ',' adds=atoms ')'
+              ;
+assignment    : fluent ASSIGN formula ;
 atoms         : '{' (fluent ',')* fluent? '}' ;
-event         : STAR? LOWER_NAME '(' formula ',' atoms ',' atoms ')' ;
 eventRelation : agent '{' (edge ',')* edge? '}' ;
 edge          : '(' from=LOWER_NAME ',' to=LOWER_NAME (',' formula)? ')' ;
 

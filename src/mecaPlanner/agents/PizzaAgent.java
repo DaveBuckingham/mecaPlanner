@@ -32,13 +32,13 @@ public class PizzaAgent extends Agent {
             }
         }
 
-        if (!ndState.necessarily(new Fluent("door_open"))) {
+        if (necessarily(ndState, "door_open")) {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
-        else if (ndState.necessarily(new Fluent("at", agent, "room1"))) {
+        else if (necessarily(ndState, "at", agent, "room1")) {
             prediction.add(getSafeActionBySignature("move(human1,room1,room2)", ndState));
         }
-        else if (ndState.necessarily(new Fluent("at", agent, "room2"))) {
+        else if (necessarily(ndState, "at", agent, "room2")) {
             prediction.add(getSafeActionBySignature("move(human1,room2,room1)", ndState));
         }
         else {

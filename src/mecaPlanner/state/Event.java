@@ -19,14 +19,19 @@ public class Event {
     private Formula precondition;
     private Set<Assignment> effects;
 
+    public Event(Formula precondition, Set<Assignment> effects) {
+        this.precondition = precondition;
+        this.effects = effects;
+    }
+
     public Event(Formula precondition, Set<Fluent> deletes, Set<Fluent> adds) {
         this.precondition = precondition;
         effects = new HashSet<>();
         for (Fluent f : deletes) {
-            effects.add(new Assignment(new Literal(true), f, false));
+            effects.add(new Assignment(f, false));
         }
         for (Fluent f : adds) {
-            effects.add(new Assignment(new Literal(true), f, true));
+            effects.add(new Assignment(f, true));
         }
     }
 

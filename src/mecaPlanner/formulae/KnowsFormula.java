@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.Model;
+import mecaPlanner.state.NDState;
 import mecaPlanner.state.World;
 
 
@@ -39,11 +39,11 @@ public class KnowsFormula extends Formula {
         throw new RuntimeException("Can't evaluate modal formula without a model");
     }
 
-    public Boolean evaluate(Model<World> model, World world) {
+    public Boolean evaluate(NDState model, World world) {
         if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
-        assert(model.getPoints().contains(world));
+        assert(model.getWorlds().contains(world));
         for (World w : model.getPossible(agent, world)) {
             if (!formula.evaluate(model, w)){
                 return false;
