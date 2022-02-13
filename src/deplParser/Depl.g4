@@ -134,9 +134,11 @@ timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 startStateSection : 'start' ( model | '{' (model ','?)* '}' ) ;
 model : (world ','?)+ (relation ','?)+ ;
-world : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
-relation : agent ASSIGN '{' ( relate ','? )* '}' ;
-relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')' ;
+world : STAR? LOWER_NAME ASSIGN? '{' (fluent ',')* fluent? '}' ;
+relation : agent ASSIGN? '{' ( relate ','? )* '}' ;
+relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')'
+       | from=LOWER_NAME'-'to=LOWER_NAME
+       ;
 
 
 

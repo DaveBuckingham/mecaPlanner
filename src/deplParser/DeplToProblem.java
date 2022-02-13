@@ -34,9 +34,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     private Integer systemAgentIndex;
     private Set<State> startStates;
     private Map<String, Agent> startingModels;
-    private Set<Formula> initially;
-    private Set<Formula> goals;
-    private Set<TimeConstraint> timeConstraints;
+    private List<Formula> initially;
+    private List<Formula> goals;
+    private List<TimeConstraint> timeConstraints;
 
     // THESE ARE USED AT PARSE-TIME ONLY
     private Set<Fluent> allFluents;
@@ -195,9 +195,9 @@ public class DeplToProblem extends DeplBaseVisitor {
         this.systemAgentIndex = null;
         this.startStates = new HashSet<State>();
         this.startingModels = new HashMap<>();
-        this.initially = new HashSet<>();
-        this.goals = new HashSet<>();
-        this.timeConstraints = new HashSet<>();
+        this.initially = new ArrayList<>();
+        this.goals = new ArrayList<>();
+        this.timeConstraints = new ArrayList<>();
 
         this.agentIndex = 0;
         this.allObjects = new HashMap<>();

@@ -1,36 +1,55 @@
+// COIN TASK
+
 types{}
 
 objects{
     a - Object,
-    b - Object
+    b - Object,
 }
 
 agents{a}
+
 passive{b}
 
-fluents{h()}
+fluents{
+    heads(),
+    watching(a),
+    watching(b),
+}
 
 start{
-    *w1 <- {h()},
-    w2  <- {},
-    a   <- {(w2,w1)}
-    b   <- {(w2,w1)}
+   *w1  {heads(), watching(a), watching(b)},
+    w2  {heads(), watching(a)},
+    w3  {watching(a), watching(b)},
+    w4  {watching(a)},
+    a   {w1-w1,w1-w2,w1-w3,w1-w4,
+         w2-w1,w2-w2,w2-w3,w2-w4,
+         w3-w1,w3-w2,w3-w3,w3-w4,
+         w4-w1,w4-w2,w4-w3,w4-w4},
+    b   {w1-w1,w1-w3,w3-w3,w3-w1,
+         w2-w2,w2-w4,w4-w4,w4-w2},
 }
 
 initially{
-h(),
-B[a](h()),
-K[a](h())
-
+    heads() & watching(b) & ~K[a](heads()) & ~K[b](heads()) & ~K[a](watching(b)) & K[b](watching(b))
 }
 
-
-goals{h()}
+goals{
+    K[b](K[a](heads()) | K[a](~heads())),
+    B[b](K[a](heads()) | K[a](~heads())),
+    K[b](B[a](heads()) | B[a](~heads())),
+    K[a](heads()) | K[a](~heads()),
+    B[a](heads()) | B[a](~heads()),
+    ~K[b](heads()) & ~K[b](~heads()),
+    ~B[b](heads()) & ~B[b](~heads())
+}
 
 actions{
-private_peep( {*e1(h(),{},{}), e2(~h(),{},{}), e3(true,{},{})},
-               a{(e1,e3),(e2,e3),(e2,e1)},
-               b{(e1,e1)}
-            )
+
+peek( {*e1(heads(),{}), e2(~heads(),{})},
+           a{e1-e1, e1-!watching(a)-e2, e2-!watching(a)-e1, e2-e2},
+           b{e1-e1, e1-!watching(b)-e2, e2-!watching(b)-e1, e2-e2},
+)
+
 
 }

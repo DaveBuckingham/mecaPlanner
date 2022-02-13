@@ -61,7 +61,7 @@ public class Search {
         int numAgents = domain.getNonPassiveAgents().size();
 
         Formula goal = problem.getGoal();
-        Set<TimeConstraint> timeConstraints = problem.getTimeConstraints();
+        List<TimeConstraint> timeConstraints = problem.getTimeConstraints();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();

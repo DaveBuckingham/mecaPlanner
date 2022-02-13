@@ -9,6 +9,7 @@ import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
 
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,7 +18,7 @@ public class AndNode extends GNode {
 
     public AndNode(State estate,
                  Formula goal,
-                 Set<TimeConstraint> timeConstraints,
+                 List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
                  Map<String, Agent> models,

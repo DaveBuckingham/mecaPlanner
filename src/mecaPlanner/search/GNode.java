@@ -9,6 +9,7 @@ import mecaPlanner.formulae.TimeConstraint;
 
 import mecaPlanner.Domain;
 
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
@@ -17,7 +18,7 @@ import java.util.Map;
 public abstract class GNode  {
     protected State estate;
     protected Formula goal;
-    protected Set<TimeConstraint> timeConstraints;
+    protected List<TimeConstraint> timeConstraints;
     protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
@@ -35,7 +36,7 @@ public abstract class GNode  {
 
     public GNode(State estate,
                  Formula goal,
-                 Set<TimeConstraint> timeConstraints,
+                 List<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
                  Map<String, Agent> models,

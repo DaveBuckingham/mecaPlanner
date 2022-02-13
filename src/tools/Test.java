@@ -43,9 +43,9 @@ public class Test {
         System.out.println("START STATE:");
         System.out.println(state);
 
-        System.out.println("TRANSITIVE: " + state.isTransitive());
-        System.out.println("REFLEXIVE: " + state.isReflexive());
-        System.out.println("WELL: " + state.isWell());
+        assert(state.isTransitive());
+        assert(state.isReflexive());
+        assert(state.isWell());
 
         System.out.println("INIITIALLY:");
         for (Formula f : problem.getInitially()) {
@@ -61,9 +61,9 @@ public class Test {
             System.out.println("NEW STATE:");
             System.out.println(state);
 
-            System.out.println("TRANSITIVE: " + state.isTransitive());
-            System.out.println("REFLEXIVE: " + state.isReflexive());
-            System.out.println("WELL: " + state.isWell());
+            assert(state.isTransitive());
+            assert(state.isReflexive());
+            assert(state.isWell());
         }
 
         System.out.println("GOALS:");

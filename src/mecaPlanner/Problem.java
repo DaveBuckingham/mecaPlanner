@@ -17,18 +17,18 @@ public class Problem implements java.io.Serializable {
     private int systemAgentIndex;
     private Set<State> startStates;
     private Map<String, Agent> startingModels;
-    private Set<Formula> initially;
-    private Set<Formula> goals;
-    private Set<TimeConstraint> timeConstraints;
+    private List<Formula> initially;
+    private List<Formula> goals;
+    private List<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
                    int systemAgentIndex,
                    Set<State> startStates,
                    Map<String,Agent> startingModels,
-                   Set<Formula> initially,
-                   Set<Formula> goals,
-                   Set<TimeConstraint> timeConstraints
+                   List<Formula> initially,
+                   List<Formula> goals,
+                   List<TimeConstraint> timeConstraints
                   ) {
         this.domain = domain;
         this.systemAgentIndex = systemAgentIndex;
@@ -55,15 +55,15 @@ public class Problem implements java.io.Serializable {
         return systemAgentIndex;
     }
 
-    public Set<Formula> getInitially() {
+    public List<Formula> getInitially() {
         return initially;
     }
 
-    public Set<Formula> getGoals() {
+    public List<Formula> getGoals() {
         return goals;
     }
 
-    public Set<TimeConstraint> getTimeConstraints() {
+    public List<TimeConstraint> getTimeConstraints() {
         return timeConstraints;
     }
 

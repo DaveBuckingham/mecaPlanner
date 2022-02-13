@@ -126,11 +126,20 @@ public class NDState implements java.io.Serializable {
         Set<World> morePlausible = getMorePlausible(agent, lessPlausible);
         Set<World> mostPlausible = new HashSet<>();
         for (World t : morePlausible) {
-            if (lessToMorePlausible.get(agent).get(t).isEmpty()) {
+            if (isMinimal(agent, t)) {
                 mostPlausible.add(t);
             }
         }
         return mostPlausible;
+    }
+
+    private Boolean isMinimal(String agent, World w) {
+        for (World t : getMorePlausible(agent, w)) {
+            if (!isConnected(agent, t,w)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public Set<World> getPossible(String agent, World root) {
