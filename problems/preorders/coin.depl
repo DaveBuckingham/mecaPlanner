@@ -13,15 +13,17 @@ passive{b}
 
 fluents{
     heads(),
-    watching(a),
-    watching(b),
+    full(a),
+    partial(a),
+    full(b),
+    partial(b),
 }
 
 start{
-   *w1  {heads(), watching(a), watching(b)},
-    w2  {heads(), watching(a)},
-    w3  {watching(a), watching(b)},
-    w4  {watching(a)},
+   *w1  {heads(), full(a), partial(b)},
+    w2  {heads(), full(a)},
+    w3  {full(a), partial(b)},
+    w4  {full(a)},
     a   {w1-w1,w1-w2,w1-w3,w1-w4,
          w2-w1,w2-w2,w2-w3,w2-w4,
          w3-w1,w3-w2,w3-w3,w3-w4,
@@ -31,7 +33,7 @@ start{
 }
 
 initially{
-    heads() & watching(b) & ~K[a](heads()) & ~K[b](heads()) & ~K[a](watching(b)) & K[b](watching(b))
+    heads() & ~K[a](heads()) & ~K[b](heads())
 }
 
 goals{
@@ -40,15 +42,17 @@ goals{
     K[b](B[a](heads()) | B[a](~heads())),
     K[a](heads()) | K[a](~heads()),
     B[a](heads()) | B[a](~heads()),
-    ~K[b](heads()) & ~K[b](~heads()),
-    ~B[b](heads()) & ~B[b](~heads())
+    ~K[b](heads()),
+    ~K[b](~heads()),
+    ~B[b](heads()),
+    ~B[b](~heads())
 }
 
 actions{
 
-peek( {*e1(heads(),{}), e2(~heads(),{})},
-           a{e1-e1, e1-!watching(a)-e2, e2-!watching(a)-e1, e2-e2},
-           b{e1-e1, e1-!watching(b)-e2, e2-!watching(b)-e1, e2-e2},
+peek( {*f(heads(),{}), p(~heads(),{}), o(true,{}) },
+           a{f-f, p-p, o-o, f-!full(a)-p, p-!full(a)-f, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+           b{f-f, p-p, o-o, f-!full(b)-p, p-!full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
 )
 
 
