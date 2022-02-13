@@ -744,16 +744,21 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Event visitEvent(DeplParser.EventContext ctx) {
         Formula precondition = (Formula) visit(ctx.formula());
-        if (!ctx.assignment().isEmpty()) {
-            Set<Assignment> assignments = new HashSet<>();
+        Set<Assignment> assignments = new HashSet<>();
+        if (ctx.deletes != null) {
+            for (Fluent f : (Set<Fluent>) visit(ctx.deletes)) {
+                assignments.add(new Assignment(f, false));
+            }
+            for (Fluent f : (Set<Fluent>) visit(ctx.adds)) {
+                assignments.add(new Assignment(f, true));
+            }
+        }
+        else {
             for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
                 assignments.add((Assignment) visit(assignmentCtx));
             }
-            return new Event(precondition, assignments);
         }
-        Set<Fluent> deletes = (Set<Fluent>) visit(ctx.atoms().get(0));
-        Set<Fluent> adds = (Set<Fluent>) visit(ctx.atoms().get(1));
-        return new Event(precondition, deletes, adds);
+        return new Event(precondition, assignments);
     }
 
     @Override public Assignment visitAssignment(DeplParser.AssignmentContext ctx) {

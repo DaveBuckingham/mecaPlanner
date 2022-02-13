@@ -156,8 +156,9 @@ goal : formula | timeConstraint ;
 // ACTION DEFINITIONS
 
 
-actionsSection : 'actions' ( eventDef | '{' (eventDef ','?)* '}' ) ;
-eventDef : '{' eventModelDef '}' ;
+//actionsSection : 'actions' ( eventDef | '{' (eventDef ','?)* '}' ) ;
+actionsSection : 'actions' '{' (eventDef ','?)* '}' ;
+eventDef : eventModelDef  ;
 //eventDef : '{' (actionDefinition | eventModelDef) '}' ;
 
 // actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
@@ -189,13 +190,16 @@ eventDef : '{' eventModelDef '}' ;
 //action_name( { *e1({p},{q},{r,s}), e2({},{p},{}), eventName3({},{},{q}) }, agent1{(e1,e2),(e3,e1)}, agent2{(e1,e1)} ):
 
 eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
-event         : STAR? LOWER_NAME '(' formula ',' (assignment ',')* assignment? ')'
+event         : STAR? LOWER_NAME '(' formula ',' '{' (assignment ',')* assignment? '}' ')'
               | STAR? LOWER_NAME '(' formula ',' deletes=atoms ',' adds=atoms ')'
               ;
 assignment    : fluent ASSIGN formula ;
 atoms         : '{' (fluent ',')* fluent? '}' ;
 eventRelation : agent '{' (edge ',')* edge? '}' ;
-edge          : '(' from=LOWER_NAME ',' to=LOWER_NAME (',' formula)? ')' ;
+edge          : '(' from=LOWER_NAME ',' to=LOWER_NAME (',' formula)? ')'
+              | from=LOWER_NAME'-'(formula'-')?to=LOWER_NAME
+              ;
+           
 
 
 

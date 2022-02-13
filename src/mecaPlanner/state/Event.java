@@ -24,17 +24,6 @@ public class Event {
         this.effects = effects;
     }
 
-    public Event(Formula precondition, Set<Fluent> deletes, Set<Fluent> adds) {
-        this.precondition = precondition;
-        effects = new HashSet<>();
-        for (Fluent f : deletes) {
-            effects.add(new Assignment(f, false));
-        }
-        for (Fluent f : adds) {
-            effects.add(new Assignment(f, true));
-        }
-    }
-
     protected Formula getPrecondition() {
         return precondition;
     }

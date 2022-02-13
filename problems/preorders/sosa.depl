@@ -30,29 +30,39 @@ initially{
     inRoom(sally) & inRoom(anne) & !marbleInBasket()
 }
 
-
 goals{
-    K[sally](marbleInBasket()),
-//    K[sally](!marbleInBasket()),
-//    K[anne](!marbleInBasket()),
-//    B[sally](!marbleInBasket()),
-//    B[anne](!marbleInBasket()),
-//    B[anne]B[sally](marbleInBasket())
+    K[sally](!marbleInBasket()),
+    K[anne](!marbleInBasket()),
+    B[sally](!marbleInBasket()),
+    B[anne](!marbleInBasket()),
+    B[anne](B[sally](marbleInBasket()))
 }
 
 actions{
 
-place_marble( {*e1(!marbleInBasket()&inRoom(sally),marbleInBasket()<-true)},
+place_marble( {*e1(!marbleInBasket()&inRoom(sally),{marbleInBasket()<-true})},
                sally{(e1,e1)},
                anne{(e1,e1)}
             )
 
-//leave_room 
-//
-//watch
-//
-//remove_marble
-//
-//enter_room
+leave_room( {*e1(inRoom(sally),{inRoom(sally)<-false,watching(sally)<-false})},
+               sally{(e1,e1)},
+               anne{(e1,e1)}
+          )
+
+watch( {*e1(true,{watching(sally)<-true}),
+        e2(true,{})
+       },
+               sally{e1-e1, e2-e2},
+               anne{e1-e1, e1-e2, e2-e2}
+)
+
+remove_marble( {*e1(marbleInBasket(),{marbleInBasket()<-false}),
+               e2(true,{})
+               },
+               sally{e1-e1, e1-!watching(sally)-e2, e2-e2},
+               anne{e1-e1, e1-!watching(anne)-e2, e2-e2}
+)
+
 
 }
