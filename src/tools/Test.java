@@ -12,6 +12,7 @@ import mecaPlanner.Problem;
 import mecaPlanner.state.NDState;
 import mecaPlanner.state.State;
 import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.Literal;
 
 import depl.*;
 
@@ -43,9 +44,7 @@ public class Test {
         System.out.println("START STATE:");
         System.out.println(state);
 
-        assert(state.isTransitive());
-        assert(state.isReflexive());
-        assert(state.isWell());
+        state.checkRelations();
 
         System.out.println("INIITIALLY:");
         for (Formula f : problem.getInitially()) {
@@ -61,9 +60,8 @@ public class Test {
             System.out.println("NEW STATE:");
             System.out.println(state);
 
-            assert(state.isTransitive());
-            assert(state.isReflexive());
-            assert(state.isWell());
+
+            state.checkRelations();
         }
 
         System.out.println("GOALS:");

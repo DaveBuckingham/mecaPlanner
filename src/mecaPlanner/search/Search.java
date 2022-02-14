@@ -53,7 +53,7 @@ public class Search {
         Set<State> startStates = problem.getStartStates();
 
         for (State eState : startStates) {
-            eState.forceCheck();
+            eState.checkRelations();
         }
 
         int systemAgentIndex = problem.getSystemAgentIndex();

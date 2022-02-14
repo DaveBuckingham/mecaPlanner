@@ -16,12 +16,30 @@ import mecaPlanner.formulae.*;
 
 public class Event {
 
+    private static int idCounter = 0;
+    private final int id;
+    private String name;
+
     private Formula precondition;
     private Set<Assignment> effects;
 
-    public Event(Formula precondition, Set<Assignment> effects) {
+    public Event(String name, Formula precondition, Set<Assignment> effects) {
+        this.name = name;
         this.precondition = precondition;
         this.effects = effects;
+        this.id = Event.idCounter++;
+    }
+
+    public Event(Formula precondition, Set<Assignment> effects) {
+        this(null, precondition, effects);
+    }
+
+    public String getName() {
+        return name == null ? Integer.toString(id) : name;
+    }
+
+    public int getId() {
+        return this.id;
     }
 
     protected Formula getPrecondition() {

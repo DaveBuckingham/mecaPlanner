@@ -707,7 +707,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         for (DeplParser.EventContext eventCtx : ctx.event()) {
             Event e = (Event) visit(eventCtx);
-            String eventName = eventCtx.LOWER_NAME().getText();
+            String eventName = e.getName();
             if (events.containsKey(eventName)) {
                 throw new RuntimeException("multiple events named " + eventName);
             }
@@ -743,6 +743,7 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public Event visitEvent(DeplParser.EventContext ctx) {
+        String name = ctx.LOWER_NAME().getText();
         Formula precondition = (Formula) visit(ctx.formula());
         Set<Assignment> assignments = new HashSet<>();
         if (ctx.deletes != null) {
@@ -758,7 +759,7 @@ public class DeplToProblem extends DeplBaseVisitor {
                 assignments.add((Assignment) visit(assignmentCtx));
             }
         }
-        return new Event(precondition, assignments);
+        return new Event(name, precondition, assignments);
     }
 
     @Override public Assignment visitAssignment(DeplParser.AssignmentContext ctx) {

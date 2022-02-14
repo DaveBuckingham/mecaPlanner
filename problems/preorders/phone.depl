@@ -1,36 +1,55 @@
+// COIN TASK
+
 types{}
 
 objects{
     a - Object,
-    b - Object
+    b - Object,
 }
 
 agents{a}
+
 passive{b}
 
-fluents{h()}
+fluents{
+    phi(),
+    full(a),
+    partial(a),
+    full(b),
+    partial(b),
+}
 
 start{
-    *w1 <- {h()},
-    w2  <- {},
-    a   <- {(w2,w1)}
-    b   <- {(w2,w1)}
+   *w1  {phi(), full(a), full(b)},
+    w2  {full(a), full(b)},
+    w3  {phi(), full(a), partial(b)},
+    w4  {full(a), partial(b)},
+    a   {w1-w1,w1-w2,w1-w3,w1-w4,
+         w2-w1,w2-w2,w2-w3,w2-w4,
+         w3-w3,w3-w4,
+         w4-w3,w4-w4},
+    b   {w1-w1,w1-w2,w2-w2,w2-w1,
+         w3-w3,w3-w4,w4-w4,w4-w3},
 }
 
 initially{
-h(),
-B[a](h()),
-K[a](h())
-
+    B[a](partial(b))
 }
 
-
-goals{h()}
+goals{
+    !K[b](phi()),
+    B[b](phi()),
+    B[a](!B[b](phi())),
+}
 
 actions{
-private_peep( {*e1(h(),{},{}), e2(~h(),{},{}), e3(true,{},{})},
-               a{(e1,e3),(e2,e3),(e2,e1)},
-               b{(e1,e1)}
-            )
+
+phone( {*f(phi(),{}), p(~phi(),{}), o(true,{}) },
+           a{f-f, p-p, o-o, p-f, f-!full(a)-p, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+           b{f-f, p-p, o-o, p-f, f-!full(b)-p, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+
+           //b{f-f, p-p, o-o, f-!full(b)-p, p-f, p-full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o},
+)
+
 
 }

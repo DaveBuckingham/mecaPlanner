@@ -67,7 +67,7 @@ public class World implements java.io.Serializable {
         return fluents;
     }
 
-    public World update(Set<Assignment> assignments) {
+    public Set<Fluent> update(Set<Assignment> assignments) {
         World world = new World(this);
         Set<Fluent> newFluents = new HashSet<Fluent>(fluents);
         for (Assignment assignment : assignments) {
@@ -78,7 +78,7 @@ public class World implements java.io.Serializable {
                 newFluents.remove(assignment.getFluent());
             }
         }
-        return new World(null, newFluents);
+        return newFluents;
     }
 
     // public Boolean alteredByAssignment(Assignment assignment) {

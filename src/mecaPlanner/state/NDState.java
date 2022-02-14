@@ -143,7 +143,7 @@ public class NDState implements java.io.Serializable {
     }
 
     public Set<World> getPossible(String agent, World root) {
-        Set<World> accessible = lessToMorePlausible.get(agent).get(root);
+        Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(root));
         accessible.addAll(moreToLessPlausible.get(agent).get(root));
         return accessible;
     }
@@ -321,64 +321,57 @@ public class NDState implements java.io.Serializable {
 
 
 
-    public void forceCheck() {
-        if (!checkRelations()) {
-            System.out.println("Failed NDState:");
-            System.out.println(toString());
-            System.exit(1);
-        }
+
+    public void checkRelations() {
+        checkTransitive();
+        checkReflexive();
+        checkWell();
     }
 
-    public boolean checkRelations() {
-        return isTransitive() && isReflexive() && isWell();
-    }
-
-    public boolean isTransitive() {
+    public void checkTransitive() {
         for (String a : agents) {
             for (World u : worlds) {
                 for (World v : getMorePlausible(a,u)) {
                     for (World w : getMorePlausible(a,v)) {
                         if (!isConnected(a,u,w)) {
-                            return false;
+                            throw new RuntimeException(a + " not transitive: " + u.getName() + ", " + v.getName() + ", " + w.getName());
                         }
                     }
                 }
             }
         }
-        return true;
     }
 
-    public boolean isReflexive() {
+    public void checkReflexive() {
         for (String a : agents) {
             for (World u : worlds) {
                 if (!isConnected(a,u,u)) {
-                    return false;
+                    throw new RuntimeException(a + " not reflexive: " + u.getName());
                 }
             }
         }
-        return true;
     }
 
-    public boolean isWell() {
+    public void checkWell() {
         for (String a : agents) {
             for (World u : worlds) {
                 for (World v : getMorePlausible(a,u)) {
                     for (World w : getMorePlausible(a,u)) {
                         if ((!isConnected(a,v,w)) && (!isConnected(a,w,v))) {
-                            return false;
+                            throw new RuntimeException(a + " has no edge: " + v.getName() + ", " + w.getName());
                         }
                     }
                 }
                 for (World v : getLessPlausible(a,u)) {
                     for (World w : getLessPlausible(a,u)) {
                         if ((!isConnected(a,v,w)) && (!isConnected(a,w,v))) {
-                            return false;
+                            throw new RuntimeException(a + " has no edge: " + v.getName() + ", " + w.getName());
+                            //return false;
                         }
                     }
                 }
             }
         }
-        return true;
     }
 
 
@@ -422,13 +415,19 @@ public class NDState implements java.io.Serializable {
         assert(worlds.containsAll(designated));
         StringBuilder str = new StringBuilder();
 
-        //List<World> worldsSorted = getWorlds().stream().collect(Collectors.toList());
+        List<World> worldsSorted = getWorlds().stream().collect(Collectors.toList());
         //worldsSorted.sort(Comparator.comparingInt(World::getId));
 
-        for (World t : worlds) {
-            if (designated.contains(t)) {
-                str.append("*");
+        Collections.sort(worldsSorted, new Comparator(){
+            public int compare(Object o1, Object o2) {
+                World w1 = (World) o1;
+                World w2 = (World) o2;
+                return w1.getName().compareTo(w2.getName());
             }
+        });
+
+        for (World t : worldsSorted) {
+            str.append(designated.contains(t) ? "*" : " ");
             str.append(t);
             for (String agent : agents) {
                 str.append(" " + agent + "{");
