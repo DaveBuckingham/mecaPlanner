@@ -1,36 +1,57 @@
+// SECRET DISTRACT TASK
+
 types{}
 
 objects{
     a - Object,
-    b - Object
+    b - Object,
+    c - Object,
 }
 
 agents{a}
-passive{b}
 
-fluents{h()}
+passive{b,c}
+
+fluents{
+    open(),
+    watching_distraction(a),
+    watching_distraction(b),
+    watching_distraction(c),
+    watching_box(a),
+    watching_box(b),
+    watching_box(c),
+}
 
 start{
-    *w1 <- {h()},
-    w2  <- {},
-    a   <- {(w2,w1)}
-    b   <- {(w2,w1)}
+   *w1  {watching_box(a), watching_box(b), watching_box(c), watching_distraction(a), watching_distraction(c)},
+    a   {w1-w1},
+    b   {w1-w1},
+    c   {w1-w1},
 }
 
 initially{
-h(),
-B[a](h()),
-K[a](h())
-
+    true
 }
 
-
-goals{h()}
+goals{
+    open(),
+    B[c](!open()),
+    B[b](B[c](open())),
+}
 
 actions{
-private_peep( {*e1(h(),{},{}), e2(~h(),{},{}), e3(true,{},{})},
-               a{(e1,e3),(e2,e3),(e2,e1)},
-               b{(e1,e1)}
-            )
+
+distract( {*f(true,{watching_box(c)<-false}), o(true,{}) },
+           a{f-f, o-o, f-!watching_distraction(a)-o},
+           b{f-f, o-o, f-!watching_distraction(b)-o},
+           c{f-f, o-o, f-!watching_distraction(c)-o},
+)
+
+open_box( {*f(true,{open()<-true}), o(true,{}) },
+           a{f-f, o-o, f-!watching_box(a)-o},
+           b{f-f, o-o, f-!watching_box(b)-o},
+           c{f-f, o-o, f-!watching_box(c)-o},
+)
+
 
 }
