@@ -183,10 +183,10 @@ public class Action implements Transformer {
 
 
 
-    public void addOnticEffect(Set<Assignment> effects, Formula condition) {
+    public void addOnticEffect(Set<Assignment> changes, Formula condition) {
         String name = "ontic-effect";
 
-        Event onticEvent = new Event(condition, effects);
+        Event onticEvent = new Event(condition, changes);
         Event nullEvent = new Event(new Literal(true));
         Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
         Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
@@ -201,8 +201,7 @@ public class Action implements Transformer {
             Formula oblivious = AndFormula.make(full.negate(), aware.negate());
             model.addEdge(agent, onticEvent, nullEvent, oblivious);
         }
-
-
+        effects.add(model);
     }
 
 
