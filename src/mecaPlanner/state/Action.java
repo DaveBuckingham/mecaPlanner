@@ -8,6 +8,7 @@ import mecaPlanner.Log;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -15,6 +16,7 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Objects;
 
+//import org.javatuples.Pair;
 
 
 public class Action implements Transformer {
@@ -26,11 +28,11 @@ public class Action implements Transformer {
     private int cost;
     private String actor;
     private Formula precondition;
-    private Map<String, Formula> observesIf;
-    private Map<String, Formula> awareIf;
-    private Map<Formula, Formula> determines;  // sensed formula --> condition
-    private Map<Formula, Formula> announces;  // announcement --> condition
-    private Set<Assignment> effects;
+
+    private List<EventModel> effects;
+
+    Map<String, Formula> observesConditions;
+    Map<String, Formula> awareConditions;
 
 
     public Action(String name,
@@ -38,11 +40,6 @@ public class Action implements Transformer {
                   String actor,
                   int cost,
                   Formula precondition,
-                  Map<String, Formula> observesIf,
-                  Map<String, Formula> awareIf,
-                  Map<Formula, Formula> determines,
-                  Map<Formula, Formula> announces,
-                  Set<Assignment> effects,
                   Domain domain
                  ) {
         assert(cost > 0);
@@ -51,12 +48,14 @@ public class Action implements Transformer {
         this.actor = actor;
         this.cost = cost;
         this.precondition = precondition;
-        this.observesIf = observesIf;
-        this.awareIf = awareIf;
-        this.determines = determines;
-        this.announces = announces;
-        this.effects = effects;
         this.domain = domain;
+        effects = new ArrayList<EventModel>();
+        observesConditions = new HashMap<>();
+        awareConditions = new HashMap<>();
+        for (String a : domain.getAgents()) {
+            observesConditions.put(a, new Literal(false));
+            awareConditions.put(a, new Literal(false));
+        }
     }
 
     public String getName() {
@@ -75,16 +74,8 @@ public class Action implements Transformer {
         return this.precondition;
     }
 
-    public Set<Assignment> getEffects() {
+    public List<EventModel> getEffects() {
         return this.effects;
-    }
-
-    public Map<String, Formula> getObserves() {
-        return this.observesIf;
-    }
-
-    public Map<String, Formula> getAware() {
-        return this.awareIf;
     }
 
     public Domain getDomain() {
@@ -94,14 +85,6 @@ public class Action implements Transformer {
 
     public int getCost() {
         return this.cost;
-    }
-
-    public Map<Formula, Formula> getDetermines() {
-        return this.determines;
-    }
-
-    public Map<Formula, Formula> getAnnounces() {
-        return this.announces;
     }
 
     public boolean executable(NDState model, World w) {
@@ -123,61 +106,103 @@ public class Action implements Transformer {
     }
 
 
-    public Boolean isObservant(String agent, World world) {
-        boolean observant = observesIf.containsKey(agent) && observesIf.get(agent).evaluate(world);
-        return observant;
-    }
-
-    public Boolean isAware(String agent, World world) {
-        return (awareIf.containsKey(agent) && awareIf.get(agent).evaluate(world));
-    }
-
-    public Boolean isOblivious(String agent, World world) {
-        return (!isObservant(agent, world) && !isAware(agent, world));
+    public State transition(State state) {
+        for (EventModel e : effects) {
+            // CHECK IF EXECUTABLE?
+            state = e.transition(state);
+        }
+        return state;
     }
 
 
+    public void setObservesCondition(String agent, Formula condition) {
+        observesConditions.put(agent, condition);
+    }
 
-    public class UpdatedStateAndEAgents {
-        private State updatedState;
-        private Map<String, Agent> updatedAgents ;
+    public void setAwareCondition(String agent, Formula condition) {
+        awareConditions.put(agent, condition);
+    }
 
-        public UpdatedStateAndEAgents(State updatedState, Map<String, Agent> updatedAgents) {
-            this.updatedState = updatedState;
-            this.updatedAgents = updatedAgents;
+
+
+    public void addAnnouncementEffect(Formula announcement, Formula condition) {
+
+        String name = "announce-" + announcement.toString();
+
+        Event truthEvent = new Event(AndFormula.make(condition, announcement));
+        Event lieEvent = new Event(AndFormula.make(condition, announcement.negate()));
+        Event nullEvent = new Event(new Literal(true));
+        Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
+        Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
+
+        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
+        for (String agent : domain.getAgents()) {
+            model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
+            model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
+            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+
+            Formula full = observesConditions.get(agent);
+            Formula aware = awareConditions.get(agent);
+            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+            model.addEdge(agent, truthEvent, lieEvent, full.negate());
+            model.addEdge(agent, lieEvent, truthEvent, new Literal(true));
+            model.addEdge(agent, truthEvent, nullEvent, oblivious);
+            model.addEdge(agent, lieEvent, nullEvent, oblivious);
         }
 
-        public State getState() {
-            return updatedState;
+        effects.add(model);
+    }
+
+    public void addSensingEffect(Formula sensed, Formula condition) {
+
+        String name = "sense-" + sensed.toString();
+
+        Event truthEvent = new Event(AndFormula.make(condition, sensed));
+        Event lieEvent = new Event(AndFormula.make(condition, sensed.negate()));
+        Event nullEvent = new Event(new Literal(true));
+        Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
+        Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
+
+        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
+        for (String agent : domain.getAgents()) {
+            model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
+            model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
+            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+
+            Formula full = observesConditions.get(agent);
+            Formula aware = awareConditions.get(agent);
+            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+            model.addEdge(agent, truthEvent, lieEvent, full.negate());
+            model.addEdge(agent, lieEvent, truthEvent, full.negate());
+            model.addEdge(agent, truthEvent, nullEvent, oblivious);
+            model.addEdge(agent, lieEvent, nullEvent, oblivious);
         }
-        public Map<String, Agent> getAgents() {
-            return updatedAgents;
-        }
+
+        effects.add(model);
     }
 
 
-    
-    public Action.UpdatedStateAndEAgents transition(State beforeState, Map<String, Agent> oldAgents) {
-        Log.debug("transition: " + getSignatureWithActor());
-        assert(precondition.evaluate(beforeState));
 
-        // UPDATE THE MODELS
-        Map<String, Agent> newAgents = new HashMap();
-        for (String agent : oldAgents.keySet()) {
-            Agent updatedAgent = oldAgents.get(agent).update(beforeState, this);
-            newAgents.put(agent, updatedAgent);
+    public void addOnticEffect(Set<Assignment> effects, Formula condition) {
+        String name = "ontic-effect";
+
+        Event onticEvent = new Event(condition, effects);
+        Event nullEvent = new Event(new Literal(true));
+        Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
+        Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
+
+        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
+        for (String agent : domain.getAgents()) {
+            model.addEdge(agent, onticEvent, onticEvent, new Literal(true));
+            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+
+            Formula full = observesConditions.get(agent);
+            Formula aware = awareConditions.get(agent);
+            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+            model.addEdge(agent, onticEvent, nullEvent, oblivious);
         }
 
-        //newState.trim();
-        //newState.reduce();
-        return new Action.UpdatedStateAndEAgents(beforeState, newAgents);
-    }
 
-
-    // MOST OF THE TIME WE WON'T BE UPDATING AGENT MODELS
-    public State transition(State beforeState) {
-        Action.UpdatedStateAndEAgents result = transition(beforeState, new HashMap<String, Agent>());
-        return result.getState();
     }
 
 
@@ -235,72 +260,9 @@ public class Action implements Transformer {
         return getSignatureWithActor().hashCode();
     }
 
-
     @Override
     public String toString() {
-        StringBuilder str = new StringBuilder();
-
-        str.append("Action: ");
-        str.append(this.getSignature());
-
-        str.append("\n\tOwner: ");
-        str.append(actor);
-
-        str.append("\n\tCost: ");
-        str.append(cost);
-
-        str.append("\n\tPrecondition: ");
-        str.append(precondition);
-
-        str.append("\n\tObserves\n");
-        for (Map.Entry<String, Formula> o : observesIf.entrySet()) {
-            str.append("\t\t");
-            str.append(o.getKey());
-            str.append(" if ");
-            str.append(o.getValue());
-            str.append("\n");
-        }
-
-        str.append("\tAware\n");
-        for (Map.Entry<String, Formula> a : awareIf.entrySet()) {
-            str.append("\t\t");
-            str.append(a.getKey());
-            str.append(" if ");
-            str.append(a.getValue());
-            str.append("\n");
-        }
-
-        str.append("\tDetermines\n");
-        for (Map.Entry<Formula, Formula> e : determines.entrySet()) {
-            Formula sensed = e.getKey();
-            Formula condition = e.getValue();
-            str.append("\t\t");
-            str.append(sensed);
-            str.append(" if ");
-            str.append(condition);
-            str.append("\n");
- 
-        }
-
-        str.append("\tAnnounces\n");
-        for (Map.Entry<Formula, Formula> e : announces.entrySet()) {
-            Formula announcement = e.getKey();
-            Formula condition = e.getValue();
-            str.append("\t\t");
-            str.append(announcement);
-            str.append(" if ");
-            str.append(condition);
-            str.append("\n");
- 
-        }
-
-        str.append("\tCauses\n");
-        for (Assignment assignment : effects) {
-            str.append(assignment);
-            str.append("\n");
-        }
- 
-        return str.toString();
+        return getSignatureWithActor();
     }
 
 }

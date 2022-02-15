@@ -21,13 +21,13 @@ import org.javatuples.Triplet;
 public class EventModel implements Transformer {
 
     private String name;
-    protected Set<String> agents;
+    protected List<String> agents;
     protected Set<Event> designated;
     protected Set<Event> events;
 
     protected Map<Triplet<String, Event, Event>, Formula> edges;
 
-    public EventModel(String name, Set<String> agents, Set<Event> events, Set<Event> designated) {
+    public EventModel(String name, List<String> agents, Set<Event> events, Set<Event> designated) {
         this.name = name;
         this.agents = agents;
         this.events = events;

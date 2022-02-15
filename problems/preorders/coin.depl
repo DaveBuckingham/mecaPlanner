@@ -20,10 +20,10 @@ fluents{
 }
 
 start{
-   *w1  {heads(), full(a), full(b)},
-    w2  {heads(), full(a), partial(b)},
-    w3  {full(a), full(b)},
-    w4  {full(a), partial(b)},
+   *w1  {heads(), full(a), partial(b)},
+    w2  {heads(), full(a)},
+    w3  {full(a), partial(b)},
+    w4  {full(a)},
     a   {w1-w1,w1-w2,w1-w3,w1-w4,
          w2-w1,w2-w2,w2-w3,w2-w4,
          w3-w1,w3-w2,w3-w3,w3-w4,
@@ -50,10 +50,15 @@ goals{
 
 actions{
 
-peek( {*f(heads(),{}), p(~heads(),{}), o(true,{}) },
-           a{f-f, p-p, o-o, f-!full(a)-p, p-!full(a)-f, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
-           b{f-f, p-p, o-o, f-!full(b)-p, p-!full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
-)
+//peek( {*f(heads(),{}), p(~heads(),{}), o(true,{}) },
+//           a{f-f, p-p, o-o, f-!full(a)-p, p-!full(a)-f, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+//           b{f-f, p-p, o-o, f-!full(b)-p, p-!full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+//)
 
+peek(owner a, cost 1, precondition true, 
+    observes a,
+    aware b if partial(b),
+    determines heads()
+)
 
 }

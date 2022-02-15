@@ -34,6 +34,14 @@ public class Event {
         this(null, precondition, effects);
     }
 
+    public Event(String name, Formula precondition) {
+        this(name, precondition, new HashSet<Assignment>());
+    }
+
+    public Event(Formula precondition) {
+        this(null, precondition, new HashSet<Assignment>());
+    }
+
     public String getName() {
         return name == null ? Integer.toString(id) : name;
     }

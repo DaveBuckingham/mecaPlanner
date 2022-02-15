@@ -157,39 +157,31 @@ goal : formula | timeConstraint ;
 
 // ACTION DEFINITIONS
 
-
-//actionsSection : 'actions' ( eventDef | '{' (eventDef ','?)* '}' ) ;
-actionsSection : 'actions' '{' (eventDef ','?)* '}' ;
-eventDef : eventModelDef  ;
-//eventDef : '{' (actionDefinition | eventModelDef) '}' ;
-
-// actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
- variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
- variableDef : VARIABLE '-' objectType ;
-// 
-// actionField
-//     : ownerActionField
-//     | costActionField
-//     | preconditionActionField
-//     | observesActionField
-//     | awareActionField
-//     | causesActionField
-//     | determinesActionField
-//     | announcesActionField
-//     ;
-// 
-// ownerActionField        : 'owner' '{' groundableObject '}' ;
-// costActionField         : 'cost'  '{' INTEGER '}' ;
-// preconditionActionField : 'precondition' variableDefList '{' formula '}' ;
-// observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
-// awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition=formula)? '}' ;
-// determinesActionField   : 'determines'   variableDefList '{' determined=formula ('if' condition=formula)? '}' ;
-// announcesActionField    : 'announces'    variableDefList '{' announced=formula ('if' condition=formula)? '}' ;
-// causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition=formula)? '}' ;
+variableDefList : ('<' (variableDef ',')* variableDef? '>')? ;
+variableDef : VARIABLE '-' objectType ;
 
 
+actionsSection : 'actions' '{' (eventModelDef | actionDef ','?)* '}' ;
 
-//action_name( { *e1({p},{q},{r,s}), e2({},{p},{}), eventName3({},{},{q}) }, agent1{(e1,e2),(e3,e1)}, agent2{(e1,e1)} ):
+actionDef : LOWER_NAME actionScope=variableDefList '('
+    'owner' owner=groundableObject ','
+    ('cost' cost=INTEGER ',')?
+    (preconditionScope=variableDefList 'precondition' precondition=formula ',')?
+    ((observesDef|awareDef) ',')*
+    ((determinesDef|announcesDef|causesDef) ',')* (determinesDef|announcesDef|causesDef)?
+')' ;
+
+observesDef : variableDefList 'observes' groundableObject ('if' condition=formula)?;
+awareDef    : variableDefList 'aware' groundableObject ('if' condition=formula)?;
+
+determinesDef : variableDefList  'determines'   determined=formula ('if' condition=formula)?;
+announcesDef  : variableDefList  'announces'    announced=formula ('if' condition=formula)?;
+causesDef     : variableDefList  'causes'       literal+ ('if' condition=formula)?;
+
+
+literal : OP_NOT? fluent;
+
+
 
 eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
 event         : STAR? LOWER_NAME '(' formula ',' '{' (assignment ',')* assignment? '}' ')'
@@ -201,11 +193,6 @@ eventRelation : agent '{' (edge ',')* edge? '}' ;
 edge          : '(' from=LOWER_NAME ',' to=LOWER_NAME (',' formula)? ')'
               | from=LOWER_NAME'-'(formula'-')?to=LOWER_NAME
               ;
-           
-
-
-
-
 
 
 

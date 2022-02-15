@@ -22,7 +22,7 @@ import java.util.Collections;
 
 public class State extends NDState {
 
-    public State(Set<String> agents, Set<World> worlds, World designated) {
+    public State(List<String> agents, Set<World> worlds, World designated) {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designated)));
     }
 
@@ -57,7 +57,7 @@ public class State extends NDState {
     //}
 
     public NDState getBeliefPerspective(String agent) {
-        return new NDState(new HashSet<String>(agents),
+        return new NDState(agents,
                            new HashSet<World>(worlds),
                            getMostPlausible(agent, getDesignatedWorld()));
     }

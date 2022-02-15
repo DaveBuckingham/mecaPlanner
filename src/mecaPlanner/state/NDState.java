@@ -29,7 +29,7 @@ public class NDState implements java.io.Serializable {
 
 
 
-    protected Set<String> agents;
+    protected List<String> agents;
     protected Set<World> designated;
 
     protected Set<World> worlds;
@@ -38,7 +38,7 @@ public class NDState implements java.io.Serializable {
     protected Map<String, Map<World, Set<World>>> moreToLessPlausible;
 
 
-    public NDState(Set<String> agents, Set<World> worlds, Set<World> designated) {
+    public NDState(List<String> agents, Set<World> worlds, Set<World> designated) {
         assert(!worlds.isEmpty());
         assert(worlds.containsAll(designated));
         assert(!agents.isEmpty());
@@ -148,7 +148,7 @@ public class NDState implements java.io.Serializable {
         return accessible;
     }
 
-    public Set<String> getAgents() {
+    public List<String> getAgents() {
         return agents;
     }
 

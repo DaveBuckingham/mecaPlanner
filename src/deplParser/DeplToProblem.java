@@ -436,7 +436,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
-        NDState startState = new NDState(new HashSet<String>(domain.getAllAgents()), worldSet, designatedWorlds);
+        NDState startState = new NDState(domain.getAllAgents(), worldSet, designatedWorlds);
 
         for (DeplParser.RelationContext relationCtx : ctx.relation()) {
             String agent = (String) visit(relationCtx.agent());
@@ -501,204 +501,101 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-//     // ACTIONS
-//     @Override public Void visitActionDefinition(DeplParser.ActionDefinitionContext ctx) {
-//         String actionName = ctx.LOWER_NAME().getText();
-//         for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.variableDefList())) {
-//             variableStack.push(actionVariableMap);
-// 
-//             List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
-// 
-//             String owner = null;
-// 
-//             int cost = 1;
-//             List<Formula> preconditionList = new ArrayList<>();
-//             Map<String, List<Formula>> observesLists = new HashMap<>();
-//             Map<String, List<Formula>> awareLists = new HashMap<>();
-//             for (String a : domain.getAgents()) {
-//                 observesLists.put(a, new ArrayList<Formula>());
-//                 awareLists.put(a, new ArrayList<Formula>());
-//             }
-// 
-//             Map<Formula, Formula> determines = new HashMap<>();
-//             Map<Formula, Formula> announces = new HashMap<>();
-//             Set<Assignment> effects = new HashSet<>();
-// 
-//             for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
-// 
-//                 if (fieldCtx.ownerActionField() != null) {
-//                     owner = (String) visit(fieldCtx.ownerActionField().groundableObject());
-//                     if (!domain.isNonPassiveAgent(owner)) {
-//                         throw new RuntimeException("action " + actionName + " owner " + owner +
-//                                                    " not a declared system or environment agent.");
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.costActionField() != null) {
-//                     cost = Integer.parseInt(fieldCtx.costActionField().INTEGER().getText());
-//                 }
-// 
-// 
-//                 else if (fieldCtx.preconditionActionField() != null) {
-//                     DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         preconditionList.add((Formula) visit(preCtx.formula()));
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.observesActionField() != null) {
-//                     DeplParser.ObservesActionFieldContext obsCtx = fieldCtx.observesActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         String agentName = (String) visit(obsCtx.groundableObject());
-//                         if (!domain.getAllAgents().contains(agentName)) {
-//                             throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
-//                         }
-//                         Formula condition;
-//                         if (obsCtx.condition == null) {
-//                             condition = new Literal(true);
-//                         }
-//                         else {
-//                             condition = (Formula) visit(obsCtx.condition);
-//                         }
-//                         if (!condition.isFalse()) {
-//                             observesLists.get(agentName).add(condition);
-//                         }
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.awareActionField() != null) {
-//                     DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         String agentName = (String) visit(awaCtx.groundableObject());
-//                         Formula condition;
-//                         if (awaCtx.condition == null) {
-//                             condition = new Literal(true);
-//                         }
-//                         else {
-//                             condition = (Formula) visit(awaCtx.condition);
-//                         }
-//                         if (!condition.isFalse()) {
-//                             awareLists.get(agentName).add(condition);
-//                         }
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.determinesActionField() != null) {
-//                     DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         Formula condition;
-//                         if (detCtx.condition == null)  {
-//                             condition = new Literal(true);
-//                         }
-//                         else {
-//                             condition = (Formula) visit(detCtx.condition);
-//                         }
-//                         if (!(condition.isFalse())){
-//                             Formula sensed = (Formula) visit(detCtx.determined);
-//                             determines.put(sensed, condition);
-//                         }
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.announcesActionField() != null) {
-//                     DeplParser.AnnouncesActionFieldContext annCtx = fieldCtx.announcesActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         Formula condition;
-//                         if (annCtx.condition == null)  {
-//                             condition = new Literal(true);
-//                         }
-//                         else {
-//                             condition = (Formula) visit(annCtx.condition);
-//                         }
-//                         if (!(condition.isFalse())){
-//                             Formula announcement = (Formula) visit(annCtx.announced);
-//                             announces.put(announcement, condition);
-//                         }
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else if (fieldCtx.causesActionField() != null) {
-//                     DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
-//                     for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
-//                         variableStack.push(variableMap);
-//                         Formula condition;
-//                         if (effCtx.condition == null)  {
-//                             condition = new Literal(true);
-//                         }
-//                         else {
-//                             condition = (Formula) visit(effCtx.condition);
-//                         }
-//                         if (!(condition.isFalse())){
-//                             Fluent fluent = (Fluent) visit(effCtx.fluent());
-//                             boolean isAddEffect = (effCtx.OP_NOT() == null);
-//                             effects.add(new Assignment(condition, fluent, isAddEffect));
-//                         }
-//                         variableStack.pop();
-//                     }
-//                 }
-// 
-//                 else {
-//                     throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
-//                 }
-//             }
-// 
-//             Formula precondition = AndFormula.make(preconditionList);
-// 
-//             if (owner == null) {
-//                 throw new RuntimeException("illegal action definition, no owner: " + actionName);
-//             }
-// 
-//             Map<String, Formula> observes = new HashMap<>();
-//             Map<String, Formula> aware = new HashMap<>();
-//             for (String a : domain.getAgents()) {
-//                 observes.put(a, (Formula.makeDisjunction(observesLists.get(a))));
-//                 aware.put(a, (Formula.makeDisjunction(awareLists.get(a))));
-//             }
-// 
-//             assert (actionName != null);
-//             assert (actionParameters != null);
-//             assert (owner != null);
-//             assert (precondition != null);
-//             assert (observes != null);
-//             assert (aware != null);
-//             assert (determines != null);
-//             assert (announces != null);
-//             assert (effects != null);
-//             assert (domain != null);
-// 
-// 
-//             if (!precondition.isFalse()) {
-// 
-//                 Action action =  new Action(actionName,
-//                                             actionParameters,
-//                                             owner,
-//                                             cost,
-//                                             precondition,
-//                                             observes,
-//                                             aware,
-//                                             determines,
-//                                             announces,
-//                                             effects,
-//                                             domain
-//                                            );
-// 
-//                 domain.addAction(action);
-//             }
-// 
-//             variableStack.pop();
-//         }
-//         return null;
-//     }
+     // ACTIONS
+     @Override public Void visitActionDef(DeplParser.ActionDefContext ctx) {
+         String actionName = ctx.LOWER_NAME().getText();
+         for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.actionScope)) {
+             variableStack.push(actionVariableMap);
+ 
+             List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
+ 
+             String owner = (String) visit(ctx.owner);
+             if (!domain.isNonPassiveAgent(owner)) {
+                 throw new RuntimeException(actionName + " has unknown owner " + owner);
+             }
+
+             Integer cost = ctx.cost == null ? 1 : Integer.parseInt(ctx.cost.getText());
+
+             List<Formula> preconditionList = new ArrayList<>();
+             if (ctx.precondition != null) {
+                 for (LinkedHashMap<String,String> preconditionVariableMap : getVariableMaps(ctx.preconditionScope)) {
+                     variableStack.push(preconditionVariableMap);
+                     preconditionList.add((Formula) visit(ctx.precondition));
+                     variableStack.pop();
+                 }
+             }
+             Formula precondition = AndFormula.make(preconditionList);
+             if (precondition.isFalse()) {
+                 continue;
+             }
+
+             Action action = new Action(actionName, actionParameters, owner, cost, precondition, domain);
+
+             for (DeplParser.ObservesDefContext obsCtx : ctx.observesDef()) {
+                 for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
+                     variableStack.push(variableMap);
+                     String agent = (String) visit(obsCtx.groundableObject());
+                     if (!domain.getAllAgents().contains(agent)) {
+                         throw new RuntimeException("Undefined observer " + agent);
+                     }
+                     Formula condition = obsCtx.condition == null ? new Literal(true) : (Formula) visit(obsCtx.condition);
+                     action.setObservesCondition(agent, condition);
+                     variableStack.pop();
+                 }
+             }
+
+             for (DeplParser.AwareDefContext awaCtx : ctx.awareDef()) {
+                 for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
+                     variableStack.push(variableMap);
+                     String agent = (String) visit(awaCtx.groundableObject());
+                     if (!domain.getAllAgents().contains(agent)) {
+                         throw new RuntimeException("Undefined aware agent " + agent);
+                     }
+                     Formula condition = awaCtx.condition == null ? new Literal(true) : (Formula) visit(awaCtx.condition);
+                     action.setAwareCondition(agent, condition);
+                     variableStack.pop();
+                 }
+             }
+
+             for (DeplParser.DeterminesDefContext detCtx : ctx.determinesDef()) {
+                 for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
+                     variableStack.push(variableMap);
+                     Formula formula = (Formula) visit(detCtx.determined);
+                     Formula condition = detCtx.condition == null ? new Literal(true) : (Formula) visit(detCtx.condition);
+                     action.addSensingEffect(formula, condition);
+                     variableStack.pop();
+                 }
+             }
+
+             for (DeplParser.AnnouncesDefContext annCtx : ctx.announcesDef()) {
+                 for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
+                     variableStack.push(variableMap);
+                     Formula formula = (Formula) visit(annCtx.announced);
+                     Formula condition = annCtx.condition == null ? new Literal(true) : (Formula) visit(annCtx.condition);
+                     action.addAnnouncementEffect(formula, condition);
+                     variableStack.pop();
+                 }
+             }
+
+             for (DeplParser.CausesDefContext effCtx : ctx.causesDef()) {
+                 for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
+                     variableStack.push(variableMap);
+                     Formula condition = effCtx.condition == null ? new Literal(true) : (Formula) visit(effCtx.condition);
+                     Set<Assignment> assignments = new HashSet<>();
+                     for (DeplParser.LiteralContext litCtx : effCtx.literal()) {
+                         assignments.add(new Assignment((Fluent)visit(litCtx.fluent()), new Literal(litCtx.OP_NOT() == null)));
+                     }
+                     action.addOnticEffect(assignments, condition);
+                     variableStack.pop();
+                 }
+             }
+             variableStack.pop();
+            domain.addAction(action);
+         }
+         return null;
+     }
+
+ 
 
 
     @Override public Void visitEventModelDef(DeplParser.EventModelDefContext ctx) {
@@ -720,7 +617,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         String name = ctx.LOWER_NAME().getText();
 
 
-        EventModel eventModel =  new EventModel(name, new HashSet<String>(domain.getAllAgents()), new HashSet<Event>(events.values()), designated);
+        EventModel eventModel =  new EventModel(name, domain.getAllAgents(), new HashSet<Event>(events.values()), designated);
 
         for (DeplParser.EventRelationContext relationCtx : ctx.eventRelation()) {
             String agent = (String) visit(relationCtx.agent());

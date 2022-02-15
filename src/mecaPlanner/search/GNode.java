@@ -109,25 +109,26 @@ public abstract class GNode  {
 
 
     public GNode transition(Action action) {
-        Action.UpdatedStateAndEAgents transitionResult = action.transition(estate, models);
+        State newState = action.transition(estate);
+        //Action.UpdatedStateAndEAgents transitionResult = action.transition(estate, models);
         int nextTime = time+1;
         if (nextTime % numAgents == systemAgentIndex) {
-            return new OrNode(transitionResult.getState(),
+            return new OrNode(newState, //transitionResult.getState(),
                               goal,
                               timeConstraints,
                               nextTime,
                               this,
-                              transitionResult.getAgents(),
+                              models, //transitionResult.getAgents(),
                               systemAgentIndex,
                               domain);
         }
         else {
-            return new AndNode(transitionResult.getState(),
+            return new AndNode(newState, //transitionResult.getState(),
                                goal,
                                timeConstraints,
                                nextTime,
                                this,
-                               transitionResult.getAgents(),
+                               models, //transitionResult.getAgents(),
                                systemAgentIndex,
                                domain);
         }
