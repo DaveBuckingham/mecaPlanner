@@ -44,12 +44,17 @@ goals{
 
 actions{
 
-phone( {*f(phi(),{}), p(~phi(),{}), o(true,{}) },
-           a{f-f, p-p, o-o, p-f, f-!full(a)-p, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
-           b{f-f, p-p, o-o, p-f, f-!full(b)-p, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+//phone( {*f(phi(),{}), p(~phi(),{}), o(true,{}) },
+//           a{f-f, p-p, o-o, p-f, f-!full(a)-p, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+//           b{f-f, p-p, o-o, p-f, f-!full(b)-p, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+//)
 
-           //b{f-f, p-p, o-o, f-!full(b)-p, p-f, p-full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o},
+a(owner a, cost 1, precondition true, 
+    <?x - Object> observes ?x if full(?x),
+    <?x - Object> aware ?x if partial(?x),
+    announces phi()
 )
+
 
 
 }

@@ -176,7 +176,7 @@ awareDef    : variableDefList 'aware' groundableObject ('if' condition=formula)?
 
 determinesDef : variableDefList  'determines'   determined=formula ('if' condition=formula)?;
 announcesDef  : variableDefList  'announces'    announced=formula ('if' condition=formula)?;
-causesDef     : variableDefList  'causes'       literal+ ('if' condition=formula)?;
+causesDef     : variableDefList  'causes'       literal (OP_AND literal)* ('if' condition=formula)?;
 
 
 literal : OP_NOT? fluent;

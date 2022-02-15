@@ -40,28 +40,48 @@ goals{
 
 actions{
 
-place_marble( {*e1(!marbleInBasket()&inRoom(sally),{marbleInBasket()<-true})},
-               sally{(e1,e1)},
-               anne{(e1,e1)}
-            )
+//place_marble( {*e1(!marbleInBasket()&inRoom(sally),{marbleInBasket()<-true})},
+//               sally{(e1,e1)},
+//               anne{(e1,e1)}
+//            )
 
-leave_room( {*e1(inRoom(sally),{inRoom(sally)<-false,watching(sally)<-false})},
-               sally{(e1,e1)},
-               anne{(e1,e1)}
-          )
-
-watch( {*e1(true,{watching(sally)<-true}),
-        e2(true,{})
-       },
-               sally{e1-e1, e2-e2},
-               anne{e1-e1, e1-e2, e2-e2}
+place_marble(owner sally, cost 1, precondition !marbleInBasket(), 
+    <?x - Object> observes ?x if watching(?x),
+    causes marbleInBasket()
 )
 
-remove_marble( {*e1(marbleInBasket(),{marbleInBasket()<-false}),
-               e2(true,{})
-               },
-               sally{e1-e1, e1-!watching(sally)-e2, e2-e2},
-               anne{e1-e1, e1-!watching(anne)-e2, e2-e2}
+//leave_room( {*e1(inRoom(sally),{inRoom(sally)<-false,watching(sally)<-false})},
+//               sally{(e1,e1)},
+//               anne{(e1,e1)}
+//          )
+
+leave_room(owner sally, cost 1, precondition inRoom(sally), 
+    <?x - Object> observes ?x,
+    causes !inRoom(sally) & !watching(sally), 
+)
+
+//watch( {*e1(true,{watching(sally)<-true}),
+//        e2(true,{})
+//       },
+//               sally{e1-e1, e2-e2},
+//               anne{e1-e1, e1-e2, e2-e2}
+//)
+
+watch(owner sally,
+    observes sally,
+    causes watching(sally), 
+)
+
+//remove_marble( {*e1(marbleInBasket(),{marbleInBasket()<-false}),
+//               e2(true,{})
+//               },
+//               sally{e1-e1, e1-!watching(sally)-e2, e2-e2},
+//               anne{e1-e1, e1-!watching(anne)-e2, e2-e2}
+//)
+
+remove_marble(owner anne, precondition marbleInBasket(),
+    <?x - Object> observes ?x if watching(?x),
+    causes !marbleInBasket()
 )
 
 
