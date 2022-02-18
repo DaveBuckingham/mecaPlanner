@@ -226,7 +226,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
         visit(ctx.startStateSection());
-        visit(ctx.initiallySection());
+        if (ctx.initiallySection() != null) {visit(ctx.initiallySection());}
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
 
