@@ -111,6 +111,7 @@ public class Action implements Transformer {
             // CHECK IF EXECUTABLE?
             state = e.transition(state);
         }
+        state.trim();
         return state;
     }
 

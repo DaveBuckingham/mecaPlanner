@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
 
+import java.util.Stack;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Objects;
@@ -91,6 +92,8 @@ public class NDState implements java.io.Serializable {
 
 
     public void addMorePlausible(String agent, World lessPlausible, World morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.contains(morePlausible));
         lessToMorePlausible.get(agent).get(lessPlausible).add(morePlausible);
         moreToLessPlausible.get(agent).get(morePlausible).add(lessPlausible);
     }
@@ -459,40 +462,43 @@ public class NDState implements java.io.Serializable {
 //        return null;
 //    }
 //
-//    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
-//    public Void trim() {
-//        Set<World> keep = new HashSet<>(designated);
-//        Set<World> old;
-//        do {
-//            old = new HashSet<>(keep);
-//            for (World w : old) {
-//                keep.addAll(kripkeStructure.getChildren(w));
-//            }
-//        } while (old.size() != keep.size());
-//        Map<String, Relation> newBeliefs = new HashMap<String,Relation>();
-//        Map<String, Relation> newKnowledges = new HashMap<String,Relation>();
-//        for (String agent : kripkeStructure.getBeliefRelations().keySet()) {
-//            Relation oldBelief = kripkeStructure.getBeliefRelations().get(agent);
-//            Relation newBelief = new Relation();
-//            Relation oldKnowledge = kripkeStructure.getKnowledgeRelations().get(agent);
-//            Relation newKnowledge = new Relation();
-//            for (World from : keep) {
-//                for (World to : keep) {
-//                    if (oldBelief.isConnected(from, to)) {
-//                        newBelief.connect(from, to);
-//                    }
-//                    if (oldKnowledge.isConnected(from, to)) {
-//                        newKnowledge.connect(from, to);
-//                    }
-//                }
-//            }
-//            newBeliefs.put(agent, newBelief);
-//            newKnowledges.put(agent, newKnowledge);
-//        }
-//        kripkeStructure = new KripkeStructure(keep, newBeliefs, newKnowledges);
-//        //assert(kripkeStructure.checkRelations());
-//        return null;
-//    }
+
+
+    // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
+    public Void trim() {
+        Set<World> keep = new HashSet<>(designated);
+        Stack<World> todo = new Stack<>();
+        for (World w : designated) {
+            todo.push(w);
+        }
+        while (!todo.isEmpty()) {
+            World current = todo.pop();
+            for (String a : agents) {
+                for (World next : lessToMorePlausible.get(a).get(current)) {
+                    if (!keep.contains(next)) {
+                        keep.add(next);
+                        todo.push(next);
+                    }
+                }
+                for (World next : moreToLessPlausible.get(a).get(current)) {
+                    if (!keep.contains(next)) {
+                        keep.add(next);
+                        todo.push(next);
+                    }
+                }
+            }
+        }
+        for (String a : agents) {
+            for (World w : new HashSet<World>(worlds)) {
+                if (!keep.contains(w)) {
+                    worlds.remove(w);
+                    lessToMorePlausible.get(a).remove(w);
+                    moreToLessPlausible.get(a).remove(w);
+                }
+            }
+        }
+        return null;
+    }
 
 
 
