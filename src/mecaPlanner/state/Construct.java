@@ -19,52 +19,29 @@ import org.antlr.v4.runtime.tree.*;
 
 public class Construct {
 
-    private static Domain domain;
-
     private Construct() { }
 
+    private static Stack<Formula> todo;
 
-
-    public static Set<State> constructStates(Domain d, List<Formula> formulae) {
-        Set<Formula> canonicalFormulas = new HashSet<>();
-        Set<Fluent> allFluents = new HashSet<>();
-        for (Formula f : formulae) {
-            allFluents.addAll(f.getAllFluents());
-        }
-        for (Set<Fluent> subset : powerSet(allFluents)) {
-            Set<Formula> asFormulae = new HashSet<>();
-            asFormulae.addAll(subset);
-            canonicalFormulas.add(AndFormula.make(asFormulae));
-        }
-
-        for (Formula f : canonicalFormulas) {
-            System.out.println(f);
-        }
-
-        throw new RuntimeException("State construction not implemented");
-        //return null;
+    public static Set<State> constructStates(List<Formula> formulae) {
+        todo = new Stack<>(formulae);
+        propositionalFormulae;
     }
 
-
-
-    // THIS FUNCTION IS COPIED FROM MARKSPACE:
-    // https://codereview.stackexchange.com/questions/164647/powerset-all-subsets-of-a-set-in-java
-    static <T> Set<Set<T>> powerSet( Set<T> set ) {
-        T[] element = (T[]) set.toArray();
-        final int SET_LENGTH = 1 << element.length;
-        Set<Set<T>> powerSet = new HashSet<>();
-        for( int binarySet = 0; binarySet < SET_LENGTH; binarySet++ ) {
-            Set<T> subset = new HashSet<>();
-            for( int bit = 0; bit < element.length; bit++ ) {
-                int mask = 1 << bit;
-                if( (binarySet & mask) != 0 ) {
-                    subset.add( element[bit] );
+    private void propositionalFormulae() {
+        while (formula = todo.pop()) {
+            if (formula.instanceof(AndFormula)) {
+                AndFormula a = (AndFormula) f;
+                for (f : a.getFormulae()) {
+                    todo.push(f);
                 }
             }
-            powerSet.add( subset );
+            else if (formula.instanceof(
         }
-        return powerSet;
     }
+
+
+
 
 }
 
