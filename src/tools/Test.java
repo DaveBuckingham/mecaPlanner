@@ -16,7 +16,7 @@ import mecaPlanner.formulae.Literal;
 
 import depl.*;
 
-// 1. Read an starting preorder state
+// 1. Read a starting preorder state
 // 2. Check start state structure
 // 3. Check if all initial formulae hold in the state
 // 4. For each action defined
@@ -39,7 +39,22 @@ public class Test {
         Problem problem = visitor.buildProblem(deplFile);
         Domain domain = problem.getDomain();
 
-        State state = problem.getStartState();
+        Set<State> states = problem.getStartStates();
+
+        if (states.isEmpty()) {
+            throw new RuntimeException("no start states");
+        }
+
+        if (states.size() > 1) {
+            System.out.println("multiple start states:");
+            for (State s : states) {
+                System.out.println(s);
+            }
+            return;
+        }
+
+        State state = states.iterator().next();
+
 
         System.out.println("START STATE:");
         System.out.println(state);

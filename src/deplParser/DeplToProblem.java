@@ -225,7 +225,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (ctx.passiveSection() != null) {visit(ctx.passiveSection());}
         visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
-        visit(ctx.startStateSection());
+        if (ctx.startStateSection() != null) {visit(ctx.startStateSection());}
         if (ctx.initiallySection() != null) {visit(ctx.initiallySection());}
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
@@ -479,9 +479,16 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
+    // IF WE DIDN'T FIND ANY MODEL-DEFINED START STATES,
+    // USE CONSTRUCTION ALGORITHM TO BUILD A START STATE FROM THE INITIALLY FORMULAS.
+    // THOUGH WE ALLOW MULTIPLE MODEL-DEFINED STATRT STATES, FOR NOW JUST ALLOW
+    // A SINGLE FORMULA-DEFINED START STATE.
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.FormulaContext formulaCtx : ctx.formula()) {
             initially.add((Formula) visit(formulaCtx));
+        }
+        if (startStates.isEmpty()) {
+            startStates.addAll(Construct.constructStates(allFluents, initially, domain.getAllAgents()));
         }
         return null;
     }
