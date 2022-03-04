@@ -417,6 +417,10 @@ public class DeplToProblem extends DeplBaseVisitor {
             NDState ndState = (NDState) visit(modelCtx);
             startStates.addAll(ndState.getStates());
         }
+        for (DeplParser.StateDefContext stateDefCtx : ctx.stateDef()) {
+            State state = (State) visit(stateDefCtx);
+            startStates.add(state);
+        }
         return null;
     }
 
@@ -478,17 +482,47 @@ public class DeplToProblem extends DeplBaseVisitor {
         return world;
     }
 
+    @Override public State visitStateDef(DeplParser.StateDefContext ctx) {
+        Set<Fluent> trueFluents = new HashSet<>();
+        Map<Fluent, Set<String>> doubts = new HashMap<>();
+        Map<Fluent, Set<String>> believes = new HashMap<>();
+        Map<Fluent, Set<String>> believesNot = new HashMap<>();
+        for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
+            if (assertionCtx.trueFluent != null) {
+                trueFluents.add((Fluent) visit(assertionCtx.trueFluent));
+            }
+            else if (assertionCtx.doubtedFluent != null) {
+                Fluent f = (Fluent) visit(assertionCtx.trueFluent);
+                String a = (String) visit(assertionCtx.agent());
+                if (!doubts.containsKey(f)) {
+                    doubts.put(f, new HashSet<String>());
+                }
+                doubts.get(f).add(a);
+            }
+            else if (assertionCtx.believedTrueFluent != null) {
+                Fluent f = (Fluent) visit(assertionCtx.believedTrueFluent);
+                String a = (String) visit(assertionCtx.agent());
+                if (!doubts.containsKey(f)) {
+                    believes.put(f, new HashSet<String>());
+                }
+                believes.get(f).add(a);
+            }
+            else if (assertionCtx.believedFalseFluent != null) {
+            }
+            else {
+                throw new RuntimeException("unknown start assertion");
+            }
+        }
+        World designated = new World(trueFluents);
+        for (String agent : domain.getAgents()) {
+        }
+        return null;
+    }
 
-    // IF WE DIDN'T FIND ANY MODEL-DEFINED START STATES,
-    // USE CONSTRUCTION ALGORITHM TO BUILD A START STATE FROM THE INITIALLY FORMULAS.
-    // THOUGH WE ALLOW MULTIPLE MODEL-DEFINED STATRT STATES, FOR NOW JUST ALLOW
-    // A SINGLE FORMULA-DEFINED START STATE.
+
     @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
         for (DeplParser.FormulaContext formulaCtx : ctx.formula()) {
             initially.add((Formula) visit(formulaCtx));
-        }
-        if (startStates.isEmpty()) {
-            startStates.addAll(Construct.constructStates(allFluents, initially, domain.getAllAgents()));
         }
         return null;
     }
@@ -508,99 +542,99 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
 
-     // ACTIONS
-     @Override public Void visitActionDef(DeplParser.ActionDefContext ctx) {
-         String actionName = ctx.LOWER_NAME().getText();
-         for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.actionScope)) {
-             variableStack.push(actionVariableMap);
- 
-             List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
- 
-             String owner = (String) visit(ctx.owner);
-             if (!domain.isNonPassiveAgent(owner)) {
-                 throw new RuntimeException(actionName + " has unknown owner " + owner);
-             }
+    // ACTIONS
+    @Override public Void visitActionDef(DeplParser.ActionDefContext ctx) {
+        String actionName = ctx.LOWER_NAME().getText();
+        for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.actionScope)) {
+            variableStack.push(actionVariableMap);
 
-             Integer cost = ctx.cost == null ? 1 : Integer.parseInt(ctx.cost.getText());
+            List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
 
-             List<Formula> preconditionList = new ArrayList<>();
-             if (ctx.precondition != null) {
-                 for (LinkedHashMap<String,String> preconditionVariableMap : getVariableMaps(ctx.preconditionScope)) {
-                     variableStack.push(preconditionVariableMap);
-                     preconditionList.add((Formula) visit(ctx.precondition));
-                     variableStack.pop();
-                 }
-             }
-             Formula precondition = AndFormula.make(preconditionList);
-             if (precondition.isFalse()) {
-                 continue;
-             }
+            String owner = (String) visit(ctx.owner);
+            if (!domain.isNonPassiveAgent(owner)) {
+                throw new RuntimeException(actionName + " has unknown owner " + owner);
+            }
 
-             Action action = new Action(actionName, actionParameters, owner, cost, precondition, domain);
+            Integer cost = ctx.cost == null ? 1 : Integer.parseInt(ctx.cost.getText());
 
-             for (DeplParser.ObservesDefContext obsCtx : ctx.observesDef()) {
-                 for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
-                     variableStack.push(variableMap);
-                     String agent = (String) visit(obsCtx.groundableObject());
-                     if (!domain.getAllAgents().contains(agent)) {
-                         throw new RuntimeException("Undefined observer " + agent);
-                     }
-                     Formula condition = obsCtx.condition == null ? new Literal(true) : (Formula) visit(obsCtx.condition);
-                     action.setObservesCondition(agent, condition);
-                     variableStack.pop();
-                 }
-             }
+            List<Formula> preconditionList = new ArrayList<>();
+            if (ctx.precondition != null) {
+                for (LinkedHashMap<String,String> preconditionVariableMap : getVariableMaps(ctx.preconditionScope)) {
+                    variableStack.push(preconditionVariableMap);
+                    preconditionList.add((Formula) visit(ctx.precondition));
+                    variableStack.pop();
+                }
+            }
+            Formula precondition = AndFormula.make(preconditionList);
+            if (precondition.isFalse()) {
+                continue;
+            }
 
-             for (DeplParser.AwareDefContext awaCtx : ctx.awareDef()) {
-                 for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
-                     variableStack.push(variableMap);
-                     String agent = (String) visit(awaCtx.groundableObject());
-                     if (!domain.getAllAgents().contains(agent)) {
-                         throw new RuntimeException("Undefined aware agent " + agent);
-                     }
-                     Formula condition = awaCtx.condition == null ? new Literal(true) : (Formula) visit(awaCtx.condition);
-                     action.setAwareCondition(agent, condition);
-                     variableStack.pop();
-                 }
-             }
+            Action action = new Action(actionName, actionParameters, owner, cost, precondition, domain);
 
-             for (DeplParser.DeterminesDefContext detCtx : ctx.determinesDef()) {
-                 for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
-                     variableStack.push(variableMap);
-                     Formula formula = (Formula) visit(detCtx.determined);
-                     Formula condition = detCtx.condition == null ? new Literal(true) : (Formula) visit(detCtx.condition);
-                     action.addSensingEffect(formula, condition);
-                     variableStack.pop();
-                 }
-             }
+            for (DeplParser.ObservesDefContext obsCtx : ctx.observesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    String agent = (String) visit(obsCtx.groundableObject());
+                    if (!domain.getAllAgents().contains(agent)) {
+                        throw new RuntimeException("Undefined observer " + agent);
+                    }
+                    Formula condition = obsCtx.condition == null ? new Literal(true) : (Formula) visit(obsCtx.condition);
+                    action.setObservesCondition(agent, condition);
+                    variableStack.pop();
+                }
+            }
 
-             for (DeplParser.AnnouncesDefContext annCtx : ctx.announcesDef()) {
-                 for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
-                     variableStack.push(variableMap);
-                     Formula formula = (Formula) visit(annCtx.announced);
-                     Formula condition = annCtx.condition == null ? new Literal(true) : (Formula) visit(annCtx.condition);
-                     action.addAnnouncementEffect(formula, condition);
-                     variableStack.pop();
-                 }
-             }
+            for (DeplParser.AwareDefContext awaCtx : ctx.awareDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    String agent = (String) visit(awaCtx.groundableObject());
+                    if (!domain.getAllAgents().contains(agent)) {
+                        throw new RuntimeException("Undefined aware agent " + agent);
+                    }
+                    Formula condition = awaCtx.condition == null ? new Literal(true) : (Formula) visit(awaCtx.condition);
+                    action.setAwareCondition(agent, condition);
+                    variableStack.pop();
+                }
+            }
 
-             for (DeplParser.CausesDefContext effCtx : ctx.causesDef()) {
-                 for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
-                     variableStack.push(variableMap);
-                     Formula condition = effCtx.condition == null ? new Literal(true) : (Formula) visit(effCtx.condition);
-                     Set<Assignment> assignments = new HashSet<>();
-                     for (DeplParser.LiteralContext litCtx : effCtx.literal()) {
-                         assignments.add(new Assignment((Fluent)visit(litCtx.fluent()), new Literal(litCtx.OP_NOT() == null)));
-                     }
-                     action.addOnticEffect(assignments, condition);
-                     variableStack.pop();
-                 }
-             }
-             variableStack.pop();
-            domain.addAction(action);
-         }
-         return null;
-     }
+            for (DeplParser.DeterminesDefContext detCtx : ctx.determinesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    Formula formula = (Formula) visit(detCtx.determined);
+                    Formula condition = detCtx.condition == null ? new Literal(true) : (Formula) visit(detCtx.condition);
+                    action.addSensingEffect(formula, condition);
+                    variableStack.pop();
+                }
+            }
+
+            for (DeplParser.AnnouncesDefContext annCtx : ctx.announcesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    Formula formula = (Formula) visit(annCtx.announced);
+                    Formula condition = annCtx.condition == null ? new Literal(true) : (Formula) visit(annCtx.condition);
+                    action.addAnnouncementEffect(formula, condition);
+                    variableStack.pop();
+                }
+            }
+
+            for (DeplParser.CausesDefContext effCtx : ctx.causesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    Formula condition = effCtx.condition == null ? new Literal(true) : (Formula) visit(effCtx.condition);
+                    Set<Assignment> assignments = new HashSet<>();
+                    for (DeplParser.LiteralContext litCtx : effCtx.literal()) {
+                        assignments.add(new Assignment((Fluent)visit(litCtx.fluent()), new Literal(litCtx.OP_NOT() == null)));
+                    }
+                    action.addOnticEffect(assignments, condition);
+                    variableStack.pop();
+                }
+            }
+            variableStack.pop();
+           domain.addAction(action);
+        }
+        return null;
+    }
 
  
 

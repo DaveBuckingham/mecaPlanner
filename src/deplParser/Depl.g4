@@ -132,13 +132,21 @@ timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 // INITIAL STATE DEFINITION
 
-startStateSection : 'start' ( model | '{' (model ','?)* '}' ) ;
-model : (world ','?)+ (relation ','?)+ ;
+startStateSection : 'start' '{' ((model|stateDef) ','?)* '}' ;
+
+model : '(' (world ','?)+ (relation ','?)+ ')' ;
 world : STAR? LOWER_NAME ASSIGN? '{' (fluent ',')* fluent? '}' ;
 relation : agent ASSIGN? '{' ( relate ','? )* '}' ;
 relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')'
        | from=LOWER_NAME'-'to=LOWER_NAME
        ;
+
+stateDef : '{' (stateAssertion ',')* stateAssertion? '}';
+stateAssertion : trueFluent=fluent
+               | '?' '[' agent ']' doubtedFluent=fluent
+               | 'B' '[' agent ']' believedTrueFluent=fluent
+               | 'B' '[' agent ']' OP_NOT believedFalseFluent=fluent
+               ;
 
 
 

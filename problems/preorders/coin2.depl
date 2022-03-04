@@ -1,0 +1,60 @@
+// COIN TASK
+
+types{Agent - Object}
+
+objects{
+    a - Agent,
+    b - Agent,
+    c - Agent,
+}
+
+agents{a, b{TrivialAgent}, c{TrivialAgent}}
+
+fluents{
+    h(),
+    d(Agent)
+}
+
+start{
+   *w1  {h()},
+    w2  {},
+    a   {w1-w1,w2-w2},
+    b   {w1-w1,w2-w2},
+    c   {w1-w1,w2-w2,w1-w2,w2-w1},
+}
+
+initially{
+}
+
+goals{
+    h(),
+    d(a),
+    ~d(b),
+    ~d(c),
+    K[a](h()),
+    K[b](h()),
+    K[c](h()),
+    K[b](K[c](h())),
+    ~K[a](K[c](h())),
+    B[a](~K[c](h()) & ~K[c](~h())),
+}
+
+actions{
+
+lie(owner a,
+    <?x - Agent> observes ?x if ~d(?x),
+    announces ~h()
+)
+
+distract(owner b,
+    <?x - Agent> observes ?x if ~d(?x),
+    causes d(a)
+)
+
+peek(owner c, 
+    observes c,
+    aware a if ~d(a),
+    aware b if ~d(b),
+    determines h()
+)
+}
