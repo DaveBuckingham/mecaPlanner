@@ -24,6 +24,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.javatuples.Pair;
+
 import java.io.IOException;
 
 
@@ -483,40 +485,90 @@ public class DeplToProblem extends DeplBaseVisitor {
     }
 
     @Override public State visitStateDef(DeplParser.StateDefContext ctx) {
+
         Set<Fluent> trueFluents = new HashSet<>();
-        Map<Fluent, Set<String>> doubts = new HashMap<>();
-        Map<Fluent, Set<String>> believes = new HashMap<>();
-        Map<Fluent, Set<String>> believesNot = new HashMap<>();
+        for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
+            trueFluents.add((Fluent) visit(fluentCtx));
+        }
+        World designatedWorld = new World("d", trueFluents);
+        Set<World> worlds = new HashSet<>();
+        worlds.add(designatedWorld);
+        State state = new State(domain.getAgents(), worlds, designatedWorld);
+
         for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
-            if (assertionCtx.trueFluent != null) {
-                trueFluents.add((Fluent) visit(assertionCtx.trueFluent));
+            List<String> agents = new ArrayList<>();
+            for (DeplParser.AgentContext agentCtx : assertionCtx.agent()) {
+                agents.add((String) visit(agentCtx));
             }
-            else if (assertionCtx.doubtedFluent != null) {
-                Fluent f = (Fluent) visit(assertionCtx.trueFluent);
-                String a = (String) visit(assertionCtx.agent());
-                if (!doubts.containsKey(f)) {
-                    doubts.put(f, new HashSet<String>());
-                }
-                doubts.get(f).add(a);
+            if (assertionCtx.doubts != null) {
+                Fluent f = (Fluent) visit(assertionCtx.fluent());
+                state = addDoubt(state, agents, f);
             }
-            else if (assertionCtx.believedTrueFluent != null) {
-                Fluent f = (Fluent) visit(assertionCtx.believedTrueFluent);
-                String a = (String) visit(assertionCtx.agent());
-                if (!doubts.containsKey(f)) {
-                    believes.put(f, new HashSet<String>());
-                }
-                believes.get(f).add(a);
+            else if (assertionCtx.believes != null) {
+                Fluent f = (Fluent) visit(assertionCtx.fluent());
+                Boolean value = assertionCtx.OP_NOT() == null;
+                state = addBelief(state, agents, f, value);
             }
-            else if (assertionCtx.believedFalseFluent != null) {
+            else if (assertionCtx.knows != null) {
+                Formula f = (Formula) visit(assertionCtx.formula());
+                state = addKnowledge(state, agents, f);
             }
             else {
                 throw new RuntimeException("unknown start assertion");
             }
         }
-        World designated = new World(trueFluents);
-        for (String agent : domain.getAgents()) {
+        return state;
+    }
+
+    private State addDoubt(State state, List<String> agents, Fluent f) {
+        Event actual = new Event("u", new Literal(true));
+        Set<Formula> disjuncts = new HashSet<>();
+        for (String a : agents) {
+            disjuncts.add(new KnowsFormula(a, f));
+            disjuncts.add(new KnowsFormula(a, f.negate()));
         }
-        return null;
+        Formula someoneKnows = Formula.makeDisjunction(disjuncts);
+        Event alternative = new Event("v", someoneKnows, new Assignment(f, f.negate()));
+        Set<Event> events = new HashSet<>(Arrays.asList(actual, alternative));
+        Set<Event> designatedEvents = new HashSet<>(Arrays.asList(actual));
+        EventModel model = new EventModel("doubts-" + f, domain.getAgents(), events, designatedEvents);
+        for (String a : agents) {
+            model.addEdge(a, actual, alternative);
+            model.addEdge(a, alternative, actual);
+        }
+        return model.transition(state);
+    }
+
+    private State addBelief(State state, List<String> agents, Fluent f, boolean val) {
+        Event trueEvent = new Event("t", f);
+        Event falseEvent = new Event("f", f.negate());
+        Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        String name = "believes-" + (!val ? "!" : "") + f;
+        EventModel model = new EventModel(name, domain.getAgents(), events, events);
+        for (String a : agents) {
+            if (val) {
+                model.addEdge(a, falseEvent, trueEvent);
+            }
+            else {
+                model.addEdge(a, trueEvent, falseEvent);
+            }
+        }
+        return model.transition(addDoubt(state, agents, f));
+    }
+
+    private State addKnowledge(State state, List<String> agents, Formula f) {
+        Event trueEvent = new Event("t", f);
+        Event falseEvent = new Event("f", f.negate());
+        Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        Set<Event> designatedEvents = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        EventModel model = new EventModel("knows-" + f, domain.getAgents(), events, designatedEvents);
+        for (String a : domain.getAgents()) {
+            if (!agents.contains(a)) {
+                model.addEdge(a, trueEvent, falseEvent);
+                model.addEdge(a, falseEvent, trueEvent);
+            }
+        }
+        return model.transition(state);
     }
 
 

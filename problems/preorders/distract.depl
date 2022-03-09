@@ -23,10 +23,13 @@ fluents{
 }
 
 start{
-   *w1  {watching_box(a), watching_box(b), watching_box(c), watching_distraction(a), watching_distraction(c)},
-    a   {w1-w1},
-    b   {w1-w1},
-    c   {w1-w1},
+//    (
+//       *w1  {watching_box(a), watching_box(b), watching_box(c), watching_distraction(a), watching_distraction(c)},
+//        a   {w1-w1},
+//        b   {w1-w1},
+//        c   {w1-w1},
+//    )
+    (watching_box(a), watching_box(b), watching_box(c), watching_distraction(a), watching_distraction(c))
 }
 
 initially{

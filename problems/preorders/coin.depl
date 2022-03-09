@@ -20,16 +20,25 @@ fluents{
 }
 
 start{
-   *w1  {heads(), full(a), partial(b)},
-    w2  {heads(), full(a)},
-    w3  {full(a), partial(b)},
-    w4  {full(a)},
-    a   {w1-w1,w1-w2,w1-w3,w1-w4,
-         w2-w1,w2-w2,w2-w3,w2-w4,
-         w3-w1,w3-w2,w3-w3,w3-w4,
-         w4-w1,w4-w2,w4-w3,w4-w4},
-    b   {w1-w1,w1-w3,w3-w3,w3-w1,
-         w2-w2,w2-w4,w4-w4,w4-w2},
+//    (
+//       *w1  {heads(), full(a), partial(b)},
+//        w2  {heads(), full(a)},
+//        w3  {full(a), partial(b)},
+//        w4  {full(a)},
+//        a   {w1-w1,w1-w2,w1-w3,w1-w4,
+//             w2-w1,w2-w2,w2-w3,w2-w4,
+//             w3-w1,w3-w2,w3-w3,w3-w4,
+//             w4-w1,w4-w2,w4-w3,w4-w4},
+//        b   {w1-w1,w1-w3,w3-w3,w3-w1,
+//             w2-w2,w2-w4,w4-w4,w4-w2},
+//    )
+    (
+        heads(),
+        full(a),
+        partial(b),
+        ?[a,b](heads()),
+        ?[a](partial()),
+    )
 }
 
 initially{

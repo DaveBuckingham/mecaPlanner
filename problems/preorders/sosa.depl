@@ -21,9 +21,12 @@ fluents{
 }
 
 start{
-    *w1  {inRoom(sally),inRoom(anne), watching(sally), watching(anne)},
-    sally   {(w1,w1)}
-    anne    {(w1,w1)}
+//    (
+//        *w1  {inRoom(sally),inRoom(anne), watching(sally), watching(anne)},
+//        sally   {(w1,w1)}
+//        anne    {(w1,w1)}
+//    )
+    (inRoom(sally),inRoom(anne), watching(sally), watching(anne))
 }
 
 initially{

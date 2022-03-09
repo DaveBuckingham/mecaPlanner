@@ -106,6 +106,9 @@ public class NDState implements java.io.Serializable {
 
     public void addMorePlausibleTransitive(String agent, World lessPlausible, World morePlausible) {
         addMorePlausible(agent, lessPlausible, lessToMorePlausible.get(agent).get(morePlausible));
+        for (World w : getLessPlausible(agent, lessPlausible)) {
+            addMorePlausible(agent, lessPlausible, morePlausible);
+        }
     }
 
     public boolean isConnected(String agent, World lessPlausible, World morePlausible) {
@@ -175,81 +178,81 @@ public class NDState implements java.io.Serializable {
 
 
 
-    // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
-    private Set<Set<World>> getInitialPartition() {
-        Set<Set<World>> partition = new HashSet<>();
-        for (World w : worlds) {
-            boolean foundPart = false;
-            for (Set<World> part : partition) {
-                assert(!part.isEmpty());
-                World sample = part.iterator().next();
-                if (sample.equals(w)) {
-                    part.add(w);
-                    foundPart = true;
-                    break;
-                }
-            }
-            if (!foundPart) {
-                Set<World> newPart = new HashSet<>();
-                newPart.add(w);
-                partition.add(newPart);
-            }
-        }
-        // ITS IMPORTANT NOT TO RETURN partition BECAUSE WE 
-        // MODIFIED IT'S ELEMENTS AFTER WE INSERTED THEM
-        // AND THOSE MODIFICATIONS CHANGED THEIR HASHCODES
-        // SO WE MAKE A NEW HASHSET, WHICH RECOMPUTES THE HASH CODES
-        return new HashSet<Set<World>>(partition);
-    }
+//     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
+//     private Set<Set<World>> getInitialPartition() {
+//         Set<Set<World>> partition = new HashSet<>();
+//         for (World w : worlds) {
+//             boolean foundPart = false;
+//             for (Set<World> part : partition) {
+//                 assert(!part.isEmpty());
+//                 World sample = part.iterator().next();
+//                 if (sample.equals(w)) {
+//                     part.add(w);
+//                     foundPart = true;
+//                     break;
+//                 }
+//             }
+//             if (!foundPart) {
+//                 Set<World> newPart = new HashSet<>();
+//                 newPart.add(w);
+//                 partition.add(newPart);
+//             }
+//         }
+//         // ITS IMPORTANT NOT TO RETURN partition BECAUSE WE 
+//         // MODIFIED IT'S ELEMENTS AFTER WE INSERTED THEM
+//         // AND THOSE MODIFICATIONS CHANGED THEIR HASHCODES
+//         // SO WE MAKE A NEW HASHSET, WHICH RECOMPUTES THE HASH CODES
+//         return new HashSet<Set<World>>(partition);
+//     }
 
 
-    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
-    // THIS IS LIKE THE "REFINE" OPERATOR IN DEFINITION 7.35, EXCEPT THAT
-    // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
-    // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
-    // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
-    private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, String agent) {
-        Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
-
-        for (Set<World> block : oldBlocks) {
-            Set<World> inPre = new HashSet<>();
-            Set<World> notInPre = new HashSet<>();
-            for (World w : block) {
-                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
-                    notInPre.add(w);
-                }
-                else {
-                    inPre.add(w);
-                }
-            }
-            if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
-                if (!partition.remove(block)) {
-                    throw new RuntimeException("failed to remove a split block while computing bisimulation");
-                }
-                partition.add(notInPre);
-                partition.add(inPre);
-            }
-        }
-        return null;
-    }
+//    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
+//    // THIS IS LIKE THE "REFINE" OPERATOR IN DEFINITION 7.35, EXCEPT THAT
+//    // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
+//    // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
+//    // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
+//    private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, String agent) {
+//        Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
+//
+//        for (Set<World> block : oldBlocks) {
+//            Set<World> inPre = new HashSet<>();
+//            Set<World> notInPre = new HashSet<>();
+//            for (World w : block) {
+//                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
+//                    notInPre.add(w);
+//                }
+//                else {
+//                    inPre.add(w);
+//                }
+//            }
+//            if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
+//                if (!partition.remove(block)) {
+//                    throw new RuntimeException("failed to remove a split block while computing bisimulation");
+//                }
+//                partition.add(notInPre);
+//                partition.add(inPre);
+//            }
+//        }
+//        return null;
+//    }
 
     // HERE'S THE MAIN ALGORITHM, BASICALLY ALGORITHM 31 IN THE TEXTBOOK.
     // UNLIKE THE TEXTBOOK WHERE THE TRANSITION SYSTEM HAS A SINGLE RELATION
     // WE HAVE TWO SYSTEMS PER AGENT, AND POSSIBLY MANY AGENTS,
     // SO WHEN WE REFINE THE SYSTEM WE NEED TO DO SO USING EACH RELATION.
-    public Set<Set<World>> refineSystem() {
-        Set<Set<World>> partition = getInitialPartition();
-        Set<Set<World>> oldBlocks;
-        do {
-            oldBlocks = new HashSet<Set<World>>(partition);
-            for (Set<World> splitter : oldBlocks) {
-                for (String agent : agents) {
-                    splitBlocks(partition, splitter, agent);
-                }
-            }
-        } while (partition.size() != oldBlocks.size());
-        return partition;
-    }
+//    public Set<Set<World>> refineSystem() {
+//        Set<Set<World>> partition = getInitialPartition();
+//        Set<Set<World>> oldBlocks;
+//        do {
+//            oldBlocks = new HashSet<Set<World>>(partition);
+//            for (Set<World> splitter : oldBlocks) {
+//                for (String agent : agents) {
+//                    splitBlocks(partition, splitter, agent);
+//                }
+//            }
+//        } while (partition.size() != oldBlocks.size());
+//        return partition;
+//    }
 
 
     // THIS IS THE TOP-LEVEL FOR REDUCING THE KRIPKE STRUCTURE.
@@ -262,42 +265,42 @@ public class NDState implements java.io.Serializable {
     // 3. MAKE AND RETURN A MAP FROM OUR OLD WORLDS TO THE NEW ONES,
     //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
     // 3. INSTEAD, SET OUR NEW DESIGNATED WORLDS ACCORDING TO THE OLD ONES
-    public NDState reduce() {
-        Set<Set<World>> partition = refineSystem();
-
-        Map <World, World> oldToNew = new HashMap<>();
-
-        Set<World> newWorlds = new HashSet<>();
-
-        for (Set<World> block : partition) {
-            World newWorld = block.iterator().next();
-            newWorlds.add(newWorld);
-            for (World oldWorld : block) {
-                oldToNew.put(oldWorld, newWorld);
-            }
-        }
-
-        Set<World> newDesignated = new HashSet<>();
-
-        for (World d : designated) {
-            newDesignated.add(oldToNew.get(d));
-        }
-
-        NDState reduced = new NDState(agents, newWorlds, newDesignated);
-
-        for (Map.Entry<World, World> entry : oldToNew.entrySet()) {
-            World oldSource = entry.getKey();
-            World newSource = entry.getValue();
-            for (String agent : agents) {
-                for (World oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
-                    World newMorePlausible = oldToNew.get(oldMorePlausible);
-                    reduced.addMorePlausible(agent,newSource,newMorePlausible); 
-                }
-            }
-        }
-
-        return reduced;
-    }
+//    public NDState reduce() {
+//        Set<Set<World>> partition = refineSystem();
+//
+//        Map <World, World> oldToNew = new HashMap<>();
+//
+//        Set<World> newWorlds = new HashSet<>();
+//
+//        for (Set<World> block : partition) {
+//            World newWorld = block.iterator().next();
+//            newWorlds.add(newWorld);
+//            for (World oldWorld : block) {
+//                oldToNew.put(oldWorld, newWorld);
+//            }
+//        }
+//
+//        Set<World> newDesignated = new HashSet<>();
+//
+//        for (World d : designated) {
+//            newDesignated.add(oldToNew.get(d));
+//        }
+//
+//        NDState reduced = new NDState(agents, newWorlds, newDesignated);
+//
+//        for (Map.Entry<World, World> entry : oldToNew.entrySet()) {
+//            World oldSource = entry.getKey();
+//            World newSource = entry.getValue();
+//            for (String agent : agents) {
+//                for (World oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
+//                    World newMorePlausible = oldToNew.get(oldMorePlausible);
+//                    reduced.addMorePlausible(agent,newSource,newMorePlausible); 
+//                }
+//            }
+//        }
+//
+//        return reduced;
+//    }
 
 
 
@@ -415,7 +418,6 @@ public class NDState implements java.io.Serializable {
 
 
     public String toString() {
-        assert(worlds.containsAll(designated));
         StringBuilder str = new StringBuilder();
 
         List<World> worldsSorted = getWorlds().stream().collect(Collectors.toList());

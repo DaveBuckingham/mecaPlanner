@@ -85,9 +85,13 @@ public class Planner {
         DeplToProblem visitor     = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFileName);
 
+
         //System.out.println(problem.getDomain().getNonPassiveAgents());
         //System.out.println(problem.getSystemAgentIndex());
-        //System.exit(1);
+
+
+        System.out.println(problem.getStartState());
+        System.exit(1);
 
 
         Log.info("done loading problem");

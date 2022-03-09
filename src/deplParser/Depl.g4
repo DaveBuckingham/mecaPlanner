@@ -141,13 +141,12 @@ relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')'
        | from=LOWER_NAME'-'to=LOWER_NAME
        ;
 
-stateDef : '{' (stateAssertion ',')* stateAssertion? '}';
-stateAssertion : trueFluent=fluent
-               | '?' '[' agent ']' doubtedFluent=fluent
-               | 'B' '[' agent ']' believedTrueFluent=fluent
-               | 'B' '[' agent ']' OP_NOT believedFalseFluent=fluent
-               ;
 
+stateDef : '(' (fluent ','?)* (stateAssertion ','?)* ')';
+stateAssertion : doubts='?' '[' (agent ',')* agent ']' '(' fluent ')'
+               | believes='B' '[' (agent ',')* agent ']' '(' OP_NOT? fluent ')'
+               | knows='K' '[' (agent ',')* agent ']' formula
+               ;
 
 
 // INITIAL FORMULAE

@@ -59,6 +59,10 @@ public class EventModel implements Transformer {
         edges.put(new Triplet<String,Event,Event>(agent, from, to), f);
     }
 
+    public void addEdge(String agent, Event from, Event to) {
+        addEdge(agent, from, to, new Literal(true));
+    }
+
     private Set<Event> getEvents() {
         return events;
     }
@@ -83,7 +87,7 @@ public class EventModel implements Transformer {
         Map<World, Event> toParentEvent = new HashMap<>();
         for (Event event : getEvents()) {
             for (World world : beforeState.getWorlds()) {
-                if (event.getPrecondition().evaluate(world)) {
+                if (event.getPrecondition().evaluate(beforeState, world)) {
                     //String newName = world.getName() + "," + event.getName();
                     String newName = world.getName() + event.getName();
                     World newWorld = new World(newName, world.update(event.getEffects()));

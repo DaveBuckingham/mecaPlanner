@@ -2,6 +2,7 @@ package mecaPlanner.formulae;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.NDState;
@@ -59,7 +60,11 @@ public abstract class Formula {
     }
 
     public static Formula makeDisjunction(Set<Formula> disjuncts) {
-        return AndFormula.make(new ArrayList(disjuncts));
+        return makeDisjunction(new ArrayList(disjuncts));
+    }
+
+    public static Formula makeDisjunction(Formula ...disjuncts) {
+        return makeDisjunction(Arrays.asList(disjuncts));
     }
 
 

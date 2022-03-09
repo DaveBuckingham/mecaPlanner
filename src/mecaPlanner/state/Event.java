@@ -34,6 +34,10 @@ public class Event {
         this(null, precondition, effects);
     }
 
+    public Event(String name, Formula precondition, Assignment... effects) {
+        this(name, precondition, new HashSet<Assignment>(Arrays.asList(effects)));
+    }
+
     public Event(String name, Formula precondition) {
         this(name, precondition, new HashSet<Assignment>());
     }

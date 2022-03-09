@@ -1,52 +1,16 @@
-determines if
-
-when checking kripkes, make sure B is a subset of K
-
-if we put in a depl file multiple b-relations for some agent for some state, and no k relation,
-we get an exception in KripkeStructure breaking the assertion:
-assert(belief.keySet().equals(knowledge.keySet()));
-instead, this should be caught at parse time.
-
-
 improve makefile
-in depl, ommited kripke edges are caught with an assertion, but should be an exception
 fast check for agent type at depth
-
-
-NEEDED FOR AIJ PAPER
-    fail conditions?
-    all agents automatically perform observations after any agent's ontic and announcement actions?
-    replanning (policy updates?)?
-    !plan for model learning, track models through search tree
-    !model updates
-
-move check for right types of agents etc to planner instead of parser:
-e.g. should be able to have depls with no system agent just for testing actions
-
-stop early if cycles?
-
+fail conditions
+plan for model learning, track models through search tree, model updates
 add a new abstract class for NonPassiveAgents?
-
-redo test: getworlds only gives form worlds?
-
-beliefRelation and KnowledgeRelation subtypes, just for type safety in kripkeStructure constructor
-
 try to execute an action without preconditions satisfied, e.g. using test system: not caught except that there is no designated world...
-
-observesif uses undefined type in expansion, catch error
-
 can't expand on 'object' type?
-
 iterated dfs: iterate cost instead of # actions?
-
 hashCode and equals functions for actions, so we don't have to search through action names or whatever?
-
 heurisitics to speed search
 heuristics to stop before goal, time limits?
 common knowledge
 probability
-
-
 
 
 
