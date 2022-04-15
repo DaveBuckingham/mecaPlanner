@@ -170,7 +170,7 @@ variableDef : VARIABLE '-' objectType ;
 
 actionsSection : 'actions' '{' (eventModelDef | actionDef ','?)* '}' ;
 
-actionDef : LOWER_NAME actionScope=variableDefList '('
+actionDef : actionScope=variableDefList LOWER_NAME '('
     'owner' owner=groundableObject ','
     ('cost' cost=INTEGER ',')?
     (preconditionScope=variableDefList 'precondition' precondition=formula ',')?
