@@ -21,20 +21,17 @@ public class AndNode extends GNode {
                  List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Map<String, Agent> models,
-                 int systemAgentIndex,
                  Domain domain
                 ) {
 
-        super(estate, goal, timeConstraints, time, parent, models, systemAgentIndex, domain);
+        super(estate, goal, timeConstraints, time, parent, domain);
         // MAKE SURE ITS NOT THE SYSTEM AGENT'S TURN
-        assert(systemAgentIndex != time % domain.getNonPassiveAgents().size());
+        assert(!domain.isSystemAgentIndex(time));
     }
 
     protected Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<Action>();
-        //Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
-        Set<Action> prediction = models.get(agent).getPrediction(estate);
+        Set<Action> prediction = domain.getEnvironmentAgents().get(agent).getPrediction(estate);
 
         if (prediction == null) {
             throw new RuntimeException("Model returned null, indicating model failure.");
@@ -72,7 +69,7 @@ public class AndNode extends GNode {
         if (isCycle()) {
             return null;
         }
-        Integer bestCaseDepth = Integer.MAX_VALUE;
+        Integer bestDistanceToGoal = Integer.MAX_VALUE;
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
 
@@ -84,11 +81,11 @@ public class AndNode extends GNode {
 
             Set<OrNode> orSuccessors = successors.getOrLayer();
 
-            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
+            bestDistanceToGoal = Integer.min(bestDistanceToGoal, successors.getBestDistanceToGoal());
 
             allOrSuccessors.addAll(orSuccessors);
         }
-        return new GroundSuccessors(bestCaseDepth, allOrSuccessors);
+        return new GroundSuccessors(bestDistanceToGoal, allOrSuccessors);
     }
 }
 

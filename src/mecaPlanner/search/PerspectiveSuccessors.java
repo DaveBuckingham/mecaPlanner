@@ -5,17 +5,17 @@ import java.util.HashSet;
 
 public class PerspectiveSuccessors {
 
-    Integer bestCaseDepth;
+    Integer bestDistanceToGoal; // FROM START STATE GO GOAL, THORUGH THIS PATH
     Set<PNode> pLayer;
 
-    public PerspectiveSuccessors(Integer bestCaseDepth, Set<PNode> pLayer) {
-        this.bestCaseDepth = bestCaseDepth;
+    public PerspectiveSuccessors(Integer bestDistanceToGoal, Set<PNode> pLayer) {
+        this.bestDistanceToGoal = bestDistanceToGoal;
         this.pLayer = pLayer;
         assert(pLayer != null);
     }
 
-    Integer getBestCaseDepth() {
-        return bestCaseDepth;
+    Integer getBestDistanceToGoal() {
+        return bestDistanceToGoal;
     }
 
     Set<PNode> getPLayer() {

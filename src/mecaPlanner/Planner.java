@@ -90,8 +90,7 @@ public class Planner {
         //System.out.println(problem.getSystemAgentIndex());
 
 
-        System.out.println(problem.getStartState());
-        System.exit(1);
+        //System.out.println(problem.getStartState());
 
 
         Log.info("done loading problem");

@@ -19,12 +19,10 @@ public class OrNode extends GNode {
                  List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Map<String, Agent> models,
-                 int systemAgentIndex,
                  Domain domain
                 ) {
 
-        super(estate, goal, timeConstraints, time, parent, models, systemAgentIndex, domain);
+        super(estate, goal, timeConstraints, time, parent, domain);
     }
 
     // BOTTOM OUT A RECURSIVE DESCENT THROUGH AND NODES

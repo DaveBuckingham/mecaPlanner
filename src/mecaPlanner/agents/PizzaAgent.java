@@ -32,7 +32,7 @@ public class PizzaAgent extends Agent {
             }
         }
 
-        if (necessarily(ndState, "door_open")) {
+        if (!necessarily(ndState, "door_open")) {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
         else if (necessarily(ndState, "at", agent, "room1")) {

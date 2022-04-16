@@ -5,16 +5,22 @@ import java.util.HashSet;
 
 public class GroundSuccessors {
 
-    Integer bestCaseDepth;
+    Integer time;
+    Integer bestDistanceToGoal; // FROM START STATE GO GOAL, THORUGH THIS PATH
     Set<OrNode> orLayer;
 
-    public GroundSuccessors(Integer bestCaseDepth, Set<OrNode> orLayer) {
-        this.bestCaseDepth = bestCaseDepth;
+    public GroundSuccessors(Integer bestDistanceToGoal, Set<OrNode> orLayer) {
+        //this.time = time;
+        this.bestDistanceToGoal = bestDistanceToGoal;
         this.orLayer = orLayer;
     }
 
-    Integer getBestCaseDepth() {
-        return bestCaseDepth;
+//    Integer getTime() {
+//        return time;
+//    }
+
+    Integer getBestDistanceToGoal() {
+        return bestDistanceToGoal;
     }
 
     Set<OrNode> getOrLayer() {

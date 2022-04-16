@@ -52,7 +52,7 @@ public class Action implements Transformer {
         effects = new ArrayList<EventModel>();
         observesConditions = new HashMap<>();
         awareConditions = new HashMap<>();
-        for (String a : domain.getAgents()) {
+        for (String a : domain.getAllAgents()) {
             observesConditions.put(a, new Literal(false));
             awareConditions.put(a, new Literal(false));
         }
@@ -136,8 +136,8 @@ public class Action implements Transformer {
         Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
         Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
 
-        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
-        for (String agent : domain.getAgents()) {
+        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+        for (String agent : domain.getAllAgents()) {
             model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
             model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
             model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
@@ -164,8 +164,8 @@ public class Action implements Transformer {
         Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
         Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
 
-        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
-        for (String agent : domain.getAgents()) {
+        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+        for (String agent : domain.getAllAgents()) {
             model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
             model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
             model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
@@ -192,8 +192,8 @@ public class Action implements Transformer {
         Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
         Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
 
-        EventModel model = new EventModel(name, domain.getAgents(), events, designated);
-        for (String agent : domain.getAgents()) {
+        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+        for (String agent : domain.getAllAgents()) {
             model.addEdge(agent, onticEvent, onticEvent, new Literal(true));
             model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
 

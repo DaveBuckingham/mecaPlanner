@@ -18,7 +18,7 @@ objects{
 
 agents{
     robot1,
-    human1{PizzaModel},
+    human1{PizzaAgent},
 }
 
 fluents{
@@ -28,7 +28,13 @@ fluents{
     robot_charged(),
 }
 
-initially{at(human1, room1) & at(robot1, room1) & at(pizza,room1) & at(hotdog,room2) & human_hungry()}
+start{(at(human1,room1),
+       at(robot1,room1),
+       at(pizza,room1),
+       at(hotdog,room2),
+       human_hungry()
+      )
+}
 
 goals{
     robot_charged(),
@@ -37,49 +43,47 @@ goals{
 }
 
 actions{
-    move(?a-Actor,?f-Location,?t-Location){
-        owner{?a},
-        precondition{at(?a, ?f)},
-        precondition{~(at(?a, ?t))},
-        precondition{door_open()},
-        observes(?o-Actor){?o},
-        causes{at(?a, ?t)},
-        causes{~(at(?a, ?f))},
-    }
+    <?a-Actor,?f-Location,?t-Location>move(
+        owner ?a,
+        precondition at(?a,?f) & ~(at(?a,?t)) & door_open(),
+        <?o-Actor>observes ?o,
+        causes at(?a, ?t),
+        causes ~(at(?a, ?f)),
+    )
 
-    open_door(){
-        owner{human1},
-        precondition{~door_open()},
-        observes(?o-Actor){?o},
-        causes{door_open()},
-    }
+    open_door(
+        owner human1,
+        precondition ~door_open(),
+        <?o-Actor>observes ?o,
+        causes door_open(),
+    )
 
-    charge(){
-        owner{robot1},
-        precondition{at(robot1,room2)},
-        observes(?o-Actor){?o},
-        causes{robot_charged()},
-    }
+    charge(
+        owner robot1,
+        precondition at(robot1,room2),
+        <?o-Actor>observes ?o,
+        causes robot_charged(),
+    )
 
-    eat(?f-Food,?l-Location,?r-Robot){
-        owner{?r},
-        precondition{at(?r, ?l)},
-        precondition{at(?f, ?l)},
-        observes(?o-Actor){?o},
-        causes{~(at(?f, ?l))},
-    }
+    <?f-Food,?l-Location,?r-Robot>eat(
+        owner ?r,
+        precondition at(?r, ?l) & at(?f, ?l),
+        <?o-Actor>observes ?o,
+        causes ~(at(?f, ?l)),
+    )
 
-    eat(?f-Food,?l-Location,?h-Human){
-        owner{?h},
-        precondition{at(?h, ?l)},
-        precondition{at(?f, ?l)},
-        observes(?o-Actor){?o},
-        causes{~(at(?f, ?l))},
-        causes{~(human_hungry())},
-    }
+    <?f-Food,?l-Location,?h-Human>eat(
+        owner ?h,
+        precondition
+            at(?h, ?l) &
+            at(?f, ?l),
+        <?o-Actor>observes ?o,
+        causes ~(at(?f, ?l)),
+        causes ~(human_hungry()),
+    )
 
-    wait(?a - Actor) {
-        owner{?a},
-        observes(?o-Actor){?o},
-    }
+    <?a - Actor>wait(
+        owner ?a,
+        <?o-Actor>observes ?o,
+    )
 }

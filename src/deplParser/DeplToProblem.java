@@ -33,9 +33,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // THESE GO IN THE PROBLEM
     private Domain domain;
-    private Integer systemAgentIndex;
     private Set<State> startStates;
-    private Map<String, Agent> startingModels;
     private List<Formula> initially;
     private List<Formula> goals;
     private List<TimeConstraint> timeConstraints;
@@ -194,9 +192,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
-        this.systemAgentIndex = null;
         this.startStates = new HashSet<State>();
-        this.startingModels = new HashMap<>();
         this.initially = new ArrayList<>();
         this.goals = new ArrayList<>();
         this.timeConstraints = new ArrayList<>();
@@ -213,7 +209,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        return new Problem(domain, systemAgentIndex, startStates, startingModels, initially, goals, timeConstraints);
+        return new Problem(domain, startStates, goals, timeConstraints);
     }
 
 
@@ -281,15 +277,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitAgentsSection(DeplParser.AgentsSectionContext ctx) {
         visitChildren(ctx);
 
-        if (domain.getAllAgents().isEmpty()) {
+        if (domain.getTurnOrder().isEmpty()) {
             throw new RuntimeException("no agents defined");
         }
-
-        if (this.systemAgentIndex == null) {
-            throw new RuntimeException("no system agent defined");
-        }
-
-        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
 
         return null;
     }
@@ -297,37 +287,29 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitAgentDef(DeplParser.AgentDefContext ctx) {
         visitChildren(ctx);
         String agent = ctx.objectName().getText();
-
         if (!allObjects.containsKey(agent)) {
             throw new RuntimeException("agent " + agent + " is not a defined object.");
         }
-
         if (ctx.UPPER_NAME() == null) {
-            if (this.systemAgentIndex != null) {
-                throw new RuntimeException("cannot define multiple system agents");
-            }
-            this.systemAgentIndex = this.agentIndex;
+            domain.addSystemAgent(agent);
         }
         else {
             String modelClassName = "mecaPlanner.agents." + ctx.UPPER_NAME().getText();
             try {
                 Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
                 Agent eAgentModel = (Agent) constructor.newInstance(agent, domain);
-                startingModels.put(agent, eAgentModel);
+                domain.addEnvironmentAgent(agent, eAgentModel);
             }
             catch(Exception ex) {
                 System.out.println(ex.toString());
                 System.exit(1);
             }
         }
-        domain.addAgent(agent);
-        this.agentIndex += 1;
         return null;
     }
 
     @Override public Void visitPassiveSection(DeplParser.PassiveSectionContext ctx) {
         visitChildren(ctx);
-        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
         return null;
     }
 
@@ -337,7 +319,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (!allObjects.containsKey(name)) {
             throw new RuntimeException("passive agent " + name + " is not a defined object.");
         }
-        domain.addPassive(name);
+        domain.addPassiveAgent(name);
         return null;
     }
 
@@ -420,6 +402,7 @@ public class DeplToProblem extends DeplBaseVisitor {
             startStates.addAll(ndState.getStates());
         }
         for (DeplParser.StateDefContext stateDefCtx : ctx.stateDef()) {
+            //System.out.println("BUILDING STATE...");
             State state = (State) visit(stateDefCtx);
             startStates.add(state);
         }
@@ -493,7 +476,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         World designatedWorld = new World("d", trueFluents);
         Set<World> worlds = new HashSet<>();
         worlds.add(designatedWorld);
-        State state = new State(domain.getAgents(), worlds, designatedWorld);
+        State state = new State(domain.getAllAgents(), worlds, designatedWorld);
 
         for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
             List<String> agents = new ArrayList<>();
@@ -531,7 +514,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         Event alternative = new Event("v", someoneKnows, new Assignment(f, f.negate()));
         Set<Event> events = new HashSet<>(Arrays.asList(actual, alternative));
         Set<Event> designatedEvents = new HashSet<>(Arrays.asList(actual));
-        EventModel model = new EventModel("doubts-" + f, domain.getAgents(), events, designatedEvents);
+        EventModel model = new EventModel("doubts-" + f, domain.getAllAgents(), events, designatedEvents);
         for (String a : agents) {
             model.addEdge(a, actual, alternative);
             model.addEdge(a, alternative, actual);
@@ -544,7 +527,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
         String name = "believes-" + (!val ? "!" : "") + f;
-        EventModel model = new EventModel(name, domain.getAgents(), events, events);
+        EventModel model = new EventModel(name, domain.getAllAgents(), events, events);
         for (String a : agents) {
             if (val) {
                 model.addEdge(a, falseEvent, trueEvent);
@@ -561,8 +544,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
         Set<Event> designatedEvents = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
-        EventModel model = new EventModel("knows-" + f, domain.getAgents(), events, designatedEvents);
-        for (String a : domain.getAgents()) {
+        EventModel model = new EventModel("knows-" + f, domain.getAllAgents(), events, designatedEvents);
+        for (String a : domain.getAllAgents()) {
             if (!agents.contains(a)) {
                 model.addEdge(a, trueEvent, falseEvent);
                 model.addEdge(a, falseEvent, trueEvent);

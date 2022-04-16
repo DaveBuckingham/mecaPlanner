@@ -73,7 +73,7 @@ public class PNode extends RecursiveTask<Integer> {
         }
         Set<PNode> potentialSuccessors = successorsWithScore.getPLayer();
 
-        Integer best = successorsWithScore.getBestCaseDepth();
+        Integer best = successorsWithScore.getBestDistanceToGoal();
 
 
 
@@ -124,7 +124,7 @@ public class PNode extends RecursiveTask<Integer> {
                 continue;
             }
 
-            Integer actionBestScore = successorsWithScore.getBestCaseDepth();
+            Integer actionBestScore = successorsWithScore.getBestDistanceToGoal();
 
             if (actionBestScore < bestBestCaseDepth) {
                 successfulAction = action;
@@ -142,8 +142,6 @@ public class PNode extends RecursiveTask<Integer> {
         Integer bestCaseDepth = Integer.MAX_VALUE;
         for (OrNode ground : grounds ){
 
-            //assert(ground.getState().getKripke().checkRelations());
-
             GroundSuccessors successors = ground.transition(action).descend();
 
             if (successors == null) {
@@ -152,7 +150,7 @@ public class PNode extends RecursiveTask<Integer> {
 
             Set<OrNode> gSuccessors = successors.getOrLayer();
 
-            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
+            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestDistanceToGoal());
 
             for (OrNode gSuccessor : gSuccessors) {
                 Perspective successorPerspective = new Perspective(gSuccessor.getState(), gSuccessor.getAgent());
@@ -162,10 +160,15 @@ public class PNode extends RecursiveTask<Integer> {
                 successorPerspectives.get(successorPerspective).add(gSuccessor);
             }
         }
+
+
         
         Set<PNode> successorNodes = new HashSet<>();
         for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
-            int newTime = time + domain.getNonPassiveAgents().size();
+            int newTime = time + 1;
+            while (!domain.isSystemAgentIndex(newTime)) {
+                newTime++;
+            }
             successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, maxDepth, domain));
         }
         return new PerspectiveSuccessors(bestCaseDepth, successorNodes);

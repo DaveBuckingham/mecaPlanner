@@ -22,7 +22,7 @@ public class Search {
 
     private Domain domain;
     private Problem problem;
-    private int leavesPerDepth;
+    //private int leavesPerDepth;
 
 
     public Search() {
@@ -33,9 +33,6 @@ public class Search {
         this.problem = problem;
         this.domain = problem.getDomain();
 
-        if (problem.getSystemAgentIndex() == null) {
-            throw new RuntimeException("system agent not defined");
-        }
         if (problem.getStartStates().isEmpty()) {
             throw new RuntimeException("no start state defined");
         }
@@ -45,10 +42,10 @@ public class Search {
 
         // SHOULD ADD OTHER CHECKS
 
-        leavesPerDepth = 0;
-        for (String agent : domain.getNonPassiveAgents()) {
-            leavesPerDepth += domain.getActions(agent).size();
-        }
+        //leavesPerDepth = 0;
+        //for (String agent : domain.getNonPassiveAgents()) {
+        //    leavesPerDepth += domain.getActions(agent).size();
+        //}
 
         Set<State> startStates = problem.getStartStates();
 
@@ -56,24 +53,21 @@ public class Search {
             eState.checkRelations();
         }
 
-        int systemAgentIndex = problem.getSystemAgentIndex();
+        //int systemAgentIndex = problem.getSystemAgentIndex();
 
-        int numAgents = domain.getNonPassiveAgents().size();
 
         Formula goal = problem.getGoal();
         List<TimeConstraint> timeConstraints = problem.getTimeConstraints();
         int time = 0;
 
         Set<OrNode> allStartOrNodes = new HashSet<>();
-        if (time == systemAgentIndex) {
+        if (domain.isSystemAgentIndex(time)) {
             for (State eState : startStates) {
                 allStartOrNodes.add(new OrNode(eState,
                                                goal, 
                                                timeConstraints,
                                                0, 
                                                null, 
-                                               problem.getStartingModels(), 
-                                               systemAgentIndex, 
                                                domain
                                               ));
             }
@@ -85,8 +79,6 @@ public class Search {
                                                    timeConstraints,
                                                    0, 
                                                    null, 
-                                                   problem.getStartingModels(), 
-                                                   systemAgentIndex, 
                                                    domain
                                                   );
 
@@ -96,20 +88,21 @@ public class Search {
                     return null;
                 }
 
-
                 allStartOrNodes.addAll(startOrNodesWithScore.getOrLayer());
             }
         }
 
-        time = systemAgentIndex;
+        while (!domain.isSystemAgentIndex(time)) {
+            time++;
+        }
 
         int maxDepth = 0;
         Solution solution = null;
         while (solution == null) {
             System.out.print(maxDepth);
             System.out.print("\t");
-            System.out.print(Math.round(Math.pow(leavesPerDepth, maxDepth)));
-            System.out.print("\t");
+            //System.out.print(Math.round(Math.pow(leavesPerDepth, maxDepth)));
+            //System.out.print("\t");
             System.out.print("\n");
             solution = searchToDepth(allStartOrNodes, time,  maxDepth);
             maxDepth += 1;

@@ -22,7 +22,6 @@ public abstract class GNode  {
     protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
-    protected Map<String, Agent> models;
     protected Domain domain;
 
     protected String agent;
@@ -32,15 +31,12 @@ public abstract class GNode  {
 
     
 
-    private int systemAgentIndex;
 
     public GNode(State estate,
                  Formula goal,
                  List<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
-                 Map<String, Agent> models,
-                 int systemAgentIndex,
                  Domain domain
                 ) {
         this.estate = estate;
@@ -48,14 +44,12 @@ public abstract class GNode  {
         this.timeConstraints = timeConstraints;
         this.time = time;
         this.parent = parent;
-        this.models = models;
         this.successors = new HashSet<GNode>();
-        this.systemAgentIndex = systemAgentIndex;
         this.domain = domain;
 
-        this.numAgents = domain.getNonPassiveAgents().size();
+        this.numAgents = domain.getTurnOrder().size();
         this.agentIndex = this.time % this.numAgents;
-        this.agent = domain.getNonPassiveAgents().get(agentIndex);
+        this.agent = domain.agentAtTime(agentIndex);
 
     }
 
@@ -73,10 +67,6 @@ public abstract class GNode  {
 
     public Integer getTime() {
         return time;
-    }
-
-    public Map<String, Agent> getModels() {
-        return models;
     }
 
     public boolean isGoal() {
@@ -110,26 +100,21 @@ public abstract class GNode  {
 
     public GNode transition(Action action) {
         State newState = action.transition(estate);
-        //Action.UpdatedStateAndEAgents transitionResult = action.transition(estate, models);
         int nextTime = time+1;
-        if (nextTime % numAgents == systemAgentIndex) {
-            return new OrNode(newState, //transitionResult.getState(),
+        if (domain.isSystemAgentIndex(nextTime)) {
+            return new OrNode(newState,
                               goal,
                               timeConstraints,
                               nextTime,
                               this,
-                              models, //transitionResult.getAgents(),
-                              systemAgentIndex,
                               domain);
         }
         else {
-            return new AndNode(newState, //transitionResult.getState(),
+            return new AndNode(newState,
                                goal,
                                timeConstraints,
                                nextTime,
                                this,
-                               models, //transitionResult.getAgents(),
-                               systemAgentIndex,
                                domain);
         }
     }

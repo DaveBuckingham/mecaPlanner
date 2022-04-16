@@ -1,6 +1,5 @@
 package mecaPlanner;
 
-import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.State;
 
@@ -14,27 +13,19 @@ import java.util.ArrayList;
 public class Problem implements java.io.Serializable {
 
     private Domain domain;
-    private int systemAgentIndex;
     private Set<State> startStates;
-    private Map<String, Agent> startingModels;
     private List<Formula> initially;
     private List<Formula> goals;
     private List<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
-                   int systemAgentIndex,
                    Set<State> startStates,
-                   Map<String,Agent> startingModels,
-                   List<Formula> initially,
                    List<Formula> goals,
                    List<TimeConstraint> timeConstraints
                   ) {
         this.domain = domain;
-        this.systemAgentIndex = systemAgentIndex;
         this.startStates = startStates;
-        this.startingModels = startingModels;
-        this.initially = initially;
         this.goals = goals;
         this.timeConstraints = timeConstraints;
     }
@@ -51,13 +42,7 @@ public class Problem implements java.io.Serializable {
         return startStates.iterator().next();
     }
 
-    public Integer getSystemAgentIndex() {
-        return systemAgentIndex;
-    }
 
-    public List<Formula> getInitially() {
-        return initially;
-    }
 
     public List<Formula> getGoals() {
         return goals;
@@ -72,10 +57,6 @@ public class Problem implements java.io.Serializable {
             return goals.iterator().next();
         }
         return AndFormula.make(goals);
-    }
-
-    public Map<String, Agent> getStartingModels() {
-        return startingModels;
     }
 
     public Domain getDomain() {
