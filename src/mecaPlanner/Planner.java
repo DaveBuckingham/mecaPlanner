@@ -92,6 +92,9 @@ public class Planner {
 
         //System.out.println(problem.getStartState());
 
+        //System.out.println(problem);
+        //System.exit(1);
+
 
         Log.info("done loading problem");
 

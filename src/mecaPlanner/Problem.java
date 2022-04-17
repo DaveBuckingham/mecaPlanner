@@ -67,8 +67,8 @@ public class Problem implements java.io.Serializable {
     public String toString() {
         StringBuilder str = new StringBuilder();
 
-        //str.append("DOMAIN:\n");
-        //str.append(domain);
+        str.append("DOMAIN:\n");
+        str.append(domain);
 
         str.append("INITIALLY:\n");
         for (State s : startStates) {

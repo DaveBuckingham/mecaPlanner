@@ -145,7 +145,7 @@ relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')'
 stateDef : '(' (fluent ','?)* (stateAssertion ','?)* ')';
 stateAssertion : doubts='?' '[' (agent ',')* agent ']' '(' fluent ')'
                | believes='B' '[' (agent ',')* agent ']' '(' OP_NOT? fluent ')'
-               | knows='K' '[' (agent ',')* agent ']' formula
+               | knows='K' '[' (agent ',')* agent ']' '(' formula ')'
                ;
 
 

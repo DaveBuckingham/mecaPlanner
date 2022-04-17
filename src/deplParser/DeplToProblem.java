@@ -209,6 +209,14 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
+        for (State s : startStates) {
+            for (Formula f : initially) {
+                if (!f.evaluate(s)) {
+                    throw new RuntimeException("initially formula not satisfied: " + f.toString());
+                }
+            }
+        }
+
         return new Problem(domain, startStates, goals, timeConstraints);
     }
 

@@ -14,6 +14,8 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 
+// A GROUND NODE. COULD BE EITHER AN 'AND' OR AN 'OR'.
+
 
 public abstract class GNode  {
     protected State estate;

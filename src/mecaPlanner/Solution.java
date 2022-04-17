@@ -59,6 +59,7 @@ public class Solution implements java.io.Serializable{
             str.append(i);
             str.append("---\n");
             str.append(perspectives.get(i));
+            str.append("\n");
         }
         str.append("SOLUTION ACTIONS:\n");
         str.append(printPlan(perspectiveNames, 0));

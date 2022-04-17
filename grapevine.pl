@@ -7,7 +7,7 @@ use feature qw(say);
 
 #             AGENTS    ROOMS
 my @TRIALS = (
-              [2,        2],
+              [2,        1],
 #              [2,        3]
              );
 
@@ -43,6 +43,9 @@ foreach my $trial (@TRIALS) {
         foreach my $agent (@agents) {
             print FH "$agent-Actor,"
         }
+        foreach my $room (@rooms) {
+            print FH "$room-Room,"
+        }
     print FH "}\n";
 
     print FH "agents{";
@@ -58,6 +61,26 @@ foreach my $trial (@TRIALS) {
         print FH "at(Actor,Room)";
     print FH "}\n";
 
+    print FH "start{(";
+        foreach my $secret (@secrets) {
+            print FH "$secret, ";
+        }
+        foreach my $agent (@agents) {
+            print FH "at($agent, r1), ";
+        }
+        foreach my $agent (@agents) {
+            foreach my $secret (@secrets) {
+                if (substr($agent,1,1) eq substr($secret,1,1)) {
+                    print FH "K[$agent]($secret),";
+                }
+                else {
+                    print FH "?[$agent]($secret),";
+                }
+            }
+        }
+    print FH ")}\n";
+
+
     print FH "initially{";
         foreach my $secret (@secrets) {
             print FH "$secret, ";
@@ -65,9 +88,30 @@ foreach my $trial (@TRIALS) {
         foreach my $agent (@agents) {
             print FH "at($agent, r1), ";
         }
+        foreach my $agent (@agents) {
+            foreach my $secret (@secrets) {
+                if (substr($agent,1,1) eq substr($secret,1,1)) {
+                    print FH "K[$agent]($secret),";
+                    print FH "B[$agent]($secret),";
+                }
+                else {
+                    print FH "~K[$agent]($secret),";
+                    print FH "~K[$agent](!$secret),";
+                    print FH "~B[$agent]($secret),";
+                    print FH "~B[$agent](!$secret),";
+                }
+            }
+        }
     print FH "}\n";
 
+
     print FH "goals{";
+        print FH "true";
+        foreach my $agent (@agents) {
+            foreach my $secret (@secrets) {
+                #print FH "B[$agent]($secret),";
+            }
+        }
     print FH "}\n";
 
     say FH "actions{";
@@ -83,7 +127,7 @@ foreach my $trial (@TRIALS) {
         say FH "    <?a-Actor, ?f-Room, ?t-Room>move(owner ?a, precondition at(?a,?f), <?g-Actor>observes ?g, causes ~at(?a,?f), causes at(?a,?t))";
     print FH "}\n";
 
-    `./mecad $TEMP_FILE`;
+    system("./mecad $TEMP_FILE");
 
     close(FH);
 }
