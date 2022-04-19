@@ -7,7 +7,7 @@ use feature qw(say);
 
 #             AGENTS    ROOMS
 my @TRIALS = (
-              [2,        1],
+              [3,        2],
 #              [2,        3]
              );
 
@@ -105,11 +105,17 @@ foreach my $trial (@TRIALS) {
     print FH "}\n";
 
 
-    print FH "goals{";
-        print FH "true";
-        foreach my $agent (@agents) {
-            foreach my $secret (@secrets) {
-                #print FH "B[$agent]($secret),";
+    print FH "goals{\n";
+        foreach my $i (1..$num_agents) {
+            foreach my $j (1..$num_agents) {
+                if ($i != $j) {
+                    if (($j == $i+1)  || ($i == $num_agents && $j == 1)) {
+                        print FH "B[a$j](s$i()),\n";
+                    }
+                    else {
+                        print FH "~B[a$j](s$i()),\n";
+                    }
+                }
             }
         }
     print FH "}\n";
@@ -121,7 +127,7 @@ foreach my $trial (@TRIALS) {
      say FH "    <?r - Room>tell(owner $a,\
                                  precondition at($a,?r),
                                  <?g-Actor>observes ?g if at(?g,?r),
-                                 <?g-Actor>aware ?g if ~at(?g,?r), 
+                                 //<?g-Actor>aware ?g if ~at(?g,?r), 
                                  announces $s)";
         }
         say FH "    <?a-Actor, ?f-Room, ?t-Room>move(owner ?a, precondition at(?a,?f), <?g-Actor>observes ?g, causes ~at(?a,?f), causes at(?a,?t))";

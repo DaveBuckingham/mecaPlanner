@@ -23,7 +23,6 @@ import org.javatuples.Triplet;
 
 
 
-// THE BISIMULATION QUOTIENTING ALGORITHM IS FROM "PRINCIPLES OF MODEL CHECKING" BY BAIER AND KATOEN.
 
 
 public class NDState implements java.io.Serializable {
@@ -89,6 +88,18 @@ public class NDState implements java.io.Serializable {
         return this.designated;
     }
 
+
+    private void setMorePlausible(String agent, World lessPlausible, Set<World> morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.containsAll(morePlausible));
+        lessToMorePlausible.get(agent).put(lessPlausible, morePlausible);
+    }
+
+    private void setLessPlausible(String agent, World morePlausible, Set<World> lessPlausible) {
+        assert (worlds.contains(morePlausible));
+        assert (worlds.containsAll(lessPlausible));
+        moreToMorePlausible.get(agent).put(morePlausible, lessPlausible);
+    }
 
 
     public void addMorePlausible(String agent, World lessPlausible, World morePlausible) {
@@ -178,32 +189,32 @@ public class NDState implements java.io.Serializable {
 
 
 
-//     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
-//     private Set<Set<World>> getInitialPartition() {
-//         Set<Set<World>> partition = new HashSet<>();
-//         for (World w : worlds) {
-//             boolean foundPart = false;
-//             for (Set<World> part : partition) {
-//                 assert(!part.isEmpty());
-//                 World sample = part.iterator().next();
-//                 if (sample.equals(w)) {
-//                     part.add(w);
-//                     foundPart = true;
-//                     break;
-//                 }
-//             }
-//             if (!foundPart) {
-//                 Set<World> newPart = new HashSet<>();
-//                 newPart.add(w);
-//                 partition.add(newPart);
-//             }
-//         }
-//         // ITS IMPORTANT NOT TO RETURN partition BECAUSE WE 
-//         // MODIFIED IT'S ELEMENTS AFTER WE INSERTED THEM
-//         // AND THOSE MODIFICATIONS CHANGED THEIR HASHCODES
-//         // SO WE MAKE A NEW HASHSET, WHICH RECOMPUTES THE HASH CODES
-//         return new HashSet<Set<World>>(partition);
-//     }
+     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
+     private Set<Set<World>> getInitialPartition() {
+         Set<Set<World>> partition = new HashSet<>();
+         for (World w : worlds) {
+             boolean foundPart = false;
+             for (Set<World> part : partition) {
+                 assert(!part.isEmpty());
+                 World sample = part.iterator().next();
+                 if (sample.equals(w)) {
+                     part.add(w);
+                     foundPart = true;
+                     break;
+                 }
+             }
+             if (!foundPart) {
+                 Set<World> newPart = new HashSet<>();
+                 newPart.add(w);
+                 partition.add(newPart);
+             }
+         }
+         // ITS IMPORTANT NOT TO RETURN partition BECAUSE WE 
+         // MODIFIED IT'S ELEMENTS AFTER WE INSERTED THEM
+         // AND THOSE MODIFICATIONS CHANGED THEIR HASHCODES
+         // SO WE MAKE A NEW HASHSET, WHICH RECOMPUTES THE HASH CODES
+         return new HashSet<Set<World>>(partition);
+     }
 
 
 //    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
@@ -240,19 +251,19 @@ public class NDState implements java.io.Serializable {
     // UNLIKE THE TEXTBOOK WHERE THE TRANSITION SYSTEM HAS A SINGLE RELATION
     // WE HAVE TWO SYSTEMS PER AGENT, AND POSSIBLY MANY AGENTS,
     // SO WHEN WE REFINE THE SYSTEM WE NEED TO DO SO USING EACH RELATION.
-//    public Set<Set<World>> refineSystem() {
-//        Set<Set<World>> partition = getInitialPartition();
-//        Set<Set<World>> oldBlocks;
-//        do {
-//            oldBlocks = new HashSet<Set<World>>(partition);
-//            for (Set<World> splitter : oldBlocks) {
-//                for (String agent : agents) {
-//                    splitBlocks(partition, splitter, agent);
-//                }
-//            }
-//        } while (partition.size() != oldBlocks.size());
-//        return partition;
-//    }
+    public Set<Set<World>> refineSystem() {
+        Set<Set<World>> partition = getInitialPartition();
+        Set<Set<World>> oldBlocks;
+        do {
+            oldBlocks = new HashSet<Set<World>>(partition);
+            for (Set<World> splitter : oldBlocks) {
+                for (String agent : agents) {
+                    splitBlocks(partition, splitter, agent);
+                }
+            }
+        } while (partition.size() != oldBlocks.size());
+        return partition;
+    }
 
 
     // THIS IS THE TOP-LEVEL FOR REDUCING THE KRIPKE STRUCTURE.
@@ -265,65 +276,72 @@ public class NDState implements java.io.Serializable {
     // 3. MAKE AND RETURN A MAP FROM OUR OLD WORLDS TO THE NEW ONES,
     //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
     // 3. INSTEAD, SET OUR NEW DESIGNATED WORLDS ACCORDING TO THE OLD ONES
-//    public NDState reduce() {
-//        Set<Set<World>> partition = refineSystem();
-//
-//        Map <World, World> oldToNew = new HashMap<>();
-//
-//        Set<World> newWorlds = new HashSet<>();
-//
-//        for (Set<World> block : partition) {
-//            World newWorld = block.iterator().next();
-//            newWorlds.add(newWorld);
-//            for (World oldWorld : block) {
-//                oldToNew.put(oldWorld, newWorld);
-//            }
-//        }
-//
-//        Set<World> newDesignated = new HashSet<>();
-//
-//        for (World d : designated) {
-//            newDesignated.add(oldToNew.get(d));
-//        }
-//
-//        NDState reduced = new NDState(agents, newWorlds, newDesignated);
-//
-//        for (Map.Entry<World, World> entry : oldToNew.entrySet()) {
-//            World oldSource = entry.getKey();
-//            World newSource = entry.getValue();
-//            for (String agent : agents) {
-//                for (World oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
-//                    World newMorePlausible = oldToNew.get(oldMorePlausible);
-//                    reduced.addMorePlausible(agent,newSource,newMorePlausible); 
-//                }
-//            }
-//        }
-//
-//        return reduced;
-//    }
+    public NDState reduce() {
+        Set<Set<World>> partition = refineSystem();
+
+        Map <World, World> oldToNew = new HashMap<>();
+
+        Set<World> newWorlds = new HashSet<>();
+
+        for (Set<World> block : partition) {
+            World newWorld = block.iterator().next();
+            newWorlds.add(newWorld);
+            for (World oldWorld : block) {
+                oldToNew.put(oldWorld, newWorld);
+            }
+        }
+
+        Set<World> newDesignated = new HashSet<>();
+
+        for (World d : designated) {
+            newDesignated.add(oldToNew.get(d));
+        }
+
+        NDState reduced = new NDState(agents, newWorlds, newDesignated);
+
+        for (Map.Entry<World, World> entry : oldToNew.entrySet()) {
+            World oldSource = entry.getKey();
+            World newSource = entry.getValue();
+            for (String agent : agents) {
+                for (World oldMorePlausible : lessToMorePlausible.get(agent).get(oldSource)) {
+                    World newMorePlausible = oldToNew.get(oldMorePlausible);
+                    reduced.addMorePlausible(agent,newSource,newMorePlausible); 
+                }
+            }
+        }
+
+        return reduced;
+    }
 
 
 
-//    public NDState union(NDState other) {
-//        assert (this != other);
-//
-//        Set<World> unionWorlds = new HashSet<World>(worlds);
-//        unionWorlds.addAll(other.getWorlds());
-//
-//        Set<World> unionDesignated = new HashSet<World>(designated);
-//        unionDesignated.addAll(other.getDesignated());
-//
-//        NDState unionNDState = new NDState(agents, unionWorlds, unionDesignated);
-//
-//        for (String agent : agents) {
-//            for (T p : unionWorlds) {
-//            }
-//            HERE
-//            unionKnowledge.put(agent, knowledgeRelations.get(agent).union(other.getKnowledgeRelations().get(agent)));
-//        }
-//
-//        return new KripkeStructure(unionTs, unionBelief, unionKnowledge);
-//    }
+    public NDState union(NDState other) {
+        assert (this != other);
+
+        assert (Collections.disjoint(worlds, other.getWorlds()));
+
+        Set<World> unionWorlds = new HashSet<World>(worlds);
+        unionWorlds.addAll(other.getWorlds());
+
+        Set<World> unionDesignated = new HashSet<World>(designated);
+        unionDesignated.addAll(other.getDesignated());
+
+        NDState unionNDState = new NDState(agents, unionWorlds, unionDesignated);
+
+        for (String agent : agents) {
+            for (String agent : agents) {
+                for (World w : worlds) {
+                    unionNDState.setMorePlausible(agent, w, getMorePlausible(agent, w));
+                    unionNDState.setLessPlausible(agent, w, getLessPlausible(agent, w));
+                }
+                for (World w : other.getWorlds()) {
+                    unionNDState.setMorePlausible(agent, w, other.getMorePlausible(agent, w));
+                    unionNDState.setLessPlausible(agent, w, other.getLessPlausible(agent, w));
+                }
+            }
+        }
+        return unionNDState;
+    }
 
 
 
@@ -382,7 +400,8 @@ public class NDState implements java.io.Serializable {
 
 
     @Override
-    public boolean equals(Object obj) {
+    //public boolean equals(Object obj) {
+    private boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
@@ -395,18 +414,21 @@ public class NDState implements java.io.Serializable {
         return false;
     }
 
-    //private Boolean equivalent(NDState other) {
-    //    NDState unioned = union(other);
+    private Boolean bisimilar(NDState other) {
+        if (equals(other)) {
+            return true;
+        }
+        NDState unioned = union(other);
 
-    //    Set<World> otherInitials = other.getDesignated();
+        Set<World> otherInitials = other.getDesignated();
 
-    //    for (Set<World> block : union.refineSystem()) {
-    //        if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
-    //            return false;
-    //        }
-    //    }
-    //    return true;
-    //}
+        for (Set<World> block : union.refineSystem()) {
+            if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
+                return false;
+            }
+        }
+        return true;
+    }
 
 
     @Override
@@ -455,7 +477,7 @@ public class NDState implements java.io.Serializable {
 
 
 //    public Void reduce() {
-//        Map<World,World> oldWorldsToNew = model.reduce();
+//        Map<World,World> oldWorldsToNew = model.reuce();
 //        Set<World> newDesignated = new HashSet<World>();
 //        for (World w : designated) {
 //            newDesignated.add(oldWorldsToNew.get(w));
