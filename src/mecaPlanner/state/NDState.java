@@ -37,6 +37,10 @@ public class NDState implements java.io.Serializable {
     protected Map<String, Map<World, Set<World>>> lessToMorePlausible;
     protected Map<String, Map<World, Set<World>>> moreToLessPlausible;
 
+    //protected Map<String, Set<Set<World>>> epistemicClasses;
+
+    protected Map<Set<Fluent>, Set<World>> valuationClasses;
+
 
     public NDState(List<String> agents, Set<World> worlds, Set<World> designated) {
         assert(!worlds.isEmpty());
@@ -60,6 +64,28 @@ public class NDState implements java.io.Serializable {
                 moreToLessPlausible.get(agent).get(t).add(t);
             }
         }
+
+        //this.epistemicClasses = new HashMap<>();
+        //for (String agent : agents) {
+        //    epistemicClasses.put(agent, new HashSet<>());
+        //    for (World w : worlds) {
+        //        Set<World> selfSet = new HashSet<>();
+        //        selfSet.add(w);
+        //        epistemiClasses.get(agent).add(selfSet);
+        //    }
+        //}
+
+        protected Map<String, Set<Set<World>>> epistemicClasses;
+
+        this.valuationClasses = new HashMap<>();
+        for (World w : worlds) {
+            Set<Fluent> valuation = w.getFluents();
+            if (!valuationClasses.containsKey(valuation) {
+                valuationClasses.get(valuation).add(w);
+            }
+            valuationClasses.get(valuation).add(w);
+        }
+        normalize();
     }
 
     //public NDState(NDState toCopy) {
@@ -98,7 +124,7 @@ public class NDState implements java.io.Serializable {
     private void setLessPlausible(String agent, World morePlausible, Set<World> lessPlausible) {
         assert (worlds.contains(morePlausible));
         assert (worlds.containsAll(lessPlausible));
-        moreToMorePlausible.get(agent).put(morePlausible, lessPlausible);
+        moreToLessPlausible.get(agent).put(morePlausible, lessPlausible);
     }
 
 
@@ -120,6 +146,25 @@ public class NDState implements java.io.Serializable {
         for (World w : getLessPlausible(agent, lessPlausible)) {
             addMorePlausible(agent, lessPlausible, morePlausible);
         }
+    }
+
+    public Set<World> getEpistemicallyConnected(agent, World u) {
+        Set<World> connected = new HashSet(lessToMorePlausible.get(agent).get(u));
+        connected.addAll(moreTolessPlausible.get(agent).get(v));
+        return connected;
+    }
+
+    public boolean epistemicallyConnected(String agent, World u, World v) {
+        return (lessToMorePlausible.get(agent).get(u).contains(v) || lessToMorePlausible.get(agent).get(v).contains(u));
+    }
+
+    public boolean epistemicallyConnected(World u, World v) {
+        for (String a : agents) { 
+            if (!epistemicallyConnected(a, u, v)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public boolean isConnected(String agent, World lessPlausible, World morePlausible) {
@@ -148,6 +193,331 @@ public class NDState implements java.io.Serializable {
             }
         }
         return mostPlausible;
+    }
+
+    private boolean isMorePlausible(String agent, Set<World> more, Set<World> less) {
+        for (World l : less) {
+            if (!lessToMorePlausible.get(agent).get(l).containsAll(more)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Boolean isMinimal(String agent, World w) {
+        for (World t : getMorePlausible(agent, w)) {
+            if (!isConnected(agent, t,w)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Set<World> getPossible(String agent, World root) {
+        Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(root));
+        accessible.addAll(moreToLessPlausible.get(agent).get(root));
+        return accessible;
+    }
+
+    public List<String> getAgents() {
+        return agents;
+    }
+
+    public Set<State> getStates() {
+        Set<State> states = new HashSet<State>();
+        for (World w : designated) {
+            State subState = new State(agents, worlds, w);
+            for (String agent : agents) {
+                for (World f : getWorlds()) {
+                    for (World t : getMorePlausible(agent, f)) {
+                        subState.addMorePlausible(agent, f, t);
+                    }
+                }
+            }
+            states.add(subState);
+        }
+        return states;
+    }
+
+
+
+
+
+     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
+     private Set<Set<World>> getInitialPartition() {
+         Set<Set<World>> partition = new HashSet<>();
+         for (World w : worlds) {
+             boolean foundPart = false;
+             for (Set<World> part : partition) {
+                 assert(!part.isEmpty());
+    }
+
+    //public NDState(NDState toCopy) {
+    //    model = new NDState(toCopy.getNDState());
+    //    designated = new HashSet<World>();
+    //    for (World d : toCopy.getDesignatedWorlds()) {
+    //        designated.add(d.getChild());
+    //    }
+    //}
+
+
+    //public NDState(NDState toCopy) {
+    //    this(new HashSet<String>(toCopy.getAgents(), new HashSet<World>(toCopy.getWorlds());
+    //    this.morePlausible = new HashMap<String, Relation>(toCopy.getMorePlausible());
+    //    this.lessPlausible = new HashMap<String, Relation>(toCopy.lessPlausible());
+    //}
+
+    public Set<World> getWorlds() {
+        return worlds;
+    }
+    public Set<World> getWorldsCopy() {
+        return worlds;
+    }
+
+    public Set<World> getDesignated() {
+        return this.designated;
+    }
+
+
+    private void setMorePlausible(String agent, World lessPlausible, Set<World> morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.containsAll(morePlausible));
+        lessToMorePlausible.get(agent).put(lessPlausible, morePlausible);
+    }
+
+    private void setLessPlausible(String agent, World morePlausible, Set<World> lessPlausible) {
+        assert (worlds.contains(morePlausible));
+        assert (worlds.containsAll(lessPlausible));
+        moreToLessPlausible.get(agent).put(morePlausible, lessPlausible);
+    }
+
+
+    public void addMorePlausible(String agent, World lessPlausible, World morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.contains(morePlausible));
+        lessToMorePlausible.get(agent).get(lessPlausible).add(morePlausible);
+        moreToLessPlausible.get(agent).get(morePlausible).add(lessPlausible);
+    }
+
+    public void addMorePlausible(String agent, World lessPlausible, Set<World> morePlausible) {
+        for (World t : morePlausible) {
+            addMorePlausible(agent, lessPlausible, t);
+        }
+    }
+
+    public void addMorePlausibleTransitive(String agent, World lessPlausible, World morePlausible) {
+        addMorePlausible(agent, lessPlausible, lessToMorePlausible.get(agent).get(morePlausible));
+        for (World w : getLessPlausible(agent, lessPlausible)) {
+            addMorePlausible(agent, lessPlausible, morePlausible);
+        }
+    }
+
+    public boolean epistemicallyConnected(String agent, World u, World v) {
+        return (lessToMorePlausible.get(agent).get(u).contains(v) || lessToMorePlausible.get(agent).get(v).contains(u));
+    }
+
+    public boolean epistemicallyConnected(World u, World v) {
+        for (String a : agents) { 
+            if (!epistemicallyConnected(a, u, v)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isConnected(String agent, World lessPlausible, World morePlausible) {
+        return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
+    }
+
+    public boolean isConnectedStrict(String agent, World lessPlausible, World morePlausible) {
+        return  (lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible) && 
+                 !lessToMorePlausible.get(agent).get(morePlausible).contains(lessPlausible));
+    }
+
+    public Set<World> getMorePlausible(String agent, World lessPlausible) {
+        return lessToMorePlausible.get(agent).get(lessPlausible);
+    }
+
+    public Set<World> getLessPlausible(String agent, World morePlausible) {
+        return moreToLessPlausible.get(agent).get(morePlausible);
+    }
+
+    public Set<World> getMostPlausible(String agent, World lessPlausible) {
+        Set<World> morePlausible = getMorePlausible(agent, lessPlausible);
+        Set<World> mostPlausible = new HashSet<>();
+        for (World t : morePlausible) {
+            if (isMinimal(agent, t)) {
+                mostPlausible.add(t);
+            }
+        }
+        return mostPlausible;
+    }
+
+    private boolean isMorePlausible(String agent, Set<World> more, Set<World> less) {
+        for (World l : less) {
+            if (!lessToMorePlausible.get(agent).get(l).containsAll(more)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Boolean isMinimal(String agent, World w) {
+        for (World t : getMorePlausible(agent, w)) {
+            if (!isConnected(agent, t,w)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public Set<World> getPossible(String agent, World root) {
+        Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(root));
+        accessible.addAll(moreToLessPlausible.get(agent).get(root));
+        return accessible;
+    }
+
+    public List<String> getAgents() {
+        return agents;
+    }
+
+    public Set<State> getStates() {
+        Set<State> states = new HashSet<State>();
+        for (World w : designated) {
+            State subState = new State(agents, worlds, w);
+            for (String agent : agents) {
+                for (World f : getWorlds()) {
+                    for (World t : getMorePlausible(agent, f)) {
+                        subState.addMorePlausible(agent, f, t);
+                    }
+                }
+            }
+            states.add(subState);
+        }
+        return states;
+    }
+
+
+
+
+
+     // MAYBE THE BINARY TREE ALG IN THE TEXTBOOK (P. 478) WOULD BE FASTER?
+     private Set<Set<World>> getInitialPartition() {
+         Set<Set<World>> partition = new HashSet<>();
+         for (World w : worlds) {
+             boolean foundPart = false;
+             for (Set<World> part : partition) {
+                 assert(!part.isEmpty());
+    }
+
+    //public NDState(NDState toCopy) {
+    //    model = new NDState(toCopy.getNDState());
+    //    designated = new HashSet<World>();
+    //    for (World d : toCopy.getDesignatedWorlds()) {
+    //        designated.add(d.getChild());
+    //    }
+    //}
+
+
+    //public NDState(NDState toCopy) {
+    //    this(new HashSet<String>(toCopy.getAgents(), new HashSet<World>(toCopy.getWorlds());
+    //    this.morePlausible = new HashMap<String, Relation>(toCopy.getMorePlausible());
+    //    this.lessPlausible = new HashMap<String, Relation>(toCopy.lessPlausible());
+    //}
+
+    public Set<World> getWorlds() {
+        return worlds;
+    }
+    public Set<World> getWorldsCopy() {
+        return worlds;
+    }
+
+    public Set<World> getDesignated() {
+        return this.designated;
+    }
+
+
+    private void setMorePlausible(String agent, World lessPlausible, Set<World> morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.containsAll(morePlausible));
+        lessToMorePlausible.get(agent).put(lessPlausible, morePlausible);
+    }
+
+    private void setLessPlausible(String agent, World morePlausible, Set<World> lessPlausible) {
+        assert (worlds.contains(morePlausible));
+        assert (worlds.containsAll(lessPlausible));
+        moreToLessPlausible.get(agent).put(morePlausible, lessPlausible);
+    }
+
+
+    public void addMorePlausible(String agent, World lessPlausible, World morePlausible) {
+        assert (worlds.contains(lessPlausible));
+        assert (worlds.contains(morePlausible));
+        lessToMorePlausible.get(agent).get(lessPlausible).add(morePlausible);
+        moreToLessPlausible.get(agent).get(morePlausible).add(lessPlausible);
+    }
+
+    public void addMorePlausible(String agent, World lessPlausible, Set<World> morePlausible) {
+        for (World t : morePlausible) {
+            addMorePlausible(agent, lessPlausible, t);
+        }
+    }
+
+    public void addMorePlausibleTransitive(String agent, World lessPlausible, World morePlausible) {
+        addMorePlausible(agent, lessPlausible, lessToMorePlausible.get(agent).get(morePlausible));
+        for (World w : getLessPlausible(agent, lessPlausible)) {
+            addMorePlausible(agent, lessPlausible, morePlausible);
+        }
+    }
+
+    public boolean epistemicallyConnected(String agent, World u, World v) {
+        return (lessToMorePlausible.get(agent).get(u).contains(v) || lessToMorePlausible.get(agent).get(v).contains(u));
+    }
+
+    public boolean epistemicallyConnected(World u, World v) {
+        for (String a : agents) { 
+            if (!epistemicallyConnected(a, u, v)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    public boolean isConnected(String agent, World lessPlausible, World morePlausible) {
+        return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
+    }
+
+    public boolean isConnectedStrict(String agent, World lessPlausible, World morePlausible) {
+        return  (lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible) && 
+                 !lessToMorePlausible.get(agent).get(morePlausible).contains(lessPlausible));
+    }
+
+    public Set<World> getMorePlausible(String agent, World lessPlausible) {
+        return lessToMorePlausible.get(agent).get(lessPlausible);
+    }
+
+    public Set<World> getLessPlausible(String agent, World morePlausible) {
+        return moreToLessPlausible.get(agent).get(morePlausible);
+    }
+
+    public Set<World> getMostPlausible(String agent, World lessPlausible) {
+        Set<World> morePlausible = getMorePlausible(agent, lessPlausible);
+        Set<World> mostPlausible = new HashSet<>();
+        for (World t : morePlausible) {
+            if (isMinimal(agent, t)) {
+                mostPlausible.add(t);
+            }
+        }
+        return mostPlausible;
+    }
+
+    private boolean isMorePlausible(String agent, Set<World> more, Set<World> less) {
+        for (World l : less) {
+            if (!lessToMorePlausible.get(agent).get(l).containsAll(more)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     private Boolean isMinimal(String agent, World w) {
@@ -197,7 +567,7 @@ public class NDState implements java.io.Serializable {
              for (Set<World> part : partition) {
                  assert(!part.isEmpty());
                  World sample = part.iterator().next();
-                 if (sample.equals(w)) {
+                 if (sample.equals(w) && epistemicallyConnected(w,sample)) {
                      part.add(w);
                      foundPart = true;
                      break;
@@ -216,36 +586,115 @@ public class NDState implements java.io.Serializable {
          return new HashSet<Set<World>>(partition);
      }
 
-
-//    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
-//    // THIS IS LIKE THE "REFINE" OPERATOR IN DEFINITION 7.35, EXCEPT THAT
-//    // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
-//    // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
-//    // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
-//    private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, String agent) {
-//        Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
-//
-//        for (Set<World> block : oldBlocks) {
-//            Set<World> inPre = new HashSet<>();
-//            Set<World> notInPre = new HashSet<>();
-//            for (World w : block) {
-//                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
-//                    notInPre.add(w);
-//                }
-//                else {
-//                    inPre.add(w);
-//                }
-//            }
-//            if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
-//                if (!partition.remove(block)) {
-//                    throw new RuntimeException("failed to remove a split block while computing bisimulation");
-//                }
-//                partition.add(notInPre);
-//                partition.add(inPre);
-//            }
-//        }
-//        return null;
+//     private Set<T> getContainingSet(Set<Set<T>> sets, T item) {
+//         for (Set<T> set : sets) {
+//             if (set.contains(item)) {
+//                 return set;
+//             }
+//         }
+//         return new HashSet<T>;
 //    }
+
+    private boolean equivalentForAllAgents(Set<World> block, World w) {
+        for (String a : agents) {
+            if (!getEpistemiallyConnected(a, w).containsAll(block)) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private Void normalize() {
+        Map<String, Map<World, Set<World>>> newLessToMorePlausible = new HashMap<>();
+        Map<String, Map<World, Set<World>>> newMoreToLessPlausible = new HashMap<>();
+
+        Set<Set<World>> allAgentEpistemicClasses = new HashSet<>();
+
+        for (Set<World> equiValuated : valuationClasses.values()) {
+            Set<Set<World>> blocks = new HashSet<>();
+            for (World w : equiValuated) {
+                boolean foundBlock = false;
+                for (Set<World> block : blocks) {
+                    if equivalentForAllAgents(block, w) {
+                        foundBlock = true;
+                        block.add(w);
+                        break;
+                    }
+                }
+                if (!foundBlock) {
+                    Set<World> newBlock = new HashSet<>();
+                    newBlock.add(w);
+                    blocks.add(newBlock);
+                }
+            }
+
+            allAgentEpistemicClasses.addAll(blocks);
+        }
+
+
+        for (String agent : agents) {
+            newLessToMorePlausible.put(agent, new HashMap<>());
+            newMoreToLessPlausible.put(agent, new HashMap<>());
+            for (World t : worlds) {
+                newLessToMorePlausible.get(agent).put(t, new HashSet<>());
+                newMoreToLessPlausible.get(agent).put(t, new HashSet<>());
+            }
+        }
+
+        for (String agent : agents) {
+            for (Set<World> set : allAgentEquivalentClasses) {
+                for (Set<World> setPrime : allAgentEquivalentClasses) {
+                   assert(allMorePlausible(set, setPrime) == anyMorePlausible(set, setPrime));
+                   if (anyMorePlausible(set, setPrime)) {
+                        for (World w : set) {
+                            for (World wPrime : setPrime) {
+                                newLessToMorePlausible.get(agent).get(w).add(wPrime);
+                                newMoreToLessPlausible.get(agent).get(wPrime).add(w);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        lessToMorePlausible = newLessToMorePlausible;
+        moreToLessPlausible = newMoreToLessPlausible;
+ 
+    }
+
+
+    // USE A SPLITTER AND A RELATION TO REDUCE ALL THE BLOCKS IN THE PARTITION
+    // THIS IS LIKE THE "REFINE" OPERATOR IN DEFINITION 7.35, EXCEPT THAT
+    // 1. WE APPLY THE REDUCE OPERATION TO EVERY BLOCK IN THE PARTITION,
+    // I.E. THIS INCLUDES THE "FOR" LOOP FROM ALOGIRHTM 31 ON PAGE 487.
+    // 2. WE NEED TO SPECIFY A RELATION, SINCE OUR SYSTEMS HAVE MANY RELATIONS.
+    private Void splitBlocks(Set<Set<World>> partition, Set<World> splitter, String agent) {
+        Set<Set<World>> oldBlocks = new HashSet<Set<World>>(partition);
+
+        for (Set<World> block : oldBlocks) {
+            Set<World> inPre = new HashSet<>();
+            Set<World> notInPre = new HashSet<>();
+            for (World w : block) {
+//                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
+                Boolean normalSplit = /norma
+
+                if (normalSplit) {
+                    notInPre.add(w);
+                }
+                else {
+                    inPre.add(w);
+                }
+            }
+            if ((!notInPre.isEmpty()) && (!inPre.isEmpty()))  {
+                if (!partition.remove(block)) {
+                    throw new RuntimeException("failed to remove a split block while computing bisimulation");
+                }
+                partition.add(notInPre);
+                partition.add(inPre);
+            }
+        }
+        return null;
+    }
 
     // HERE'S THE MAIN ALGORITHM, BASICALLY ALGORITHM 31 IN THE TEXTBOOK.
     // UNLIKE THE TEXTBOOK WHERE THE TRANSITION SYSTEM HAS A SINGLE RELATION
@@ -329,15 +778,13 @@ public class NDState implements java.io.Serializable {
         NDState unionNDState = new NDState(agents, unionWorlds, unionDesignated);
 
         for (String agent : agents) {
-            for (String agent : agents) {
-                for (World w : worlds) {
-                    unionNDState.setMorePlausible(agent, w, getMorePlausible(agent, w));
-                    unionNDState.setLessPlausible(agent, w, getLessPlausible(agent, w));
-                }
-                for (World w : other.getWorlds()) {
-                    unionNDState.setMorePlausible(agent, w, other.getMorePlausible(agent, w));
-                    unionNDState.setLessPlausible(agent, w, other.getLessPlausible(agent, w));
-                }
+            for (World w : worlds) {
+                unionNDState.setMorePlausible(agent, w, getMorePlausible(agent, w));
+                unionNDState.setLessPlausible(agent, w, getLessPlausible(agent, w));
+            }
+            for (World w : other.getWorlds()) {
+                unionNDState.setMorePlausible(agent, w, other.getMorePlausible(agent, w));
+                unionNDState.setLessPlausible(agent, w, other.getLessPlausible(agent, w));
             }
         }
         return unionNDState;
@@ -400,8 +847,7 @@ public class NDState implements java.io.Serializable {
 
 
     @Override
-    //public boolean equals(Object obj) {
-    private boolean equals(Object obj) {
+    public boolean equals(Object obj) {
         if (obj == this) {
             return true;
         }
@@ -414,7 +860,7 @@ public class NDState implements java.io.Serializable {
         return false;
     }
 
-    private Boolean bisimilar(NDState other) {
+    public Boolean bisimilar(NDState other) {
         if (equals(other)) {
             return true;
         }
@@ -422,7 +868,7 @@ public class NDState implements java.io.Serializable {
 
         Set<World> otherInitials = other.getDesignated();
 
-        for (Set<World> block : union.refineSystem()) {
+        for (Set<World> block : unioned.refineSystem()) {
             if (Collections.disjoint(block, designated) != Collections.disjoint(block, otherInitials)) {
                 return false;
             }
@@ -471,21 +917,6 @@ public class NDState implements java.io.Serializable {
         return str.toString();
     }
 
-
-
-
-
-
-//    public Void reduce() {
-//        Map<World,World> oldWorldsToNew = model.reuce();
-//        Set<World> newDesignated = new HashSet<World>();
-//        for (World w : designated) {
-//            newDesignated.add(oldWorldsToNew.get(w));
-//        }
-//        this.designated= newDesignated;
-//        return null;
-//    }
-//
 
 
     // FIND AND REMOVE ANY WORLDS THAT ARE NOT REACHABLE FROM ANY DESIGNATED WORLD
