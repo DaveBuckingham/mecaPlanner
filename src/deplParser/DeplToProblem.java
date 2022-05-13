@@ -452,6 +452,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         }
 
+        startState.normalize();
+
         // Log.debug("reducing start state...");
         // startState.reduce();
         // startState.getKripke().forceCheck();
