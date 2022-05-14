@@ -136,6 +136,7 @@ public class EventModel implements Transformer {
             }
         }
 
+        newState.reduce();
         return newState;
     }
 

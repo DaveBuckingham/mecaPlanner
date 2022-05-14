@@ -452,7 +452,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         }
 
-        startState.normalize();
+        startState.reduce();
 
         // Log.debug("reducing start state...");
         // startState.reduce();
