@@ -14,7 +14,7 @@ for my $modal_depth (@MODAL_DEPTH) {
 
 my ($i,$j,$k);
 
-my $filename = "gossip${num_rooms}${num_agents}${modal_depth}.depl";
+my $filename = "grapevine${num_rooms}${num_agents}${modal_depth}.depl";
 
 my @rooms;
 $i = 0;
@@ -28,16 +28,16 @@ while ($i++ < $num_agents) {
     push(@agents, "a$i");
 }
 
-my @secrets;
-$i = 0;
-while ($i++ < $num_agents) {
-    push(@secrets, "s$i()");
-}
+#my @secrets;
+#$i = 0;
+#while ($i++ < $num_agents) {
+#    push(@secrets, "s$i()");
+#}
 
 
 open(FH, '>', $filename) or die $!;
 
-say FH "// auto-generated gossip";
+say FH "// auto-generated grapevine";
 say FH "// rooms:  $num_rooms";
 say FH "// agents: $num_agents";
 say FH "// depth:  $modal_depth";
@@ -64,40 +64,32 @@ say FH "}";
 
 
 say FH "fluents{";
-print FH "    ";
-for (@secrets) {
-    print FH "$_,";
-}
-print FH "\n";
+say FH "    secret(Actor),";
 say FH "    at(Actor,Room)";
 say FH "}";
 
 
-say FH "start{";
-print FH "    ";
-for (@secrets) {
-    print FH "$_,";
-}
-print FH "\n";
+say FH "start{(";
 for (@agents) {
+    say FH "    secret($_),";
     say FH "    at($_,r1),";
 }
-for ($i = 1; $i <= $num_agents; $i++) {
-    for ($j = 1; $j <= $num_agents; $j++) {
+for $i (@agents) {
+    for $j (@agents) {
         print FH "    ";
-        print FH $i == $j ? "B" : "?";
-        print FH "[a$i](s$j),\n";
+        print FH $i eq $j ? "B" : "?";
+        print FH "[$i](secret($j)),\n";
     }
 }
-say FH "}";
+say FH ")}";
 
 
 say FH "goals{";
 for ($i = 1; $i <= $num_agents; $i++) {
     my $n = ($i % $num_agents) + 1;
     my $p = $i == 1 ? $num_agents : $i - 1;
-    say FH "    B[a$i](s$n)";
-    say FH "    !B[a$i](s$p)";
+    say FH "    B[a$i](secret(a$n)),";
+    say FH "    !B[a$i](secret(a$p)),";
     if ($modal_depth > 1) {
         $j = 0;
         print FH "    ";
@@ -107,10 +99,11 @@ for ($i = 1; $i <= $num_agents; $i++) {
             $j++;
         }
         $k = (($i + $j - 1) % $num_agents) + 1;
-        print FH "s$k()";
-    }
-    for ($j = 0; $j < $modal_depth; $j++) {
-        print FH ")";
+        print FH "secret(a$k)";
+        for ($j = 0; $j < $modal_depth; $j++) {
+            print FH ")";
+        }
+        print FH ",";
     }
     print FH "\n";
 }
@@ -126,11 +119,10 @@ say FH "        causes !at(?a,?f),";
 say FH "        causes at(?a,?t)";
 say FH "    )";
 
-say FH "    <?a-Actor, ?f-Room, ?t-Room> move(";
+say FH "    <?a-Actor, ?l-Room> announce(";
 say FH "        owner ?a,";
-say FH "        <?x-Actor> observes ?x,";
-say FH "        causes !at(?a,?f),";
-say FH "        causes at(?a,?t)";
+say FH "        <?x-Actor> observes ?x if at(?x,?l),";
+say FH "        announces secret(?a)";
 say FH "    )";
 
 
