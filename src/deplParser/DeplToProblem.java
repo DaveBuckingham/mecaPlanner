@@ -452,11 +452,11 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         }
 
+        if (!startState.normalize()) {
+            Log.info("start state not normal");
+        }
         startState.reduce();
 
-        // Log.debug("reducing start state...");
-        // startState.reduce();
-        // startState.getKripke().forceCheck();
         return startState;
     }
 
@@ -510,6 +510,15 @@ public class DeplToProblem extends DeplBaseVisitor {
                 throw new RuntimeException("unknown start assertion");
             }
         }
+
+        if (!state.normalize()) {
+            Log.info("start state not normal");
+        }
+        //state.reduce();
+
+        System.out.println(state);
+        System.exit(1);
+
         return state;
     }
 

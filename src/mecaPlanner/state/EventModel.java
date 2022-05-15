@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.HashMap;
 import java.util.Objects;
 
+import mecaPlanner.Log;
 import mecaPlanner.formulae.Fluent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.Literal;
@@ -136,6 +137,9 @@ public class EventModel implements Transformer {
             }
         }
 
+        if (!newState.normalize()) {
+            Log.info("transitioned state not normal");
+        }
         newState.reduce();
         return newState;
     }

@@ -28,11 +28,6 @@ while ($i++ < $num_agents) {
     push(@agents, "a$i");
 }
 
-#my @secrets;
-#$i = 0;
-#while ($i++ < $num_agents) {
-#    push(@secrets, "s$i()");
-#}
 
 
 open(FH, '>', $filename) or die $!;
@@ -64,21 +59,21 @@ say FH "}";
 
 
 say FH "fluents{";
-say FH "    secret(Actor),";
+say FH "    s(Actor),";
 say FH "    at(Actor,Room)";
 say FH "}";
 
 
 say FH "start{(";
 for (@agents) {
-    say FH "    secret($_),";
+    say FH "    s($_),";
     say FH "    at($_,r1),";
 }
 for $i (@agents) {
     for $j (@agents) {
         print FH "    ";
         print FH $i eq $j ? "B" : "?";
-        print FH "[$i](secret($j)),\n";
+        print FH "[$i](s($j)),\n";
     }
 }
 say FH ")}";
@@ -88,8 +83,8 @@ say FH "goals{";
 for ($i = 1; $i <= $num_agents; $i++) {
     my $n = ($i % $num_agents) + 1;
     my $p = $i == 1 ? $num_agents : $i - 1;
-    say FH "    B[a$i](secret(a$n)),";
-    say FH "    !B[a$i](secret(a$p)),";
+    say FH "    B[a$i](s(a$n)),";
+    say FH "    !B[a$i](s(a$p)),";
     if ($modal_depth > 1) {
         $j = 0;
         print FH "    ";
@@ -99,7 +94,7 @@ for ($i = 1; $i <= $num_agents; $i++) {
             $j++;
         }
         $k = (($i + $j - 1) % $num_agents) + 1;
-        print FH "secret(a$k)";
+        print FH "s(a$k)";
         for ($j = 0; $j < $modal_depth; $j++) {
             print FH ")";
         }
@@ -114,6 +109,7 @@ say FH "actions{";
 
 say FH "    <?a-Actor, ?f-Room, ?t-Room> move(";
 say FH "        owner ?a,";
+say FH "        precondition at(?a,?f),";
 say FH "        <?x-Actor> observes ?x,";
 say FH "        causes !at(?a,?f),";
 say FH "        causes at(?a,?t)";
@@ -121,8 +117,9 @@ say FH "    )";
 
 say FH "    <?a-Actor, ?l-Room> announce(";
 say FH "        owner ?a,";
+say FH "        precondition at(?a,?l),";
 say FH "        <?x-Actor> observes ?x if at(?x,?l),";
-say FH "        announces secret(?a)";
+say FH "        announces s(?a)";
 say FH "    )";
 
 

@@ -296,7 +296,7 @@ public class NDState implements java.io.Serializable {
         return false;
     }
 
-    public Void normalize() {
+    public boolean normalize() {
         Map<String, Map<World, Set<World>>> newLessToMorePlausible = new HashMap<>();
         Map<String, Map<World, Set<World>>> newMoreToLessPlausible = new HashMap<>();
 
@@ -351,15 +351,12 @@ public class NDState implements java.io.Serializable {
             }
         }
 
-        if ((!lessToMorePlausible.equals(newLessToMorePlausible)) ||
-            (!moreToLessPlausible.equals(moreToLessPlausible))) {
-            Log.info("state normalized");
-        }
+        boolean unchanged = lessToMorePlausible.equals(newLessToMorePlausible) && moreToLessPlausible.equals(moreToLessPlausible);
 
         lessToMorePlausible = newLessToMorePlausible;
         moreToLessPlausible = newMoreToLessPlausible;
         
-        return null;
+        return !unchanged;
     }
 
 
@@ -427,7 +424,7 @@ public class NDState implements java.io.Serializable {
     //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
     // 3. INSTEAD, SET OUR NEW DESIGNATED WORLDS ACCORDING TO THE OLD ONES
     public NDState reduce() {
-        normalize();
+        //normalize();
         Set<Set<World>> partition = refineSystem();
 
         Map <World, World> oldToNew = new HashMap<>();
