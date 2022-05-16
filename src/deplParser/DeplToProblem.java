@@ -74,6 +74,13 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             varGroundings.add(typeDefs.get(varType).groundings);
         }
+        
+        List<Pair<String, String>> inequalities = new ArrayList<>();
+        for (DeplParser.VariableInequalityContext variableInequalityCtx : ctx.variableInequality()) {
+            String lhs = variableInequalityCtx.lhs.getText();
+            String rhs = variableInequalityCtx.rhs.getText();
+            inequalities.add(new Pair<String, String>(lhs, rhs));
+        }
 
         for (List<String> grounding : cartesianProduct(varGroundings)) {
             LinkedHashMap<String,String> groundingMap = new LinkedHashMap<String,String>();
@@ -86,7 +93,18 @@ public class DeplToProblem extends DeplBaseVisitor {
             if(nameIterator.hasNext() || groundingIterator.hasNext()) {
                 throw new RuntimeException("variable binding broke!");
             }
-            maps.add(groundingMap);
+
+            boolean passesInequalities = true;
+            for (Pair<String,String> unequal : inequalities) {
+                if (groundingMap.get(unequal.getValue0()).equals(groundingMap.get(unequal.getValue1()))) {
+                    passesInequalities = false;
+                    break;
+                }
+            }
+
+            if (passesInequalities) {
+                maps.add(groundingMap);
+            }
         }
         if (maps.isEmpty()) {
             maps.add(new LinkedHashMap<String,String>());
@@ -452,7 +470,8 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         }
 
-        if (!startState.normalize()) {
+        startState.trim();
+        if (startState.normalize()) {
             Log.info("start state not normal");
         }
         startState.reduce();
@@ -511,13 +530,12 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
         }
 
-        if (!state.normalize()) {
+        state.trim();
+        if (state.normalize()) {
             Log.info("start state not normal");
         }
-        //state.reduce();
+        state.reduce();
 
-        System.out.println(state);
-        System.exit(1);
 
         return state;
     }

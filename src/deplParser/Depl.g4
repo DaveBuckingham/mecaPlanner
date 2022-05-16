@@ -164,8 +164,9 @@ goal : formula | timeConstraint ;
 
 // ACTION DEFINITIONS
 
-variableDefList : ('<' (variableDef ',')* variableDef? '>')? ;
+variableDefList : ('<' ((variableDef|variableInequality) ',')* (variableDef|variableInequality)? '>')? ;
 variableDef : VARIABLE '-' objectType ;
+variableInequality : lhs=VARIABLE '!=' rhs=VARIABLE ;
 
 
 actionsSection : 'actions' '{' (eventModelDef | actionDef ','?)* '}' ;

@@ -72,7 +72,7 @@ for (@agents) {
 for $i (@agents) {
     for $j (@agents) {
         print FH "    ";
-        print FH $i eq $j ? "B" : "?";
+        print FH $i eq $j ? "K" : "?";
         print FH "[$i](s($j)),\n";
     }
 }

@@ -199,6 +199,7 @@ public class NDState implements java.io.Serializable {
     }
 
     public Set<World> getPossible(String agent, World root) {
+        assert(worlds.contains(root));
         Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(root));
         accessible.addAll(moreToLessPlausible.get(agent).get(root));
         return accessible;
@@ -648,6 +649,11 @@ public class NDState implements java.io.Serializable {
                     worlds.remove(w);
                     lessToMorePlausible.get(a).remove(w);
                     moreToLessPlausible.get(a).remove(w);
+                    Set<Fluent> fluents = w.getFluents();
+                    valuationClasses.get(fluents).remove(w);
+                    if (valuationClasses.get(fluents).isEmpty()) {
+                        valuationClasses.remove(fluents);
+                    }
                 }
             }
         }

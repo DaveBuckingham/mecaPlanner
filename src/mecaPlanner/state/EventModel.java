@@ -81,6 +81,7 @@ public class EventModel implements Transformer {
     // }
 
     public State transition(State beforeState) {
+        //Log.info("applying action: " + toString());
         assert(agents.equals(beforeState.getAgents()));
         Set<World> newWorlds = new HashSet<>();
         Set<World> newDesignated = new HashSet<>();
@@ -137,8 +138,15 @@ public class EventModel implements Transformer {
             }
         }
 
-        if (!newState.normalize()) {
-            Log.info("transitioned state not normal");
+        newState.trim();
+        String old = newState.toString();
+        if (newState.normalize()) {
+            Log.debug("transitioned state not normal");
+            //System.out.println("OLD:");
+            //System.out.println(old);
+            //System.out.println("NEW:");
+            //System.out.println(newState.toString());
+            //System.exit(1);
         }
         newState.reduce();
         return newState;
@@ -205,5 +213,8 @@ public class EventModel implements Transformer {
     public String getSignature() {
         return name;
     }
+
+
+
 }
 
