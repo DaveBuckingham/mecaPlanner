@@ -64,9 +64,11 @@ public class AndNode extends GNode {
     public GroundSuccessors descend() {
         Set<OrNode> allOrSuccessors = new HashSet<>();
         if (isGoal()) {
+            //Log.trace("goal\n");
             return new GroundSuccessors(time, allOrSuccessors);
         }
         if (isCycle()) {
+            //Log.trace("cycle\n");
             return null;
         }
         Integer bestDistanceToGoal = Integer.MAX_VALUE;

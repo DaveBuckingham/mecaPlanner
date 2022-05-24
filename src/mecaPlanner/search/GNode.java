@@ -9,6 +9,8 @@ import mecaPlanner.formulae.TimeConstraint;
 
 import mecaPlanner.Domain;
 
+import mecaPlanner.Log;
+
 import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
@@ -53,6 +55,9 @@ public abstract class GNode  {
         this.agentIndex = this.time % this.numAgents;
         this.agent = domain.agentAtTime(agentIndex);
 
+        //Log.debug("t=" + time.toString());
+        //Log.debug("ag=" + agent);
+
     }
 
     public Set<GNode> getSuccessors() {
@@ -91,8 +96,8 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            //if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equals(ancestor.getState())) {
-            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.bisimilar(ancestor.getState())) {
+            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equals(ancestor.getState())) {
+            //if ((this.agentIndex == ancestor.getAgentIndex()) && estate.bisimilar(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();

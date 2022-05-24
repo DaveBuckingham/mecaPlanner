@@ -6,6 +6,7 @@ import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
+import mecaPlanner.Log;
 
 import java.util.List;
 import java.util.Set;
@@ -29,9 +30,11 @@ public class OrNode extends GNode {
     public GroundSuccessors descend() {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
+            //Log.trace("goal\n");
             return new GroundSuccessors(time, s);
         }
         if (isCycle()) {
+            //Log.trace("cycle\n");
             return null;
         }
         s.add(this);

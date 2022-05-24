@@ -44,12 +44,13 @@ public class Planner {
         // PROCESS COMMAND LINE ARGUMENTS
         // WE EXECT A SINGLE .depl FILE WITH THE PROBLEM DESCRIPTION
         // AND AN OPTIONAL .plan FILE NAME WHERE WE SHOULD WRITE THE SOLUTION
+        // ND POSSIBLE A -d FLAG
 
         String deplFileName = null;
         String planFileName = null;
 
-        if (args.length < 1 || args.length > 2) {
-            throw new RuntimeException("expected 1 or 2 args: a .depl file, and an optional .plan file.");
+        if (args.length < 1 || args.length > 3) {
+            throw new RuntimeException("too many parameters");
         }
 
         for (String arg : args) {
@@ -64,6 +65,9 @@ public class Planner {
                     throw new RuntimeException("expected a single plan filename.");
                 }
                 planFileName = arg;
+            }
+            else if (arg.equals("-d")) {
+                Log.setThreshold("debug");
             }
             else {
                 throw new RuntimeException("invalid argument: " + arg);
@@ -97,6 +101,9 @@ public class Planner {
 
 
         Log.info("done loading problem");
+
+
+        Log.debug(Integer.toString(problem.getDomain().getAllActions().size()) + " actions loaded");
 
         Log.info("starting search");
 
