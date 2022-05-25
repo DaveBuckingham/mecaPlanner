@@ -352,7 +352,21 @@ public class NDState implements java.io.Serializable {
             }
         }
 
-        boolean unchanged = lessToMorePlausible.equals(newLessToMorePlausible) && moreToLessPlausible.equals(moreToLessPlausible);
+        boolean unchanged = lessToMorePlausible.equals(newLessToMorePlausible) && moreToLessPlausible.equals(newMoreToLessPlausible);
+
+        if (!unchanged) {
+            System.out.println("=======");
+            System.out.println(this);
+            System.out.println("=======");
+            System.out.println(lessToMorePlausible);
+            System.out.println("=======");
+            System.out.println(newLessToMorePlausible);
+            System.out.println("=======");
+            System.out.println(moreToLessPlausible);
+            System.out.println("=======");
+            System.out.println(newMoreToLessPlausible);
+            System.exit(0);
+        }
 
         lessToMorePlausible = newLessToMorePlausible;
         moreToLessPlausible = newMoreToLessPlausible;

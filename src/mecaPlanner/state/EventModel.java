@@ -90,9 +90,9 @@ public class EventModel implements Transformer {
         for (Event event : getEvents()) {
             for (World world : beforeState.getWorlds()) {
                 if (event.getPrecondition().evaluate(beforeState, world)) {
-                    //String newName = world.getName() + "," + event.getName();
                     String newName = world.getName() + event.getName();
-                    World newWorld = new World(newName, world.update(event.getEffects()));
+                    //World newWorld = new World(newName, world.update(event.getEffects()));
+                    World newWorld = new World(world.update(event.getEffects()));
                     newWorlds.add(newWorld);
                     toParentWorld.put(newWorld, world);
                     toParentEvent.put(newWorld, event);
@@ -142,11 +142,7 @@ public class EventModel implements Transformer {
         String old = newState.toString();
         if (newState.normalize()) {
             Log.debug("transitioned state not normal");
-            //System.out.println("OLD:");
-            //System.out.println(old);
-            //System.out.println("NEW:");
-            //System.out.println(newState.toString());
-            //System.exit(1);
+            System.exit(1);
         }
         newState.reduce();
         return newState;

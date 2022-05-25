@@ -107,7 +107,7 @@ public class Action implements Transformer {
 
 
     public State transition(State state) {
-        Log.debug(getSignature());
+        Log.debug(getSignatureWithActor());
         for (EventModel e : effects) {
             // CHECK IF EXECUTABLE?
             state = e.transition(state);

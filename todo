@@ -1,3 +1,4 @@
+detect when all paths lead to cycles, increasing depth doesnt' change anything...
 improve makefile
 fast check for agent type at depth
 fail conditions

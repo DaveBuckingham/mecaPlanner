@@ -31,6 +31,7 @@ public class OrNode extends GNode {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
             //Log.trace("goal\n");
+            System.out.println("GGG");
             return new GroundSuccessors(time, s);
         }
         if (isCycle()) {

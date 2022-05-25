@@ -32,6 +32,12 @@ public class World implements java.io.Serializable {
         this.fluents = fluents;
     }
 
+    public World(Set<Fluent> fluents) {
+        this.id = World.idCounter++;
+        this.name = Integer.toString(id);
+        this.fluents = fluents;
+    }
+
     public World(String name, Fluent ...fluents) {
         this(name, new HashSet(Arrays.asList(fluents)));
     }
@@ -41,9 +47,6 @@ public class World implements java.io.Serializable {
         this(name, new HashSet<Fluent>());
     }
 
-    public World(Set<Fluent> fluents) {
-        this(null, fluents);
-    }
 
     public World(Fluent ...fluents) {
         this(new HashSet(Arrays.asList(fluents)));
