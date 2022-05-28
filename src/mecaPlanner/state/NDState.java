@@ -354,19 +354,19 @@ public class NDState implements java.io.Serializable {
 
         boolean unchanged = lessToMorePlausible.equals(newLessToMorePlausible) && moreToLessPlausible.equals(newMoreToLessPlausible);
 
-        if (!unchanged) {
-            System.out.println("=======");
-            System.out.println(this);
-            System.out.println("=======");
-            System.out.println(lessToMorePlausible);
-            System.out.println("=======");
-            System.out.println(newLessToMorePlausible);
-            System.out.println("=======");
-            System.out.println(moreToLessPlausible);
-            System.out.println("=======");
-            System.out.println(newMoreToLessPlausible);
-            System.exit(0);
-        }
+//        if (!unchanged) {
+//            System.out.println("=======");
+//            System.out.println(this);
+//            System.out.println("=======");
+//            System.out.println(lessToMorePlausible);
+//            System.out.println("=======");
+//            System.out.println(newLessToMorePlausible);
+//            System.out.println("=======");
+//            System.out.println(moreToLessPlausible);
+//            System.out.println("=======");
+//            System.out.println(newMoreToLessPlausible);
+//            System.exit(0);
+//        }
 
         lessToMorePlausible = newLessToMorePlausible;
         moreToLessPlausible = newMoreToLessPlausible;
@@ -657,17 +657,17 @@ public class NDState implements java.io.Serializable {
                 }
             }
         }
-        for (String a : agents) {
-            for (World w : new HashSet<World>(worlds)) {
-                if (!keep.contains(w)) {
-                    worlds.remove(w);
+        for (World w : new HashSet<World>(worlds)) {
+            if (!keep.contains(w)) {
+                worlds.remove(w);
+                Set<Fluent> fluents = w.getFluents();
+                valuationClasses.get(fluents).remove(w);
+                if (valuationClasses.get(fluents).isEmpty()) {
+                    valuationClasses.remove(fluents);
+                }
+                for (String a : agents) {
                     lessToMorePlausible.get(a).remove(w);
                     moreToLessPlausible.get(a).remove(w);
-                    Set<Fluent> fluents = w.getFluents();
-                    valuationClasses.get(fluents).remove(w);
-                    if (valuationClasses.get(fluents).isEmpty()) {
-                        valuationClasses.remove(fluents);
-                    }
                 }
             }
         }
