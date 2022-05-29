@@ -1,0 +1,34 @@
+types{}
+
+objects{
+    a - Object,        // salesperson
+    b - Object         // customer
+}
+
+agents{a}
+
+passive{b}
+
+fluents{
+    v(),      // an investment promises high return
+    p()       // the investment is worth buying
+}
+
+initially{
+    B[b](~v() | p())
+    //B[b](~(v() & ~p()))
+ & ~B[b](~v())
+}
+
+
+goals{}
+
+actions{
+    lie(){
+        owner{a},
+        precondition{true},
+        observes{a},
+        observes{b},
+        announces{v()}
+    }
+}

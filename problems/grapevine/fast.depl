@@ -1,0 +1,71 @@
+// auto-generated grapevine
+// rooms:  2
+// agents: 3
+// depth:  2
+types{Ag-Object, Room-Object}
+objects{
+    root-Object,
+    a1-Ag,
+    a2-Ag,
+    a3-Ag,
+    r1-Room,
+    r2-Room,
+}
+agents{root}
+passive{
+    a1,
+    a2,
+    a3,
+}
+fluents{
+    s(Ag),
+    at(Ag,Room)
+}
+start{(
+    s(a1),
+    at(a1,r1),
+    s(a2),
+    at(a2,r1),
+    s(a3),
+    at(a3,r1),
+    K[a1](s(a1)),
+    K[a2](s(a2)),
+    K[a3](s(a3)),
+    ?[a1](s(a2)),
+    ?[a1](s(a3)),
+    ?[a2](s(a1)),
+    ?[a2](s(a3)),
+    ?[a3](s(a1)),
+    ?[a3](s(a2)),
+)}
+goals{
+    B[a1](s(a2)),
+    !B[a1](s(a3)),
+    B[a2](s(a3)),
+    !B[a2](s(a1)),
+    B[a3](s(a1)),
+    !B[a3](s(a2)),
+}
+actions{
+    <?a-Ag, ?f-Room, ?t-Room, ?f!=?t> move(
+        owner root,
+        precondition at(?a,?f),
+        <?x-Ag> observes ?x,
+        observes root,
+        causes !at(?a,?f),
+        causes at(?a,?t)
+    )
+    <?a-Ag, ?l-Room> announce(
+        owner root,
+        precondition at(?a,?l),
+        <?x-Ag> observes ?x if at(?x,?l),
+        observes root,
+        announces s(?a)
+    )
+
+}
+
+
+
+
+
