@@ -35,7 +35,7 @@ public class OrNode extends GNode {
             return new GroundSuccessors(time, s);
         }
         if (isCycle()) {
-            //Log.trace("cycle\n");
+            Log.debug("cycle");
             return null;
         }
         s.add(this);

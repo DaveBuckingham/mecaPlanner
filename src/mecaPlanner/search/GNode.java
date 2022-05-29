@@ -96,13 +96,7 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            //if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equals(ancestor.getState())) {
             if ((this.agentIndex == ancestor.getAgentIndex()) && estate.bisimilar(ancestor.getState())) {
-                //System.out.println("==========");
-                //System.out.println(estate);
-                //System.out.println("==========");
-                //System.out.println(ancestor.getState());
-                //System.exit(0);
                 return true;
             }
             ancestor = ancestor.getParent();

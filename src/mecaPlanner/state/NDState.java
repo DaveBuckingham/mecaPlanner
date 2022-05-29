@@ -387,10 +387,8 @@ public class NDState implements java.io.Serializable {
              Set<World> inPre = new HashSet<>();
              Set<World> notInPre = new HashSet<>();
              for (World w : block) {
- //                if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter)) {
- 
-                 boolean normalSplit = false;
-                 if (normalSplit) {
+                 if (Collections.disjoint(lessToMorePlausible.get(agent).get(w), splitter) ||
+                     Collections.disjoint(moreToLessPlausible.get(agent).get(w), splitter)) {
                      notInPre.add(w);
                  }
                  else {

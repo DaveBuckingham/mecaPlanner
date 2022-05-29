@@ -68,7 +68,7 @@ public class AndNode extends GNode {
             return new GroundSuccessors(time, allOrSuccessors);
         }
         if (isCycle()) {
-            //Log.trace("cycle\n");
+            Log.debug("cycle");
             return null;
         }
         Integer bestDistanceToGoal = Integer.MAX_VALUE;

@@ -84,7 +84,17 @@ public class Actions {
                 throw new RuntimeException("somehow failed to select an action");
             }
 
-            currentState = action.transition(currentState);
+            State newState = action.transition(currentState);
+            newState.normalize();
+            newState.trim();
+            currentState.normalize();
+            if (currentState.bisimilar(newState)) {
+                System.out.println("bisimilar!");
+            }
+            else {
+                System.out.println("not bisimilar");
+            }
+            currentState = newState;
 
         }
 
