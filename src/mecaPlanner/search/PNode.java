@@ -138,40 +138,19 @@ public class PNode extends RecursiveTask<Integer> {
     // RETURNS NULL IF TRANSITION FAILS DUE TO CYCLES OR DEPTH LIMIT
     // RETURNS EMPTY SET IF FOUND GOAL
     private PerspectiveSuccessors pTransition(Action action) {
-        Map<Perspective, Set<OrNode>> successorPerspectives = new HashMap<>();
-        Integer bestCaseDepth = Integer.MAX_VALUE;
+        OrLayer orLayer = new OrLayer();
+
         for (OrNode ground : grounds ){
 
-            GroundSuccessors successors = ground.transition(action).descend();
+            OrLayer successors = ground.transition(action).descend();
 
             if (successors == null) {
                 return null;
             }
 
-            Set<OrNode> gSuccessors = successors.getOrLayer();
-
-            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestDistanceToGoal());
-
-            for (OrNode gSuccessor : gSuccessors) {
-                Perspective successorPerspective = new Perspective(gSuccessor.getState(), gSuccessor.getAgent());
-                if (!successorPerspectives.containsKey(successorPerspective)) {
-                    successorPerspectives.put(successorPerspective, new HashSet<OrNode>());
-                }
-                successorPerspectives.get(successorPerspective).add(gSuccessor);
-            }
+            orLayer.merge(successors);
+            return orLayer.lift();
         }
-
-
-        
-        Set<PNode> successorNodes = new HashSet<>();
-        for (Map.Entry<Perspective, Set<OrNode>> entry : successorPerspectives.entrySet()) {
-            int newTime = time + 1;
-            while (!domain.isSystemAgentIndex(newTime)) {
-                newTime++;
-            }
-            successorNodes.add(new PNode(entry.getKey(), entry.getValue(), newTime, depth+1, maxDepth, domain));
-        }
-        return new PerspectiveSuccessors(bestCaseDepth, successorNodes);
     }
 }
 

@@ -127,7 +127,7 @@ public abstract class GNode  {
     }
  
 
-    public abstract GroundSuccessors descend();
+    public abstract OrLayer descend();
 
     private String treeToString(int time) {
         StringBuilder str = new StringBuilder();

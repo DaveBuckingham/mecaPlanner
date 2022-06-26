@@ -27,19 +27,18 @@ public class OrNode extends GNode {
     }
 
     // BOTTOM OUT A RECURSIVE DESCENT THROUGH AND NODES
-    public GroundSuccessors descend() {
+    public OrLayer descend() {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
-            //Log.trace("goal\n");
-            System.out.println("GGG");
-            return new GroundSuccessors(time, s);
+            Log.trace("goal\n");
+            return new OrLayer(time, s);
         }
         if (isCycle()) {
             Log.debug("cycle");
             return null;
         }
         s.add(this);
-        return new GroundSuccessors(Integer.MAX_VALUE, s);
+        return new OrLayer(Integer.MAX_VALUE, s);
     }
 
 }

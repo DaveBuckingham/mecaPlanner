@@ -61,33 +61,30 @@ public class AndNode extends GNode {
     // starts at the first AndNode after an OrNode,
     // descends through layers of and-nodes,
     // stops when we reach an or-node layer
-    public GroundSuccessors descend() {
+    public OrLayer descend() {
         Set<OrNode> allOrSuccessors = new HashSet<>();
         if (isGoal()) {
             //Log.trace("goal\n");
-            return new GroundSuccessors(time, allOrSuccessors);
+            return new OrLayer(time, allOrSuccessors);
         }
         if (isCycle()) {
             Log.debug("cycle");
             return null;
         }
-        Integer bestDistanceToGoal = Integer.MAX_VALUE;
+        OrLayer allSuccessors = new OrLayer();
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
 
-            GroundSuccessors successors = successor.descend();
+            OrLayer successors = successor.descend();
 
             if (successors == null) {
                 return null;
             }
 
-            Set<OrNode> orSuccessors = successors.getOrLayer();
+            allSuccessors.merge(successors);
 
-            bestDistanceToGoal = Integer.min(bestDistanceToGoal, successors.getBestDistanceToGoal());
-
-            allOrSuccessors.addAll(orSuccessors);
         }
-        return new GroundSuccessors(bestDistanceToGoal, allOrSuccessors);
+        return allSuccessors;
     }
 }
 

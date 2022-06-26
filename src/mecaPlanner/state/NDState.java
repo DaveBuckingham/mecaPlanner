@@ -568,7 +568,6 @@ public class NDState implements java.io.Serializable {
         }
         NDState other = (NDState) obj;
 
-        //return equivalent(other);
         return false;
     }
 
