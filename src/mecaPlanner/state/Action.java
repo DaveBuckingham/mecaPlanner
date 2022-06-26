@@ -29,10 +29,15 @@ public class Action implements Transformer {
     private String actor;
     private Formula precondition;
 
-    private List<EventModel> effects;
+    private Formula announcement;
+    private Formula determines;
+    private Set<Assignment> effects;
 
     Map<String, Formula> observesConditions;
     Map<String, Formula> awareConditions;
+
+    EventModel eventModel;
+
 
 
     public Action(String name,
@@ -49,13 +54,13 @@ public class Action implements Transformer {
         this.cost = cost;
         this.precondition = precondition;
         this.domain = domain;
-        effects = new ArrayList<EventModel>();
         observesConditions = new HashMap<>();
         awareConditions = new HashMap<>();
         for (String a : domain.getAllAgents()) {
             observesConditions.put(a, new Literal(false));
             awareConditions.put(a, new Literal(false));
         }
+        eventModel = null;
     }
 
     public String getName() {
@@ -70,13 +75,13 @@ public class Action implements Transformer {
         return this.parameters;
     }
 
-    public Formula getPrecondition() {
+    private Formula getPrecondition() {
         return this.precondition;
     }
 
-    public List<EventModel> getEffects() {
-        return this.effects;
-    }
+//    public List<EventModel> getEffects() {
+//        return this.effects;
+//    }
 
     public Domain getDomain() {
         return this.domain;
@@ -108,11 +113,12 @@ public class Action implements Transformer {
 
     public State transition(State state) {
         Log.debug(getSignatureWithActor());
-        for (EventModel e : effects) {
-            // CHECK IF EXECUTABLE?
-            state = e.transition(state);
+        if (eventModel == null) {
+            buildEventModel();
         }
-        return state;
+        assert(eventModel != null);
+        State newState = eventModel.transition(state);
+        return newState;
     }
 
 
@@ -125,86 +131,114 @@ public class Action implements Transformer {
     }
 
 
+    private void buildEventModel() {
+        if (eventModel != null) {
+            throw new RuntimeException("event model already built");
+        }
+        if (announcement != null) {
+            Event truthEvent = new Event(AndFormula.make(precondition, announcement));
+            Event lieEvent = new Event(AndFormula.make(precondition, announcement.negate()));
+            Event nullEvent = new Event(new Literal(true));
+            Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
+            Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
 
-    public void addAnnouncementEffect(Formula announcement, Formula condition) {
+            EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+            for (String agent : domain.getAllAgents()) {
+                model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
+                model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
+                model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
 
-        String name = "announce-" + announcement.toString();
+                Formula full = observesConditions.get(agent);
+                Formula aware = awareConditions.get(agent);
+                Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+                model.addEdge(agent, truthEvent, lieEvent, full.negate());
+                model.addEdge(agent, lieEvent, truthEvent, new Literal(true));
+                model.addEdge(agent, truthEvent, nullEvent, oblivious);
+                model.addEdge(agent, lieEvent, nullEvent, oblivious);
+            }
+            eventModel = model;
 
-        Event truthEvent = new Event(AndFormula.make(condition, announcement));
-        Event lieEvent = new Event(AndFormula.make(condition, announcement.negate()));
-        Event nullEvent = new Event(new Literal(true));
-        Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
-        Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
 
-        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
-        for (String agent : domain.getAllAgents()) {
-            model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
-            model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
-            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+        }
+        else if (determines != null) {
+            Event truthEvent = new Event(AndFormula.make(precondition, determines));
+            Event lieEvent = new Event(AndFormula.make(precondition, determines.negate()));
+            Event nullEvent = new Event(new Literal(true));
+            Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
+            Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
 
-            Formula full = observesConditions.get(agent);
-            Formula aware = awareConditions.get(agent);
-            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
-            model.addEdge(agent, truthEvent, lieEvent, full.negate());
-            model.addEdge(agent, lieEvent, truthEvent, new Literal(true));
-            model.addEdge(agent, truthEvent, nullEvent, oblivious);
-            model.addEdge(agent, lieEvent, nullEvent, oblivious);
+            EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+            for (String agent : domain.getAllAgents()) {
+                model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
+                model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
+                model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+
+                Formula full = observesConditions.get(agent);
+                Formula aware = awareConditions.get(agent);
+                Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+                model.addEdge(agent, truthEvent, lieEvent, full.negate());
+                model.addEdge(agent, lieEvent, truthEvent, full.negate());
+                model.addEdge(agent, truthEvent, nullEvent, oblivious);
+                model.addEdge(agent, lieEvent, nullEvent, oblivious);
+            }
+            eventModel = model;
         }
 
-        effects.add(model);
-    }
 
-    public void addSensingEffect(Formula sensed, Formula condition) {
+        else if (effects != null) {
+            Event onticEvent = new Event(precondition, effects);
+            Event nullEvent = new Event(new Literal(true));
+            Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
+            Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
 
-        String name = "sense-" + sensed.toString();
+            EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+            for (String agent : domain.getAllAgents()) {
+                model.addEdge(agent, onticEvent, onticEvent, new Literal(true));
+                model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
 
-        Event truthEvent = new Event(AndFormula.make(condition, sensed));
-        Event lieEvent = new Event(AndFormula.make(condition, sensed.negate()));
-        Event nullEvent = new Event(new Literal(true));
-        Set<Event> events = new HashSet(Arrays.asList(truthEvent, lieEvent, nullEvent));
-        Set<Event> designated = new HashSet(Arrays.asList(truthEvent, lieEvent));
-
-        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
-        for (String agent : domain.getAllAgents()) {
-            model.addEdge(agent, truthEvent, truthEvent, new Literal(true));
-            model.addEdge(agent, lieEvent, lieEvent, new Literal(true));
-            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
-
-            Formula full = observesConditions.get(agent);
-            Formula aware = awareConditions.get(agent);
-            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
-            model.addEdge(agent, truthEvent, lieEvent, full.negate());
-            model.addEdge(agent, lieEvent, truthEvent, full.negate());
-            model.addEdge(agent, truthEvent, nullEvent, oblivious);
-            model.addEdge(agent, lieEvent, nullEvent, oblivious);
+                Formula full = observesConditions.get(agent);
+                Formula aware = awareConditions.get(agent);
+                Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+                model.addEdge(agent, onticEvent, nullEvent, oblivious);
+            }
+            eventModel = model;
         }
 
-        effects.add(model);
-    }
+        else {
+            // NOOP
+            Event nullEvent = new Event(new Literal(true));
+            Set<Event> events = new HashSet(Arrays.asList(nullEvent));
+            Set<Event> designated = new HashSet(Arrays.asList(nullEvent));
 
-
-
-    public void addOnticEffect(Set<Assignment> changes, Formula condition) {
-        String name = "ontic-effect";
-
-        Event onticEvent = new Event(condition, changes);
-        Event nullEvent = new Event(new Literal(true));
-        Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
-        Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
-
-        EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
-        for (String agent : domain.getAllAgents()) {
-            model.addEdge(agent, onticEvent, onticEvent, new Literal(true));
-            model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
-
-            Formula full = observesConditions.get(agent);
-            Formula aware = awareConditions.get(agent);
-            Formula oblivious = AndFormula.make(full.negate(), aware.negate());
-            model.addEdge(agent, onticEvent, nullEvent, oblivious);
+            EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+            for (String agent : domain.getAllAgents()) {
+                model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+            }
+            eventModel = model;
         }
-        effects.add(model);
+
     }
 
+
+
+
+    public void addAnnouncement(Formula formula) {
+        assert (announcement == null && determines == null && effects == null);
+        announcement = formula;
+    }
+
+    public void addDetermines(Formula formula) {
+        assert (announcement == null && determines == null && effects == null);
+        determines = formula;
+    }
+
+    public void addEffect(Assignment assignment) {
+        assert (announcement == null && determines == null);
+        if (effects == null) {
+            effects = new HashSet<Assignment>();
+        }
+        effects.add(assignment);
+    }
 
 
 

@@ -16,7 +16,7 @@ KEYWORD_FALSE           : 'false'|'False' ;
 KEYWORD_TIME            : 'timestep'|'Timestep' ;
 
 INTEGER                 : DIGIT+;
-ASSIGN                  : '<-';
+ASSIGN                  : '<-'|'gets';
 
 ORDER                   : '>';
 
@@ -182,9 +182,10 @@ actionDef : actionScope=variableDefList LOWER_NAME '('
 observesDef : variableDefList 'observes' groundableObject ('if' condition=formula)?;
 awareDef    : variableDefList 'aware' groundableObject ('if' condition=formula)?;
 
-determinesDef : variableDefList  'determines'   determined=formula ('if' condition=formula)?;
-announcesDef  : variableDefList  'announces'    announced=formula ('if' condition=formula)?;
-causesDef     : variableDefList  'causes'       literal (OP_AND literal)* ('if' condition=formula)?;
+determinesDef : 'determines'   determined=formula;
+announcesDef  : 'announces'    announced=formula;
+causesDef     : variableDefList  'causes' OP_NOT? fluent (ASSIGN formula)?;
+//causesDef     : variableDefList  'causes'       literal (OP_AND literal)* ('if' condition=formula)?;
 
 
 literal : OP_NOT? fluent;

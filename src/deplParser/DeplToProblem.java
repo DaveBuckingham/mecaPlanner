@@ -671,39 +671,44 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
 
             for (DeplParser.DeterminesDefContext detCtx : ctx.determinesDef()) {
-                for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
-                    variableStack.push(variableMap);
-                    Formula formula = (Formula) visit(detCtx.determined);
-                    Formula condition = detCtx.condition == null ? new Literal(true) : (Formula) visit(detCtx.condition);
-                    action.addSensingEffect(formula, condition);
-                    variableStack.pop();
-                }
+                Formula formula = (Formula) visit(detCtx.determined);
+                action.addDetermines(formula);
             }
 
             for (DeplParser.AnnouncesDefContext annCtx : ctx.announcesDef()) {
-                for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
-                    variableStack.push(variableMap);
-                    Formula formula = (Formula) visit(annCtx.announced);
-                    Formula condition = annCtx.condition == null ? new Literal(true) : (Formula) visit(annCtx.condition);
-                    action.addAnnouncementEffect(formula, condition);
-                    variableStack.pop();
-                }
+                Formula formula = (Formula) visit(annCtx.announced);
+                action.addAnnouncement(formula);
             }
 
             for (DeplParser.CausesDefContext effCtx : ctx.causesDef()) {
                 for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
                     variableStack.push(variableMap);
-                    Formula condition = effCtx.condition == null ? new Literal(true) : (Formula) visit(effCtx.condition);
-                    Set<Assignment> assignments = new HashSet<>();
-                    for (DeplParser.LiteralContext litCtx : effCtx.literal()) {
-                        assignments.add(new Assignment((Fluent)visit(litCtx.fluent()), new Literal(litCtx.OP_NOT() == null)));
+                    Fluent fluent = (Fluent)visit(effCtx.fluent());
+                    if (effCtx.OP_NOT() != null) {
+                        if (effCtx.formula() != null) {
+                            throw new RuntimeException("negated effect can't have a fomula");
+                        }
+                        action.addEffect(new Assignment(fluent, false));
                     }
-                    action.addOnticEffect(assignments, condition);
+                    else {
+                        if (effCtx.formula() != null) {
+                            Formula formula = (Formula)visit(effCtx.formula());
+                            action.addEffect(new Assignment(fluent, formula));
+                        }
+                        else {
+                            action.addEffect(new Assignment(fluent, true));
+                        }
+                    }
                     variableStack.pop();
                 }
             }
             variableStack.pop();
-           domain.addAction(action);
+            domain.addAction(action);
+
+            //if (actionName.equals("move")) {
+            //    System.out.println(action);
+            //    System.exit(1);
+            //}
         }
         return null;
     }

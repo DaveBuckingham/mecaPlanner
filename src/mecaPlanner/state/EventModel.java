@@ -16,6 +16,11 @@ import mecaPlanner.formulae.Fluent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.Literal;
 
+import java.util.stream.Collectors;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Objects;
+
 import org.javatuples.Triplet;
 
 
@@ -103,10 +108,10 @@ public class EventModel implements Transformer {
             }
         }
         if (newDesignated.isEmpty()) {
-            throw new RuntimeException("event model has no designated event");
+            throw new RuntimeException("event " + name + " caused a state with no designated event");
         }
         if (newDesignated.size() != 1) {
-            throw new RuntimeException("event model has multiple designated events: " + newDesignated);
+            throw new RuntimeException("event " + name + " caused a state with multiple designated events");
         }
         State newState = new State(agents, newWorlds, newDesignated.iterator().next());
 
@@ -208,6 +213,40 @@ public class EventModel implements Transformer {
 
     public String getSignature() {
         return name;
+    }
+
+
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(name);
+        str.append("\n");
+
+        List<Event> eventsSorted = getEvents().stream().collect(Collectors.toList());
+        //worldsSorted.sort(Comparator.comparingInt(World::getId));
+
+        Collections.sort(eventsSorted, new Comparator(){
+            public int compare(Object o1, Object o2) {
+                Event w1 = (Event) o1;
+                Event w2 = (Event) o2;
+                return w1.getName().compareTo(w2.getName());
+            }
+        });
+
+        for (Event t : eventsSorted) {
+            str.append(designated.contains(t) ? "*" : " ");
+            str.append(t);
+            str.append("\n");
+        }
+
+        for (Map.Entry<Triplet<String, Event, Event>, Formula> entry : edges.entrySet()) {
+            Triplet<String, Event, Event> edge = entry.getKey();
+            String agent = edge.getValue0();
+            Event from = edge.getValue1();
+            Event to = edge.getValue2();
+            Formula condition = entry.getValue();
+            str.append(agent + " " + from.getName() + " " + to.getName() + " " + condition + "\n");
+        }
+        return str.toString();
     }
 
 

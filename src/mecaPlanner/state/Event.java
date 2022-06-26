@@ -62,5 +62,18 @@ public class Event {
         return this.effects;
     }
 
+    public String toString() {
+        StringBuilder str = new StringBuilder();
+        str.append(getName());
+        str.append(" pre: ");
+        str.append(precondition);
+        str.append(" eff: ");
+        for (Assignment e : effects) {
+            str.append(e);
+            str.append(" ");
+        }
+        return str.toString();
+    }
+
 }
 
