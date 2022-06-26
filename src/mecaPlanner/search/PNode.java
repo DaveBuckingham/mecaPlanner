@@ -17,18 +17,18 @@ public class PNode extends RecursiveTask<Integer> {
     private Set<OrNode> grounds;
     private Set<PNode> successors;
     private Integer time;       // DEPTH OF ALL NODES, I.E. ALL ACTIONS
-    private int depth;          // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
+    //private int depth;          // OF P-NODES, I.E. NUM SYSTEM AGENT ACTIONS
     private int maxDepth;
     private Domain domain;
 
 
 
-    public PNode(Perspective perspective, Set<OrNode> grounds, int time, int depth, int maxDepth, Domain domain) {
+    public PNode(Perspective perspective, Set<OrNode> grounds, int time, int maxDepth, Domain domain) {
         successfulAction = null;
         this.perspective = perspective;
         this.grounds = grounds;
         this.time = time;
-        this.depth = depth;
+        //this.depth = depth;
         this.maxDepth = maxDepth;
         this.domain = domain;
     }
@@ -114,7 +114,7 @@ public class PNode extends RecursiveTask<Integer> {
     }
 
     public Integer expand() {
-        if (depth > maxDepth) {
+        if (time > maxDepth) {
             return Integer.MAX_VALUE;
         }
         Integer bestBestCaseDepth = Integer.MAX_VALUE;
@@ -138,7 +138,7 @@ public class PNode extends RecursiveTask<Integer> {
     // RETURNS NULL IF TRANSITION FAILS DUE TO CYCLES OR DEPTH LIMIT
     // RETURNS EMPTY SET IF FOUND GOAL
     private PerspectiveSuccessors pTransition(Action action) {
-        OrLayer orLayer = new OrLayer();
+        OrLayer orLayer = new OrLayer(maxDepth, domain);
 
         for (OrNode ground : grounds ){
 
@@ -149,8 +149,8 @@ public class PNode extends RecursiveTask<Integer> {
             }
 
             orLayer.merge(successors);
-            return orLayer.lift();
         }
+        return orLayer.lift();
     }
 }
 

@@ -20,25 +20,26 @@ public class OrNode extends GNode {
                  List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Domain domain
+                 Domain domain,
+                 int maxDepth
                 ) {
 
-        super(estate, goal, timeConstraints, time, parent, domain);
+        super(estate, goal, timeConstraints, time, parent, domain,maxDepth);
     }
 
     // BOTTOM OUT A RECURSIVE DESCENT THROUGH AND NODES
     public OrLayer descend() {
         Set<OrNode> s = new HashSet<OrNode>();
         if (isGoal()) {
-            Log.trace("goal\n");
-            return new OrLayer(time, s);
+            Log.debug("goal\n");
+            //return new OrLayer(time, s);
+            return new OrLayer(time, maxDepth,domain);
         }
         if (isCycle()) {
             Log.debug("cycle");
             return null;
         }
-        s.add(this);
-        return new OrLayer(Integer.MAX_VALUE, s);
+        return new OrLayer(time, this, maxDepth,domain);
     }
 
 }

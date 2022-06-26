@@ -21,10 +21,11 @@ public class AndNode extends GNode {
                  List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Domain domain
+                 Domain domain,
+                 int maxDepth
                 ) {
 
-        super(estate, goal, timeConstraints, time, parent, domain);
+        super(estate, goal, timeConstraints, time, parent, domain, maxDepth);
         // MAKE SURE ITS NOT THE SYSTEM AGENT'S TURN
         assert(!domain.isSystemAgentIndex(time));
     }
@@ -62,16 +63,14 @@ public class AndNode extends GNode {
     // descends through layers of and-nodes,
     // stops when we reach an or-node layer
     public OrLayer descend() {
-        Set<OrNode> allOrSuccessors = new HashSet<>();
         if (isGoal()) {
-            //Log.trace("goal\n");
-            return new OrLayer(time, allOrSuccessors);
+            return new OrLayer(time,maxDepth,domain);
         }
         if (isCycle()) {
             Log.debug("cycle");
             return null;
         }
-        OrLayer allSuccessors = new OrLayer();
+        OrLayer allSuccessors = new OrLayer(maxDepth,domain);
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
 

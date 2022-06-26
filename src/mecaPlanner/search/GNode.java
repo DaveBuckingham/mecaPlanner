@@ -27,6 +27,7 @@ public abstract class GNode  {
     protected GNode parent;
     protected Set<GNode> successors;
     protected Domain domain;
+    protected int maxDepth;
 
     protected String agent;
 
@@ -41,7 +42,8 @@ public abstract class GNode  {
                  List<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
-                 Domain domain
+                 Domain domain,
+                 int maxDepth
                 ) {
         this.estate = estate;
         this.goal = goal;
@@ -50,6 +52,7 @@ public abstract class GNode  {
         this.parent = parent;
         this.successors = new HashSet<GNode>();
         this.domain = domain;
+        this.maxDepth = maxDepth;
 
         this.numAgents = domain.getTurnOrder().size();
         this.agentIndex = this.time % this.numAgents;
@@ -58,6 +61,10 @@ public abstract class GNode  {
         //Log.debug("t=" + time.toString());
         //Log.debug("ag=" + agent);
 
+    }
+
+    public int getMaxDepth() {
+        return maxDepth;
     }
 
     public Set<GNode> getSuccessors() {
@@ -114,7 +121,8 @@ public abstract class GNode  {
                               timeConstraints,
                               nextTime,
                               this,
-                              domain);
+                              domain,
+                              maxDepth);
         }
         else {
             return new AndNode(newState,
@@ -122,7 +130,8 @@ public abstract class GNode  {
                                timeConstraints,
                                nextTime,
                                this,
-                               domain);
+                               domain,
+                               maxDepth);
         }
     }
  

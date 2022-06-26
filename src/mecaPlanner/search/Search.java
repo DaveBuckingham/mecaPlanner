@@ -59,52 +59,57 @@ public class Search {
         Formula goal = problem.getGoal();
         List<TimeConstraint> timeConstraints = problem.getTimeConstraints();
         int time = 0;
-
-        Set<OrNode> allStartOrNodes = new HashSet<>();
-        if (domain.isSystemAgentIndex(time)) {
-            for (State eState : startStates) {
-                allStartOrNodes.add(new OrNode(eState,
-                                               goal, 
-                                               timeConstraints,
-                                               0, 
-                                               null, 
-                                               domain
-                                              ));
-            }
-        }
-        else {
-            for (State eState : startStates) {
-                AndNode startAndNode = new AndNode(eState,
-                                                   goal, 
-                                                   timeConstraints,
-                                                   0, 
-                                                   null, 
-                                                   domain
-                                                  );
-
-                GroundSuccessors startOrNodesWithScore = startAndNode.descend();
-
-                if (startOrNodesWithScore == null) {
-                    return null;
-                }
-
-                allStartOrNodes.addAll(startOrNodesWithScore.getOrLayer());
-            }
-        }
-
         while (!domain.isSystemAgentIndex(time)) {
             time++;
         }
 
         int maxDepth = 0;
         Solution solution = null;
+        OrLayer startingOrLayer = null;
         while (solution == null) {
             System.out.print(maxDepth);
-            System.out.print("\t");
-            //System.out.print(Math.round(Math.pow(leavesPerDepth, maxDepth)));
-            //System.out.print("\t");
             System.out.print("\n");
-            solution = searchToDepth(allStartOrNodes, time,  maxDepth);
+
+
+
+            if (domain.isSystemAgentIndex(time)) {
+                Set<OrNode> allStartOrNodes = new HashSet<>();
+                for (State eState : startStates) {
+                    allStartOrNodes.add(new OrNode(eState,
+                                                   goal, 
+                                                   timeConstraints,
+                                                   time, 
+                                                   null, 
+                                                   domain,
+                                                   maxDepth
+                                                  ));
+                }
+                startingOrLayer = new OrLayer(time, allStartOrNodes,maxDepth,domain);
+                assert(startingOrLayer != null);
+            }
+            else {
+                startingOrLayer = new OrLayer(maxDepth,domain);
+                for (State eState : startStates) {
+                    AndNode startAndNode = new AndNode(eState,
+                                                       goal, 
+                                                       timeConstraints,
+                                                       time, 
+                                                       null, 
+                                                       domain,
+                                                       maxDepth
+                                                      );
+
+                    OrLayer nextOrLayer = startAndNode.descend();
+
+                    if (nextOrLayer == null) {
+                        return null;
+                    }
+
+                    startingOrLayer.merge(nextOrLayer);
+                }
+            }
+
+            solution = searchToDepth(startingOrLayer);
             maxDepth += 1;
         }
         return solution;
@@ -112,24 +117,10 @@ public class Search {
 
     
 
-    public Solution searchToDepth(Set<OrNode> allStartOrNodes, int time, int maxDepth) {
+    public Solution searchToDepth(OrLayer allStartOrNodes) {
 
-
-        Map<Perspective, Set<OrNode>> perspectives = new HashMap<>();
-        for (OrNode ground : allStartOrNodes ){
-            Perspective perspective = new Perspective(ground.getState(), ground.getAgent());
-            if (!perspectives.containsKey(perspective)) {
-                perspectives.put(perspective, new HashSet<OrNode>());
-            }
-            perspectives.get(perspective).add(ground);
-        }
-            
-
-
-        Set<PNode> startPNodes = new HashSet<>();
-        for (Map.Entry<Perspective, Set<OrNode>> entry : perspectives.entrySet()) {
-            startPNodes.add(new PNode(entry.getKey(), entry.getValue(), time, 0, maxDepth, domain));
-        }
+        PerspectiveSuccessors pNodesWithScore = allStartOrNodes.lift();
+        Set<PNode> startPNodes = pNodesWithScore.getPLayer();
 
         for (PNode startPNode : startPNodes) {
             if (startPNode.expand() == Integer.MAX_VALUE) {
