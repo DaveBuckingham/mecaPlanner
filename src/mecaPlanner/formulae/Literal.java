@@ -10,11 +10,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.HashSet;
 
-public class Literal extends Formula{
+public class Literal extends Fluent{
 
     Boolean value;
 
     public Literal(Boolean value) {
+        super(value ? "TRUE" : "FALSE");
         this.value = value;
     }
 

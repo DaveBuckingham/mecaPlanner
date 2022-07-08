@@ -1,0 +1,69 @@
+types{
+    Robot-Actor,
+    Human-Actor,
+    Actor-Locatable,
+    Spill-Locatable,
+    Locatable-Object,
+    Location-Object
+}
+
+objects{
+    r-Robot,
+    h-Human,
+    a1 - Location,
+    a2 - Location,
+    a3 - Location,
+    back - Location,
+    front - Location,
+}
+
+agents{
+    r,
+    h{SlipAgent},
+}
+
+fluents{
+    at_back(Actor),
+    at(Locatable,Location),
+    f(Actor),
+    spill(Location),
+}
+
+constants{
+    !connected(Location, Location),
+    connected(back,a1),
+    connected(front,a1),
+    connected(back,a2),
+    connected(a2,a3),
+    connected(front,a3),
+}
+
+start{(at_back(r),
+       at_back(h),
+       spill(a1),
+       B[h](!spill(a1)),
+      )
+}
+
+goals{
+    !f(h),
+    Timestep==3,
+    Timestep~=4,
+}
+
+actions{
+    <?a-Actor,?f-Location,?t-Location>move(
+        owner ?a,
+        precondition at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)),
+        <?o-Actor>observes ?o,
+        causes at(?a, ?t),
+        causes ~(at(?a, ?f)),
+        //causes f(?a) if spill(?t) 
+        causes f(?a) <- (f(?a) | spill(?t))
+    )
+
+    <?a - Actor>wait(
+        owner ?a,
+        <?o-Actor>observes ?o,
+    )
+}

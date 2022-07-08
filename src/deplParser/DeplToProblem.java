@@ -860,6 +860,9 @@ public class DeplToProblem extends DeplBaseVisitor {
             parameters.add((String) visit(objCtx));
         }
         Fluent fluent = new Fluent(fluentName, parameters);
+        if (constants.containsKey(fluent)) {
+            return new Literal(constants.get(fluent));
+        }
         if (!allFluents.contains(fluent)) {
             throw new RuntimeException("unknown fluent: " + fluent);
         }
@@ -874,9 +877,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 //        if (!allFluents.contains(fluent)) {
 //            throw new RuntimeException("unknown fluent: " + fluent);
 //        }
-        if (constants.containsKey(fluent)) {
-            return new Literal(constants.get(fluent));
-        }
         return fluent;
     }
 

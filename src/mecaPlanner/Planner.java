@@ -100,8 +100,8 @@ public class Planner {
 
         Log.info("done loading problem");
 
-        System.out.println(problem.getStartState());
-        System.exit(1);
+        //System.out.println(problem.getStartState());
+        //System.exit(1);
 
 
         Log.debug(Integer.toString(problem.getDomain().getAllActions().size()) + " actions loaded");
