@@ -73,6 +73,10 @@ public class EventModel implements Transformer {
         return events;
     }
 
+    public String getName() {
+        return name;
+    }
+
     private Formula getEdge(String agent, Event from, Event to) {
         return edges.get(new Triplet(agent,from,to));
     }
@@ -144,10 +148,13 @@ public class EventModel implements Transformer {
         }
 
         newState.trim();
+
         String old = newState.toString();
         if (newState.normalize()) {
-            Log.debug("transitioned state not normal");
-            System.exit(1);
+            // THIS ISN'T NECESSARILY A PROBLEM,
+            // THIS CHECK IS JUST HERE BECAUSE I'M CURIOUS TO SEE WHEN IT HAPPENS
+            System.out.println("transitioned state not normal");
+            //System.exit(1);
         }
         newState.reduce();
         return newState;

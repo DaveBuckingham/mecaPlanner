@@ -124,7 +124,16 @@ public class PNode extends RecursiveTask<Integer> {
                 continue;
             }
 
+
             Integer actionBestScore = successorsWithScore.getBestDistanceToGoal();
+
+            // MUCH FASTER: GO WITH THE FIRST ACTION THAT WORKS INSTEAD OF FINDING THE OPTIMAL PLAN
+            if (true) {
+                successfulAction = action;
+                bestBestCaseDepth = actionBestScore;
+                successors = successorsWithScore.getPLayer();
+                return (bestBestCaseDepth);
+            }
 
             if (actionBestScore < bestBestCaseDepth) {
                 successfulAction = action;

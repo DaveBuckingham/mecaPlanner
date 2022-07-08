@@ -94,13 +94,14 @@ public class Planner {
         //System.out.println(problem.getSystemAgentIndex());
 
 
-        //System.out.println(problem.getStartState());
-
         //System.out.println(problem);
         //System.exit(1);
 
 
         Log.info("done loading problem");
+
+        System.out.println(problem.getStartState());
+        System.exit(1);
 
 
         Log.debug(Integer.toString(problem.getDomain().getAllActions().size()) + " actions loaded");

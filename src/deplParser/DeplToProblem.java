@@ -472,7 +472,10 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         startState.trim();
         if (startState.normalize()) {
-            Log.info("start state not normal");
+            // THIS ISN'T NECESSARILY A PROBLEM,
+            // THIS CHECK IS JUST HERE BECAUSE I'M CURIOUS TO SEE WHEN IT HAPPENS
+            System.out.println("start state not normal");
+            //System.exit(1);
         }
         startState.reduce();
 
@@ -532,10 +535,12 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         state.trim();
         if (state.normalize()) {
-            Log.info("start state not normal");
+            // THIS ISN'T NECESSARILY A PROBLEM,
+            // THIS CHECK IS JUST HERE BECAUSE I'M CURIOUS TO SEE WHEN IT HAPPENS
+            System.out.println("start state not normal");
+            //System.exit(1);
         }
         state.reduce();
-
 
         return state;
     }
@@ -582,8 +587,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
         Set<Event> designatedEvents = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
         EventModel model = new EventModel("knows-" + f, domain.getAllAgents(), events, designatedEvents);
+        //System.out.println("adding: " + model.getName());
         for (String a : domain.getAllAgents()) {
             if (!agents.contains(a)) {
+                //System.out.println("not agent: " + a);
                 model.addEdge(a, trueEvent, falseEvent);
                 model.addEdge(a, falseEvent, trueEvent);
             }
@@ -853,16 +860,22 @@ public class DeplToProblem extends DeplBaseVisitor {
             parameters.add((String) visit(objCtx));
         }
         Fluent fluent = new Fluent(fluentName, parameters);
+        if (!allFluents.contains(fluent)) {
+            throw new RuntimeException("unknown fluent: " + fluent);
+        }
         return fluent;
     }
 
     @Override public Formula visitFluentFormula(DeplParser.FluentFormulaContext ctx) {
         Fluent fluent = (Fluent) visit(ctx.fluent());
+//        if (constants.containsKey(fluent)) {
+//            return new Literal(constants.get(fluent));
+//        }
+//        if (!allFluents.contains(fluent)) {
+//            throw new RuntimeException("unknown fluent: " + fluent);
+//        }
         if (constants.containsKey(fluent)) {
             return new Literal(constants.get(fluent));
-        }
-        if (!allFluents.contains(fluent)) {
-            throw new RuntimeException("unknown fluent: " + fluent);
         }
         return fluent;
     }
