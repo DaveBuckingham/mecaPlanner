@@ -48,53 +48,58 @@ public class Actions {
             System.out.println(currentState);
 
             List<Transformer> applicable = new ArrayList<>();
-            for (Set<Action> agentActions : domain.getActionMap().values()) {
-                for (Action a : agentActions) {
-                    if (a.getPrecondition().evaluate(currentState)){
-                        applicable.add(a);
-                    }
+            for (Transformer action : domain.getTransformerList()) {
+                if (action.executable(currentState)){
+                    applicable.add(action);
                 }
             }
-            for (EventModel e : domain.getEventModels()) {
-                applicable.add(e);
-            }
 
 
-            Scanner stdin = new Scanner(System.in);
-            for (Integer i = 0; i < applicable.size(); i++) {
-                System.out.println(i + ": " + applicable.get(i).getSignature());
-            }
-            Integer selection = -1;
 
-            try{
-                selection = stdin.nextInt();
-            }
-            catch(Exception e){
-                cont = false;
-                continue;
-            }
-            if (selection < 0 || selection >= applicable.size()) {
-                cont = false;
-                continue;
-            }
 
-            Transformer action = applicable.get(selection);
 
-            if (action == null) {
-                throw new RuntimeException("somehow failed to select an action");
-            }
 
-            State newState = action.transition(currentState);
-            newState.normalize();
-            newState.trim();
-            currentState.normalize();
-            if (currentState.bisimilar(newState)) {
-                System.out.println("bisimilar!");
-            }
-            else {
-                System.out.println("not bisimilar");
-            }
-            currentState = newState;
+
+                for (EventModel e : domain.getEventModels()) {
+                    applicable.add(e);
+                }
+
+
+                Scanner stdin = new Scanner(System.in);
+                for (Integer i = 0; i < applicable.size(); i++) {
+                    System.out.println(i + ": " + applicable.get(i).getSignature());
+                }
+                Integer selection = -1;
+
+                try{
+                    selection = stdin.nextInt();
+                }
+                catch(Exception e){
+                    cont = false;
+                    continue;
+                }
+                if (selection < 0 || selection >= applicable.size()) {
+                    cont = false;
+                    continue;
+                }
+
+                Transformer action = applicable.get(selection);
+
+                if (action == null) {
+                    throw new RuntimeException("somehow failed to select an action");
+                }
+
+                State newState = action.transition(currentState);
+                //newState.normalize();
+                //newState.trim();
+                //currentState.normalize();
+                //if (currentState.bisimilar(newState)) {
+                //    System.out.println("bisimilar!");
+                //}
+                //else {
+                //    System.out.println("not bisimilar");
+                //}
+                currentState = newState;
 
         }
 

@@ -206,13 +206,30 @@ public class Action implements Transformer {
 
         else {
             // NOOP
+
+            //Event nullEvent = new Event(new Literal(true));
+            //Set<Event> events = new HashSet(Arrays.asList(nullEvent));
+            //Set<Event> designated = new HashSet(Arrays.asList(nullEvent));
+            //EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
+            //for (String agent : domain.getAllAgents()) {
+            //    model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+            //}
+            //eventModel = model;
+
+            Event onticEvent = new Event(precondition, new HashSet<Assignment>()); // DOESN'T DO ANYTHING, BUT HAS PRECONDITION
             Event nullEvent = new Event(new Literal(true));
-            Set<Event> events = new HashSet(Arrays.asList(nullEvent));
-            Set<Event> designated = new HashSet(Arrays.asList(nullEvent));
+            Set<Event> events = new HashSet(Arrays.asList(onticEvent, nullEvent));
+            Set<Event> designated = new HashSet(Arrays.asList(onticEvent));
 
             EventModel model = new EventModel(name, domain.getAllAgents(), events, designated);
             for (String agent : domain.getAllAgents()) {
+                model.addEdge(agent, onticEvent, onticEvent, new Literal(true));
                 model.addEdge(agent, nullEvent, nullEvent, new Literal(true));
+
+                Formula full = observesConditions.get(agent);
+                Formula aware = awareConditions.get(agent);
+                Formula oblivious = AndFormula.make(full.negate(), aware.negate());
+                model.addEdge(agent, onticEvent, nullEvent, oblivious);
             }
             eventModel = model;
         }

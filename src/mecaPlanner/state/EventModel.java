@@ -77,6 +77,11 @@ public class EventModel implements Transformer {
         return name;
     }
 
+    // NEED TO IMPLEMETN THIS!!!!!!!!!!!!
+    public boolean executable(State state) {
+        return true;
+    }
+
     private Formula getEdge(String agent, Event from, Event to) {
         return edges.get(new Triplet(agent,from,to));
     }

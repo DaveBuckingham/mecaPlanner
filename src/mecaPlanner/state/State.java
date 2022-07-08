@@ -57,9 +57,9 @@ public class State extends NDState {
     //}
 
     public NDState getBeliefPerspective(String agent) {
-        return new NDState(agents,
-                           new HashSet<World>(worlds),
-                           getMostPlausible(agent, getDesignatedWorld()));
+        NDState perspective =  new NDState(agents, new HashSet<World>(worlds), getMostPlausible(agent, getDesignatedWorld()));
+        perspective.trim();
+        return perspective;
     }
 
 

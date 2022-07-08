@@ -23,7 +23,6 @@ agents{
 }
 
 fluents{
-    at_back(Actor),
     at(Locatable,Location),
     f(Actor),
     spill(Location),
@@ -38,8 +37,8 @@ constants{
     connected(front,a3),
 }
 
-start{(at_back(r),
-       at_back(h),
+start{(at(r,a1),
+       at(h,back),
        spill(a1),
        B[h](!spill(a1)),
       )
@@ -54,12 +53,18 @@ goals{
 actions{
     <?a-Actor,?f-Location,?t-Location>move(
         owner ?a,
-        precondition at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)),
+        precondition at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a),
         <?o-Actor>observes ?o,
         causes at(?a, ?t),
         causes ~(at(?a, ?f)),
-        //causes f(?a) if spill(?t) 
         causes f(?a) <- (f(?a) | spill(?t))
+    )
+
+    <>slip(
+        owner r,
+        precondition spill(a1),
+        <?o-Actor>observes ?o,
+        causes f(r),
     )
 
     <?a - Actor>wait(
