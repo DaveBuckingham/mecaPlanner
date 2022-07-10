@@ -1,47 +1,81 @@
 types{
-    Actor-Object,
+    Robot-Actor,
+    Human-Actor,
+    Actor-Locatable,
+    Spill-Locatable,
+    Locatable-Object,
+    Location-Object
 }
 
 objects{
-    h-Actor,
     r-Actor,
+    h-Actor,
+    a1 - Location,
+    a2 - Location,
+    a3 - Location,
+    back - Location,
+    front - Location,
 }
 
 agents{
-    h,
-    r{TrivialModel}
+    r,
+    h{SlipModel}
 }
 
 
 fluents{
-    b()
+    at(Locatable,Location),
+    f(Actor),
+    p(Location),
+}
+
+constants{
+    !connected(Location, Location),
+    connected(back,a1),
+    connected(front,a1),
+    connected(back,a2),
+    connected(a2,a3),
+    connected(front,a3),
 }
 
 
 initially{
-    *w1 <- {b()},
-    w2 <- {},
-    B[m] <- {(w1,w1),(w2,w2)}
-    B[t] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
-    K[m] <- {(w1,w1),(w2,w2)}
-    K[t] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
+    *w1 <- {at(r,back),at(h,a1),p(a1)},
+    w2 <- {at(r,back),at(h,a1)},
+    B[r] <- {(w1,w1),(w2,w2)}
+    K[r] <- {(w1,w1),(w2,w2)}
+    B[h] <- {(w1,w2),(w2,w2)}
+    K[h] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
 }
+
 
 goals{
+    !f(h),
+    Timestep==3,
+    Timestep~=4,
 }
 
+
 actions{
-    look(){
-        owner{t},
-        determines{b()},
-        observes(){t},
+    move(?a-Actor,?f-Location,?t-Location){
+        owner{?a},
+        precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a)},
+        observes(?o-Actor){?o},
+        causes{at(?a, ?t)},
+        causes{~(at(?a, ?f))},
+        causes{f(?a) if p(?t)}
     }
 
-    tell(){ 
-        owner{m},
-        announces{~b()},
-        observes(){t},
-        observes(){m},
+    slip(){
+        owner{r},
+        precondition{p(a1)},
+        observes(?o-Actor){?o},
+        causes{f(r)}
+    }
+
+    wait(?a - Actor) {
+        owner{?a},
+        observes(?o-Actor){?o},
     }
 
 }
