@@ -4,7 +4,7 @@ import mecaPlanner.state.NDState;
 import mecaPlanner.state.EpistemicState;
 import mecaPlanner.models.Model;
 import mecaPlanner.Action;
-import mecaPlanner.formulae.beliefFormulae.BeliefFormula;
+import mecaPlanner.formulae.*;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
@@ -41,7 +41,10 @@ public class Actions {
         Map<String, Model> models = problem.getStartingModels();
         int depth = 0;
 
+        List<String> eagents = new ArrayList<>(models.keySet());
+
         boolean cont = true;
+
 
         while(cont) {
 
@@ -63,6 +66,9 @@ public class Actions {
             for (Integer i = 0; i < applicable.size(); i++) {
                 System.out.println(i + ": " + applicable.get(i).getSignature());
             }
+            for (Integer i = 0; i < eagents.size(); i++) {
+                System.out.println((i + applicable.size()) + ": [" + eagents.get(i) + "]");
+            }
             Integer selection = -1;
 
             try{
@@ -72,19 +78,28 @@ public class Actions {
                 cont = false;
                 continue;
             }
-            if (selection < 0 || selection >= applicable.size()) {
+            if (selection < 0 || selection >= (applicable.size() + eagents.size())) {
                 cont = false;
                 continue;
             }
 
-            Action action = applicable.get(selection);
-
-            if (action == null) {
-                throw new RuntimeException("somehow failed to select an action");
+            if (selection < applicable.size()) {
+                Action action = applicable.get(selection);
+                System.out.println("EXECUTING: " + action.getSignatureWithActor());
+                Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
+                currentState = transitionResult.getState();
             }
-
-            Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-            currentState = transitionResult.getState();
+            else if (selection < applicable.size() + eagents.size()) {
+                Model model = models.get(eagents.get(selection - applicable.size()));
+                System.out.print("PREDICTED: ");
+                for (Action a : model.getPrediction(currentState)) {
+                    System.out.print(a.getSignatureWithActor() + ", ");
+                }
+                System.out.println("");
+            }
+            else {
+                throw new RuntimeException("somehow failed to select an action or model");
+            }
 
         }
 

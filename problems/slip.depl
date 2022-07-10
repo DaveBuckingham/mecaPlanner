@@ -40,8 +40,8 @@ constants{
 
 
 initially{
-    *w1 <- {at(r,back),at(h,a1),p(a1)},
-    w2 <- {at(r,back),at(h,a1)},
+    *w1 <- {at(h,back),at(r,a1),p(a1)},
+    w2 <- {at(h,back),at(r,a1)},
     B[r] <- {(w1,w1),(w2,w2)}
     K[r] <- {(w1,w1),(w2,w2)}
     B[h] <- {(w1,w2),(w2,w2)}
@@ -50,7 +50,7 @@ initially{
 
 
 goals{
-    !f(h),
+    ~f(h),
     Timestep==3,
     Timestep~=4,
 }
@@ -59,7 +59,8 @@ goals{
 actions{
     move(?a-Actor,?f-Location,?t-Location){
         owner{?a},
-        precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a)},
+        //precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a)},
+        precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f))},
         observes(?o-Actor){?o},
         causes{at(?a, ?t)},
         causes{~(at(?a, ?f))},
