@@ -37,12 +37,20 @@ constants{
     connected(front,a3),
 }
 
-start{(at(r,a1),
-       at(h,back),
-       spill(a1),
-       B[h](!spill(a1)),
-      )
-}
+//start{(at(r,a1),
+//       at(h,back),
+//       spill(a1),
+//       B[h](!spill(a1)),
+//      )
+//}
+
+start{(
+    *u{at(r,a1),at(h,back),spill(a1)},
+     v{at(r,a1),at(h,back)},
+     r{u-u,v-v}
+     h{u-v,v-v}
+)}
+
 
 goals{
     !f(h),

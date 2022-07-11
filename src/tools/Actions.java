@@ -1,8 +1,8 @@
 package tools;
 
 import mecaPlanner.state.*;
-import mecaPlanner.state.State;
-//import mecaPlanner.models.Model;
+import mecaPlanner.agents.Agent;
+import mecaPlanner.formulae.*;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
 import mecaPlanner.Problem;
@@ -36,15 +36,17 @@ public class Actions {
 
         // VARIABLES TO TRACK THE SYSTEM STATE
         State currentState = problem.getStartState();
-        //Map<String, Model> models = problem.getStartingModels();
+        Map<String, Agent> models = domain.getEnvironmentAgents();
         int depth = 0;
+
+        List<String> eagents = new ArrayList<>(models.keySet());
 
         boolean cont = true;
 
+
         while(cont) {
 
-            //currentState.getKripke().forceCheck();
-            //currentState.getKripke().checkRelations();
+            System.out.println("\nCURRENT STATE:");
             System.out.println(currentState);
 
             List<Transformer> applicable = new ArrayList<>();
@@ -55,51 +57,49 @@ public class Actions {
             }
 
 
+            System.out.println("\nPICK ONE:");
+            Scanner stdin = new Scanner(System.in);
+            for (Integer i = 0; i < applicable.size(); i++) {
+                System.out.println(i + ": " + applicable.get(i).getSignature());
+            }
+            for (Integer i = 0; i < eagents.size(); i++) {
+                System.out.println((i + applicable.size()) + ": [" + eagents.get(i) + "]");
+            }
+            Integer selection = -1;
 
+            try{
+                selection = stdin.nextInt();
+            }
+            catch(Exception e){
+                cont = false;
+                continue;
+            }
+            if (selection < 0 || selection >= (applicable.size() + eagents.size())) {
+                cont = false;
+                continue;
+            }
 
-
-
-
-                for (EventModel e : domain.getEventModels()) {
-                    applicable.add(e);
+            if (selection < applicable.size()) {
+                Transformer t = applicable.get(selection);
+                if (!(t instanceof Action)) {
+                    throw new RuntimeException("not an action");
                 }
-
-
-                Scanner stdin = new Scanner(System.in);
-                for (Integer i = 0; i < applicable.size(); i++) {
-                    System.out.println(i + ": " + applicable.get(i).getSignature());
-                }
-                Integer selection = -1;
-
-                try{
-                    selection = stdin.nextInt();
-                }
-                catch(Exception e){
-                    cont = false;
-                    continue;
-                }
-                if (selection < 0 || selection >= applicable.size()) {
-                    cont = false;
-                    continue;
-                }
-
-                Transformer action = applicable.get(selection);
-
-                if (action == null) {
-                    throw new RuntimeException("somehow failed to select an action");
-                }
-
+                Action action = (Action)t;
+                System.out.println("EXECUTING: " + action.getSignatureWithActor());
                 State newState = action.transition(currentState);
-                //newState.normalize();
-                //newState.trim();
-                //currentState.normalize();
-                //if (currentState.bisimilar(newState)) {
-                //    System.out.println("bisimilar!");
-                //}
-                //else {
-                //    System.out.println("not bisimilar");
-                //}
                 currentState = newState;
+            }
+            else if (selection < applicable.size() + eagents.size()) {
+                Agent model = models.get(eagents.get(selection - applicable.size()));
+                System.out.print("PREDICTED: ");
+                for (Action a : model.getPrediction(currentState)) {
+                    System.out.print(a.getSignatureWithActor() + ", ");
+                }
+                System.out.println("");
+            }
+            else {
+                throw new RuntimeException("somehow failed to select an action or model");
+            }
 
         }
 

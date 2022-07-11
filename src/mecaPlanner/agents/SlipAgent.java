@@ -50,7 +50,6 @@ public class SlipAgent extends Agent {
         else {
             throw new RuntimeException("Slip Agent failed to determine state");
         }
-        System.out.println("human: " + prediction);
         return prediction;
 
 
