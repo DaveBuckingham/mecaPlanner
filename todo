@@ -1,3 +1,5 @@
+when parsing start state (model) make sure agent names (defining relations) are defined, currently this doesnt get
+    caught at parse time.
 detect when all paths lead to cycles, increasing depth doesnt' change anything...
 improve makefile
 fast check for agent type at depth

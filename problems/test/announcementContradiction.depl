@@ -1,0 +1,40 @@
+//
+// What happens if an announcement contradicts its preconditions?
+//
+
+
+
+types{
+}
+
+objects{
+    a-Object,
+}
+
+agents{
+    a,
+}
+
+fluents{
+    p(),
+}
+
+start{(
+    *u{p()},
+     v{},
+     a{u-u,u-v,v-v,v-u}
+)}
+
+
+goals{
+    false
+}
+
+actions{
+    ann(
+        owner a,
+        precondition p(),
+        observes a,
+        announces !p()
+    )
+}
