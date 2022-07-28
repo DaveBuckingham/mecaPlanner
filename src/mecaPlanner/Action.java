@@ -755,6 +755,7 @@ public class Action implements java.io.Serializable {
         for (Action action : domain.getAllActions()) {
             Formula possiblyPreconditioned = new KnowsFormula(agent,
                 action.getPrecondition().negate()).negate();
+            // THIS DOESN'T LOOK RIGHT
             Formula possiblyOblivious = AndFormula.make(
                 new KnowsFormula(agent, action.observesIf.get(agent)).negate(),
                 new KnowsFormula(agent, action.awareIf.get(agent)).negate());
