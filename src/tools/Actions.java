@@ -49,6 +49,10 @@ public class Actions {
             System.out.println("\nCURRENT STATE:");
             System.out.println(currentState);
 
+            if(problem.getGoal().evaluate(currentState)) {
+                System.out.println("GOAL");
+            }
+
             List<Transformer> applicable = new ArrayList<>();
             for (Transformer action : domain.getTransformerList()) {
                 if (action.executable(currentState)){

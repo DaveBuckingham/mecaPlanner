@@ -36,7 +36,7 @@ public class OrNode extends GNode {
             return new OrLayer(time, maxDepth,domain);
         }
         if (isCycle()) {
-            Log.debug("cycle");
+            //Log.debug("cycle");
             return null;
         }
         return new OrLayer(time, this, maxDepth,domain);

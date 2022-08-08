@@ -89,6 +89,10 @@ public abstract class GNode  {
                 return false;
             }
         }
+        //System.out.println(estate);
+        //System.out.println(goal);
+        //System.out.println(goal.evaluate(estate));
+        //System.out.println("===========");
         return goal.evaluate(estate);
     }
 
