@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
+import mecaPlanner.actions.*;
 
 import java.util.Set;
 import java.util.HashSet;

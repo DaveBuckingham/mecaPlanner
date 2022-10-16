@@ -4,9 +4,9 @@ import java.util.Set;
 import java.util.HashSet;
 import java.util.Arrays;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.State;
-import mecaPlanner.state.Action;
+import mecaPlanner.state.*;
+import mecaPlanner.actions.*;
+import mecaPlanner.actions.Action;
 import mecaPlanner.formulae.Fluent;
 import mecaPlanner.Domain;
 

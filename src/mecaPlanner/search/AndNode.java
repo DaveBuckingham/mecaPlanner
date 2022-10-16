@@ -2,7 +2,7 @@ package mecaPlanner.search;
 
 import mecaPlanner.search.GNode;
 import mecaPlanner.state.State;
-import mecaPlanner.state.Action;
+import mecaPlanner.actions.Action;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
 import mecaPlanner.formulae.Formula;

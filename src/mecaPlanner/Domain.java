@@ -2,9 +2,9 @@ package mecaPlanner;
 
 import mecaPlanner.agents.Agent;
 import mecaPlanner.state.State;
-import mecaPlanner.state.EventModel;
-import mecaPlanner.state.Action;
-import mecaPlanner.state.Transformer;
+import mecaPlanner.actions.EventModel;
+import mecaPlanner.actions.Action;
+import mecaPlanner.actions.Transformer;
 
 import java.util.Map;
 import java.util.HashMap;

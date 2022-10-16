@@ -1,6 +1,7 @@
 package mecaPlanner.state;
 
 
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 import mecaPlanner.formulae.Fluent;
+import mecaPlanner.actions.Assignment;
 
 
 public class World implements java.io.Serializable {

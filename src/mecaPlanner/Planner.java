@@ -30,8 +30,12 @@ import org.antlr.v4.runtime.tree.*;
 
 import depl.*;
 
+
+
 public class Planner {
 
+    public enum Language { MB, REVISE }
+    public static Language language=Language.REVISE;
 
     public static void main(String args[]) {
 
@@ -49,7 +53,7 @@ public class Planner {
         String deplFileName = null;
         String planFileName = null;
 
-        if (args.length < 1 || args.length > 3) {
+        if (args.length < 1 || args.length > 4) {
             throw new RuntimeException("too many parameters");
         }
 
@@ -68,6 +72,10 @@ public class Planner {
             }
             else if (arg.equals("-d")) {
                 Log.setThreshold("debug");
+            }
+            else if (arg.equals("-m")) {
+                Log.info("using mB action language");
+                Planner.language=Language.MB;
             }
             else {
                 throw new RuntimeException("invalid argument: " + arg);
