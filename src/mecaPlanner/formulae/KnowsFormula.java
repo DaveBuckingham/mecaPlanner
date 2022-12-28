@@ -44,7 +44,7 @@ public class KnowsFormula extends Formula {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }
         assert(model.getWorlds().contains(world));
-        for (World w : model.getPossible(agent, world)) {
+        for (World w : model.getKnown(agent, world)) {
             if (!formula.evaluate(model, w)){
                 return false;
             }

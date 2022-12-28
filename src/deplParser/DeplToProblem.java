@@ -34,7 +34,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // THESE GO IN THE PROBLEM
     private Domain domain;
-    private Set<State> startStates;
+    private Set<AbstractState> startStates;
     private List<Formula> initially;
     private List<Formula> goals;
     private List<TimeConstraint> timeConstraints;

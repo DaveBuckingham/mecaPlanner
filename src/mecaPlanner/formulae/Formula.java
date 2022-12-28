@@ -25,14 +25,14 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(NDState model, World world);
+    public abstract Boolean evaluate(AbstractState model, World world);
     public abstract Boolean evaluate(World world);
 
-    public Boolean evaluate(State state) {
+    public Boolean evaluate(PointedAbstractState state) {
         return evaluate(state, state.getDesignatedWorld());
     }
 
-    public Boolean possibly(NDState state) {
+    public Boolean possibly(AbstractState state) {
         for (World w : state.getDesignated()) {
             if (evaluate(state, w)) {
                 return true;
@@ -41,7 +41,7 @@ public abstract class Formula {
         return false;
     }
 
-    public Boolean necessarily(NDState state) {
+    public Boolean necessarily(AbstractState state) {
         for (World w : state.getDesignated()) {
             if (!evaluate(state, w)) {
                 return false;
@@ -49,7 +49,6 @@ public abstract class Formula {
         }
         return true;
     }
-
 
     public static Formula makeDisjunction(List<Formula> disjuncts) {
         List<Formula> negated = new ArrayList<>();

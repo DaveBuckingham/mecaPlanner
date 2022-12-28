@@ -1,7 +1,7 @@
 package mecaPlanner;
 
 import mecaPlanner.agents.Agent;
-import mecaPlanner.state.State;
+//import mecaPlanner.state.AbstractState;
 import mecaPlanner.actions.EventModel;
 import mecaPlanner.actions.Action;
 import mecaPlanner.actions.Transformer;

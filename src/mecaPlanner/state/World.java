@@ -60,13 +60,6 @@ public class World implements java.io.Serializable {
         fluents = new HashSet<Fluent>(toCopy.getFluents());
     }
 
-//    private World setChild(World child) {
-//        this.child = child;
-//    }
-
-//    private World getChild(){
-//        return this.child;
-//    }
 
     protected Set<Fluent> getFluents() {
         return fluents;

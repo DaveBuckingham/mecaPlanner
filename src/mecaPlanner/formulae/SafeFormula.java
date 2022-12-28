@@ -46,7 +46,7 @@ public class SafeFormula extends Formula {
         throw new RuntimeException("Can't evaluate modal formula without a model");
     }
 
-    public Boolean evaluate(NDState model, World world) {
+    public Boolean evaluate(BimodalState model, World world) {
         if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }

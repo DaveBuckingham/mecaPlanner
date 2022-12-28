@@ -29,7 +29,7 @@ public interface AbstractState  {
 
     public Set<World> getBelieved(String agent, World source);
 
-    public Set<World> getPossible(String agent, World source);
+    public Set<World> getKnown(String agent, World source);
 
     public List<String> getAgents();
 

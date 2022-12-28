@@ -199,7 +199,7 @@ public class PlausibilityState implements AbstractState implements java.io.Seria
         return min;
     }
 
-    public Set<World> getPossible(String agent, World source) {
+    public Set<World> getKnown(String agent, World source) {
         assert(worlds.contains(source));
         Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(source));
         accessible.addAll(moreToLessPlausible.get(agent).get(source));
@@ -269,7 +269,7 @@ public class PlausibilityState implements AbstractState implements java.io.Seria
 
     private boolean equivalentForAllAgents(Set<World> block, World w) {
         for (String a : agents) {
-            if (!getPossible(a, w).containsAll(block)) {
+            if (!getKnown(a, w).containsAll(block)) {
                 return false;
             }
         }

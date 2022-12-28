@@ -27,7 +27,7 @@ import mecaPlanner.formulae.Fluent;
 
 
 
-public class NDState implements AbstractState implements java.io.Serializable {
+public class BimodalState implements AbstractState implements java.io.Serializable {
 
 
 
@@ -44,7 +44,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
     protected Map<Set<Fluent>, Set<World>> valuationClasses;
 
 
-    public NDState(List<String> agents, Set<World> worlds, Set<World> designated) {
+    public BimodalState(List<String> agents, Set<World> worlds, Set<World> designated) {
         assert(!worlds.isEmpty());
         assert(worlds.containsAll(designated));
         assert(!agents.isEmpty());
@@ -88,20 +88,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
         
     }
 
-    //public NDState(NDState toCopy) {
-    //    model = new NDState(toCopy.getNDState());
-    //    designated = new HashSet<World>();
-    //    for (World d : toCopy.getDesignatedWorlds()) {
-    //        designated.add(d.getChild());
-    //    }
-    //}
 
-
-    //public NDState(NDState toCopy) {
-    //    this(new HashSet<String>(toCopy.getAgents(), new HashSet<World>(toCopy.getWorlds());
-    //    this.morePlausible = new HashMap<String, Relation>(toCopy.getMorePlausible());
-    //    this.lessPlausible = new HashMap<String, Relation>(toCopy.lessPlausible());
-    //}
 
     public Set<World> getWorlds() {
         return worlds;
@@ -154,21 +141,24 @@ public class NDState implements AbstractState implements java.io.Serializable {
         return  lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible);
     }
 
-    public boolean isConnectedStrict(String agent, World lessPlausible, World morePlausible) {
+    private boolean isConnectedStrict(String agent, World lessPlausible, World morePlausible) {
         return  (lessToMorePlausible.get(agent).get(lessPlausible).contains(morePlausible) && 
                  !lessToMorePlausible.get(agent).get(morePlausible).contains(lessPlausible));
     }
 
-    public Set<World> getMorePlausible(String agent, World lessPlausible) {
+    private Set<World> getMorePlausible(String agent, World lessPlausible) {
         return lessToMorePlausible.get(agent).get(lessPlausible);
     }
 
-    public Set<World> getLessPlausible(String agent, World morePlausible) {
+    private Set<World> getLessPlausible(String agent, World morePlausible) {
         return moreToLessPlausible.get(agent).get(morePlausible);
     }
 
-    public Set<World> getMostPlausible(String agent, World lessPlausible) {
+    private Set<World> getMostPlausible(String agent, World lessPlausible) {
         return getMinimum(agent, getMorePlausible(agent, lessPlausible));
+    }
+
+    public Set<World> getBelieved(String agent, World lessPlausible) {
     }
 
     //private boolean isMorePlausible(String agent, Set<World> more, Set<World> less) {
@@ -198,7 +188,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
         return min;
     }
 
-    public Set<World> getPossible(String agent, World root) {
+    public Set<World> getKnown(String agent, World root) {
         assert(worlds.contains(root));
         Set<World> accessible = new HashSet<World>(lessToMorePlausible.get(agent).get(root));
         accessible.addAll(moreToLessPlausible.get(agent).get(root));
@@ -268,7 +258,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
 
     private boolean equivalentForAllAgents(Set<World> block, World w) {
         for (String a : agents) {
-            if (!getPossible(a, w).containsAll(block)) {
+            if (!getKnown(a, w).containsAll(block)) {
                 return false;
             }
         }
@@ -434,9 +424,9 @@ public class NDState implements AbstractState implements java.io.Serializable {
     // 1. MAKE OUR NEW WORLDS, ONE FOR EACH PARTITION.
     // 2. BUILD THE RELATIONS OVER OUR NEW WORLDS
     // 3. MAKE AND RETURN A MAP FROM OUR OLD WORLDS TO THE NEW ONES,
-    //    THE NDSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
+    //    THE BIMODALSTATE WILL USE THIS MAP TO FIND THE NEW DESIGNATED WORLD
     // 3. INSTEAD, SET OUR NEW DESIGNATED WORLDS ACCORDING TO THE OLD ONES
-    public NDState reduce() {
+    public BimodalState reduce() {
         //normalize();
         Set<Set<World>> partition = refineSystem();
 
@@ -458,7 +448,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
             newDesignated.add(oldToNew.get(d));
         }
 
-        NDState reduced = new NDState(agents, newWorlds, newDesignated);
+        BimodalState reduced = new BimodalState(agents, newWorlds, newDesignated);
 
         for (Map.Entry<World, World> entry : oldToNew.entrySet()) {
             World oldSource = entry.getKey();
@@ -476,7 +466,7 @@ public class NDState implements AbstractState implements java.io.Serializable {
 
 
 
-    private NDState union(NDState other) {
+    private BimodalState union(BimodalState other) {
         assert (this != other);
 
         assert (Collections.disjoint(worlds, other.getWorlds()));
@@ -487,19 +477,19 @@ public class NDState implements AbstractState implements java.io.Serializable {
         Set<World> unionDesignated = new HashSet<World>(designated);
         unionDesignated.addAll(other.getDesignated());
 
-        NDState unionNDState = new NDState(agents, unionWorlds, unionDesignated);
+        BimodalState unionState = new BimodalState(agents, unionWorlds, unionDesignated);
 
         for (String agent : agents) {
             for (World w : worlds) {
-                unionNDState.setMorePlausible(agent, w, getMorePlausible(agent, w));
-                unionNDState.setLessPlausible(agent, w, getLessPlausible(agent, w));
+                unionState.setMorePlausible(agent, w, getMorePlausible(agent, w));
+                unionState.setLessPlausible(agent, w, getLessPlausible(agent, w));
             }
             for (World w : other.getWorlds()) {
-                unionNDState.setMorePlausible(agent, w, other.getMorePlausible(agent, w));
-                unionNDState.setLessPlausible(agent, w, other.getLessPlausible(agent, w));
+                unionState.setMorePlausible(agent, w, other.getMorePlausible(agent, w));
+                unionState.setLessPlausible(agent, w, other.getLessPlausible(agent, w));
             }
         }
-        return unionNDState;
+        return unionState;
     }
 
 
@@ -566,16 +556,16 @@ public class NDState implements AbstractState implements java.io.Serializable {
         if (obj == null || obj.getClass() != this.getClass()) {
             return false;
         }
-        NDState other = (NDState) obj;
+        BimodalState other = (BimodalState) obj;
 
         return false;
     }
 
-    public Boolean bisimilar(NDState other) {
+    public Boolean bisimilar(BimodalState other) {
         if (equals(other)) {
             return true;
         }
-        NDState unioned = union(other);
+        BimodalState unioned = union(other);
 
         Set<World> otherInitials = other.getDesignated();
 
