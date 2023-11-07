@@ -20,7 +20,7 @@ import java.util.Collections;
 
 public class PointedPlausibilityState extends PlausibilityState implements PointedAbstractState {
 
-    public State(List<String> agents, Set<World> worlds, World designated) {
+    public PointedPlausibilityState(List<String> agents, Set<World> worlds, World designated) {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designated)));
     }
 
@@ -30,8 +30,8 @@ public class PointedPlausibilityState extends PlausibilityState implements Point
         return getDesignated().iterator().next();
     }
 
-    public AbstractState getBeliefPerspective(String agent) {
-        AbstractState perspective =  new PlausibilityState(agents, new HashSet<World>(worlds), getBelieved(agent, getDesignatedWorld()));
+    public PlausibilityState getBeliefPerspective(String agent) {
+        PlausibilityState perspective =  new PlausibilityState(agents, new HashSet<World>(worlds), getBelieved(agent, getDesignatedWorld()));
         perspective.trim();
         return perspective;
     }

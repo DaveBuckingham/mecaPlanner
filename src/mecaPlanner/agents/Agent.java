@@ -59,9 +59,9 @@ public abstract class Agent implements java.io.Serializable {
         return (new Fluent(fluentName, Arrays.asList(fluentParameters)).possibly(ndState));
     }
 
-    public abstract Set<Action> getPrediction(State eState);
+    public abstract Set<Action> getPrediction(AbstractState eState);
 
-    public Agent update(State eState, Action action) {
+    public Agent update(AbstractState eState, Action action) {
         return this;
     }
 }

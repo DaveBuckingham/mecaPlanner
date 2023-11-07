@@ -24,7 +24,7 @@ import mecaPlanner.formulae.Fluent;
 //import org.javatuples.Triplet;
 
 
-public class PlausibilityState implements AbstractState implements java.io.Serializable {
+public class PlausibilityState implements AbstractState, java.io.Serializable {
 
 
 
@@ -210,10 +210,10 @@ public class PlausibilityState implements AbstractState implements java.io.Seria
         return agents;
     }
 
-    public Set<State> getStates() {
-        Set<State> states = new HashSet<State>();
+    public Set<PointedPlausibilityState> getStates() {
+        Set<PointedPlausibilityState> states = new HashSet<PointedPlausibilityState>();
         for (World w : designated) {
-            State subState = new State(agents, worlds, w);
+            State subState = new PointedPlausibilityState(agents, worlds, w);
             for (String agent : agents) {
                 for (World f : getWorlds()) {
                     for (World t : getMorePlausible(agent, f)) {

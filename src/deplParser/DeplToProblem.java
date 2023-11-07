@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
+import mecaPlanner.state.Assignment;
 import mecaPlanner.actions.*;
 
 import java.util.Set;
@@ -500,7 +501,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return world;
     }
 
-    @Override public State visitStateDef(DeplParser.StateDefContext ctx) {
+    @Override public PlausibilityState visitStateDef(DeplParser.StateDefContext ctx) {
 
         Set<Fluent> trueFluents = new HashSet<>();
         for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
@@ -509,7 +510,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         World designatedWorld = new World("d", trueFluents);
         Set<World> worlds = new HashSet<>();
         worlds.add(designatedWorld);
-        State state = new State(domain.getAllAgents(), worlds, designatedWorld);
+        State state = new PlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
 
         for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
             List<String> agents = new ArrayList<>();
@@ -546,7 +547,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return state;
     }
 
-    private State addDoubt(State state, List<String> agents, Fluent f) {
+    private AbstractState addDoubt(AbstractState state, List<String> agents, Fluent f) {
         Event actual = new Event("u", new Literal(true));
         Set<Formula> disjuncts = new HashSet<>();
         for (String a : agents) {
@@ -565,7 +566,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(state);
     }
 
-    private State addBelief(State state, List<String> agents, Fluent f, boolean val) {
+    private AbstractState addBelief(AbstractState state, List<String> agents, Fluent f, boolean val) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
@@ -582,7 +583,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(addDoubt(state, agents, f));
     }
 
-    private State addKnowledge(State state, List<String> agents, Formula f) {
+    private AbstractState addKnowledge(AbstractState state, List<String> agents, Formula f) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));

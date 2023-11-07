@@ -6,7 +6,8 @@ import java.util.Arrays;
 
 import mecaPlanner.state.World;
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.State;
+import mecaPlanner.state.PointedAbstractState;
+import mecaPlanner.state.AbstractState;
 
 import mecaPlanner.*;
 
