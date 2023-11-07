@@ -200,9 +200,9 @@ public class BimodalState implements AbstractState, java.io.Serializable {
     }
 
     public Set<PointedBimodalState> getStates() {
-        Set<State> states = new HashSet<State>();
+        Set<PointedBimodalState> states = new HashSet<State>();
         for (World w : designated) {
-            State subState = new PointedBimodalState(agents, worlds, w);
+            PointedBimodalState subState = new PointedBimodalState(agents, worlds, w);
             for (String agent : agents) {
                 for (World f : getWorlds()) {
                     for (World t : getMorePlausible(agent, f)) {

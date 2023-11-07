@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 import mecaPlanner.Log;
-import mecaPlanner.state.Transformer;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
 import mecaPlanner.state.NDState;
@@ -66,9 +65,7 @@ public class Test {
             System.out.println(f + ": " + f.evaluate(state));
         }
 
-        List<Transformer> allActions = domain.getTransformerList();
-
-        for (Transformer action : allActions) {
+        for (Action action : domain.getAllActions()) {
             System.out.println("ACTION: " + action.getSignature());
             state = action.transition(state);
 

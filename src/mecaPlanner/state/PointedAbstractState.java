@@ -21,22 +21,10 @@ import java.util.Objects;
 
 import mecaPlanner.formulae.Fluent;
 
-public interface AbstractState  {
+public interface PointedAbstractState extends AbstractState {
 
-    public Set<World> getWorlds();
-
-    public Set<World> getDesignated();
-
-    public Set<World> getBelieved(String agent, World source);
-
-    public Set<World> getKnown(String agent, World source);
-
-    public List<String> getAgents();
-
-    public boolean bisimilar(AbstractS
-
-
-
+    public World getDesignatedWorld();
+    public AbstractState getBeliefPerspective(String agent);
 
 
 }

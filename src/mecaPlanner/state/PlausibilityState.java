@@ -213,7 +213,7 @@ public class PlausibilityState implements AbstractState, java.io.Serializable {
     public Set<PointedPlausibilityState> getStates() {
         Set<PointedPlausibilityState> states = new HashSet<PointedPlausibilityState>();
         for (World w : designated) {
-            State subState = new PointedPlausibilityState(agents, worlds, w);
+            PointedPlausibilityState subState = new PointedPlausibilityState(agents, worlds, w);
             for (String agent : agents) {
                 for (World f : getWorlds()) {
                     for (World t : getMorePlausible(agent, f)) {

@@ -53,8 +53,8 @@ public class Actions {
                 System.out.println("GOAL");
             }
 
-            List<Transformer> applicable = new ArrayList<>();
-            for (Transformer action : domain.getTransformerList()) {
+            List<Action> applicable = new ArrayList<>();
+            for (Action action : domain.getAllActions()) {
                 if (action.executable(currentState)){
                     applicable.add(action);
                 }
@@ -84,11 +84,7 @@ public class Actions {
             }
 
             if (selection < applicable.size()) {
-                Transformer t = applicable.get(selection);
-                if (!(t instanceof Action)) {
-                    throw new RuntimeException("not an action");
-                }
-                Action action = (Action)t;
+                Action action = applicable.get(selection);
                 System.out.println("EXECUTING: " + action.getSignatureWithActor());
                 State newState = action.transition(currentState);
                 currentState = newState;

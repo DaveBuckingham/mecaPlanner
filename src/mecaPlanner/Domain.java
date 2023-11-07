@@ -2,9 +2,7 @@ package mecaPlanner;
 
 import mecaPlanner.agents.Agent;
 //import mecaPlanner.state.AbstractState;
-import mecaPlanner.actions.EventModel;
 import mecaPlanner.actions.Action;
-import mecaPlanner.actions.Transformer;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -14,10 +12,6 @@ import java.util.List;
 import java.util.ArrayList;
 
 public class Domain implements java.io.Serializable {
-
-    private List<Transformer> transformerList;
-
-    private Set<EventModel> eventModels;
 
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
@@ -36,10 +30,8 @@ public class Domain implements java.io.Serializable {
 
 
     public Domain() {
-        eventModels = new HashSet<>();
         actions = new HashMap<>();
         actionsBySignature = new HashMap<>();
-        transformerList = new ArrayList<>();
 
         turnOrder = new ArrayList<>();
         allAgents = new ArrayList<>();
@@ -156,25 +148,11 @@ public class Domain implements java.io.Serializable {
         allAgents.add(name);
     }
 
-    public void addEventModel(EventModel e) {
-        eventModels.add(e);
-        transformerList.add(e);
-    }
-
-    public Set<EventModel> getEventModels() {
-        return eventModels;
-    }
-
     public void addAction(Action newAction) {
         String agent = newAction.getActor();
         assert(actions.containsKey(agent));
         actions.get(agent).add(newAction);
         actionsBySignature.get(agent).put(newAction.getSignature(), newAction);
-        transformerList.add(newAction);
-    }
-
-    public List<Transformer> getTransformerList() {
-        return transformerList;
     }
 
     public boolean isAgent(String s) {
