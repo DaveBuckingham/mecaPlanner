@@ -1,7 +1,7 @@
 package mecaPlanner.search;
 
 import mecaPlanner.search.GNode;
-import mecaPlanner.state.State;
+import mecaPlanner.state.PointedAbstractState;
 import mecaPlanner.actions.Action;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
@@ -16,7 +16,7 @@ import java.util.Map;
 
 public class AndNode extends GNode {
 
-    public AndNode(State estate,
+    public AndNode(PointedAbstractState estate,
                  Formula goal,
                  List<TimeConstraint> timeConstraints,
                  int time,

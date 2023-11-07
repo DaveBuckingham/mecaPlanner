@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.NDState;
+import mecaPlanner.state.PlausibilityState;
 import mecaPlanner.state.World;
 
 
@@ -46,7 +46,7 @@ public class SafeFormula extends Formula {
         throw new RuntimeException("Can't evaluate modal formula without a model");
     }
 
-    public Boolean evaluate(BimodalState model, World world) {
+    public Boolean evaluate(PlausibilityState model, World world) {
         if (model == null) {
             throw new RuntimeException("Can't evaluate modal formula without a model");
         }

@@ -8,7 +8,6 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
-import mecaPlanner.state.Assignment;
 import mecaPlanner.actions.*;
 
 import java.util.Set;
@@ -212,7 +211,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
-        this.startStates = new HashSet<State>();
+        this.startStates = new HashSet<AbstractState>();
         this.initially = new ArrayList<>();
         this.goals = new ArrayList<>();
         this.timeConstraints = new ArrayList<>();
@@ -229,9 +228,9 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        for (State s : startStates) {
+        for (AbstractState s : startStates) {
             for (Formula f : initially) {
-                if (!f.evaluate(s)) {
+                if (!f.necessarily(s)) {
                     throw new RuntimeException("initially formula not satisfied: " + f.toString());
                 }
             }
@@ -426,18 +425,18 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     @Override public Void visitStartStateSection(DeplParser.StartStateSectionContext ctx) {
         for (DeplParser.ModelContext modelCtx : ctx.model()) {
-            NDState ndState = (NDState) visit(modelCtx);
+            PlausibilityState ndState = (PlausibilityState) visit(modelCtx);
             startStates.addAll(ndState.getStates());
         }
         for (DeplParser.StateDefContext stateDefCtx : ctx.stateDef()) {
             //System.out.println("BUILDING STATE...");
-            State state = (State) visit(stateDefCtx);
+            PlausibilityState state = (PlausibilityState) visit(stateDefCtx);
             startStates.add(state);
         }
         return null;
     }
 
-    @Override public NDState visitModel(DeplParser.ModelContext ctx) {
+    @Override public PlausibilityState visitModel(DeplParser.ModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
         Set<World> designatedWorlds = new HashSet<>();;
         for (DeplParser.WorldContext worldCtx : ctx.world()) {
@@ -453,7 +452,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
-        NDState startState = new NDState(domain.getAllAgents(), worldSet, designatedWorlds);
+        PlausibilityState startState = new PlausibilityState(domain.getAllAgents(), worldSet, designatedWorlds);
 
         for (DeplParser.RelationContext relationCtx : ctx.relation()) {
             String agent = (String) visit(relationCtx.agent());
@@ -510,7 +509,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         World designatedWorld = new World("d", trueFluents);
         Set<World> worlds = new HashSet<>();
         worlds.add(designatedWorld);
-        State state = new PlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
+        PlausibilityState state = new PointedPlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
 
         for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
             List<String> agents = new ArrayList<>();
@@ -547,7 +546,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return state;
     }
 
-    private AbstractState addDoubt(AbstractState state, List<String> agents, Fluent f) {
+    private PlausibilityState addDoubt(PlausibilityState state, List<String> agents, Fluent f) {
         Event actual = new Event("u", new Literal(true));
         Set<Formula> disjuncts = new HashSet<>();
         for (String a : agents) {
@@ -566,7 +565,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(state);
     }
 
-    private AbstractState addBelief(AbstractState state, List<String> agents, Fluent f, boolean val) {
+    private PlausibilityState addBelief(PlausibilityState state, List<String> agents, Fluent f, boolean val) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
@@ -583,7 +582,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(addDoubt(state, agents, f));
     }
 
-    private AbstractState addKnowledge(AbstractState state, List<String> agents, Formula f) {
+    private PlausibilityState addKnowledge(PlausibilityState state, List<String> agents, Formula f) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));

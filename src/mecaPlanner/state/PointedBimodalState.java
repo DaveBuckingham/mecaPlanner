@@ -20,7 +20,7 @@ import java.util.Collections;
 
 public class PointedBimodalState extends BimodalState implements PointedAbstractState {
 
-    public State(List<String> agents, Set<World> worlds, World designated) {
+    public PointedBimodalState(List<String> agents, Set<World> worlds, World designated) {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designated)));
     }
 
@@ -30,8 +30,8 @@ public class PointedBimodalState extends BimodalState implements PointedAbstract
         return getDesignated().iterator().next();
     }
 
-    public AbstractState getBeliefPerspective(String agent) {
-        AbstractState perspective =  new BimodalState(agents, new HashSet<World>(worlds), getBelieved(agent, getDesignatedWorld()));
+    public BimodalState getBeliefPerspective(String agent) {
+        BimodalState perspective =  new BimodalState(agents, new HashSet<World>(worlds), getBelieved(agent, getDesignatedWorld()));
         perspective.trim();
         return perspective;
     }

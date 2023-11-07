@@ -27,7 +27,7 @@ import mecaPlanner.formulae.Fluent;
 
 
 
-public class BimodalState implements AbstractState implements java.io.Serializable {
+public class BimodalState implements AbstractState, java.io.Serializable {
 
 
 
@@ -199,10 +199,10 @@ public class BimodalState implements AbstractState implements java.io.Serializab
         return agents;
     }
 
-    public Set<State> getStates() {
+    public Set<PointedBimodalState> getStates() {
         Set<State> states = new HashSet<State>();
         for (World w : designated) {
-            State subState = new State(agents, worlds, w);
+            State subState = new PointedBimodalState(agents, worlds, w);
             for (String agent : agents) {
                 for (World f : getWorlds()) {
                     for (World t : getMorePlausible(agent, f)) {

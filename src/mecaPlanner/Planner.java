@@ -1,6 +1,5 @@
 package mecaPlanner;
 
-import mecaPlanner.state.State;
 import mecaPlanner.formulae.*;
 import mecaPlanner.agents.*;
 import mecaPlanner.search.Search;
@@ -35,7 +34,7 @@ import depl.*;
 public class Planner {
 
     public enum Language { MB, REVISE }
-    public static Language language=Language.REVISE;
+    public static Language language=Language.MB;
 
     public static void main(String args[]) {
 

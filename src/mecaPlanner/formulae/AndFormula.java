@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 
-import mecaPlanner.state.NDState;
+import mecaPlanner.state.AbstractState;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -107,7 +107,7 @@ public class AndFormula extends Formula{
         return true;
     }
 
-    public Boolean evaluate(NDState model, World world) {
+    public Boolean evaluate(AbstractState model, World world) {
         for (Formula formula : formulae) {
             if (!formula.evaluate(model, world)) {
                 return false;

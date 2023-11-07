@@ -1,18 +1,18 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.State;
+import mecaPlanner.state.AbstractState;
+import mecaPlanner.state.PointedAbstractState;
 
 
 
 public class Perspective implements java.io.Serializable {
-    private NDState agentView;
+    private AbstractState agentView;
 
-    public Perspective(State eState, String agent) {
+    public Perspective(PointedAbstractState eState, String agent) {
         agentView = eState.getBeliefPerspective(agent);
     }
 
-    public NDState getAgentView() {
+    public AbstractState getAgentView() {
         return agentView;
     }
 

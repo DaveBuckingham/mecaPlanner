@@ -1,7 +1,7 @@
 
 package mecaPlanner.search;
 
-import mecaPlanner.state.State;
+import mecaPlanner.state.AbstractState;
 import mecaPlanner.actions.Action;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
@@ -20,7 +20,7 @@ import java.util.Map;
 
 
 public abstract class GNode  {
-    protected State estate;
+    protected AbstractState estate;
     protected Formula goal;
     protected List<TimeConstraint> timeConstraints;
     protected Integer time;
@@ -37,7 +37,7 @@ public abstract class GNode  {
     
 
 
-    public GNode(State estate,
+    public GNode(AbstractState estate,
                  Formula goal,
                  List<TimeConstraint> timeConstraints,
                  Integer time,
@@ -71,7 +71,7 @@ public abstract class GNode  {
         return successors;
     }
 
-    public State getState() {
+    public AbstractState getState() {
         return estate;
     }
 
@@ -117,7 +117,7 @@ public abstract class GNode  {
 
 
     public GNode transition(Action action) {
-        State newState = action.transition(estate);
+        AbstractState newState = action.transition(estate);
         int nextTime = time+1;
         if (domain.isSystemAgentIndex(nextTime)) {
             return new OrNode(newState,

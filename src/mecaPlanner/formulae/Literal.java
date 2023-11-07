@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.NDState;
+import mecaPlanner.state.AbstractState;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -27,7 +27,7 @@ public class Literal extends Fluent{
         return value;
     }
 
-    public Boolean evaluate(NDState model, World world) {
+    public Boolean evaluate(AbstractState model, World world) {
         return value;
     }
 

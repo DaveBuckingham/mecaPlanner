@@ -1,7 +1,6 @@
 package mecaPlanner.agents;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.State;
+import mecaPlanner.state.*;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.Domain;
 
@@ -20,11 +19,11 @@ public abstract class PlanningAgent extends Agent {
         super(agent, domain);
     }
 
-    Map<String,Map<State,Set<Action>>> memo = new HashMap<>();
+    Map<String,Map<PointedAbstractState,Set<Action>>> memo = new HashMap<>();
 
-    private Set<Action> getPlannedActions(NDState ndState, String agent, Formula goal) {
+    private Set<Action> getPlannedActions(AbstractState ndState, String agent, Formula goal) {
         if (!memo.containsKey(agent)) {
-            memo.put(agent, new HashMap<State, Set<Action>>());
+            memo.put(agent, new HashMap<PointedAbstractState, Set<Action>>());
         }
         Set<State> possibleStates = ndState.getEpistemicStates();
         if (!memo.get(agent).containsKey(ndState)) {
@@ -34,7 +33,7 @@ public abstract class PlanningAgent extends Agent {
         return memo.get(agent).get(ndState);
     }
 
-    private Map<NDState, Set<Action>> search(NDState ndState, String agent, Formula goal) {
+    private Map<NDState, Set<Action>> search(AbstractState ndState, String agent, Formula goal) {
         HashMap<NDState, Set<Action>> policy = new HashMap<>();
         // IF WE USE 'NECESSARILY' HERE, MIGHT KEEP SEARCHING EVEN IF
         // AGENT KNOWS GOAL WILL BE REACHED OVER MULTIPLE STATES
