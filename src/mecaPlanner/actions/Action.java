@@ -145,151 +145,146 @@ public class Action {
         effects.add(assignment);
     }
 
-    private PointedBimodalState intermediateTransition(PointedBimodalState state) {
-        Map<World, Set<String>> fullObservers = new HashMap<>();
-        Map<World, Set<String>> partialObservers = new HashMap<>();
-        Map<World, Set<String>> nonObservers = new HashMap<>();
-        Map<World, Map<String, Formula>> learnedKnowledge = new HashMap<>();     // (equation 4.11)
-        for (World w : state.getWorlds()) {
-             fullObservers.put(w, new HashSet<String>());
-             partialObservers.put(w, new HashSet<String>());
-             nonObservers.put(w, new HashSet<String>());
-             learnedKnowledge.put(w, new HashMap<>());
+//    private PointedBimodalState intermediateTransition(PointedBimodalState state) {
+//        Map<World, Set<String>> fullObservers = new HashMap<>();
+//        Map<World, Set<String>> partialObservers = new HashMap<>();
+//        Map<World, Set<String>> nonObservers = new HashMap<>();
+//        Map<World, Map<String, Formula>> learnedKnowledge = new HashMap<>();     // (equation 4.11)
+//        for (World w : state.getWorlds()) {
+//             fullObservers.put(w, new HashSet<String>());
+//             partialObservers.put(w, new HashSet<String>());
+//             nonObservers.put(w, new HashSet<String>());
+//             learnedKnowledge.put(w, new HashMap<>());
+//
+//
+//             for (String a : domain.getAllAgents()) {
+//                 if (observesConditions.get(a).evaluate(w)) {
+//                     fullObservers.get(w).add(a);
+//                 }
+//                 else if (awareConditions.get(a).evaluate(w)) {
+//                     partialObservers.get(w).add(a);
+//                 }
+//                 else {
+//                     nonObservers.get(w).add(a);
+//                 }
+//
+//
+//                // Kdet^alpha_u (equation 4.6)
+//                Formula observation = null;
+//                if (determines == null) {
+//                    observation = new Literal(true);
+//                }
+//                else if (determines.evaluate(w)) {
+//                    observation = determines;
+//                }
+//                else {
+//                    observation = determines.negate();
+//                }
+//
+//
+//                // Keff^alpha_u (equation 4.7)
+//                Set<Formula> groundEffects = new HashSet<>();;
+//                for (Assignment assn : effects) {
+//                    Fluent f = assn.getFluent();
+//                    if (f.evaluate(w)) {
+//                        groundEffects.add(f);
+//                    }
+//                    else {
+//                        groundEffects.add(f.negate());
+//                    }
+//                }
+//                Formula learnedEffects = AndFormula.make(groundEffects);
+//
+//
+//                // phi_u-alpha-p (equation 4.8)
+//                Map<Fluent, Set<Formula>> m = new HashMap<>();
+//                for (Assignment eff : effects) {
+//                    Fluent f = eff.getFluent();
+//                    Formula c = eff.getCondition();
+//                    if (f.evaluate(w) != c.evaluate(w)) {
+//                        if (!m.containsKey(f)) {
+//                            m.put(f, new HashSet<>());
+//                        }
+//                        m.get(m).add(c);
+//                    }
+//                }
+//
+//                // Keff^alpha_u (equation 4.9)
+//                Set<Formula> discernableConditions = new HashSet<>();;
+//                for (Map.Entry<Fluent, Set<Formula>> entry : m.entrySet()) {
+//                    Formula disjunction = Formula.makeDisjunction(entry.getValue());
+//                    if (disjunction.evaluate(w)) {
+//                        discernableConditions.add(disjunction);
+//                    }
+//                    else {
+//                        discernableConditions.add(disjunction.negate());
+//                    }
+//                }
+//                Formula learnedConditions = AndFormula.make(discernableConditions);
+//
+//
+//
+//                // (equation 4.10)
+//                Set<Formula> learnedObservabilityConditions = new HashSet<>();
+//                    Formula phiF = observesConditions.get(a);
+//                    Formula phiP = awareConditions.get(a);
+//                if (fullObservers.get(w).contains(a)) {
+//                    learnedObservabilityConditions.add(phiF);
+//                }
+//                else if (partialObservers.get(w).contains(a)) {
+//                    learnedObservabilityConditions.add(phiP);
+//                }
+//                else if (nonObservers.get(w).contains(a)) {
+//                    learnedObservabilityConditions.add(AndFormula.make(phiF.negate(), phiP.negate()));
+//                }
+//                else {
+//                    throw new RuntimeException("unknown agent");
+//                }
+//
+//
+//                // (equation 4.11)
+//                Set<Formula> conjuncts = new HashSet<>();
+//                if (fullObservers.get(w).contains(a)) {
+//                    conjuncts.add(observation);
+//                    conjuncts.add(learnedEffects);
+//                    conjuncts.add(learnedConditions);
+//                }
+//                else if (partialObservers.get(w).contains(a)) {
+//                    conjuncts.add(learnedEffects);
+//                    conjuncts.add(learnedConditions);
+//                }
+//                conjuncts.addAll(learnedObservabilityConditions);
+//
+//                learnedKnowledge.get(w).put(a, AndFormula.make(conjuncts));
+//            
+//            } // end loop over agents
+//
+//        } // end loop over worlds
+//
+//
+//        // (equation 4.12)
+//        //Map<String, Formula> localPerspective = new HashMap<>();
+//        Map<String, Set<Set<World>>> localEquivalenceClasses = new HashMap<>();
+//        for (String i : domain.getAllAgents()) {
+//            Set<Set<World>> agentClasses = new HashSet<>();
+//            for (World u : state.getWorlds()) {
+//                 Set<World> worldClass = new HashSet<>();
+//                 for (World v : state.getKnown(i, u)){
+//                     if ((learnedKnowledge).get(u).get(i).evaluate(v)) {
+//                         worldClass.add(v);
+//                     }
+//                 }
+//                 agentClasses.add(worldClass);
+//            }
+//            localEquivalenceClasses.put(i, agentClasses);
+//         }
+//
+//        
+//        return state;
+//
+//    }
 
 
-             for (String a : domain.getAllAgents()) {
-                 if (observesConditions.get(a).evaluate(w)) {
-                     fullObservers.get(w).add(a);
-                 }
-                 else if (awareConditions.get(a).evaluate(w)) {
-                     partialObservers.get(w).add(a);
-                 }
-                 else {
-                     nonObservers.get(w).add(a);
-                 }
-
-
-                // Kdet^alpha_u (equation 4.6)
-                Formula observation = null;
-                if (determines == null) {
-                    observation = new Literal(true);
-                }
-                else if (determines.evaluate(w)) {
-                    observation = determines;
-                }
-                else {
-                    observation = determines.negate();
-                }
-
-
-                // Keff^alpha_u (equation 4.7)
-                Set<Formula> groundEffects = new HashSet<>();;
-                for (Assignment assn : effects) {
-                    Fluent f = assn.getFluent();
-                    if (f.evaluate(w)) {
-                        groundEffects.add(f);
-                    }
-                    else {
-                        groundEffects.add(f.negate());
-                    }
-                }
-                Formula learnedEffects = AndFormula.make(groundEffects);
-
-
-                // phi_u-alpha-p (equation 4.8)
-                Map<Fluent, Set<Formula>> m = new HashMap<>();
-                for (Assignment eff : effects) {
-                    Fluent f = eff.getFluent();
-                    Formula c = eff.getCondition();
-                    if (f.evaluate(w) != c.evaluate(w)) {
-                        if (!m.containsKey(f)) {
-                            m.put(f, new HashSet<>());
-                        }
-                        m.get(m).add(c);
-                    }
-                }
-
-                // Keff^alpha_u (equation 4.9)
-                Set<Formula> discernableConditions = new HashSet<>();;
-                for (Map.Entry<Fluent, Set<Formula>> entry : m.entrySet()) {
-                    Formula disjunction = Formula.makeDisjunction(entry.getValue());
-                    if (disjunction.evaluate(w)) {
-                        discernableConditions.add(disjunction);
-                    }
-                    else {
-                        discernableConditions.add(disjunction.negate());
-                    }
-                }
-                Formula learnedConditions = AndFormula.make(discernableConditions);
-
-
-
-                // (equation 4.10)
-                Set<Formula> learnedObservabilityConditions = new HashSet<>();
-                    Formula phiF = observesConditions.get(a);
-                    Formula phiP = awareConditions.get(a);
-                if (fullObservers.get(w).contains(a)) {
-                    learnedObservabilityConditions.add(phiF);
-                }
-                else if (partialObservers.get(w).contains(a)) {
-                    learnedObservabilityConditions.add(phiP);
-                }
-                else if (nonObservers.get(w).contains(a)) {
-                    learnedObservabilityConditions.add(AndFormula.make(phiF.negate(), phiP.negate()));
-                }
-                else {
-                    throw new RuntimeException("unknown agent");
-                }
-
-
-                // (equation 4.11)
-                Set<Formula> conjuncts = new HashSet<>();
-                if (fullObservers.get(w).contains(a)) {
-                    conjuncts.add(observation);
-                    conjuncts.add(learnedEffects);
-                    conjuncts.add(learnedConditions);
-                }
-                else if (partialObservers.get(w).contains(a)) {
-                    conjuncts.add(learnedEffects);
-                    conjuncts.add(learnedConditions);
-                }
-                conjuncts.addAll(learnedObservabilityConditions);
-
-                learnedKnowledge.get(w).put(a, AndFormula.make(conjuncts));
-            
-            } // end loop over agents
-
-        } // end loop over worlds
-
-
-        // (equation 4.12)
-        //Map<String, Formula> localPerspective = new HashMap<>();
-        Map<String, Set<Set<World>>> localEquivalenceClasses = new HashMap<>();
-        for (String i : domain.getAllAgents()) {
-            Set<Set<World>> agentClasses = new HashSet<>();
-            for (World u : state.getWorlds()) {
-                 Set<World> worldClass = new HashSet<>();
-                 for (World v : state.getKnown(i, u)){
-                     if ((learnedKnowledge).get(u).get(i).evaluate(v)) {
-                         worldClass.add(v);
-                     }
-                 }
-                 agentClasses.add(worldClass);
-            }
-            localEquivalenceClasses.put(i, agentClasses);
-         }
-
-        
-        return state;
-
-    }
-
-
-
-    // NEED TO GET THIS IMPLEMENTATION
-    public PointedBimodalState transition(PointedBimodalState state) {
-        return null;
-    }
 
     public PointedPlausibilityState transition(PointedPlausibilityState state) {
         if (eventModel == null) {
