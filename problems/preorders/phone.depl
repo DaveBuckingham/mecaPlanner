@@ -1,0 +1,68 @@
+// PHONE TASK
+
+types{}
+
+objects{
+    a - Object,
+    b - Object,
+}
+
+agents{a}
+
+passive{b}
+
+fluents{
+    phi(),
+    full(a),
+    partial(a),
+    full(b),
+    partial(b),
+}
+
+start{
+//   (
+//       *w1  {phi(), full(a), full(b)},
+//        w2  {full(a), full(b)},
+//        w3  {phi(), full(a), partial(b)},
+//        w4  {full(a), partial(b)},
+//        a   {w1-w1,w1-w2,w1-w3,w1-w4,
+//             w2-w1,w2-w2,w2-w3,w2-w4,
+//             w3-w3,w3-w4,
+//             w4-w3,w4-w4},
+//        b   {w1-w1,w1-w2,w2-w2,w2-w1,
+//             w3-w3,w3-w4,w4-w4,w4-w3},
+//    )
+    (
+        phi(), full(a), full(b),
+        B[a](partial(b)),
+        B[a](!full(b)),
+        ?[b](phi())
+    )
+}
+
+initially{
+    B[a](partial(b))
+}
+
+goals{
+    !K[b](phi()),
+    B[b](phi()),
+    B[a](!B[b](phi())),
+}
+
+actions{
+
+//phone( {*f(phi(),{}), p(~phi(),{}), o(true,{}) },
+//           a{f-f, p-p, o-o, p-f, f-!full(a)-p, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+//           b{f-f, p-p, o-o, p-f, f-!full(b)-p, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+//)
+
+a(owner a, cost 1, precondition true, 
+    <?x - Object> observes ?x if full(?x),
+    <?x - Object> aware ?x if partial(?x),
+    announces phi()
+)
+
+
+
+}

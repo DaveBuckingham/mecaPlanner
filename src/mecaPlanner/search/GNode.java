@@ -1,68 +1,75 @@
 
 package mecaPlanner.search;
 
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.Action;
-import mecaPlanner.models.Model;
+import mecaPlanner.state.PointedPlausibilityState;
+import mecaPlanner.actions.Action;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 
 import mecaPlanner.Domain;
 
+import mecaPlanner.Log;
+
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 
+// A GROUND NODE. COULD BE EITHER AN 'AND' OR AN 'OR'.
+
 
 public abstract class GNode  {
-    protected EpistemicState estate;
+    protected PointedPlausibilityState estate;
     protected Formula goal;
-    protected Set<TimeConstraint> timeConstraints;
+    protected List<TimeConstraint> timeConstraints;
     protected Integer time;
     protected GNode parent;
     protected Set<GNode> successors;
-    protected Map<String, Model> models;
     protected Domain domain;
+    protected int maxDepth;
 
     protected String agent;
 
     private int agentIndex;
     private int numAgents;
 
-    
 
-    private int systemAgentIndex;
-
-    public GNode(EpistemicState estate,
+    public GNode(PointedPlausibilityState estate,
                  Formula goal,
-                 Set<TimeConstraint> timeConstraints,
+                 List<TimeConstraint> timeConstraints,
                  Integer time,
                  GNode parent,
-                 Map<String, Model> models,
-                 int systemAgentIndex,
-                 Domain domain
+                 Domain domain,
+                 int maxDepth
                 ) {
         this.estate = estate;
         this.goal = goal;
         this.timeConstraints = timeConstraints;
         this.time = time;
         this.parent = parent;
-        this.models = models;
         this.successors = new HashSet<GNode>();
-        this.systemAgentIndex = systemAgentIndex;
         this.domain = domain;
+        this.maxDepth = maxDepth;
 
-        this.numAgents = domain.getNonPassiveAgents().size();
+        this.numAgents = domain.getTurnOrder().size();
         this.agentIndex = this.time % this.numAgents;
-        this.agent = domain.getNonPassiveAgents().get(agentIndex);
+        this.agent = domain.agentAtTime(agentIndex);
 
+        //Log.debug("t=" + time.toString());
+        //Log.debug("ag=" + agent);
+
+    }
+
+    public int getMaxDepth() {
+        return maxDepth;
     }
 
     public Set<GNode> getSuccessors() {
         return successors;
     }
 
-    public EpistemicState getState() {
+    public PointedPlausibilityState getState() {
         return estate;
     }
 
@@ -74,16 +81,16 @@ public abstract class GNode  {
         return time;
     }
 
-    public Map<String, Model> getModels() {
-        return models;
-    }
-
     public boolean isGoal() {
         for (TimeConstraint c : timeConstraints) {
             if (!c.holdsAt(time)) {
                 return false;
             }
         }
+        //System.out.println(estate);
+        //System.out.println(goal);
+        //System.out.println(goal.evaluate(estate));
+        //System.out.println("===========");
         return goal.evaluate(estate);
     }
 
@@ -98,7 +105,7 @@ public abstract class GNode  {
     public boolean isCycle() {
         GNode ancestor = this.parent;
         while (ancestor != null) {
-            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.equivalent(ancestor.getState())) {
+            if ((this.agentIndex == ancestor.getAgentIndex()) && estate.bisimilar(ancestor.getState())) {
                 return true;
             }
             ancestor = ancestor.getParent();
@@ -108,32 +115,30 @@ public abstract class GNode  {
 
 
     public GNode transition(Action action) {
-        Action.UpdatedStateAndModels transitionResult = action.transition(estate, models);
+        PointedPlausibilityState newState = action.transition(estate);
         int nextTime = time+1;
-        if (nextTime % numAgents == systemAgentIndex) {
-            return new OrNode(transitionResult.getState(),
+        if (domain.isSystemAgentIndex(nextTime)) {
+            return new OrNode(newState,
                               goal,
                               timeConstraints,
                               nextTime,
                               this,
-                              transitionResult.getModels(),
-                              systemAgentIndex,
-                              domain);
+                              domain,
+                              maxDepth);
         }
         else {
-            return new AndNode(transitionResult.getState(),
+            return new AndNode(newState,
                                goal,
                                timeConstraints,
                                nextTime,
                                this,
-                               transitionResult.getModels(),
-                               systemAgentIndex,
-                               domain);
+                               domain,
+                               maxDepth);
         }
     }
  
 
-    public abstract GroundSuccessors descend();
+    public abstract OrLayer descend();
 
     private String treeToString(int time) {
         StringBuilder str = new StringBuilder();

@@ -1,6 +1,6 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.PlausibilityState;
 import mecaPlanner.state.World;
 
 import java.util.List;
@@ -10,11 +10,12 @@ import java.util.Objects;
 import java.util.Set;
 import java.util.HashSet;
 
-public class Literal extends Formula{
+public class Literal extends Fluent{
 
     Boolean value;
 
     public Literal(Boolean value) {
+        super(value ? "TRUE" : "FALSE");
         this.value = value;
     }
 
@@ -22,7 +23,11 @@ public class Literal extends Formula{
         return value;
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
+    public Boolean evaluate(World world) {
+        return value;
+    }
+
+    public Boolean evaluate(PlausibilityState model, World world) {
         return value;
     }
 

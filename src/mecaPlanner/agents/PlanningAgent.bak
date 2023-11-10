@@ -1,9 +1,7 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.*;
 import mecaPlanner.formulae.Formula;
-import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
 import java.util.Objects;
@@ -15,19 +13,19 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 
-public abstract class PlanningModel extends Model {
+public abstract class PlanningAgent extends Agent {
 
-    public PlanningModel(String agent, Domain domain) {
+    public PlanningAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 
-    Map<String,Map<EpistemicState,Set<Action>>> memo = new HashMap<>();
+    Map<String,Map<PointedPlausibilityState,Set<Action>>> memo = new HashMap<>();
 
-    private Set<Action> getPlannedActions(NDState ndState, String agent, Formula goal) {
+    private Set<Action> getPlannedActions(PlausibilityState ndState, String agent, Formula goal) {
         if (!memo.containsKey(agent)) {
-            memo.put(agent, new HashMap<EpistemicState, Set<Action>>());
+            memo.put(agent, new HashMap<PointedPlausibilityState, Set<Action>>());
         }
-        Set<EpistemicState> possibleStates = ndState.getEpistemicStates();
+        Set<State> possibleStates = ndState.getEpistemicStates();
         if (!memo.get(agent).containsKey(ndState)) {
             Set<Action> succesfulActions = new HashSet<>();
             //memo.get(agent).addAll(search(ndState, agent, goal));
@@ -35,7 +33,7 @@ public abstract class PlanningModel extends Model {
         return memo.get(agent).get(ndState);
     }
 
-    private Map<NDState, Set<Action>> search(NDState ndState, String agent, Formula goal) {
+    private Map<NDState, Set<Action>> search(PlausibilityState ndState, String agent, Formula goal) {
         HashMap<NDState, Set<Action>> policy = new HashMap<>();
         // IF WE USE 'NECESSARILY' HERE, MIGHT KEEP SEARCHING EVEN IF
         // AGENT KNOWS GOAL WILL BE REACHED OVER MULTIPLE STATES

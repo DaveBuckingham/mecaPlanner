@@ -1,6 +1,6 @@
 package depl;
 
-import mecaPlanner.models.*;
+import mecaPlanner.agents.*;
 
 import org.antlr.v4.runtime.*;
 import org.antlr.v4.runtime.tree.*;
@@ -8,6 +8,7 @@ import org.antlr.v4.runtime.tree.*;
 import mecaPlanner.*;
 import mecaPlanner.formulae.*;
 import mecaPlanner.state.*;
+import mecaPlanner.actions.*;
 
 import java.util.Set;
 import java.util.HashSet;
@@ -24,6 +25,8 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.javatuples.Pair;
+
 import java.io.IOException;
 
 
@@ -31,19 +34,16 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // THESE GO IN THE PROBLEM
     private Domain domain;
-    private Integer systemAgentIndex;
-    private Set<EpistemicState> startStates;
-    private Map<String, Model> startingModels;
-    private Set<Formula> goals;
-    private Set<TimeConstraint> timeConstraints;
+    private Set<PointedPlausibilityState> startStates;
+    private List<Formula> initially;
+    private List<Formula> goals;
+    private List<TimeConstraint> timeConstraints;
 
     // THESE ARE USED AT PARSE-TIME ONLY
     private Set<Fluent> allFluents;
     private Integer agentIndex;
-    private Map<String, String> allObjects;     // object name --> object type
-
     private Map<Fluent, Boolean> constants;
-
+    private Map<String, String> allObjects;     // object name --> object type
     private Map<String, TypeNode> typeDefs;     // object type --> objects of that type (TypeNode.getGroundings())
     private Stack<Map<String, String>> variableStack;
 
@@ -75,6 +75,13 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
             varGroundings.add(typeDefs.get(varType).groundings);
         }
+        
+        List<Pair<String, String>> inequalities = new ArrayList<>();
+        for (DeplParser.VariableInequalityContext variableInequalityCtx : ctx.variableInequality()) {
+            String lhs = variableInequalityCtx.lhs.getText();
+            String rhs = variableInequalityCtx.rhs.getText();
+            inequalities.add(new Pair<String, String>(lhs, rhs));
+        }
 
         for (List<String> grounding : cartesianProduct(varGroundings)) {
             LinkedHashMap<String,String> groundingMap = new LinkedHashMap<String,String>();
@@ -87,7 +94,18 @@ public class DeplToProblem extends DeplBaseVisitor {
             if(nameIterator.hasNext() || groundingIterator.hasNext()) {
                 throw new RuntimeException("variable binding broke!");
             }
-            maps.add(groundingMap);
+
+            boolean passesInequalities = true;
+            for (Pair<String,String> unequal : inequalities) {
+                if (groundingMap.get(unequal.getValue0()).equals(groundingMap.get(unequal.getValue1()))) {
+                    passesInequalities = false;
+                    break;
+                }
+            }
+
+            if (passesInequalities) {
+                maps.add(groundingMap);
+            }
         }
         if (maps.isEmpty()) {
             maps.add(new LinkedHashMap<String,String>());
@@ -193,11 +211,10 @@ public class DeplToProblem extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
-        this.systemAgentIndex = null;
-        this.startStates = new HashSet<EpistemicState>();
-        this.startingModels = new HashMap<>();
-        this.goals = new HashSet<>();
-        this.timeConstraints = new HashSet<>();
+        this.startStates = new HashSet<PointedPlausibilityState>();
+        this.initially = new ArrayList<>();
+        this.goals = new ArrayList<>();
+        this.timeConstraints = new ArrayList<>();
 
         this.agentIndex = 0;
         this.allObjects = new HashMap<>();
@@ -211,7 +228,15 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        return new Problem(domain, systemAgentIndex, startStates, startingModels, goals, timeConstraints);
+        for (PointedPlausibilityState s : startStates) {
+            for (Formula f : initially) {
+                if (!f.necessarily(s)) {
+                    throw new RuntimeException("initially formula not satisfied: " + f.toString());
+                }
+            }
+        }
+
+        return new Problem(domain, startStates, goals, timeConstraints);
     }
 
 
@@ -225,8 +250,8 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (ctx.passiveSection() != null) {visit(ctx.passiveSection());}
         visit(ctx.fluentsSection());
         if (ctx.constantsSection() != null) {visit(ctx.constantsSection());}
-        visit(ctx.initiallySection());
-        if (ctx.postSection() != null) {visit(ctx.postSection());}
+        if (ctx.startStateSection() != null) {visit(ctx.startStateSection());}
+        if (ctx.initiallySection() != null) {visit(ctx.initiallySection());}
         visit(ctx.goalsSection());
         visit(ctx.actionsSection());
 
@@ -279,15 +304,9 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitAgentsSection(DeplParser.AgentsSectionContext ctx) {
         visitChildren(ctx);
 
-        if (domain.getAllAgents().isEmpty()) {
+        if (domain.getTurnOrder().isEmpty()) {
             throw new RuntimeException("no agents defined");
         }
-
-        if (this.systemAgentIndex == null) {
-            throw new RuntimeException("no system agent defined");
-        }
-
-        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
 
         return null;
     }
@@ -295,37 +314,29 @@ public class DeplToProblem extends DeplBaseVisitor {
     @Override public Void visitAgentDef(DeplParser.AgentDefContext ctx) {
         visitChildren(ctx);
         String agent = ctx.objectName().getText();
-
         if (!allObjects.containsKey(agent)) {
             throw new RuntimeException("agent " + agent + " is not a defined object.");
         }
-
         if (ctx.UPPER_NAME() == null) {
-            if (this.systemAgentIndex != null) {
-                throw new RuntimeException("cannot define multiple system agents");
-            }
-            this.systemAgentIndex = this.agentIndex;
+            domain.addSystemAgent(agent);
         }
         else {
-            String modelClassName = "mecaPlanner.models." + ctx.UPPER_NAME().getText();
+            String modelClassName = "mecaPlanner.agents." + ctx.UPPER_NAME().getText();
             try {
                 Constructor constructor = Class.forName(modelClassName).getConstructor(String.class, Domain.class);
-                Model model = (Model) constructor.newInstance(agent, domain);
-                startingModels.put(agent, model);
+                Agent eAgentModel = (Agent) constructor.newInstance(agent, domain);
+                domain.addEnvironmentAgent(agent, eAgentModel);
             }
             catch(Exception ex) {
                 System.out.println(ex.toString());
                 System.exit(1);
             }
         }
-        domain.addAgent(agent);
-        this.agentIndex += 1;
         return null;
     }
 
     @Override public Void visitPassiveSection(DeplParser.PassiveSectionContext ctx) {
         visitChildren(ctx);
-        assert(domain.getAllAgents().containsAll(domain.getNonPassiveAgents()));
         return null;
     }
 
@@ -335,7 +346,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         if (!allObjects.containsKey(name)) {
             throw new RuntimeException("passive agent " + name + " is not a defined object.");
         }
-        domain.addPassive(name);
+        domain.addPassiveAgent(name);
         return null;
     }
 
@@ -410,53 +421,24 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
 
-    // INITIALLY
+    // START STATE
 
-    @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
-        for (DeplParser.StartStateDefContext stateCtx : ctx.startStateDef()) {
-            if (stateCtx.kripkeModel() != null) {
-                NDState ndState = (NDState) visit(stateCtx.kripkeModel());
-                startStates.addAll(ndState.getEpistemicStates());
-            }
-            else {
-                Set<EpistemicState> constructedStates = (Set<EpistemicState>) visit(stateCtx.initiallyDef());
-                startStates.addAll(constructedStates);
-            }
+    @Override public Void visitStartStateSection(DeplParser.StartStateSectionContext ctx) {
+        for (DeplParser.ModelContext modelCtx : ctx.model()) {
+            PlausibilityState ndState = (PlausibilityState) visit(modelCtx);
+            startStates.addAll(ndState.getStates());
+        }
+        for (DeplParser.StateDefContext stateDefCtx : ctx.stateDef()) {
+            PlausibilityState ndState = (PlausibilityState) visit(stateDefCtx);
+            startStates.addAll(ndState.getStates());
         }
         return null;
     }
 
-    @Override public Void visitPostSection(DeplParser.PostSectionContext ctx) {
-        Log.warning("Post-staet construction and checking not implemented");
-        return null;
-    }
-
-    @Override public Set<EpistemicState> visitInitiallyDef(DeplParser.InitiallyDefContext ctx) {
-        List<Formula> initialFormulae = new ArrayList<>();
-        for (DeplParser.BeliefFormulaContext formulaCtx : ctx.beliefFormula()) {
-            Formula formula = (Formula) visit(formulaCtx);
-            initialFormulae.add(formula);
-        }
-        Set<EpistemicState> states = Construct.constructStates(domain, initialFormulae);
-        if (states.isEmpty()) {
-            throw new RuntimeException("constructed model is null...");
-        }
-        for (EpistemicState s : states) {
-            for (Formula f : initialFormulae) {
-                if (!f.evaluate(s)) {
-                    throw new RuntimeException("model construction failed.");
-                }
-            }
-        }
-        return states;
-    }
-
-    @Override public NDState visitKripkeModel(DeplParser.KripkeModelContext ctx) {
+    @Override public PlausibilityState visitModel(DeplParser.ModelContext ctx) {
         Map<String,World> worlds = new HashMap<>();
         Set<World> designatedWorlds = new HashSet<>();;
-        Map<String, Relation> beliefRelations = new HashMap<>();
-        Map<String, Relation> knowledgeRelations = new HashMap<>();
-        for (DeplParser.KripkeWorldContext worldCtx : ctx.kripkeWorld()) {
+        for (DeplParser.WorldContext worldCtx : ctx.world()) {
             World world = (World) visit(worldCtx);
             worlds.put(world.getName(),world);
             if (worldCtx.STAR() != null) {
@@ -465,64 +447,43 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
 
         if (designatedWorlds.isEmpty()) {
-            throw new RuntimeException("an initial state has no designaged worlds");
-        }
-
-        for (DeplParser.KripkeRelationContext relationCtx : ctx.kripkeRelation()) {
-            String relationType = relationCtx.relationType().getText();
-            String agent = relationCtx.objectName().getText();
-
-            if (!domain.isAgent(agent)) {
-                throw new RuntimeException("agent not defined: " + agent);
-            }
-
-            Relation relation = new Relation();
-            List<String> fromWorlds = new ArrayList<>();
-            List<String> toWorlds = new ArrayList<>();
-            for (DeplParser.FromWorldContext fromWorld : relationCtx.fromWorld()) {
-                String fromWorldName = fromWorld.getText();
-                if (!worlds.containsKey(fromWorldName)) {
-                    throw new RuntimeException("unknown world: " + fromWorldName);
-                }
-                fromWorlds.add(fromWorldName);
-            }
-            for (DeplParser.ToWorldContext toWorld : relationCtx.toWorld()) {
-                String toWorldName = toWorld.getText();
-                if (!worlds.containsKey(toWorldName)) {
-                    throw new RuntimeException("unknown world: " + toWorldName);
-                }
-                toWorlds.add(toWorldName);
-            }
-            assert(fromWorlds.size() == toWorlds.size());
-            for (int i = 0; i < fromWorlds.size(); i++) {
-                relation.connect(worlds.get(fromWorlds.get(i)), worlds.get(toWorlds.get(i)));
-            }
-
-            if (relationType.equals("B")) {
-                beliefRelations.put(agent, relation);
-            }
-            else if (relationType.equals("K")) {
-                knowledgeRelations.put(agent, relation);
-            }
-            else {
-                throw new RuntimeException("unknow relation specifier: " + relationType);
-            }
+            throw new RuntimeException("initial state has no designaged worlds");
         }
 
         Set<World> worldSet = new HashSet<World>(worlds.values());
-        Log.debug("constructing start state kripke...");
-        KripkeStructure kripke = new KripkeStructure(worldSet, beliefRelations, knowledgeRelations);
-        Log.debug("constructing start state...");
-        NDState startState = new NDState(kripke, designatedWorlds);
-        Log.debug("reducing start state...");
+        PlausibilityState startState = new PlausibilityState(domain.getAllAgents(), worldSet, designatedWorlds);
+
+        for (DeplParser.RelationContext relationCtx : ctx.relation()) {
+            String agent = (String) visit(relationCtx.agent());
+
+            for (DeplParser.RelateContext relateCtx : relationCtx.relate()) {
+                String fromWorldName = relateCtx.from.getText();
+                if (!worlds.containsKey(fromWorldName)) {
+                    throw new RuntimeException("unknown world: " + fromWorldName);
+                }
+                String toWorldName = relateCtx.to.getText();
+                if (!worlds.containsKey(toWorldName)) {
+                    throw new RuntimeException("unknown world: " + toWorldName);
+                }
+                startState.addMorePlausibleTransitive(agent, worlds.get(fromWorldName), worlds.get(toWorldName));
+            }
+
+        }
+
+        startState.trim();
+        if (startState.normalize()) {
+            // THIS ISN'T NECESSARILY A PROBLEM,
+            // THIS CHECK IS JUST HERE BECAUSE I'M CURIOUS TO SEE WHEN IT HAPPENS
+            System.out.println("start state not normal");
+            //System.exit(1);
+        }
         startState.reduce();
-        Log.debug("checking start state kripke...");
-        startState.getKripke().forceCheck();
+
         return startState;
     }
 
 
-    @Override public World visitKripkeWorld(DeplParser.KripkeWorldContext ctx) {
+    @Override public World visitWorld(DeplParser.WorldContext ctx) {
         String worldName = ctx.LOWER_NAME().getText();
         Set<Fluent> fluents = new HashSet<>();
 
@@ -538,16 +499,122 @@ public class DeplToProblem extends DeplBaseVisitor {
         return world;
     }
 
+    @Override public PlausibilityState visitStateDef(DeplParser.StateDefContext ctx) {
+
+        Set<Fluent> trueFluents = new HashSet<>();
+        for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
+            trueFluents.add((Fluent) visit(fluentCtx));
+        }
+        World designatedWorld = new World("d", trueFluents);
+        Set<World> worlds = new HashSet<>();
+        worlds.add(designatedWorld);
+        PointedPlausibilityState state = new PointedPlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
+
+        for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
+            List<String> agents = new ArrayList<>();
+            for (DeplParser.AgentContext agentCtx : assertionCtx.agent()) {
+                agents.add((String) visit(agentCtx));
+            }
+            if (assertionCtx.doubts != null) {
+                Fluent f = (Fluent) visit(assertionCtx.fluent());
+                state = addDoubt(state, agents, f);
+            }
+            else if (assertionCtx.believes != null) {
+                Fluent f = (Fluent) visit(assertionCtx.fluent());
+                Boolean value = assertionCtx.OP_NOT() == null;
+                state = addBelief(state, agents, f, value);
+            }
+            else if (assertionCtx.knows != null) {
+                Formula f = (Formula) visit(assertionCtx.formula());
+                state = addKnowledge(state, agents, f);
+            }
+            else {
+                throw new RuntimeException("unknown start assertion");
+            }
+        }
+
+        state.trim();
+        if (state.normalize()) {
+            // THIS ISN'T NECESSARILY A PROBLEM,
+            // THIS CHECK IS JUST HERE BECAUSE I'M CURIOUS TO SEE WHEN IT HAPPENS
+            System.out.println("start state not normal");
+            //System.exit(1);
+        }
+        state.reduce();
+
+        return state;
+    }
+
+    private PointedPlausibilityState addDoubt(PointedPlausibilityState state, List<String> agents, Fluent f) {
+        Event actual = new Event("u", new Literal(true));
+        Set<Formula> disjuncts = new HashSet<>();
+        for (String a : agents) {
+            disjuncts.add(new KnowsFormula(a, f));
+            disjuncts.add(new KnowsFormula(a, f.negate()));
+        }
+        Formula someoneKnows = Formula.makeDisjunction(disjuncts);
+        Event alternative = new Event("v", someoneKnows, new Assignment(f, f.negate()));
+        Set<Event> events = new HashSet<>(Arrays.asList(actual, alternative));
+        Set<Event> designatedEvents = new HashSet<>(Arrays.asList(actual));
+        EventModel model = new EventModel("doubts-" + f, domain.getAllAgents(), events, designatedEvents);
+        for (String a : agents) {
+            model.addEdge(a, actual, alternative);
+            model.addEdge(a, alternative, actual);
+        }
+        return model.transition(state);
+    }
+
+    private PointedPlausibilityState addBelief(PointedPlausibilityState state, List<String> agents, Fluent f, boolean val) {
+        Event trueEvent = new Event("t", f);
+        Event falseEvent = new Event("f", f.negate());
+        Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        String name = "believes-" + (!val ? "!" : "") + f;
+        EventModel model = new EventModel(name, domain.getAllAgents(), events, events);
+        for (String a : agents) {
+            if (val) {
+                model.addEdge(a, falseEvent, trueEvent);
+            }
+            else {
+                model.addEdge(a, trueEvent, falseEvent);
+            }
+        }
+        return model.transition(addDoubt(state, agents, f));
+    }
+
+    private PointedPlausibilityState addKnowledge(PointedPlausibilityState state, List<String> agents, Formula f) {
+        Event trueEvent = new Event("t", f);
+        Event falseEvent = new Event("f", f.negate());
+        Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        Set<Event> designatedEvents = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
+        EventModel model = new EventModel("knows-" + f, domain.getAllAgents(), events, designatedEvents);
+        //System.out.println("adding: " + model.getName());
+        for (String a : domain.getAllAgents()) {
+            if (!agents.contains(a)) {
+                //System.out.println("not agent: " + a);
+                model.addEdge(a, trueEvent, falseEvent);
+                model.addEdge(a, falseEvent, trueEvent);
+            }
+        }
+        return model.transition(state);
+    }
+
+
+    @Override public Void visitInitiallySection(DeplParser.InitiallySectionContext ctx) {
+        for (DeplParser.FormulaContext formulaCtx : ctx.formula()) {
+            initially.add((Formula) visit(formulaCtx));
+        }
+        return null;
+    }
 
 
     // GOALS
     @Override public Void visitGoal(DeplParser.GoalContext ctx) {
-        if (ctx.beliefFormula() == null) {
+        if (ctx.formula() == null) {
             TimeConstraint constraint = (TimeConstraint) visit(ctx.timeConstraint());
             timeConstraints.add(constraint);
         }
         else {
-            Formula goal = (Formula) visit(ctx.beliefFormula());
+            Formula goal = (Formula) visit(ctx.formula());
             goals.add(goal);
         }
         return null;
@@ -555,202 +622,187 @@ public class DeplToProblem extends DeplBaseVisitor {
 
 
     // ACTIONS
-    @Override public Void visitActionDefinition(DeplParser.ActionDefinitionContext ctx) {
+    @Override public Void visitActionDef(DeplParser.ActionDefContext ctx) {
         String actionName = ctx.LOWER_NAME().getText();
-        for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.variableDefList())) {
+        for (LinkedHashMap<String,String> actionVariableMap : getVariableMaps(ctx.actionScope)) {
             variableStack.push(actionVariableMap);
 
             List<String> actionParameters = new ArrayList<String>(actionVariableMap.values());
 
-            String owner = null;
+            String owner = (String) visit(ctx.owner);
+            if (!domain.isNonPassiveAgent(owner)) {
+                throw new RuntimeException(actionName + " has unknown owner " + owner);
+            }
 
-            int cost = 1;
+            Integer cost = ctx.cost == null ? 1 : Integer.parseInt(ctx.cost.getText());
+
             List<Formula> preconditionList = new ArrayList<>();
-            Map<String, List<Formula>> observesLists = new HashMap<>();
-            Map<String, List<Formula>> awareLists = new HashMap<>();
-            for (String a : domain.getAgents()) {
-                observesLists.put(a, new ArrayList<Formula>());
-                awareLists.put(a, new ArrayList<Formula>());
-            }
-
-            Map<Formula, Formula> determines = new HashMap<>();
-            Map<Formula, Formula> announces = new HashMap<>();
-            Map<Assignment, Formula> effects = new HashMap<>();
-
-            for (DeplParser.ActionFieldContext fieldCtx : ctx.actionField()) {
-
-                if (fieldCtx.ownerActionField() != null) {
-                    owner = (String) visit(fieldCtx.ownerActionField().groundableObject());
-                    if (!domain.isNonPassiveAgent(owner)) {
-                        throw new RuntimeException("action " + actionName + " owner " + owner +
-                                                   " not a declared system or environment agent.");
-                    }
-                }
-
-                else if (fieldCtx.costActionField() != null) {
-                    cost = Integer.parseInt(fieldCtx.costActionField().INTEGER().getText());
-                }
-
-
-                else if (fieldCtx.preconditionActionField() != null) {
-                    DeplParser.PreconditionActionFieldContext preCtx = fieldCtx.preconditionActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(preCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        preconditionList.add((Formula) visit(preCtx.localFormula()));
-                        variableStack.pop();
-                    }
-                }
-
-                else if (fieldCtx.observesActionField() != null) {
-                    DeplParser.ObservesActionFieldContext obsCtx = fieldCtx.observesActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        String agentName = (String) visit(obsCtx.groundableObject());
-                        if (!domain.getAllAgents().contains(agentName)) {
-                            throw new RuntimeException("Observer \"" + agentName + "\" is not a defined agent.");
-                        }
-                        Formula condition;
-                        if (obsCtx.condition() == null) {
-                            condition = new Literal(true);
-                        }
-                        else {
-                            condition = (Formula) visit(obsCtx.condition());
-                        }
-                        if (!condition.isFalse()) {
-                            observesLists.get(agentName).add(condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
-                else if (fieldCtx.awareActionField() != null) {
-                    DeplParser.AwareActionFieldContext awaCtx = fieldCtx.awareActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        String agentName = (String) visit(awaCtx.groundableObject());
-                        Formula condition;
-                        if (awaCtx.condition() == null) {
-                            condition = new Literal(true);
-                        }
-                        else {
-                            condition = (Formula) visit(awaCtx.condition());
-                        }
-                        if (!condition.isFalse()) {
-                            awareLists.get(agentName).add(condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
-                else if (fieldCtx.determinesActionField() != null) {
-                    DeplParser.DeterminesActionFieldContext detCtx = fieldCtx.determinesActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(detCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        Formula condition;
-                        if (detCtx.condition() == null)  {
-                            condition = new Literal(true);
-                        }
-                        else {
-                            condition = (Formula) visit(detCtx.condition());
-                        }
-                        if (!(condition.isFalse())){
-                            Formula sensed = (Formula) visit(detCtx.localFormula());
-                            determines.put(sensed, condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
-                else if (fieldCtx.announcesActionField() != null) {
-                    DeplParser.AnnouncesActionFieldContext annCtx = fieldCtx.announcesActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(annCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        Formula condition;
-                        if (annCtx.condition() == null)  {
-                            condition = new Literal(true);
-                        }
-                        else {
-                            condition = (Formula) visit(annCtx.condition());
-                        }
-                        if (!(condition.isFalse())){
-                            Formula announcement = (Formula) visit(annCtx.beliefFormula());
-                            announces.put(announcement, condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
-                else if (fieldCtx.causesActionField() != null) {
-                    DeplParser.CausesActionFieldContext effCtx = fieldCtx.causesActionField();
-                    for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
-                        variableStack.push(variableMap);
-                        Formula condition;
-                        if (effCtx.condition() == null)  {
-                            condition = new Literal(true);
-                        }
-                        else {
-                            condition = (Formula) visit(effCtx.condition());
-                        }
-                        if (!(condition.isFalse())){
-                            Fluent fluent = (Fluent) visit(effCtx.fluent());
-                            boolean isAddEffect = (effCtx.OP_NOT() == null);
-                            effects.put(new Assignment(fluent, isAddEffect), condition);
-                        }
-                        variableStack.pop();
-                    }
-                }
-
-                else {
-                    throw new RuntimeException("invalid action field, somehow a syntax error didn't get caught?");
+            if (ctx.precondition != null) {
+                for (LinkedHashMap<String,String> preconditionVariableMap : getVariableMaps(ctx.preconditionScope)) {
+                    variableStack.push(preconditionVariableMap);
+                    preconditionList.add((Formula) visit(ctx.precondition));
+                    variableStack.pop();
                 }
             }
-
             Formula precondition = AndFormula.make(preconditionList);
-
-            if (owner == null) {
-                throw new RuntimeException("illegal action definition, no owner: " + actionName);
+            if (precondition.isFalse()) {
+                continue;
             }
 
-            Map<String, Formula> observes = new HashMap<>();
-            Map<String, Formula> aware = new HashMap<>();
-            for (String a : domain.getAgents()) {
-                observes.put(a, (Formula.makeDisjunction(observesLists.get(a))));
-                aware.put(a, (Formula.makeDisjunction(awareLists.get(a))));
+            Action action = new Action(actionName, actionParameters, owner, cost, precondition, domain);
+
+            for (DeplParser.ObservesDefContext obsCtx : ctx.observesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(obsCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    String agent = (String) visit(obsCtx.groundableObject());
+                    if (!domain.getAllAgents().contains(agent)) {
+                        throw new RuntimeException("Undefined observer " + agent);
+                    }
+                    Formula condition = obsCtx.condition == null ? new Literal(true) : (Formula) visit(obsCtx.condition);
+                    action.setObservesCondition(agent, condition);
+                    variableStack.pop();
+                }
             }
 
-            assert (actionName != null);
-            assert (actionParameters != null);
-            assert (owner != null);
-            assert (precondition != null);
-            assert (observes != null);
-            assert (aware != null);
-            assert (determines != null);
-            assert (announces != null);
-            assert (effects != null);
-            assert (domain != null);
-
-
-            if (!precondition.isFalse()) {
-
-                Action action =  new Action(actionName,
-                                            actionParameters,
-                                            owner,
-                                            cost,
-                                            precondition,
-                                            observes,
-                                            aware,
-                                            determines,
-                                            announces,
-                                            effects,
-                                            domain
-                                           );
-
-                domain.addAction(action);
+            for (DeplParser.AwareDefContext awaCtx : ctx.awareDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(awaCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    String agent = (String) visit(awaCtx.groundableObject());
+                    if (!domain.getAllAgents().contains(agent)) {
+                        throw new RuntimeException("Undefined aware agent " + agent);
+                    }
+                    Formula condition = awaCtx.condition == null ? new Literal(true) : (Formula) visit(awaCtx.condition);
+                    action.setAwareCondition(agent, condition);
+                    variableStack.pop();
+                }
             }
 
+            for (DeplParser.DeterminesDefContext detCtx : ctx.determinesDef()) {
+                Formula formula = (Formula) visit(detCtx.determined);
+                action.addDetermines(formula);
+            }
+
+            for (DeplParser.AnnouncesDefContext annCtx : ctx.announcesDef()) {
+                Formula formula = (Formula) visit(annCtx.announced);
+                action.addAnnouncement(formula);
+            }
+
+            for (DeplParser.CausesDefContext effCtx : ctx.causesDef()) {
+                for (Map<String,String> variableMap : getVariableMaps(effCtx.variableDefList())) {
+                    variableStack.push(variableMap);
+                    Fluent fluent = (Fluent)visit(effCtx.fluent());
+                    if (effCtx.OP_NOT() != null) {
+                        if (effCtx.formula() != null) {
+                            throw new RuntimeException("negated effect can't have a fomula");
+                        }
+                        action.addEffect(new Assignment(fluent, false));
+                    }
+                    else {
+                        if (effCtx.formula() != null) {
+                            Formula formula = (Formula)visit(effCtx.formula());
+                            action.addEffect(new Assignment(fluent, formula));
+                        }
+                        else {
+                            action.addEffect(new Assignment(fluent, true));
+                        }
+                    }
+                    variableStack.pop();
+                }
+            }
             variableStack.pop();
+            domain.addAction(action);
+
+            //if (actionName.equals("move")) {
+            //    System.out.println(action);
+            //    System.exit(1);
+            //}
         }
         return null;
+    }
+
+ 
+
+
+    @Override public Void visitEventModelDef(DeplParser.EventModelDefContext ctx) {
+        Map<String,Event> events = new HashMap<>();   // EVENT NAMES TO EVENTS, WE USE THE NAMES FOR DEFINING RELATIONS
+        Set<Event> designated = new HashSet<>();
+
+        for (DeplParser.EventContext eventCtx : ctx.event()) {
+            Event e = (Event) visit(eventCtx);
+            String eventName = e.getName();
+            if (events.containsKey(eventName)) {
+                throw new RuntimeException("multiple events named " + eventName);
+            }
+            events.put(eventName, e);
+            if (eventCtx.STAR() != null) {
+                designated.add(e);
+            }
+        }
+
+        String name = ctx.LOWER_NAME().getText();
+
+        EventModel eventModel =  new EventModel(name, domain.getAllAgents(), new HashSet<Event>(events.values()), designated);
+
+        for (DeplParser.EventRelationContext relationCtx : ctx.eventRelation()) {
+            String agent = (String) visit(relationCtx.agent());
+            for (DeplParser.EdgeContext edgeCtx : relationCtx.edge()) {
+                String from = edgeCtx.from.getText();
+                String to = edgeCtx.to.getText();
+                if (!events.containsKey(from)) {
+                    throw new RuntimeException("undefined event: " + from);
+                }
+                if (!events.containsKey(to)) {
+                    throw new RuntimeException("undefined event: " + to);
+                }
+                Formula condition = edgeCtx.formula() == null ? new Literal(true) : (Formula) visit(edgeCtx.formula());
+                eventModel.addEdge(agent, events.get(from), events.get(to), condition);
+            }
+        }
+
+        Action stubAction = new Action(name,
+                  new ArrayList<String>(),
+                  null,
+                  0,
+                  new Literal(true),
+                  domain);
+
+        stubAction.setEventModel(eventModel);
+        domain.addAction(stubAction);
+        return null;
+    }
+
+    @Override public Event visitEvent(DeplParser.EventContext ctx) {
+        String name = ctx.LOWER_NAME().getText();
+        Formula precondition = (Formula) visit(ctx.formula());
+        Set<Assignment> assignments = new HashSet<>();
+        if (ctx.deletes != null) {
+            for (Fluent f : (Set<Fluent>) visit(ctx.deletes)) {
+                assignments.add(new Assignment(f, false));
+            }
+            for (Fluent f : (Set<Fluent>) visit(ctx.adds)) {
+                assignments.add(new Assignment(f, true));
+            }
+        }
+        else {
+            for (DeplParser.AssignmentContext assignmentCtx : ctx.assignment()) {
+                assignments.add((Assignment) visit(assignmentCtx));
+            }
+        }
+        return new Event(name, precondition, assignments);
+    }
+
+    @Override public Assignment visitAssignment(DeplParser.AssignmentContext ctx) {
+        Formula formula = (Formula) visit(ctx.formula());
+        Fluent fluent = (Fluent) visit(ctx.fluent());
+        return new Assignment(fluent, formula);
+    }
+
+    @Override public Set<Fluent> visitAtoms(DeplParser.AtomsContext ctx) {
+        Set<Fluent> atoms = new HashSet<>();
+        for (DeplParser.FluentContext fluentCtx : ctx.fluent()) {
+            atoms.add((Fluent) visit(fluentCtx));
+        }
+        return atoms;
     }
 
 
@@ -788,8 +840,20 @@ public class DeplToProblem extends DeplBaseVisitor {
         }
     }
 
-    @Override public Formula visitCondition(DeplParser.ConditionContext ctx) {
-        return (Formula) visit(ctx.localFormula());
+    @Override public String visitAgent(DeplParser.AgentContext ctx) {
+        String agentName = ctx.getText();
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+        return agentName;
+    }
+
+    @Override public String visitGroundableAgent(DeplParser.GroundableAgentContext ctx) {
+        String agentName = (String) visit(ctx.groundableObject());
+        if (!domain.isAgent(agentName)) {
+            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
+        }
+        return agentName;
     }
 
 
@@ -803,11 +867,6 @@ public class DeplToProblem extends DeplBaseVisitor {
             parameters.add((String) visit(objCtx));
         }
         Fluent fluent = new Fluent(fluentName, parameters);
-        return fluent;
-    }
-
-    @Override public Formula visitLocalFluent(DeplParser.LocalFluentContext ctx) {
-        Fluent fluent = (Fluent) visit(ctx.fluent());
         if (constants.containsKey(fluent)) {
             return new Literal(constants.get(fluent));
         }
@@ -817,108 +876,82 @@ public class DeplToProblem extends DeplBaseVisitor {
         return fluent;
     }
 
-    @Override public Formula visitLocalLiteralTrue(DeplParser.LocalLiteralTrueContext ctx) {
+    @Override public Formula visitFluentFormula(DeplParser.FluentFormulaContext ctx) {
+        Fluent fluent = (Fluent) visit(ctx.fluent());
+//        if (constants.containsKey(fluent)) {
+//            return new Literal(constants.get(fluent));
+//        }
+//        if (!allFluents.contains(fluent)) {
+//            throw new RuntimeException("unknown fluent: " + fluent);
+//        }
+        return fluent;
+    }
+
+    @Override public Formula visitTrueFormula(DeplParser.TrueFormulaContext ctx) {
         return new Literal(true);
     }
 
-    @Override public Formula visitLocalLiteralFalse(DeplParser.LocalLiteralFalseContext ctx) {
+    @Override public Formula visitFalseFormula(DeplParser.FalseFormulaContext ctx) {
         return new Literal(false);
     }
 
-    @Override public Formula visitLocalParens(DeplParser.LocalParensContext ctx) {
-        return (Formula) visit(ctx.localFormula());
+    @Override public Formula visitParensFormula(DeplParser.ParensFormulaContext ctx) {
+        return (Formula) visit(ctx.formula());
     }
 
-    @Override public Formula visitLocalNot(DeplParser.LocalNotContext ctx) {
-        Formula inner = (Formula) visit(ctx.localFormula());
+    @Override public Formula visitNotFormula(DeplParser.NotFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
         return (NotFormula.make(inner));
     }
 
-    @Override public Formula visitLocalAnd(DeplParser.LocalAndContext ctx) {
+    @Override public Formula visitAndFormula(DeplParser.AndFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+        for (DeplParser.FormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return (AndFormula.make(subFormulae));
     }
 
-    @Override public Formula visitLocalOr(DeplParser.LocalOrContext ctx) {
+    @Override public Formula visitOrFormula(DeplParser.OrFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.LocalFormulaContext subFormula : ctx.localFormula()) {
+        for (DeplParser.FormulaContext subFormula : ctx.formula()) {
             subFormulae.add((Formula) visit(subFormula));
         }
         return Formula.makeDisjunction(subFormulae);
     }
 
-    @Override public Formula visitLocalImplies(DeplParser.LocalImpliesContext ctx) {
+    @Override public Formula visitImpliesFormula(DeplParser.ImpliesFormulaContext ctx) {
         List<Formula> subFormulae = new ArrayList<>();
-        Formula leftFormula = (Formula) visit(ctx.localFormula().get(0));
-        Formula rightFormula = (Formula) visit(ctx.localFormula().get(1));
+        Formula leftFormula = (Formula) visit(ctx.formula().get(0));
+        Formula rightFormula = (Formula) visit(ctx.formula().get(1));
         return (Formula.makeDisjunction(Arrays.asList(leftFormula.negate(), rightFormula)));
     }
 
-
-
-    // BELIEF FORMULAE
-
-    @Override public Formula visitBeliefLocalFormula(DeplParser.BeliefLocalFormulaContext ctx) {
-        return (Formula) visit(ctx.localFormula());
-    }
-
-    @Override public Formula visitBeliefParens(DeplParser.BeliefParensContext ctx) {
-        return (Formula) visit(ctx.beliefFormula());
-    }
-
-    @Override public Formula visitBeliefNot(DeplParser.BeliefNotContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        return (NotFormula.make(inner));
-    }
-
-    @Override public Formula visitBeliefAnd(DeplParser.BeliefAndContext ctx) {
-        Formula left = (Formula) visit(ctx.beliefFormula().get(0));
-        Formula right = (Formula) visit(ctx.beliefFormula().get(1));
-        return (AndFormula.make(left, right));
-    }
-
-    @Override public Formula visitBeliefOr(DeplParser.BeliefOrContext ctx) {
-        List<Formula> subFormulae = new ArrayList<>();
-        for (DeplParser.BeliefFormulaContext subFormula : ctx.beliefFormula()) {
-            subFormulae.add((Formula) visit(subFormula));
-        }
-        return Formula.makeDisjunction(subFormulae);
-    }
-
-    @Override public Formula visitBeliefBelieves(DeplParser.BeliefBelievesContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
-        return new BelievesFormula(agentName, inner);
-    }
-
-    @Override public Formula visitBeliefPossibly(DeplParser.BeliefPossiblyContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
-        return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
-    }
-
-    @Override public Formula visitBeliefKnows(DeplParser.BeliefKnowsContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        String agentName = (String) visit(ctx.groundableObject());
-        if (!domain.isAgent(agentName)) {
-            throw new RuntimeException("unknown agent grounding '" + agentName + "' in formula: " + ctx.getText());
-        }
+    @Override public Formula visitKnowsFormula(DeplParser.KnowsFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableAgent());
         return new KnowsFormula(agentName, inner);
     }
 
-    @Override public Formula visitBeliefCommon(DeplParser.BeliefCommonContext ctx) {
-        Formula inner = (Formula) visit(ctx.beliefFormula());
-        return new CommonFormula(inner);
+
+    @Override public Formula visitBelievesFormula(DeplParser.BelievesFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableAgent());
+        return new BelievesFormula(agentName, inner);
     }
+
+    @Override public Formula visitKnowsDualFormula(DeplParser.KnowsDualFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableAgent());
+        return NotFormula.make(new KnowsFormula(agentName, NotFormula.make(inner)));
+    }
+
+    @Override public Formula visitBelievesDualFormula(DeplParser.BelievesDualFormulaContext ctx) {
+        Formula inner = (Formula) visit(ctx.formula());
+        String agentName = (String) visit(ctx.groundableAgent());
+        return NotFormula.make(new BelievesFormula(agentName, NotFormula.make(inner)));
+    }
+
 
 
     // TIME FORMULAE

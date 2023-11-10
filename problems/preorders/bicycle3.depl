@@ -1,0 +1,39 @@
+// SECOND ORDER SALLY ANNE TASK
+
+types{
+    Actor-Object,
+}
+
+objects{
+    t-Actor,
+    m-Actor,
+}
+
+agents{
+    t,
+    m{TrivialAgent}
+}
+
+
+fluents{ b(), o(), p() }
+
+
+start{
+    (
+        *w1 {b()},
+        w2 {},
+        m {w1-w1,w2-w2},
+        t {w1-w1,w2-w2,w1-w2},
+    )
+}
+
+
+
+goals{
+}
+
+actions{
+    look(owner t, observes t, determines b()),
+    tell(owner m, observes t, observes m, announces ~b()),
+    play(owner t, observes t, causes p())
+}

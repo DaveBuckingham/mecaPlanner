@@ -2,10 +2,11 @@ package mecaPlanner.formulae;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.Arrays;
 
 import mecaPlanner.state.World;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.state.KripkeStructure;
+import mecaPlanner.state.PointedPlausibilityState;
+import mecaPlanner.state.PlausibilityState;
 
 import mecaPlanner.*;
 
@@ -24,14 +25,29 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(KripkeStructure kripke, World world);
+    public abstract Boolean evaluate(PlausibilityState model, World world);
+    public abstract Boolean evaluate(World world);
 
-    public Boolean evaluate(World world) {
-        return this.evaluate(null, world);
+    public Boolean evaluate(PointedPlausibilityState state) {
+        return evaluate(state, state.getDesignatedWorld());
     }
 
-    public Boolean evaluate(EpistemicState state) {
-        return evaluate(state.getKripke(), state.getDesignatedWorld());
+    public Boolean possibly(PlausibilityState state) {
+        for (World w : state.getDesignated()) {
+            if (evaluate(state, w)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Boolean necessarily(PlausibilityState state) {
+        for (World w : state.getDesignated()) {
+            if (!evaluate(state, w)) {
+                return false;
+            }
+        }
+        return true;
     }
 
     public static Formula makeDisjunction(List<Formula> disjuncts) {
@@ -43,7 +59,11 @@ public abstract class Formula {
     }
 
     public static Formula makeDisjunction(Set<Formula> disjuncts) {
-        return AndFormula.make(new ArrayList(disjuncts));
+        return makeDisjunction(new ArrayList(disjuncts));
+    }
+
+    public static Formula makeDisjunction(Formula ...disjuncts) {
+        return makeDisjunction(Arrays.asList(disjuncts));
     }
 
 

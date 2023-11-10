@@ -1,9 +1,7 @@
 package tools;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.models.Model;
-import mecaPlanner.Action;
+import mecaPlanner.state.*;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.*;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
@@ -37,8 +35,8 @@ public class Actions {
         Domain domain = problem.getDomain();
 
         // VARIABLES TO TRACK THE SYSTEM STATE
-        EpistemicState currentState = problem.getStartState();
-        Map<String, Model> models = problem.getStartingModels();
+        State currentState = problem.getStartState();
+        Map<String, Agent> models = domain.getEnvironmentAgents();
         int depth = 0;
 
         List<String> eagents = new ArrayList<>(models.keySet());
@@ -48,20 +46,22 @@ public class Actions {
 
         while(cont) {
 
-            //currentState.getKripke().forceCheck();
-            currentState.getKripke().checkRelations();
+            System.out.println("\nCURRENT STATE:");
             System.out.println(currentState);
 
+            if(problem.getGoal().evaluate(currentState)) {
+                System.out.println("GOAL");
+            }
+
             List<Action> applicable = new ArrayList<>();
-            for (Set<Action> agentActions : domain.getActionMap().values()) {
-                for (Action a : agentActions) {
-                    if (a.getPrecondition().evaluate(currentState)){
-                        applicable.add(a);
-                    }
+            for (Action action : domain.getAllActions()) {
+                if (action.executable(currentState)){
+                    applicable.add(action);
                 }
             }
 
 
+            System.out.println("\nPICK ONE:");
             Scanner stdin = new Scanner(System.in);
             for (Integer i = 0; i < applicable.size(); i++) {
                 System.out.println(i + ": " + applicable.get(i).getSignature());
@@ -86,11 +86,11 @@ public class Actions {
             if (selection < applicable.size()) {
                 Action action = applicable.get(selection);
                 System.out.println("EXECUTING: " + action.getSignatureWithActor());
-                Action.UpdatedStateAndModels transitionResult = action.transition(currentState, models);
-                currentState = transitionResult.getState();
+                State newState = action.transition(currentState);
+                currentState = newState;
             }
             else if (selection < applicable.size() + eagents.size()) {
-                Model model = models.get(eagents.get(selection - applicable.size()));
+                Agent model = models.get(eagents.get(selection - applicable.size()));
                 System.out.print("PREDICTED: ");
                 for (Action a : model.getPrediction(currentState)) {
                     System.out.print(a.getSignatureWithActor() + ", ");

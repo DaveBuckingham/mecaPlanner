@@ -8,8 +8,8 @@ types{
 }
 
 objects{
-    r-Actor,
-    h-Actor,
+    r-Robot,
+    h-Human,
     a1 - Location,
     a2 - Location,
     a3 - Location,
@@ -19,14 +19,13 @@ objects{
 
 agents{
     r,
-    h{SlipModel}
+    h{SlipAgent},
 }
-
 
 fluents{
     at(Locatable,Location),
     f(Actor),
-    p(Location),
+    spill(Location),
 }
 
 constants{
@@ -38,45 +37,46 @@ constants{
     connected(front,a3),
 }
 
+//start{(at(r,a1),
+//       at(h,back),
+//       spill(a1),
+//       B[h](!spill(a1)),
+//      )
+//}
 
-initially{
-    *w1 <- {at(h,back),at(r,a1),p(a1)},
-    w2 <- {at(h,back),at(r,a1)},
-    B[r] <- {(w1,w1),(w2,w2)}
-    K[r] <- {(w1,w1),(w2,w2)}
-    B[h] <- {(w1,w2),(w2,w2)}
-    K[h] <- {(w1,w1),(w1,w2),(w2,w2),(w2,w1)}
-}
+start{(
+    *u{at(r,a1),at(h,back),spill(a1)},
+     v{at(r,a1),at(h,back)},
+     r{u-u,v-v}
+     h{u-v,v-v}
+)}
 
 
 goals{
-    ~f(h),
+    !f(h),
     Timestep==3,
     Timestep~=4,
 }
 
-
 actions{
-    move(?a-Actor,?f-Location,?t-Location){
-        owner{?a},
-        //precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a)},
-        precondition{at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f))},
-        observes(?o-Actor){?o},
-        causes{at(?a, ?t)},
-        causes{~(at(?a, ?f))},
-        causes{f(?a) if p(?t)}
-    }
+    <?a-Actor,?f-Location,?t-Location>move(
+        owner ?a,
+        precondition at(?a,?f) & ~(at(?a,?t)) & (connected(?f,?t) | connected(?t,?f)) & !f(?a),
+        <?o-Actor>observes ?o,
+        causes at(?a, ?t),
+        causes ~(at(?a, ?f)),
+        causes f(?a) <- (f(?a) | spill(?t))
+    )
 
-    slip(){
-        owner{r},
-        precondition{p(a1)},
-        observes(?o-Actor){?o},
-        causes{f(r)}
-    }
+    <>slip(
+        owner r,
+        precondition spill(a1),
+        <?o-Actor>observes ?o,
+        causes f(r),
+    )
 
-    wait(?a - Actor) {
-        owner{?a},
-        observes(?o-Actor){?o},
-    }
-
+    <?a - Actor>wait(
+        owner ?a,
+        <?o-Actor>observes ?o,
+    )
 }

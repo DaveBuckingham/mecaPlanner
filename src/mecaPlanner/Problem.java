@@ -1,8 +1,8 @@
 package mecaPlanner;
 
-import mecaPlanner.models.Model;
 import mecaPlanner.formulae.*;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.PlausibilityState;
+import mecaPlanner.state.PointedPlausibilityState;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -14,49 +14,42 @@ import java.util.ArrayList;
 public class Problem implements java.io.Serializable {
 
     private Domain domain;
-    private int systemAgentIndex;
-    private Set<EpistemicState> startStates;
-    private Map<String, Model> startingModels;
-    private Set<Formula> goals;
-    private Set<TimeConstraint> timeConstraints;
+    private Set<PointedPlausibilityState> startStates;
+    private List<Formula> initially;
+    private List<Formula> goals;
+    private List<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
-                   int systemAgentIndex,
-                   Set<EpistemicState> startStates,
-                   Map<String,Model> startingModels,
-                   Set<Formula> goals,
-                   Set<TimeConstraint> timeConstraints
+                   Set<PointedPlausibilityState> startStates,
+                   List<Formula> goals,
+                   List<TimeConstraint> timeConstraints
                   ) {
         this.domain = domain;
-        this.systemAgentIndex = systemAgentIndex;
         this.startStates = startStates;
-        this.startingModels = startingModels;
         this.goals = goals;
         this.timeConstraints = timeConstraints;
     }
 
 
-    public Set<EpistemicState> getStartStates() {
+    public Set<PointedPlausibilityState> getStartStates() {
         return startStates;
     }
 
-    public EpistemicState getStartState() {
+    public PointedPlausibilityState getStartState() {
         if (startStates.size() != 1) {
             throw new RuntimeException("problem contains " + startStates.size() + " start states.");
         }
         return startStates.iterator().next();
     }
 
-    public Integer getSystemAgentIndex() {
-        return systemAgentIndex;
-    }
 
-    public Set<Formula> getGoals() {
+
+    public List<Formula> getGoals() {
         return goals;
     }
 
-    public Set<TimeConstraint> getTimeConstraints() {
+    public List<TimeConstraint> getTimeConstraints() {
         return timeConstraints;
     }
 
@@ -67,10 +60,6 @@ public class Problem implements java.io.Serializable {
         return AndFormula.make(goals);
     }
 
-    public Map<String, Model> getStartingModels() {
-        return startingModels;
-    }
-
     public Domain getDomain() {
         return domain;
     }
@@ -79,11 +68,11 @@ public class Problem implements java.io.Serializable {
     public String toString() {
         StringBuilder str = new StringBuilder();
 
-        //str.append("DOMAIN:\n");
-        //str.append(domain);
+        str.append("DOMAIN:\n");
+        str.append(domain);
 
         str.append("INITIALLY:\n");
-        for (EpistemicState s : startStates) {
+        for (PlausibilityState s : startStates) {
             str.append(s.toString());
         }
         str.append("\n");

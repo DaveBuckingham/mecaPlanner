@@ -1,23 +1,27 @@
 package tools;
 
 import java.util.Set;
+import java.util.HashSet;
 import java.util.List;
 import java.util.ArrayList;
 
 import mecaPlanner.Log;
-import mecaPlanner.Action;
 import mecaPlanner.Domain;
 import mecaPlanner.Problem;
 import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.formulae.booleanFormulae.BooleanAtom;
+import mecaPlanner.state.State;
+import mecaPlanner.formulae.Formula;
+import mecaPlanner.formulae.Literal;
+
 import depl.*;
 
-// THIS DOESN'T WORK BECAUSE POST-STARTE CONSTRUCTION ISN'T IMPLEMENTED
-
-// THIS IS SIMILAR TO EXAMPLE: READS A DEPL WITH A SINGLE ACTION
-// HOWEVER, THIS ALSO READS A POST-STATE FROM THE DEPL
-// AFTER EXECUTING THE ACTION, MAKE SURE THE RESULT IS THE EQUIVALENT TO THE POST-STATE
+// 1. Read a starting preorder state
+// 2. Check start state structure
+// 3. Check if all initial formulae hold in the state
+// 4. For each action defined
+//     a. Apply the single action
+//     b. Check the state structure
+// 5. Check if all goal formulae hold in the final state
 
 
 
@@ -26,60 +30,56 @@ public class Test {
     public static void main(String args[]) {
         Log.setThreshold("warning");
 
-        String[] depls = new String[] {
-            "problems/kr/ontic.depl",
-            "problems/kr/sensing.depl",
-            "problems/kr/announcement.depl",
-            "problems/kr/box.depl"
-        };
-
-        for (String deplFile : depls) {
-
-            System.out.print(deplFile);
-            System.out.print("...");
-
-            DeplToProblem deplParser = new DeplToProblem();
-            Problem problem = deplParser.buildProblem(deplFile);
-            Domain domain = problem.getDomain();
-
-            EpistemicState startState = problem.getStartState();
-
-            if (!startState.getKripke().checkRelations()) {
-                System.out.println("bad start state:");
-                System.out.println(startState);
-                return;
-            }
-
-            Set<Action> allActions = domain.getAllActions();
-            if (allActions.size() != 1) {
-                System.out.println("depl must contain a single action");
-                return;
-            }
-            Action action = allActions.iterator().next();
-
-            EpistemicState endState = action.transition(startState);
-
-            assert(endState.getKripke().checkRelations());
-
-            EpistemicState postState = domain.getPostState();
-
-            if (postState == null) {
-                System.out.println("no post state in depl");
-                return;
-            }
-
-            // THIS IS IMPORTANT, equivalent() CAN GIVE FALSE POSITIVES OTHERWISE
-            if (!postState.getKripke().checkRelations()) {
-                System.out.println("bad post state:");
-                System.out.println(postState);
-                return;
-            }
-
-            Boolean equivalent = endState.equivalent(postState);
-
-            assert (equivalent == postState.equivalent(endState));
-
-            System.out.print(equivalent ? "PASS\n" : "FAIL\n");
+        if (args.length != 1) {
+            throw new RuntimeException("expected single depl file parameter.");
         }
+        String deplFile = args[0];
+        DeplToProblem visitor = new DeplToProblem();
+        Problem problem = visitor.buildProblem(deplFile);
+        Domain domain = problem.getDomain();
+
+        Set<State> states = problem.getStartStates();
+
+        if (states.isEmpty()) {
+            throw new RuntimeException("no start states");
+        }
+
+        if (states.size() > 1) {
+            System.out.println("multiple start states:");
+            for (State s : states) {
+                System.out.println(s);
+            }
+            return;
+        }
+
+        State state = states.iterator().next();
+
+
+        System.out.println("START STATE:");
+        System.out.println(state);
+
+        state.checkRelations();
+
+        System.out.println("INIITIALLY:");
+        for (Formula f : problem.getInitially()) {
+            System.out.println(f + ": " + f.evaluate(state));
+        }
+
+        for (Action action : domain.getAllActions()) {
+            System.out.println("ACTION: " + action.getSignature());
+            state = action.transition(state);
+
+            System.out.println("NEW STATE:");
+            System.out.println(state);
+
+
+            state.checkRelations();
+        }
+
+        System.out.println("GOALS:");
+        for (Formula f : problem.getGoals()) {
+            System.out.println(f + ": " + f.evaluate(state));
+        }
+
     }
 }

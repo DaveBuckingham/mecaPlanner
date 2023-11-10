@@ -1,39 +1,38 @@
 package mecaPlanner.search;
 
 import mecaPlanner.search.GNode;
-import mecaPlanner.state.EpistemicState;
-import mecaPlanner.Action;
-import mecaPlanner.models.Model;
+import mecaPlanner.state.PointedPlausibilityState;
+import mecaPlanner.actions.Action;
+import mecaPlanner.agents.Agent;
 import mecaPlanner.Log;
 import mecaPlanner.formulae.Formula;
 import mecaPlanner.formulae.TimeConstraint;
 import mecaPlanner.Domain;
 
+import java.util.List;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Map;
 
 public class AndNode extends GNode {
 
-    public AndNode(EpistemicState estate,
+    public AndNode(PointedPlausibilityState estate,
                  Formula goal,
-                 Set<TimeConstraint> timeConstraints,
+                 List<TimeConstraint> timeConstraints,
                  int time,
                  GNode parent,
-                 Map<String, Model> models,
-                 int systemAgentIndex,
-                 Domain domain
+                 Domain domain,
+                 int maxDepth
                 ) {
 
-        super(estate, goal, timeConstraints, time, parent, models, systemAgentIndex, domain);
+        super(estate, goal, timeConstraints, time, parent, domain, maxDepth);
         // MAKE SURE ITS NOT THE SYSTEM AGENT'S TURN
-        assert(systemAgentIndex != time % domain.getNonPassiveAgents().size());
+        assert(!domain.isSystemAgentIndex(time));
     }
 
     protected Set<Action> getPossibleActions() {
         Set<Action> possibleActions = new HashSet<Action>();
-        //Set<Action> prediction = models.get(agent).getPrediction(estate.getBeliefPerspective(agent));
-        Set<Action> prediction = models.get(agent).getPrediction(estate);
+        Set<Action> prediction = domain.getEnvironmentAgents().get(agent).getPrediction(estate);
 
         if (prediction == null) {
             throw new RuntimeException("Model returned null, indicating model failure.");
@@ -63,31 +62,28 @@ public class AndNode extends GNode {
     // starts at the first AndNode after an OrNode,
     // descends through layers of and-nodes,
     // stops when we reach an or-node layer
-    public GroundSuccessors descend() {
-        Set<OrNode> allOrSuccessors = new HashSet<>();
+    public OrLayer descend() {
         if (isGoal()) {
-            return new GroundSuccessors(time, allOrSuccessors);
+            return new OrLayer(time,maxDepth,domain);
         }
         if (isCycle()) {
+            //Log.debug("cycle");
             return null;
         }
-        Integer bestCaseDepth = Integer.MAX_VALUE;
+        OrLayer allSuccessors = new OrLayer(maxDepth,domain);
         for (Action action : getPossibleActions()) {
             GNode successor = transition(action);
 
-            GroundSuccessors successors = successor.descend();
+            OrLayer successors = successor.descend();
 
             if (successors == null) {
                 return null;
             }
 
-            Set<OrNode> orSuccessors = successors.getOrLayer();
+            allSuccessors.merge(successors);
 
-            bestCaseDepth = Integer.min(bestCaseDepth, successors.getBestCaseDepth());
-
-            allOrSuccessors.addAll(orSuccessors);
         }
-        return new GroundSuccessors(bestCaseDepth, allOrSuccessors);
+        return allSuccessors;
     }
 }
 

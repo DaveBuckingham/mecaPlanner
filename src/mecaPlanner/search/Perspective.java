@@ -1,18 +1,18 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.NDState;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.state.PlausibilityState;
+import mecaPlanner.state.PointedPlausibilityState;
 
 
 
 public class Perspective implements java.io.Serializable {
-    private NDState agentView;
+    private PlausibilityState agentView;
 
-    public Perspective(EpistemicState eState, String agent) {
+    public Perspective(PointedPlausibilityState eState, String agent) {
         agentView = eState.getBeliefPerspective(agent);
     }
 
-    public NDState getAgentView() {
+    public PlausibilityState getAgentView() {
         return agentView;
     }
 
@@ -25,6 +25,10 @@ public class Perspective implements java.io.Serializable {
             return false;
         }
         return agentView.equals(((Perspective) obj).getAgentView());
+    }
+
+    public boolean equivalent(Perspective other) {
+        return agentView.bisimilar(other.getAgentView());
     }
 
     @Override

@@ -1,6 +1,7 @@
 package mecaPlanner.state;
 
 
+
 import java.util.List;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -12,6 +13,7 @@ import java.util.HashMap;
 import java.util.Objects;
 
 import mecaPlanner.formulae.Fluent;
+import mecaPlanner.actions.Assignment;
 
 
 public class World implements java.io.Serializable {
@@ -24,9 +26,17 @@ public class World implements java.io.Serializable {
 
     private String name;
 
+    //private World child;
+
     public World(String name, Set<Fluent> fluents) {
         this.id = World.idCounter++;
         this.name = name;
+        this.fluents = fluents;
+    }
+
+    public World(Set<Fluent> fluents) {
+        this.id = World.idCounter++;
+        this.name = Integer.toString(id);
         this.fluents = fluents;
     }
 
@@ -39,41 +49,39 @@ public class World implements java.io.Serializable {
         this(name, new HashSet<Fluent>());
     }
 
+
+    public World(Fluent ...fluents) {
+        this(new HashSet(Arrays.asList(fluents)));
+    }
+
     public World(World toCopy) {
         id = World.idCounter++;
         name = toCopy.getName();
         fluents = new HashSet<Fluent>(toCopy.getFluents());
     }
 
-    public World(Set<Fluent> fluents) {
-        this(null, fluents);
-    }
-
-    public World(Fluent ...fluents) {
-        this(new HashSet(Arrays.asList(fluents)));
-    }
 
     protected Set<Fluent> getFluents() {
         return fluents;
     }
 
-    public World update(Set<Assignment> assignments) {
+    public Set<Fluent> update(Set<Assignment> assignments) {
         World world = new World(this);
         Set<Fluent> newFluents = new HashSet<Fluent>(fluents);
         for (Assignment assignment : assignments) {
-            if (assignment.getValue()) {
+            if (assignment.getCondition().evaluate(this)) {
                 newFluents.add(assignment.getFluent());
             }
             else {
                 newFluents.remove(assignment.getFluent());
             }
         }
-        return new World(null, newFluents);
+        return newFluents;
     }
 
-    public Boolean alteredByAssignment(Assignment assignment) {
-        return (fluents.contains(assignment.getFluent()) ^ assignment.getValue());
-    }
+    // public Boolean alteredByAssignment(Assignment assignment) {
+    //     return (fluents.contains(assignment.getFluent()) ^ assignment.getValue());
+    // }
 
     public int getId() {
         return this.id;
@@ -91,6 +99,7 @@ public class World implements java.io.Serializable {
     public String getName() {
         return name == null ? Integer.toString(id) : name;
     }
+
 
     @Override
     public String toString() {

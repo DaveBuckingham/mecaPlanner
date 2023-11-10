@@ -16,7 +16,9 @@ KEYWORD_FALSE           : 'false'|'False' ;
 KEYWORD_TIME            : 'timestep'|'Timestep' ;
 
 INTEGER                 : DIGIT+;
-ASSIGN                  : '<-';
+ASSIGN                  : '<-'|'gets';
+
+ORDER                   : '>';
 
 VARIABLE                : '?' LOWER_NAME;
 
@@ -42,8 +44,8 @@ init :
     passiveSection?
     fluentsSection
     constantsSection?
-    initiallySection
-    postSection?
+    startStateSection?
+    initiallySection?
     goalsSection
     actionsSection
 ;
@@ -75,7 +77,10 @@ passiveDef : objectName ;
 
 // FLUENTS DEFINITIONS
 
+agent :  objectName;
+
 groundableObject : objectName | VARIABLE ;
+groundableAgent :  groundableObject;
 expandableObject : objectName | objectType;
 expandableFluent : LOWER_NAME '(' (expandableObject ',')* expandableObject? ')' ;
 fluentsSection   : 'fluents' '{' (expandableFluent ',')* expandableFluent? '}' ;
@@ -94,27 +99,20 @@ fluent
     | '(' fluent ')'
     ;
 
-localFormula
-    : fluent                                                            # localFluent
-    | KEYWORD_TRUE                                                      # localLiteralTrue
-    | KEYWORD_FALSE                                                     # localLiteralFalse
-    | '(' localFormula ')'                                              # localParens
-    | OP_NOT localFormula                                               # localNot
-    | localFormula OP_AND localFormula (OP_AND localFormula)*           # localAnd
-    | localFormula OP_OR  localFormula (OP_OR localFormula)*            # localOr
-    | localFormula OP_IMPLIES localFormula                              # localImplies
-    ;
-
-beliefFormula 
-    : localFormula                                               # beliefLocalFormula
-    | '(' beliefFormula ')'                                      # beliefParens
-    | OP_NOT beliefFormula                                       # beliefNot
-    | 'B' '[' groundableObject ']' '(' beliefFormula ')'         # beliefBelieves
-    | 'P' '[' groundableObject ']' '(' beliefFormula ')'         # beliefPossibly
-    | 'K' '[' groundableObject ']' '(' beliefFormula ')'         # beliefKnows
-    | 'C' '(' beliefFormula ')'                                  # beliefCommon
-    | beliefFormula OP_AND beliefFormula                         # beliefAnd
-    | beliefFormula OP_OR beliefFormula (OP_OR beliefFormula)*   # beliefOr
+formula
+    : fluent                                                            # fluentFormula
+    | KEYWORD_TRUE                                                      # trueFormula
+    | KEYWORD_FALSE                                                     # falseFormula
+    | '(' formula ')'                                                   # parensFormula
+    | OP_NOT formula                                                    # notFormula
+    | formula OP_AND formula (OP_AND formula)*                          # andFormula
+    | formula OP_OR  formula (OP_OR formula)*                           # orFormula
+    | formula OP_IMPLIES formula                                        # impliesFormula
+    | 'K' '[' groundableAgent ']' '(' formula ')'                       # knowsFormula
+    | 'B' '[' groundableAgent ']' '(' formula ')'                       # believesFormula
+    | 'K\'' '[' groundableAgent ']' '(' formula ')'                     # knowsDualFormula
+    | 'S\'' '[' groundableAgent ']' '(' formula ')'                     # safeDualFormula
+    | 'B\'' '[' groundableAgent ']' '(' formula ')'                     # believesDualFormula
     ;
 
 inequality
@@ -133,61 +131,76 @@ timeConstraint : KEYWORD_TIME inequality INTEGER;
 
 // INITIAL STATE DEFINITION
 
-initiallySection : 'initially' ( startStateDef | '{' (startStateDef ','?)* '}' ) ;
+startStateSection : 'start' '{' ((model|stateDef) ','?)* '}' ;
 
-startStateDef : '{' (initiallyDef | kripkeModel) '}' ;
-
-initiallyDef : (beliefFormula ',')* beliefFormula ;
-
-kripkeModel : (kripkeWorld ','?)+ (kripkeRelation ','?)+ ;
-
-kripkeWorld : STAR? LOWER_NAME ASSIGN '{' (fluent ',')* fluent? '}' ;
-
-kripkeRelation : relationType '[' objectName ']' ASSIGN
-                 '{' ( '(' fromWorld ',' toWorld ')' ','? )* '}' ;
-
-relationType : 'B' | 'K' ;
-fromWorld : LOWER_NAME;
-toWorld : LOWER_NAME;
+model : '(' (world ','?)+ (relation ','?)+ ')' ;
+world : STAR? LOWER_NAME ASSIGN? '{' (fluent ',')* fluent? '}' ;
+relation : agent ASSIGN? '{' ( relate ','? )* '}' ;
+relate : '(' from=LOWER_NAME ',' to=LOWER_NAME ')'
+       | from=LOWER_NAME'-'to=LOWER_NAME
+       ;
 
 
-// OPTIONAL POST STATE
+stateDef : '(' (fluent ','?)* (stateAssertion ','?)* ')';
+stateAssertion : doubts='?' '[' (agent ',')* agent ']' '(' fluent ')'
+               | believes='B' '[' (agent ',')* agent ']' '(' OP_NOT? fluent ')'
+               | knows='K' '[' (agent ',')* agent ']' '(' formula ')'
+               ;
 
-postSection : 'post' startStateDef ;
+
+// INITIAL FORMULAE
+
+initiallySection : 'initially' '{' (formula ',')* formula? '}' ;
+
+
 
 
 // GOALS DEFINITION
 
 goalsSection : 'goals' '{' (goal ',')* goal? '}' ;
-goal : beliefFormula | timeConstraint ;
+goal : formula | timeConstraint ;
 
 
 // ACTION DEFINITIONS
 
-actionsSection : 'actions' '{' (actionDefinition ','?)* '}' ;
-actionDefinition : LOWER_NAME variableDefList '{' (actionField ','?)* '}' ;
-variableDefList : ('(' (variableDef ',')* variableDef? ')')? ;
+variableDefList : ('<' ((variableDef|variableInequality) ',')* (variableDef|variableInequality)? '>')? ;
 variableDef : VARIABLE '-' objectType ;
+variableInequality : lhs=VARIABLE '!=' rhs=VARIABLE ;
 
-actionField
-    : ownerActionField
-    | costActionField
-    | preconditionActionField
-    | observesActionField
-    | awareActionField
-    | causesActionField
-    | determinesActionField
-    | announcesActionField
-    ;
 
-ownerActionField        : 'owner' '{' groundableObject '}' ;
-costActionField         : 'cost'  '{' INTEGER '}' ;
-preconditionActionField : 'precondition' variableDefList '{' localFormula '}' ;
-observesActionField     : 'observes'     variableDefList '{' groundableObject ('if' condition)? '}' ;
-awareActionField        : 'aware'        variableDefList '{' groundableObject ('if' condition)? '}' ;
-determinesActionField   : 'determines'   variableDefList '{' localFormula ('if' condition)? '}' ;
-announcesActionField    : 'announces'    variableDefList '{' beliefFormula ('if' condition)? '}' ;
-causesActionField       : 'causes'       variableDefList '{' OP_NOT? fluent ('if' condition)? '}' ;
+actionsSection : 'actions' '{' (eventModelDef | actionDef ','?)* '}' ;
 
-condition : localFormula ;
+actionDef : actionScope=variableDefList LOWER_NAME '('
+    'owner' owner=groundableObject ','
+    ('cost' cost=INTEGER ',')?
+    (preconditionScope=variableDefList 'precondition' precondition=formula ',')?
+    ((observesDef|awareDef) ',')*
+    ((determinesDef|announcesDef|causesDef) ',')* (determinesDef|announcesDef|causesDef)?
+')' ;
+
+observesDef : variableDefList 'observes' groundableObject ('if' condition=formula)?;
+awareDef    : variableDefList 'aware' groundableObject ('if' condition=formula)?;
+
+determinesDef : 'determines'   determined=formula;
+announcesDef  : 'announces'    announced=formula;
+causesDef     : variableDefList  'causes' OP_NOT? fluent (ASSIGN formula)?;
+//causesDef     : variableDefList  'causes'       literal (OP_AND literal)* ('if' condition=formula)?;
+
+
+literal : OP_NOT? fluent;
+
+
+
+eventModelDef : LOWER_NAME '(' '{' (event ','?)+ '}' ',' (eventRelation ',')* eventRelation? ')' ;
+event         : STAR? LOWER_NAME '(' formula ',' '{' (assignment ',')* assignment? '}' ')'
+              | STAR? LOWER_NAME '(' formula ',' deletes=atoms ',' adds=atoms ')'
+              ;
+assignment    : fluent ASSIGN formula ;
+atoms         : '{' (fluent ',')* fluent? '}' ;
+eventRelation : agent '{' (edge ',')* edge? '}' ;
+edge          : '(' from=LOWER_NAME ',' to=LOWER_NAME (',' formula)? ')'
+              | from=LOWER_NAME'-'(formula'-')?to=LOWER_NAME
+              ;
+
+
 

@@ -1,21 +1,21 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import java.util.Set;
 import java.util.HashSet;
 
 import mecaPlanner.state.*;
+import mecaPlanner.actions.*;
 import mecaPlanner.formulae.Fluent;
-import mecaPlanner.Action;
 import mecaPlanner.Domain;
 
-public class ExampleModel extends Model {
+public class ExampleAgent extends Agent {
 
-    public ExampleModel(String agent, Domain domain) {
+    public ExampleAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(EpistemicState eState) {
-        NDState ndState = eState.getBeliefPerspective(agent);
+    public Set<Action> getPrediction(PointedPlausibilityState eState) {
+        PlausibilityState ndState = eState.getBeliefPerspective(agent);
         Set<Action> allActions = getSafeActions(ndState);
         Set<Action> prediction = new HashSet<>();
 
@@ -26,17 +26,17 @@ public class ExampleModel extends Model {
             }
         }
 
-        if (ndState.necessarily(new Fluent("at", "pizza", "roomB"))) {
-            if (ndState.necessarily(new Fluent("at", "human1", "roomA"))) {
+        if ((new Fluent("at", "pizza", "roomB")).necessarily(ndState)) {
+            if ((new Fluent("at", "human1", "roomA")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,roomA, hall1)", ndState));
                 prediction.add(getSafeActionBySignature("move(human1,roomA, hall2)", ndState));
                 return prediction;
             }
-            else if (ndState.necessarily(new Fluent("at", "human1", "hall1"))) {
+            else if ((new Fluent("at", "human1", "hall1")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,hall1, roomB)", ndState));
                 return prediction;
             }
-            else if (ndState.necessarily(new Fluent("at", "human1", "hall2"))) {
+            else if ((new Fluent("at", "human1", "hall2")).necessarily(ndState)) {
                 prediction.add(getSafeActionBySignature("move(human1,hall2, roomB)", ndState));
                 return prediction;
             }

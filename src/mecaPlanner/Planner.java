@@ -1,8 +1,7 @@
 package mecaPlanner;
 
-import mecaPlanner.state.EpistemicState;
 import mecaPlanner.formulae.*;
-import mecaPlanner.models.*;
+import mecaPlanner.agents.*;
 import mecaPlanner.search.Search;
 
 import java.util.Set;
@@ -30,8 +29,12 @@ import org.antlr.v4.runtime.tree.*;
 
 import depl.*;
 
+
+
 public class Planner {
 
+    public enum Language { MB, REVISE }
+    public static Language language=Language.MB;
 
     public static void main(String args[]) {
 
@@ -44,12 +47,17 @@ public class Planner {
         // PROCESS COMMAND LINE ARGUMENTS
         // WE EXECT A SINGLE .depl FILE WITH THE PROBLEM DESCRIPTION
         // AND AN OPTIONAL .plan FILE NAME WHERE WE SHOULD WRITE THE SOLUTION
+        // ND POSSIBLE A -d FLAG
 
         String deplFileName = null;
         String planFileName = null;
 
-        if (args.length < 1 || args.length > 2) {
-            throw new RuntimeException("expected 1 or 2 args: a .depl file, and an optional .plan file.");
+        if (args.length < 1) {
+            throw new RuntimeException("missing parameters");
+        }
+
+        if (args.length > 4) {
+            throw new RuntimeException("too many parameters");
         }
 
         for (String arg : args) {
@@ -64,6 +72,13 @@ public class Planner {
                     throw new RuntimeException("expected a single plan filename.");
                 }
                 planFileName = arg;
+            }
+            else if (arg.equals("-d")) {
+                Log.setThreshold("debug");
+            }
+            else if (arg.equals("-m")) {
+                Log.info("using mB action language");
+                Planner.language=Language.MB;
             }
             else {
                 throw new RuntimeException("invalid argument: " + arg);
@@ -85,12 +100,22 @@ public class Planner {
         DeplToProblem visitor     = new DeplToProblem();
         Problem problem = visitor.buildProblem(deplFileName);
 
+
         //System.out.println(problem.getDomain().getNonPassiveAgents());
         //System.out.println(problem.getSystemAgentIndex());
+
+
+        //System.out.println(problem);
         //System.exit(1);
 
 
         Log.info("done loading problem");
+
+        //System.out.println(problem.getStartState());
+        //System.exit(1);
+
+
+        Log.debug(Integer.toString(problem.getDomain().getAllActions().size()) + " actions loaded");
 
         Log.info("starting search");
 

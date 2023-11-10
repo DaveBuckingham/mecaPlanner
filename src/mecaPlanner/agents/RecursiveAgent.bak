@@ -1,9 +1,8 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
 import mecaPlanner.search.Perspective;
 import mecaPlanner.formulae.Fluent;
-import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 import mecaPlanner.Solution;
@@ -18,16 +17,16 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-public class RecursiveModel extends Model {
+public class RecursiveAgent extends Agent {
 
     Solution plan;
 
-    public RecursiveModel(String agent, Domain domain) {
+    public RecursiveAgent(String agent, Domain domain) {
         super(agent, domain);
         plan = null;
     }
 
-    public Set<Action> getPrediction(EpistemicState eState) {
+    public Set<Action> getPrediction(State eState) {
         Perspective perspective = new Perspective(eState, agent);
 
         if (plan == null || !plan.hasPerspective(perspective)) {
@@ -49,10 +48,10 @@ public class RecursiveModel extends Model {
                 localDomain.addPassive(p);
             }
 
-            Set<EpistemicState> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
+            Set<State> startStates = eState.getBeliefPerspective(agent).getEpistemicStates();
 
             //Problem problem = new Problem(localDomain, systemAgentIndex, startStates, 
-            //Map<String,Model> 
+            //Map<String,Agent> 
         }
         assert (plan != null);
         assert (plan.hasPerspective(perspective));
@@ -62,16 +61,16 @@ public class RecursiveModel extends Model {
 
 //    public Problem(Domain domain,
 //                   int systemAgentIndex,
-//                   Set<EpistemicState> startStates,
-//                   Map<String,Model> startingModels,
+//                   Set<State> startStates,
+//                   Map<String,Agent> startingAgent,
 //                   Set<TimeFormula> goals
  
 
 
 
 
-//            Set<EpistemicState> robotPerspectiveStates =
-//                currentState.getBeliefPerspective(currentAgent).getEpistemicStates();
+//            Set<State> robotPerspectiveStates =
+//                currentState.getBeliefPerspective(currentAgent).getStates();
 //
 //            Search search = new Search();
 //            Problem newProblem = new Problem(problem.getDomain(),

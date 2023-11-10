@@ -1,7 +1,7 @@
 package mecaPlanner;
 
-import mecaPlanner.models.Model;
-import mecaPlanner.state.EpistemicState;
+import mecaPlanner.agents.Agent;
+import mecaPlanner.actions.Action;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -15,22 +15,30 @@ public class Domain implements java.io.Serializable {
     private Map<String,Set<Action>> actions;
     private Map<String, Map<String,Action>> actionsBySignature;
 
-    private List<String> allAgents;
-    private List<String> nonPassiveAgents;
-    private List<String> passiveAgents;
+    private List<String> turnOrder;
 
-    private EpistemicState postState;
+    private List<String> allAgents;
+
+    private Set<String> systemAgents;
+    private Map<String, Agent> environmentAgents;
+    private Set<String> passiveAgents;
+
+    private List<Boolean> systemAgentIndeces;
+
+
 
 
     public Domain() {
         actions = new HashMap<>();
-        actionsBySignature = new HashMap<>();;
+        actionsBySignature = new HashMap<>();
 
+        turnOrder = new ArrayList<>();
         allAgents = new ArrayList<>();
-        nonPassiveAgents = new ArrayList<>();
-        passiveAgents = new ArrayList<>();
+        systemAgents = new HashSet<>();
+        environmentAgents = new HashMap<>();
+        passiveAgents = new HashSet<>();
 
-        postState = null;
+        systemAgentIndeces = new ArrayList<>();
 
     }
 
@@ -55,9 +63,14 @@ public class Domain implements java.io.Serializable {
         return actions.get(agent);
     }
 
-    public Set<Action> getAgentActions(int depth) {
-        return actions.get(agentAtDepth(depth));
+    public Set<Action> getAgentActions(Integer time) {
+        return getAgentActions(agentAtTime(time));
     }
+
+
+    //public Set<Action> getAgentActions(int depth) {
+    //    return actions.get(agentAtDepth(depth));
+    //}
 
 
     public Action getActionBySignature(String agent, String signature) {
@@ -68,24 +81,21 @@ public class Domain implements java.io.Serializable {
 
     }
 
-    public void setPostState(EpistemicState e) {
-        this.postState = e;
+    public Map<String, Agent> getEnvironmentAgents() {
+        return environmentAgents;
     }
 
-    public EpistemicState getPostState() {
-        return this.postState;
+    public List<String> getTurnOrder() {
+        return turnOrder;
     }
 
-    public List<String> getPassiveAgents() {
-        return passiveAgents;
-    }
+    //public Set<String> getPassiveAgents() {
+    //    return passiveAgents;
+    //}
 
-    public List<String> getNonPassiveAgents() {
-        return nonPassiveAgents;
-    }
 
-    public String agentAtDepth(int depth) {
-        return nonPassiveAgents.get(depth % nonPassiveAgents.size());
+    public String agentAtTime(int i) {
+        return turnOrder.get(i % turnOrder.size());
     }
 
     // public boolean isEnvironmentAgent(String agent) {
@@ -110,23 +120,31 @@ public class Domain implements java.io.Serializable {
         return allAgents;
     }
 
-    public List<String> getAgents() {
-        return allAgents;
+
+    public void addSystemAgent(String name) {
+        assert (!allAgents.contains(name));
+        systemAgents.add(name);
+        allAgents.add(name);
+        turnOrder.add(name);
+        systemAgentIndeces.add(true);
+        actions.put(name, new HashSet<Action>());
+        actionsBySignature.put(name, new HashMap<String, Action>());
     }
 
-
-    public void addAgent(String agent) {
-        assert (!allAgents.contains(agent));
-        allAgents.add(agent);
-        nonPassiveAgents.add(agent);
-        actions.put(agent, new HashSet<Action>());
-        actionsBySignature.put(agent, new HashMap<String, Action>());;
+    public void addEnvironmentAgent(String name, Agent model) {
+        assert (!allAgents.contains(name));
+        environmentAgents.put(name, model);
+        allAgents.add(name);
+        turnOrder.add(name);
+        systemAgentIndeces.add(false);
+        actions.put(name, new HashSet<Action>());
+        actionsBySignature.put(name, new HashMap<String, Action>());
     }
 
-    public void addPassive(String agent) {
-        assert (!allAgents.contains(agent));
-        passiveAgents.add(agent);
-        allAgents.add(agent);
+    public void addPassiveAgent(String name) {
+        assert (!allAgents.contains(name));
+        passiveAgents.add(name);
+        allAgents.add(name);
     }
 
     public void addAction(Action newAction) {
@@ -140,8 +158,12 @@ public class Domain implements java.io.Serializable {
         return allAgents.contains(s);
     }
 
+    public boolean isSystemAgentIndex(Integer i) {
+        return systemAgentIndeces.get(i % systemAgentIndeces.size());
+    }
+
     public boolean isNonPassiveAgent(String s) {
-        return nonPassiveAgents.contains(s);
+        return ((systemAgents.contains(s) || environmentAgents.containsKey(s)) && !passiveAgents.contains(s));
     }
 
 
@@ -150,7 +172,7 @@ public class Domain implements java.io.Serializable {
         StringBuilder str = new StringBuilder();
 
         str.append("AGENTS:\n");
-        for (String a : nonPassiveAgents) {
+        for (String a : turnOrder) {
             str.append(a);
             str.append("\n");
         }

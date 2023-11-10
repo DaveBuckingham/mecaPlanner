@@ -1,0 +1,43 @@
+//
+// What does a partial observer learn from an announcement?
+//
+
+
+
+types{
+}
+
+objects{
+    a-Object,
+    b-Object,
+}
+
+agents{
+    a,
+    b,
+}
+
+fluents{
+    p(),
+}
+
+start{(
+    *u{p()},
+     v{},
+     a{u-u,u-v,v-v,v-u}
+     b{u-u,u-v,v-v,v-u}
+)}
+
+
+goals{
+    false
+}
+
+actions{
+    ann(
+        owner a,
+        observes a,
+        aware b,
+        announces !p()
+    )
+}

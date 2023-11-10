@@ -1,7 +1,7 @@
 
 antlr   := java -jar $(PWD)/lib/antlr-4.7.1-complete.jar
 visitor := -no-listener -visitor
-java    = javac -g -Xmaxerrs 4 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar
+java    = javac -g -Xmaxerrs 5 -Xlint:deprecation -classpath $(PWD)/src/:$(PWD)/build/:$(PWD)/lib/antlr-4.7.1-complete.jar:$(PWD)/lib/javatuples-1.2.jar
 jarname := mecaPlanner-`cat VERSION`.jar
 
 builtClasses := build/mecaPlanner/ $(wildcard build/mecaPlanner/*.class) $(wildcard build/mecaPlanner/*/*.class) $(wildcard build/mecaPlanner/*/*/*.class)
@@ -22,7 +22,7 @@ mecaPlanner.jar: $(builtClasses)
 	jar -cf $(jarname) -C build depl/ -C build mecaPlanner/ && ln -fs $(jarname) mecaPlanner.jar
 
 $(builtClasses) : build/depl/ src/mecaPlanner/ $(wildcard src/mecaPlanner/*) $(wildcard src/mecaPlanner/*/*) $(wildcard src/mecaPlanner/*/*/*)
-	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java src/mecaPlanner/*/*/*.java -d build/
+	$(java) src/mecaPlanner/*.java src/mecaPlanner/*/*.java -d build/
 
 build/depl/: src/deplParser/DeplToProblem.java build/deplSrc/
 	$(java) src/deplParser/DeplToProblem.java build/deplSrc/*.java -d build/

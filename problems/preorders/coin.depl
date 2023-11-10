@@ -1,0 +1,73 @@
+// COIN TASK
+
+types{}
+
+objects{
+    a - Object,
+    b - Object,
+}
+
+agents{a}
+
+passive{b}
+
+fluents{
+    heads(),
+    full(a),
+    partial(a),
+    full(b),
+    partial(b),
+}
+
+start{
+//    (
+//       *w1  {heads(), full(a), partial(b)},
+//        w2  {heads(), full(a)},
+//        w3  {full(a), partial(b)},
+//        w4  {full(a)},
+//        a   {w1-w1,w1-w2,w1-w3,w1-w4,
+//             w2-w1,w2-w2,w2-w3,w2-w4,
+//             w3-w1,w3-w2,w3-w3,w3-w4,
+//             w4-w1,w4-w2,w4-w3,w4-w4},
+//        b   {w1-w1,w1-w3,w3-w3,w3-w1,
+//             w2-w2,w2-w4,w4-w4,w4-w2},
+//    )
+    (
+        heads(),
+        full(a),
+        partial(b),
+        ?[a,b](heads()),
+        ?[a](partial()),
+    )
+}
+
+initially{
+    heads() & ~K[a](heads()) & ~K[b](heads())
+}
+
+goals{
+    K[b](K[a](heads()) | K[a](~heads())),
+    B[b](K[a](heads()) | K[a](~heads())),
+    K[b](B[a](heads()) | B[a](~heads())),
+    K[a](heads()) | K[a](~heads()),
+    B[a](heads()) | B[a](~heads()),
+    ~K[b](heads()),
+    ~K[b](~heads()),
+    ~B[b](heads()),
+    ~B[b](~heads())
+}
+
+actions{
+
+//peek( {*f(heads(),{}), p(~heads(),{}), o(true,{}) },
+//           a{f-f, p-p, o-o, f-!full(a)-p, p-!full(a)-f, f-!full(a)&!partial(a)-o, p-!full(a)&!partial(a)-o},
+//           b{f-f, p-p, o-o, f-!full(b)-p, p-!full(b)-f, f-!full(b)&!partial(b)-o, p-!full(b)&!partial(b)-o}
+//)
+
+peek(owner a, cost 1, precondition true, 
+    observes a,
+    aware b if partial(b),
+    determines heads()
+)
+
+}

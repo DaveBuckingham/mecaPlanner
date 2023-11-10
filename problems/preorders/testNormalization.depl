@@ -1,0 +1,38 @@
+types{}
+
+objects{
+    a - Object,
+}
+
+agents{
+    a,
+}
+
+passive{}
+
+fluents{
+    p(),
+}
+
+start{
+    (
+        w1   {p()},
+        w2   {},
+        *w3  {p()},
+        a    {(w1,w1),(w2,w2),(w2,w1),(w3,w3),(w3,w2),(w3,w1)}
+    )
+}
+
+initially{
+}
+
+goals{
+}
+
+actions{
+
+watch(owner a,
+    observes a,
+)
+
+}

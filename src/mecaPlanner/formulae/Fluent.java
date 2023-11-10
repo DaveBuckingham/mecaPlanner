@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
-import mecaPlanner.state.KripkeStructure;
 import mecaPlanner.state.World;
+import mecaPlanner.state.PlausibilityState;
 
 import java.util.List;
 import java.util.ArrayList;
@@ -65,7 +65,10 @@ public class Fluent extends Formula{
         return false;
     }
 
-    public Boolean evaluate(KripkeStructure kripke, World world) {
+    public Boolean evaluate(World world) {
+        return world.ground(this);
+    }
+    public Boolean evaluate(PlausibilityState model, World world) {
         return world.ground(this);
     }
  

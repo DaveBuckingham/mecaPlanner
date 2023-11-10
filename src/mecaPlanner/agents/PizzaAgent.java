@@ -1,8 +1,8 @@
-package mecaPlanner.models;
+package mecaPlanner.agents;
 
 import mecaPlanner.state.*;
+import mecaPlanner.actions.*;
 import mecaPlanner.formulae.Fluent;
-import mecaPlanner.Action;
 import mecaPlanner.Log;
 import mecaPlanner.Domain;
 
@@ -16,14 +16,14 @@ import java.util.Arrays;
 import java.util.Iterator;
 
 
-public class PizzaModel extends Model {
+public class PizzaAgent extends Agent {
 
-    public PizzaModel(String agent, Domain domain) {
+    public PizzaAgent(String agent, Domain domain) {
         super(agent, domain);
     }
 
-    public Set<Action> getPrediction(EpistemicState eState) {
-        NDState ndState = eState.getBeliefPerspective(agent);
+    public Set<Action> getPrediction(PointedPlausibilityState eState) {
+        PlausibilityState ndState = eState.getBeliefPerspective(agent);
         Set<Action> allActions = getSafeActions(ndState);
         Set<Action> prediction = new HashSet<>();
         for (Action a : allActions) {
@@ -33,17 +33,17 @@ public class PizzaModel extends Model {
             }
         }
 
-        if (!ndState.necessarily(new Fluent("door_open"))) {
+        if (!necessarily(ndState, "door_open")) {
             prediction.add(getSafeActionBySignature("open_door()", ndState));
         }
-        else if (ndState.necessarily(new Fluent("at", agent, "room1"))) {
+        else if (necessarily(ndState, "at", agent, "room1")) {
             prediction.add(getSafeActionBySignature("move(human1,room1,room2)", ndState));
         }
-        else if (ndState.necessarily(new Fluent("at", agent, "room2"))) {
+        else if (necessarily(ndState, "at", agent, "room2")) {
             prediction.add(getSafeActionBySignature("move(human1,room2,room1)", ndState));
         }
         else {
-            throw new RuntimeException("Pizza Model failed to determine state");
+            throw new RuntimeException("Pizza Agent failed to determine state");
         }
         return prediction;
 
