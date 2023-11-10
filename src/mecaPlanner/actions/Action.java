@@ -285,6 +285,7 @@ public class Action<STATE extends PointedAbstractState> {
     }
 
 
+
     // NEED TO GET THIS IMPLEMENTATION
     public PointedBimodalState transition(PointedBimodalState state) {
         return null;

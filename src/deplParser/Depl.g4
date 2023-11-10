@@ -109,7 +109,6 @@ formula
     | formula OP_OR  formula (OP_OR formula)*                           # orFormula
     | formula OP_IMPLIES formula                                        # impliesFormula
     | 'K' '[' groundableAgent ']' '(' formula ')'                       # knowsFormula
-    | 'S' '[' groundableAgent ']' '(' formula ')'                       # safeFormula
     | 'B' '[' groundableAgent ']' '(' formula ')'                       # believesFormula
     | 'K\'' '[' groundableAgent ']' '(' formula ')'                     # knowsDualFormula
     | 'S\'' '[' groundableAgent ']' '(' formula ')'                     # safeDualFormula

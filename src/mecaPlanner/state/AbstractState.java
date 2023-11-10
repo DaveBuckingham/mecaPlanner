@@ -33,7 +33,7 @@ public interface AbstractState  {
 
     public List<String> getAgents();
 
-    public boolean bisimilar(AbstractS
+    public boolean bisimilar(AbstractState a);
 
 
 

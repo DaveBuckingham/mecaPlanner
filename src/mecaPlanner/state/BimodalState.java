@@ -159,6 +159,8 @@ public class BimodalState implements AbstractState, java.io.Serializable {
     }
 
     public Set<World> getBelieved(String agent, World lessPlausible) {
+        // NOT SURE ABOUT THIS
+        return getMostPlausible(agent, lessPlausible);
     }
 
     //private boolean isMorePlausible(String agent, Set<World> more, Set<World> less) {
@@ -200,7 +202,7 @@ public class BimodalState implements AbstractState, java.io.Serializable {
     }
 
     public Set<PointedBimodalState> getStates() {
-        Set<PointedBimodalState> states = new HashSet<State>();
+        Set<PointedBimodalState> states = new HashSet<PointedBimodalState>();
         for (World w : designated) {
             PointedBimodalState subState = new PointedBimodalState(agents, worlds, w);
             for (String agent : agents) {
@@ -561,10 +563,14 @@ public class BimodalState implements AbstractState, java.io.Serializable {
         return false;
     }
 
-    public Boolean bisimilar(BimodalState other) {
-        if (equals(other)) {
+    public boolean bisimilar(AbstractState obj) {
+        if (equals(obj)) {
             return true;
         }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        BimodalState other = (BimodalState) obj;
         BimodalState unioned = union(other);
 
         Set<World> otherInitials = other.getDesignated();

@@ -509,7 +509,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         World designatedWorld = new World("d", trueFluents);
         Set<World> worlds = new HashSet<>();
         worlds.add(designatedWorld);
-        PlausibilityState state = new PointedPlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
+        PointedPlausibilityState state = new PointedPlausibilityState(domain.getAllAgents(), worlds, designatedWorld);
 
         for (DeplParser.StateAssertionContext assertionCtx : ctx.stateAssertion()) {
             List<String> agents = new ArrayList<>();
@@ -546,7 +546,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return state;
     }
 
-    private PlausibilityState addDoubt(PlausibilityState state, List<String> agents, Fluent f) {
+    private PointedPlausibilityState addDoubt(PointedPlausibilityState state, List<String> agents, Fluent f) {
         Event actual = new Event("u", new Literal(true));
         Set<Formula> disjuncts = new HashSet<>();
         for (String a : agents) {
@@ -565,7 +565,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(state);
     }
 
-    private PlausibilityState addBelief(PlausibilityState state, List<String> agents, Fluent f, boolean val) {
+    private PointedPlausibilityState addBelief(PointedPlausibilityState state, List<String> agents, Fluent f, boolean val) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
@@ -582,7 +582,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         return model.transition(addDoubt(state, agents, f));
     }
 
-    private PlausibilityState addKnowledge(PlausibilityState state, List<String> agents, Formula f) {
+    private PointedPlausibilityState addKnowledge(PointedPlausibilityState state, List<String> agents, Formula f) {
         Event trueEvent = new Event("t", f);
         Event falseEvent = new Event("f", f.negate());
         Set<Event> events = new HashSet<>(Arrays.asList(trueEvent, falseEvent));
@@ -742,7 +742,6 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         String name = ctx.LOWER_NAME().getText();
 
-
         EventModel eventModel =  new EventModel(name, domain.getAllAgents(), new HashSet<Event>(events.values()), designated);
 
         for (DeplParser.EventRelationContext relationCtx : ctx.eventRelation()) {
@@ -761,7 +760,15 @@ public class DeplToProblem extends DeplBaseVisitor {
             }
         }
 
-        domain.addEventModel(eventModel);
+        Action stubAction = new Action(name,
+                  new ArrayList<String>(),
+                  null,
+                  0,
+                  new Literal(true),
+                  domain);
+
+        stubAction.setEventModel(eventModel);
+        domain.addAction(stubAction);
         return null;
     }
 
@@ -927,11 +934,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         return new KnowsFormula(agentName, inner);
     }
 
-    @Override public Formula visitSafeFormula(DeplParser.SafeFormulaContext ctx) {
-        Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableAgent());
-        return new SafeFormula(agentName, inner);
-    }
 
     @Override public Formula visitBelievesFormula(DeplParser.BelievesFormulaContext ctx) {
         Formula inner = (Formula) visit(ctx.formula());
@@ -943,12 +945,6 @@ public class DeplToProblem extends DeplBaseVisitor {
         Formula inner = (Formula) visit(ctx.formula());
         String agentName = (String) visit(ctx.groundableAgent());
         return NotFormula.make(new KnowsFormula(agentName, NotFormula.make(inner)));
-    }
-
-    @Override public Formula visitSafeDualFormula(DeplParser.SafeDualFormulaContext ctx) {
-        Formula inner = (Formula) visit(ctx.formula());
-        String agentName = (String) visit(ctx.groundableAgent());
-        return NotFormula.make(new SafeFormula(agentName, NotFormula.make(inner)));
     }
 
     @Override public Formula visitBelievesDualFormula(DeplParser.BelievesDualFormulaContext ctx) {

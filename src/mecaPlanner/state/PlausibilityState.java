@@ -572,10 +572,14 @@ public class PlausibilityState implements AbstractState, java.io.Serializable {
         return false;
     }
 
-    public Boolean bisimilar(PlausibilityState other) {
-        if (equals(other)) {
+    public boolean bisimilar(AbstractState obj) {
+        if (equals(obj)) {
             return true;
         }
+        if (obj == null || obj.getClass() != this.getClass()) {
+            return false;
+        }
+        PlausibilityState other = (PlausibilityState) obj;
         PlausibilityState unioned = union(other);
 
         Set<World> otherInitials = other.getDesignated();
