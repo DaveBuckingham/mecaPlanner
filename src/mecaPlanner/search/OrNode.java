@@ -1,6 +1,6 @@
 package mecaPlanner.search;
 
-import mecaPlanner.state.AbstractState;
+import mecaPlanner.state.PointedPlausibilityState;
 import mecaPlanner.actions.Action;
 import mecaPlanner.agents.Agent;
 import mecaPlanner.formulae.Formula;
@@ -15,7 +15,7 @@ import java.util.Map;
 
 public class OrNode extends GNode {
 
-    public OrNode(AbstractState estate,
+    public OrNode(PointedPlausibilityState estate,
                  Formula goal,
                  List<TimeConstraint> timeConstraints,
                  int time,

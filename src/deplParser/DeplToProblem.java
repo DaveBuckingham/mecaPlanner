@@ -34,7 +34,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
     // THESE GO IN THE PROBLEM
     private Domain domain;
-    private Set<AbstractState> startStates;
+    private Set<PointedPlausibilityState> startStates;
     private List<Formula> initially;
     private List<Formula> goals;
     private List<TimeConstraint> timeConstraints;
@@ -211,7 +211,7 @@ public class DeplToProblem extends DeplBaseVisitor {
         ParseTree tree           = parser.init();
 
         this.domain = new Domain();
-        this.startStates = new HashSet<AbstractState>();
+        this.startStates = new HashSet<PointedPlausibilityState>();
         this.initially = new ArrayList<>();
         this.goals = new ArrayList<>();
         this.timeConstraints = new ArrayList<>();
@@ -228,7 +228,7 @@ public class DeplToProblem extends DeplBaseVisitor {
 
         visit(tree);
 
-        for (AbstractState s : startStates) {
+        for (PointedPlausibilityState s : startStates) {
             for (Formula f : initially) {
                 if (!f.necessarily(s)) {
                     throw new RuntimeException("initially formula not satisfied: " + f.toString());
@@ -429,9 +429,8 @@ public class DeplToProblem extends DeplBaseVisitor {
             startStates.addAll(ndState.getStates());
         }
         for (DeplParser.StateDefContext stateDefCtx : ctx.stateDef()) {
-            //System.out.println("BUILDING STATE...");
-            PlausibilityState state = (PlausibilityState) visit(stateDefCtx);
-            startStates.add(state);
+            PlausibilityState ndState = (PlausibilityState) visit(stateDefCtx);
+            startStates.addAll(ndState.getStates());
         }
         return null;
     }

@@ -1,7 +1,6 @@
 package mecaPlanner;
 
 import mecaPlanner.agents.Agent;
-//import mecaPlanner.state.AbstractState;
 import mecaPlanner.actions.Action;
 
 import java.util.Map;

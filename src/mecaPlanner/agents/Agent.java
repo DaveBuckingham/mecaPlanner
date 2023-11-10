@@ -22,7 +22,7 @@ public abstract class Agent implements java.io.Serializable {
     }
 
     // GET ALL ACTIONS WHOSE PRECONDITIONS ARE SATISFIED IN ALL DESIGANTED WORLDS
-    public Set<Action> getSafeActions(AbstractState ndState) {
+    public Set<Action> getSafeActions(PlausibilityState ndState) {
         Set<Action> safeActions = new HashSet<Action>();
         for (Action action : domain.getAgentActions(agent)) {
             if (action.necessarilyExecutable(ndState)){
@@ -35,7 +35,7 @@ public abstract class Agent implements java.io.Serializable {
     // TAKE AN ACTION SIGNATURE (ITS NAME AND PARAMETERS) AND TRY TO FIND AND RETURN A CORRESPONDING ACTION.
     // THROWS AN EXCEPTION IF THE ACTION DOESN'T EXIST OR IF THE E-AGENT IS NOT CERTAIN THAT THE
     // ACTION CAN BE EXECUTED.
-    public Action getSafeActionBySignature(String signature, AbstractState ndState) {
+    public Action getSafeActionBySignature(String signature, PlausibilityState ndState) {
         Action action = domain.getActionBySignature(agent, signature.replaceAll("\\s+",""));
         if (!action.necessarilyExecutable(ndState)) {
             throw new RuntimeException("requested action " + 
@@ -51,17 +51,17 @@ public abstract class Agent implements java.io.Serializable {
     //     return singleton;
     // }
 
-    public Boolean necessarily(AbstractState ndState, String fluentName, String ...fluentParameters) {
+    public Boolean necessarily(PlausibilityState ndState, String fluentName, String ...fluentParameters) {
         return (new Fluent(fluentName, Arrays.asList(fluentParameters)).necessarily(ndState));
     }
 
-    public Boolean possibly(AbstractState ndState, String fluentName, String ...fluentParameters) {
+    public Boolean possibly(PlausibilityState ndState, String fluentName, String ...fluentParameters) {
         return (new Fluent(fluentName, Arrays.asList(fluentParameters)).possibly(ndState));
     }
 
-    public abstract Set<Action> getPrediction(PointedAbstractState eState);
+    public abstract Set<Action> getPrediction(PointedPlausibilityState eState);
 
-    public Agent update(AbstractState eState, Action action) {
+    public Agent update(PlausibilityState eState, Action action) {
         return this;
     }
 }

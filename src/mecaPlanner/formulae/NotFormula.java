@@ -1,7 +1,7 @@
 package mecaPlanner.formulae;
 
 
-import mecaPlanner.state.AbstractState;
+import mecaPlanner.state.PlausibilityState;
 import mecaPlanner.state.World;
 
 
@@ -46,7 +46,7 @@ public class NotFormula extends Formula{
         return (!formula.evaluate(world));
     }
 
-    public Boolean evaluate(AbstractState model, World world) {
+    public Boolean evaluate(PlausibilityState model, World world) {
         return (!formula.evaluate(model, world));
     }
 

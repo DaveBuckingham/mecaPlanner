@@ -1,7 +1,8 @@
 package mecaPlanner;
 
 import mecaPlanner.formulae.*;
-import mecaPlanner.state.AbstractState;
+import mecaPlanner.state.PlausibilityState;
+import mecaPlanner.state.PointedPlausibilityState;
 
 import java.util.Map;
 import java.util.HashMap;
@@ -13,14 +14,14 @@ import java.util.ArrayList;
 public class Problem implements java.io.Serializable {
 
     private Domain domain;
-    private Set<AbstractState> startStates;
+    private Set<PointedPlausibilityState> startStates;
     private List<Formula> initially;
     private List<Formula> goals;
     private List<TimeConstraint> timeConstraints;
 
 
     public Problem(Domain domain,
-                   Set<AbstractState> startStates,
+                   Set<PointedPlausibilityState> startStates,
                    List<Formula> goals,
                    List<TimeConstraint> timeConstraints
                   ) {
@@ -31,11 +32,11 @@ public class Problem implements java.io.Serializable {
     }
 
 
-    public Set<AbstractState> getStartStates() {
+    public Set<PointedPlausibilityState> getStartStates() {
         return startStates;
     }
 
-    public AbstractState getStartState() {
+    public PointedPlausibilityState getStartState() {
         if (startStates.size() != 1) {
             throw new RuntimeException("problem contains " + startStates.size() + " start states.");
         }
@@ -71,7 +72,7 @@ public class Problem implements java.io.Serializable {
         str.append(domain);
 
         str.append("INITIALLY:\n");
-        for (AbstractState s : startStates) {
+        for (PlausibilityState s : startStates) {
             str.append(s.toString());
         }
         str.append("\n");

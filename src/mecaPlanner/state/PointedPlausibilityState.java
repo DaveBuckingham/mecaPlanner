@@ -18,7 +18,7 @@ import java.util.Collections;
 
 
 
-public class PointedPlausibilityState extends PlausibilityState implements PointedAbstractState {
+public class PointedPlausibilityState extends PlausibilityState {
 
     public PointedPlausibilityState(List<String> agents, Set<World> worlds, World designated) {
         super(agents, worlds, new HashSet<World>(Arrays.asList(designated)));

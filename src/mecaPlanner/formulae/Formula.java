@@ -5,8 +5,8 @@ import java.util.ArrayList;
 import java.util.Arrays;
 
 import mecaPlanner.state.World;
-import mecaPlanner.state.PointedAbstractState;
-import mecaPlanner.state.AbstractState;
+import mecaPlanner.state.PointedPlausibilityState;
+import mecaPlanner.state.PlausibilityState;
 
 import mecaPlanner.*;
 
@@ -25,14 +25,14 @@ public abstract class Formula {
     public abstract Boolean isFalse();
     public abstract Set<Fluent> getAllFluents();
 
-    public abstract Boolean evaluate(AbstractState model, World world);
+    public abstract Boolean evaluate(PlausibilityState model, World world);
     public abstract Boolean evaluate(World world);
 
-    public Boolean evaluate(PointedAbstractState state) {
+    public Boolean evaluate(PointedPlausibilityState state) {
         return evaluate(state, state.getDesignatedWorld());
     }
 
-    public Boolean possibly(AbstractState state) {
+    public Boolean possibly(PlausibilityState state) {
         for (World w : state.getDesignated()) {
             if (evaluate(state, w)) {
                 return true;
@@ -41,7 +41,7 @@ public abstract class Formula {
         return false;
     }
 
-    public Boolean necessarily(AbstractState state) {
+    public Boolean necessarily(PlausibilityState state) {
         for (World w : state.getDesignated()) {
             if (!evaluate(state, w)) {
                 return false;

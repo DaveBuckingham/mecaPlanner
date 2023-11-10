@@ -20,7 +20,7 @@ import java.util.Objects;
 //import org.javatuples.Pair;
 
 
-public class Action<STATE extends PointedAbstractState> {
+public class Action {
 
     private Domain domain;
 
@@ -89,7 +89,7 @@ public class Action<STATE extends PointedAbstractState> {
         return this.cost;
     }
 
-    public boolean executable(STATE state) {
+    public boolean executable(PointedPlausibilityState state) {
         return precondition.evaluate(state);
     }
 
@@ -98,7 +98,7 @@ public class Action<STATE extends PointedAbstractState> {
         this.eventModel = e;
     }
 
-    public Boolean necessarilyExecutable(AbstractState state) {
+    public Boolean necessarilyExecutable(PlausibilityState state) {
         for (World w : state.getDesignated()) {
             assert (w != null);
             if (!precondition.evaluate(state, w)) {
@@ -112,9 +112,9 @@ public class Action<STATE extends PointedAbstractState> {
 
 
     public void setObservesCondition(String agent, Formula condition) {
-        if (observesConditions.containsKey(agent)) {
-            throw new RuntimeException("observe condition already set for " + agent);
-        }
+        //if (observesConditions.containsKey(agent)) {
+        //    throw new RuntimeException(name + " observe condition already set for " + agent);
+        //}
         observesConditions.put(agent, condition);
     }
 

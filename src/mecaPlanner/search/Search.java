@@ -47,10 +47,10 @@ public class Search {
         //    leavesPerDepth += domain.getActions(agent).size();
         //}
 
-        Set<State> startStates = problem.getStartStates();
+        Set<PointedPlausibilityState> startStates = problem.getStartStates();
 
-        for (State eState : startStates) {
-            eState.checkRelations();
+        for (PointedPlausibilityState state : startStates) {
+            state.checkRelations();
         }
 
         //int systemAgentIndex = problem.getSystemAgentIndex();
@@ -74,7 +74,7 @@ public class Search {
 
             if (domain.isSystemAgentIndex(time)) {
                 Set<OrNode> allStartOrNodes = new HashSet<>();
-                for (State eState : startStates) {
+                for (PointedPlausibilityState eState : startStates) {
                     allStartOrNodes.add(new OrNode(eState,
                                                    goal, 
                                                    timeConstraints,
@@ -89,7 +89,7 @@ public class Search {
             }
             else {
                 startingOrLayer = new OrLayer(maxDepth,domain);
-                for (State eState : startStates) {
+                for (PointedPlausibilityState eState : startStates) {
                     AndNode startAndNode = new AndNode(eState,
                                                        goal, 
                                                        timeConstraints,

@@ -22,7 +22,7 @@ public class TrivialAgent extends Agent {
     private Action waitAction;
 
 
-    public Set<Action> getPrediction(PointedAbstractState eState) {
+    public Set<Action> getPrediction(PointedPlausibilityState eState) {
 
         return getSafeActions(eState.getBeliefPerspective(agent));
 

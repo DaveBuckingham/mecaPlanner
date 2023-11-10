@@ -24,7 +24,7 @@ import mecaPlanner.formulae.Fluent;
 //import org.javatuples.Triplet;
 
 
-public class PlausibilityState implements AbstractState, java.io.Serializable {
+public class PlausibilityState implements java.io.Serializable {
 
 
 
@@ -572,7 +572,7 @@ public class PlausibilityState implements AbstractState, java.io.Serializable {
         return false;
     }
 
-    public boolean bisimilar(AbstractState obj) {
+    public boolean bisimilar(Object obj) {
         if (equals(obj)) {
             return true;
         }

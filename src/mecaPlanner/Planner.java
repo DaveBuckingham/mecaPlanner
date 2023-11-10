@@ -52,7 +52,11 @@ public class Planner {
         String deplFileName = null;
         String planFileName = null;
 
-        if (args.length < 1 || args.length > 4) {
+        if (args.length < 1) {
+            throw new RuntimeException("missing parameters");
+        }
+
+        if (args.length > 4) {
             throw new RuntimeException("too many parameters");
         }
 

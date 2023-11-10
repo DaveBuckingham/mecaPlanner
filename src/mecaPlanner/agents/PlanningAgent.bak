@@ -19,11 +19,11 @@ public abstract class PlanningAgent extends Agent {
         super(agent, domain);
     }
 
-    Map<String,Map<PointedAbstractState,Set<Action>>> memo = new HashMap<>();
+    Map<String,Map<PointedPlausibilityState,Set<Action>>> memo = new HashMap<>();
 
-    private Set<Action> getPlannedActions(AbstractState ndState, String agent, Formula goal) {
+    private Set<Action> getPlannedActions(PlausibilityState ndState, String agent, Formula goal) {
         if (!memo.containsKey(agent)) {
-            memo.put(agent, new HashMap<PointedAbstractState, Set<Action>>());
+            memo.put(agent, new HashMap<PointedPlausibilityState, Set<Action>>());
         }
         Set<State> possibleStates = ndState.getEpistemicStates();
         if (!memo.get(agent).containsKey(ndState)) {
@@ -33,7 +33,7 @@ public abstract class PlanningAgent extends Agent {
         return memo.get(agent).get(ndState);
     }
 
-    private Map<NDState, Set<Action>> search(AbstractState ndState, String agent, Formula goal) {
+    private Map<NDState, Set<Action>> search(PlausibilityState ndState, String agent, Formula goal) {
         HashMap<NDState, Set<Action>> policy = new HashMap<>();
         // IF WE USE 'NECESSARILY' HERE, MIGHT KEEP SEARCHING EVEN IF
         // AGENT KNOWS GOAL WILL BE REACHED OVER MULTIPLE STATES
